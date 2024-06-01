@@ -1,0 +1,31 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2020": true },
+  "extends": [
+    "eslint:recommended",
+    "plugin:prettier/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript",
+    "plugin:storybook/recommended"
+  ],
+  "ignorePatterns": ["dist", ".eslintrc.cjs"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["react-refresh", "import"],
+  "rules": {
+    "react-refresh/only-export-components": ["warn", { "allowConstantExport": true }],
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "prettier/prettier": ["error", { "jsxSingleQuote": false, "endOfLine": "auto" }],
+    "no-duplicate-imports": "error",
+    "import/order": ["error"],
+    "import/no-duplicates": "error",
+    "object-shorthand": "error",
+    "no-useless-rename": "error",
+    "no-useless-concat": "error",
+    "prefer-template": "error",
+    "prefer-spread": "error",
+    "no-nested-ternary": "error",
+    "@typescript-eslint/no-unused-vars": "error",
+    "no-console": "warn"
+  }
+}
