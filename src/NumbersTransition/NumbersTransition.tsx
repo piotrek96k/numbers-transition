@@ -52,9 +52,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     value ?? 0,
   ].map((number: number): number[] => [...String(number)].map(Number));
 
-  const numberOfDigits: number = Math.max(previousValueDigits.length, currentValueDigits.length);
-  const nonZeroNumberOfDigits: number = Math.min(previousValueDigits.length, currentValueDigits.length);
-  const numberOfDigitsDifference: number = Math.abs(previousValueDigits.length - currentValueDigits.length);
+  const numbersSort = (first: number, second: number): number => first - second;
+
+  const [nonZeroNumberOfDigits, numberOfDigits] = [previousValueDigits, currentValueDigits]
+    .map(({ length }: number[]): number => length)
+    .sort(numbersSort);
+  const numberOfDigitsDifference: number = numberOfDigits - nonZeroNumberOfDigits;
+
   const isValueInvalid: boolean = value === undefined || value < 0;
 
   const startAnimation = () =>
@@ -131,7 +135,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   ): AlgorithmValues[][] => {
     const [start, end] = [previousValue, value!]
       .map((number: number): number => Math.floor(number / 10 ** (numberOfDigits - index - 1)))
-      .sort((first: number, second: number): number => first - second);
+      .sort(numbersSort);
     const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
     return accumulator;
