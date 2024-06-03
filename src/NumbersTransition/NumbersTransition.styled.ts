@@ -1,61 +1,37 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { Keyframes } from 'styled-components/dist/types';
-
-export enum HorizontalAnimationDirection {
-  RIGHT = 'RIGHT',
-  LEFT = 'LEFT',
-}
-
-export enum VerticalAnimationDirection {
-  UP = 'UP',
-  DOWN = 'DOWN',
-}
-
-export enum DigitGroupSeparator {
-  NONE = '',
-  COMMA = ',',
-  DOT = '.',
-  THIN_SPACE = ' ',
-  SPACE = ' ',
-  UNDERSCORE = '_',
-  APOSTROPHE = "'",
-}
+import { HorizontalAnimationDirection, VerticalAnimationDirection } from './NumbersTransition.enum';
 
 type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
 interface HorizontalAnimationProps {
-  animationDirection?: HorizontalAnimationDirection;
-  animationDuration?: number;
-  animationStartNumberOfDigits?: number;
-  animationEndNumberOfDigits?: number;
-  digitGroupSeparatorWidth?: number;
+  $animationDirection?: HorizontalAnimationDirection;
+  $animationDuration?: number;
+  $animationStartWidth?: number;
+  $animationEndWidth?: number;
 }
 
 interface VerticalAnimationProps {
-  animationDirection: VerticalAnimationDirection;
-  animationDuration: number;
-  animationNumberOfDigits: number;
+  $animationDirection: VerticalAnimationDirection;
+  $animationDuration: number;
+  $animationNumberOfDigits: number;
 }
 
-const getHorizontalAnimationWidth = (numberOfDigits: number, digitGroupSeparatorWidth: number): RuleSet<object> => css`
-  width: calc(1ch * (${numberOfDigits} + ${digitGroupSeparatorWidth * Math.floor((numberOfDigits - 1) / 3)}));
-`;
-
-const getHorizontalAnimation = (start: number, end: number, digitGroupSeparatorWidth: number): Keyframes => keyframes`
+const getHorizontalAnimation = (animationStartWidth: number, animationEndWidth: number): Keyframes => keyframes`
   from {
-    ${getHorizontalAnimationWidth(start, digitGroupSeparatorWidth)};
+    width: calc(1ch * ${animationStartWidth});
   }
   to {
-    ${getHorizontalAnimationWidth(end, digitGroupSeparatorWidth)};
+    width: calc(1ch * ${animationEndWidth});
   }
 `;
 
-const getVerticalAnimation = (numberOfDigits: number): Keyframes => keyframes`
+const getVerticalAnimation = (animationNumberOfDigits: number): Keyframes => keyframes`
   from {
     transform: translateY(0);
   }
   to {
-    transform: translateY(calc(100% / ${numberOfDigits} - 100%));
+    transform: translateY(calc(100% / ${animationNumberOfDigits} - 100%));
   }
 `;
 
@@ -83,17 +59,11 @@ const getAnimation = (
 `;
 
 const horizontalAnimationCss: RuleSet<HorizontalAnimationProps> = css<HorizontalAnimationProps>`
-  ${({
-    animationDirection,
-    animationDuration,
-    animationStartNumberOfDigits,
-    animationEndNumberOfDigits,
-    digitGroupSeparatorWidth,
-  }) =>
+  ${({ $animationDirection, $animationDuration, $animationStartWidth, $animationEndWidth }) =>
     getAnimation(
-      getHorizontalAnimation(animationStartNumberOfDigits!, animationEndNumberOfDigits!, digitGroupSeparatorWidth!),
-      animationDirection!,
-      animationDuration!,
+      getHorizontalAnimation($animationStartWidth!, $animationEndWidth!),
+      $animationDirection!,
+      $animationDuration!,
     )};
   & > :first-child {
     position: absolute;
@@ -111,13 +81,13 @@ export const HorizontalAnimation = styled.span<HorizontalAnimationProps>`
   overflow: hidden;
   height: 1lh;
   white-space: nowrap;
-  ${({ animationDirection }) => animationDirection && horizontalAnimationCss}
+  ${({ $animationDirection }) => $animationDirection && horizontalAnimationCss}
 `;
 
 export const VerticalAnimation = styled.span<VerticalAnimationProps>`
   display: inline-block;
-  ${({ animationDirection, animationDuration, animationNumberOfDigits }) =>
-    getAnimation(getVerticalAnimation(animationNumberOfDigits), animationDirection, animationDuration)}
+  ${({ $animationDirection, $animationDuration, $animationNumberOfDigits }) =>
+    getAnimation(getVerticalAnimation($animationNumberOfDigits), $animationDirection, $animationDuration)}
 `;
 
 export const Character = styled.span`

@@ -1,22 +1,13 @@
 import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
+import { HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
 import {
-  Character,
-  Digit,
-  DigitGroupSeparator,
-  HorizontalAnimation,
+  AnimationType,
   HorizontalAnimationDirection,
-  VerticalAnimation,
   VerticalAnimationDirection,
-} from './NumbersTransition.styled';
-
-enum AnimationType {
-  HORIZONTAL = 'HORIZONTAL',
-  VERTICAL = 'VERTICAL',
-}
-
-enum LinearAlgorithm {
-  MAX_LENGTH = 14,
-}
+  DigitGroupSeparator,
+  LinearAlgorithm,
+  EmptyCharacter,
+} from './NumbersTransition.enum';
 
 interface AlgorithmValues {
   start: number;
@@ -130,6 +121,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
       .map((text: string): number => canvasContextRef.current!.measureText(text).width)
       .reduce((accumulator: number, currentValue: number): number => accumulator / currentValue);
 
+  const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
+    numberOfDigits + getSeparatorWidth() * Math.floor((numberOfDigits - 1) / 3);
+
   const algorithmValuesArrayReducer = (
     accumulator: AlgorithmValues[][],
     _: undefined,
@@ -184,9 +178,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   const digitsVerticalAnimationArrayMapper = (digits: number[], index: number): JSX.Element =>
     digitsMapper(
       <VerticalAnimation
-        animationDirection={value! > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN}
-        animationDuration={verticalAnimationDuration}
-        animationNumberOfDigits={digits.length}
+        $animationDirection={value! > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN}
+        $animationDuration={verticalAnimationDuration}
+        $animationNumberOfDigits={digits.length}
         onAnimationEnd={OnVerticalAnimationEnd}
       >
         {digits.map(digitsVerticalAnimationMapper)}
@@ -202,7 +196,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   ): JSX.Element => (
     <>
       {accumulator}
-      {index && !((length - index) % 3) && <Character>{digitGroupSeparator}</Character>}
+      {digitGroupSeparator !== DigitGroupSeparator.NONE && !((length - index) % 3) && (
+        <Character>{digitGroupSeparator}</Character>
+      )}
       {currentValue}
     </>
   );
@@ -217,7 +213,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   const getAnimation: () => JSX.Element =
     animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation;
 
-  const getEmptyValue = (): JSX.Element => <Character>-</Character>;
+  const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
   const getNumericValue = (): JSX.Element => getNumericValueDigits().map(digitsMapper).reduce(digitsReducer);
 
@@ -230,12 +226,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     <HorizontalAnimation
       ref={componentRef}
       {...(animationTypePlaying === AnimationType.HORIZONTAL && {
-        animationDirection:
+        $animationDirection:
           value! > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT,
-        animationDuration: horizontalAnimationDuration,
-        animationStartNumberOfDigits: nonZeroNumberOfDigits,
-        animationEndNumberOfDigits: numberOfDigits,
-        digitGroupSeparatorWidth: getSeparatorWidth(),
+        $animationDuration: horizontalAnimationDuration,
+        $animationStartWidth: getHorizontalAnimationWidth(nonZeroNumberOfDigits),
+        $animationEndWidth: getHorizontalAnimationWidth(numberOfDigits),
         onAnimationEnd: onHorizontalAnimationEnd,
       })}
     >

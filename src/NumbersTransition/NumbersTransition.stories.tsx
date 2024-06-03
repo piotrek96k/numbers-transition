@@ -1,6 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react';
-import { DigitGroupSeparator } from './NumbersTransition.styled';
 import NumbersTransition from './NumbersTransition';
+import { DigitGroupSeparator } from './NumbersTransition.enum';
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
