@@ -54,10 +54,16 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const numbersSort = (first: number, second: number): number => first - second;
 
-  const [nonZeroNumberOfDigits, numberOfDigits] = [previousValueDigits, currentValueDigits]
+  const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
+    ...accumulator,
+    currentValue,
+    ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
+  ];
+
+  const [nonZeroNumberOfDigits, numberOfDigits, numberOfDigitsDifference] = [previousValueDigits, currentValueDigits]
     .map(({ length }: number[]): number => length)
-    .sort(numbersSort);
-  const numberOfDigitsDifference: number = numberOfDigits - nonZeroNumberOfDigits;
+    .sort(numbersSort)
+    .reduce<number[]>(digitsLengthReducer, []);
 
   const isValueInvalid: boolean = value === undefined || value < 0;
 
