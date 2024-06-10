@@ -4,14 +4,18 @@ import {
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
+  DecimalSeparator,
   DigitGroupSeparator,
   LinearAlgorithm,
   EmptyCharacter,
+  NumberPrecision,
 } from './NumbersTransition.enum';
 
+type BigDecimal = number | bigint | `${number}`;
+
 interface AlgorithmValues {
-  start: number;
-  end: number;
+  start: bigint;
+  end: bigint;
 }
 
 interface KeyProps {
@@ -36,6 +40,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const [animationTypePlaying, setAnimationTypePlaying] = useState<AnimationType>();
   const [restartAnimation, setRestartAnimation] = useState<boolean>(false);
+
   const previousValueRef: MutableRefObject<number> = useRef<number>(0);
   const previousValueAnimatingRef: MutableRefObject<number> = useRef<number>(0);
   const componentRef: RefObject<HTMLSpanElement> = useRef<HTMLSpanElement>(null);
@@ -45,14 +50,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const previousValue: number = previousValueRef.current;
   const previousValueAnimating: number = previousValueAnimatingRef.current;
+  const isValueInvalid: boolean = value === undefined || value < 0;
 
   const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits] = [
     previousValue,
     previousValueAnimating,
     value ?? 0,
-  ].map((number: number): number[] => [...String(number)].map(Number));
-
-  const numbersSort = (first: number, second: number): number => first - second;
+  ].map<number[]>((number: number): number[] => [...String(number)].map<number>(Number));
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
@@ -60,50 +64,26 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
   ];
 
-  const [nonZeroNumberOfDigits, numberOfDigits, numberOfDigitsDifference] = [previousValueDigits, currentValueDigits]
-    .map(({ length }: number[]): number => length)
-    .sort(numbersSort)
+  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference] = [previousValueDigits, currentValueDigits]
+    .map<number>(({ length }: number[]): number => length)
+    .sort((first: number, second: number): number => first - second)
     .reduce<number[]>(digitsLengthReducer, []);
 
-  const isValueInvalid: boolean = value === undefined || value < 0;
-
-  const startAnimation = () =>
+  const startAnimation = (): void =>
     setAnimationTypePlaying(
       currentValueDigits.length > previousValueDigits.length ? AnimationType.HORIZONTAL : AnimationType.VERTICAL,
     );
 
-  const stopAnimation = () => {
+  const stopAnimation = (): void => {
     previousValueRef.current = isValueInvalid ? 0 : value!;
     setAnimationTypePlaying(undefined);
   };
-
-  useEffect(() => {
-    if (isValueInvalid) {
-      stopAnimation();
-      return;
-    }
-    if (animationTypePlaying) {
-      previousValueRef.current = previousValueAnimatingRef.current;
-      setAnimationTypePlaying(undefined);
-      setRestartAnimation(true);
-    } else {
-      startAnimation();
-    }
-    previousValueAnimatingRef.current = value!;
-  }, [value]);
-
-  useEffect(() => {
-    if (restartAnimation) {
-      startAnimation();
-      setRestartAnimation(false);
-    }
-  }, [restartAnimation]);
 
   const onAnimationEnd = (
     { length: shorterLength }: number[],
     { length: longerLength }: number[],
     newAnimationType: AnimationType,
-  ) => {
+  ): void => {
     if (shorterLength < longerLength) {
       setAnimationTypePlaying(newAnimationType);
     } else {
@@ -111,24 +91,45 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     }
   };
 
-  const onHorizontalAnimationEnd = () =>
+  const onHorizontalAnimationEnd = (): void =>
     onAnimationEnd(previousValueDigits, currentValueDigits, AnimationType.VERTICAL);
 
-  const OnVerticalAnimationEnd = () =>
+  const onVerticalAnimationEnd = (): void =>
     onAnimationEnd(currentValueDigits, previousValueDigits, AnimationType.HORIZONTAL);
 
-  useEffect(() => {
+  useEffect((): void => {
+    if (isValueInvalid) {
+      stopAnimation();
+      return;
+    }
+    if (animationTypePlaying) {
+      previousValueRef.current = previousValueAnimatingRef.current;
+      setRestartAnimation(true);
+    } else {
+      startAnimation();
+    }
+    previousValueAnimatingRef.current = value!;
+  }, [value]);
+
+  useEffect((): void => {
+    if (restartAnimation) {
+      startAnimation();
+      setRestartAnimation(false);
+    }
+  }, [restartAnimation]);
+
+  useEffect((): void => {
     if (componentRef.current && canvasContextRef.current) {
       canvasContextRef.current.font =
         [...componentRef.current.classList]
-          .map((className: string): string => window.getComputedStyle(componentRef.current!, className).font)
+          .map<string>((className: string): string => window.getComputedStyle(componentRef.current!, className).font)
           .find((font: string): string => font) ?? '';
     }
   }, [componentRef.current, canvasContextRef.current]);
 
   const getSeparatorWidth = (): number =>
     [digitGroupSeparator, '0']
-      .map((text: string): number => canvasContextRef.current!.measureText(text).width)
+      .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
       .reduce((accumulator: number, currentValue: number): number => accumulator / currentValue);
 
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
@@ -139,28 +140,39 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     _: undefined,
     index: number,
   ): AlgorithmValues[][] => {
-    const [start, end] = [previousValue, value!]
-      .map((number: number): number => Math.floor(number / 10 ** (numberOfDigits - index - 1)))
-      .sort(numbersSort);
+    const [start, end] = [BigInt(previousValue), BigInt(value!)]
+      .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
+      .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
     const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
     return accumulator;
   };
 
   const linearAlgorithmMapper = ({ start, end }: AlgorithmValues): number[] =>
-    [...Array(end - start + 1)].map((_: undefined, index: number): number => (start + index) % 10);
+    [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
+      Number((start + BigInt(index)) % 10n),
+    );
 
   const nonLinearAlgorithmMapper = (values: AlgorithmValues, algorithmIndex: number): number[] => {
     const { start, end } = values;
-    const increment: number = (end - start) / (LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex));
-    const numbers: number[] = [...Array(Math.round((end - start) / increment))].map(
-      (_: undefined, index: number): number => Math.round(start + index * increment) % 10,
-    );
-    return numbers[numbers.length - 1] === end % 10 ? numbers : [...numbers, end % 10];
+    const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
+      .map<bigint>(
+        (_: undefined, index: number, { length }: number[]): bigint =>
+          (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
+      )
+      .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [
+        increasedValue,
+        increasedValue / NumberPrecision.VALUE,
+      ])
+      .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
+        increasedValue - newValue * NumberPrecision.VALUE <= NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
+      )
+      .map<number>((roundedValue: bigint): number => Number(roundedValue % 10n));
+    return numbers[numbers.length - 1] === Number(end % 10n) ? numbers : [...numbers, Number(end % 10n)];
   };
 
   const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
-    algorithmValuesArray.map(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
+    algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
 
   const getHorizontalAnimationDigits = (): number[] => [
     ...Array(numberOfDigitsDifference).fill(0),
@@ -168,10 +180,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   ];
 
   const getVerticalAnimationDigitsArray = (): number[][] =>
-    [...Array(numberOfDigits)]
+    [...Array(maxNumberOfDigits)]
       .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
-      .map(algorithmMapper)
-      .flat();
+      .map<number[][]>(algorithmMapper)
+      .flat<number[][][]>();
 
   const getNumericValueDigits = (): number[] =>
     animationTypePlaying ? previousValueAnimatingDigits : previousValueDigits;
@@ -191,7 +203,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
         $animationDirection={value! > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN}
         $animationDuration={verticalAnimationDuration}
         $animationNumberOfDigits={digits.length}
-        onAnimationEnd={OnVerticalAnimationEnd}
+        onAnimationEnd={onVerticalAnimationEnd}
       >
         {digits.map(digitsVerticalAnimationMapper)}
       </VerticalAnimation>,
@@ -214,18 +226,19 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   );
 
   const getHorizontalAnimation = (): JSX.Element => (
-    <span>{getHorizontalAnimationDigits().map(digitsMapper).reduce(digitsReducer)}</span>
+    <span>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</span>
   );
 
   const getVerticalAnimation = (): JSX.Element =>
-    getVerticalAnimationDigitsArray().map(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
+    getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
 
   const getAnimation: () => JSX.Element =
     animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation;
 
   const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
-  const getNumericValue = (): JSX.Element => getNumericValueDigits().map(digitsMapper).reduce(digitsReducer);
+  const getNumericValue = (): JSX.Element =>
+    getNumericValueDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer);
 
   const getValue: () => JSX.Element = isValueInvalid ? getEmptyValue : getNumericValue;
 
@@ -239,8 +252,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
         $animationDirection:
           value! > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT,
         $animationDuration: horizontalAnimationDuration,
-        $animationStartWidth: getHorizontalAnimationWidth(nonZeroNumberOfDigits),
-        $animationEndWidth: getHorizontalAnimationWidth(numberOfDigits),
+        $animationStartWidth: getHorizontalAnimationWidth(minNumberOfDigits),
+        $animationEndWidth: getHorizontalAnimationWidth(maxNumberOfDigits),
         onAnimationEnd: onHorizontalAnimationEnd,
       })}
     >

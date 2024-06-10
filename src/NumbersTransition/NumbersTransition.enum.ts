@@ -13,6 +13,11 @@ export enum VerticalAnimationDirection {
   DOWN = 'DOWN',
 }
 
+export enum DecimalSeparator {
+  COMMA = ',',
+  DOT = '.',
+}
+
 export enum DigitGroupSeparator {
   NONE = '',
   COMMA = ',',
@@ -23,10 +28,15 @@ export enum DigitGroupSeparator {
   APOSTROPHE = "'",
 }
 
+export enum EmptyCharacter {
+  VALUE = '-',
+}
+
 export enum LinearAlgorithm {
   MAX_LENGTH = 14,
 }
 
-export enum EmptyCharacter {
-  VALUE = '-',
-}
+export const NumberPrecision = {
+  VALUE: 1_000_000_000_000_000n,
+  HALF_VALUE: 500_000_000_000_000n,
+} as const;

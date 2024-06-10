@@ -23,7 +23,6 @@
     "no-useless-concat": "error",
     "prefer-template": "error",
     "prefer-spread": "error",
-    "no-nested-ternary": "error",
     "@typescript-eslint/no-unused-vars": "error",
     "no-console": "warn"
   }
