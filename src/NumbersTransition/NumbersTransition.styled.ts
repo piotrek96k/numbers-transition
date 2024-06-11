@@ -1,42 +1,48 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { Keyframes } from 'styled-components/dist/types';
-import { HorizontalAnimationDirection, VerticalAnimationDirection } from './NumbersTransition.enum';
+import { HorizontalAnimationDirection, VerticalAnimationDirection, AnimationType } from './NumbersTransition.enum';
 
-type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
+interface AnimationDurationProps {
+  $animationDuration: number;
+}
 
-interface HorizontalAnimationProps {
+interface HorizontalAnimationProps extends Partial<AnimationDurationProps> {
+  $animationType?: AnimationType.HORIZONTAL;
   $animationDirection?: HorizontalAnimationDirection;
-  $animationDuration?: number;
   $animationStartWidth?: number;
   $animationEndWidth?: number;
 }
 
-interface VerticalAnimationProps {
+interface VerticalAnimationProps extends AnimationDurationProps {
+  $animationType?: AnimationType.VERTICAL;
   $animationDirection: VerticalAnimationDirection;
-  $animationDuration: number;
-  $animationNumberOfDigits: number;
 }
 
-const getHorizontalAnimation = (animationStartWidth: number, animationEndWidth: number): Keyframes => keyframes`
+type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
+
+const horizontalAnimation = ({
+  $animationStartWidth,
+  $animationEndWidth,
+}: Omit<HorizontalAnimationProps, '$animationDirection'>): Keyframes => keyframes`
   from {
-    width: calc(1ch * ${animationStartWidth});
+    width: calc(1ch * ${$animationStartWidth});
   }
   to {
-    width: calc(1ch * ${animationEndWidth});
+    width: calc(1ch * ${$animationEndWidth});
   }
 `;
 
-const getVerticalAnimation = (animationNumberOfDigits: number): Keyframes => keyframes`
+const verticalAnimation: Keyframes = keyframes`
   from {
     transform: translateY(0);
   }
   to {
-    transform: translateY(calc(100% / ${animationNumberOfDigits} - 100%));
+    transform: translateY(-100%);
   }
 `;
 
-const getAnimationDirection = (animationDirection: AnimationDirection): RuleSet<object> =>
-  animationDirection === HorizontalAnimationDirection.RIGHT || animationDirection === VerticalAnimationDirection.UP
+const animationDirection = ({ $animationDirection }: AnimationProps): RuleSet<object> =>
+  $animationDirection === HorizontalAnimationDirection.RIGHT || $animationDirection === VerticalAnimationDirection.UP
     ? css`
         animation-direction: normal;
         animation-timing-function: ease;
@@ -46,25 +52,17 @@ const getAnimationDirection = (animationDirection: AnimationDirection): RuleSet<
         animation-timing-function: cubic-bezier(0.75, 0, 0.75, 0.9);
       `;
 
-const getAnimation = (
-  keyFrames: Keyframes,
-  animationDirection: AnimationDirection,
-  animationDuration: number,
-): RuleSet<object> => css`
-  animation-name: ${keyFrames};
-  animation-duration: ${animationDuration}s;
+const animation: RuleSet<AnimationProps> = css<AnimationProps>`
+  animation-name: ${({ $animationType, ...restProps }) =>
+    $animationType === AnimationType.HORIZONTAL ? horizontalAnimation(restProps) : verticalAnimation};
+  ${animationDirection};
+  animation-duration: ${({ $animationDuration }) => $animationDuration}s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
-  ${getAnimationDirection(animationDirection)};
 `;
 
 const horizontalAnimationCss: RuleSet<HorizontalAnimationProps> = css<HorizontalAnimationProps>`
-  ${({ $animationDirection, $animationDuration, $animationStartWidth, $animationEndWidth }) =>
-    getAnimation(
-      getHorizontalAnimation($animationStartWidth!, $animationEndWidth!),
-      $animationDirection!,
-      $animationDuration!,
-    )};
+  ${animation};
   & > :first-child {
     position: absolute;
     display: inherit;
@@ -73,7 +71,9 @@ const horizontalAnimationCss: RuleSet<HorizontalAnimationProps> = css<Horizontal
   }
 `;
 
-export const HorizontalAnimation = styled.span<HorizontalAnimationProps>`
+export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>({
+  $animationType: AnimationType.HORIZONTAL,
+})`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
@@ -81,16 +81,18 @@ export const HorizontalAnimation = styled.span<HorizontalAnimationProps>`
   overflow: hidden;
   height: 1lh;
   white-space: nowrap;
-  ${({ $animationDirection }) => $animationDirection && horizontalAnimationCss}
+  ${({ $animationDirection }) => $animationDirection && horizontalAnimationCss};
 `;
 
-export const VerticalAnimation = styled.span<VerticalAnimationProps>`
-  display: inline-block;
-  ${({ $animationDirection, $animationDuration, $animationNumberOfDigits }) =>
-    getAnimation(getVerticalAnimation($animationNumberOfDigits), $animationDirection, $animationDuration)}
+export const VerticalAnimation = styled.div.attrs<VerticalAnimationProps>({ $animationType: AnimationType.VERTICAL })`
+  ${animation};
+  & > :last-child {
+    position: absolute;
+    top: 100%;
+  }
 `;
 
-export const Character = styled.span`
+export const Character = styled.div`
   overflow: hidden;
   display: inline-block;
   height: inherit;

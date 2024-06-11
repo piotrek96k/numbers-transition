@@ -4,7 +4,7 @@ import {
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
-  DecimalSeparator,
+  // DecimalSeparator,
   DigitGroupSeparator,
   LinearAlgorithm,
   EmptyCharacter,
@@ -43,12 +43,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const previousValueRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const previousValueAnimatingRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
-  const componentRef: RefObject<HTMLSpanElement> = useRef<HTMLSpanElement>(null);
+  const componentRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
   const canvasContextRef: RefObject<CanvasRenderingContext2D> = useRef<CanvasRenderingContext2D>(
     document.createElement('canvas').getContext('2d'),
   );
 
-  const isValueValid: boolean = !!`${value}`.match(/^-?\d+(\.\d+)?$/);
+  const isValueValid: boolean = !!`${value}`.match(/^-?([1-9]\d*|0)(\.\d+)?$/);
 
   const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits] = [
     previousValueRef.current,
@@ -191,7 +191,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     animationTypePlaying ? previousValueAnimatingDigits : previousValueDigits;
 
   const digitsMapperFactory = (Component: FC<KeyProps> | string, digit: ReactNode, index: number): JSX.Element => (
-    <Component key={String(index + 1).padStart(2, '0')}>{digit}</Component>
+    <Component key={`${index + 1}`.padStart(2, '0')}>{digit}</Component>
   );
 
   const digitsMapper = (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index);
@@ -206,7 +206,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
           currentValue > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN
         }
         $animationDuration={verticalAnimationDuration}
-        $animationNumberOfDigits={digits.length}
         onAnimationEnd={onVerticalAnimationEnd}
       >
         {digits.map(digitsVerticalAnimationMapper)}
