@@ -23,7 +23,7 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 const horizontalAnimation = ({
   $animationStartWidth,
   $animationEndWidth,
-}: Omit<HorizontalAnimationProps, '$animationDirection'>): Keyframes => keyframes`
+}: HorizontalAnimationProps): Keyframes => keyframes`
   from {
     width: calc(1ch * ${$animationStartWidth});
   }
@@ -41,6 +41,11 @@ const verticalAnimation: Keyframes = keyframes`
   }
 `;
 
+const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
+  animation-name: ${(props) =>
+    props.$animationType === AnimationType.HORIZONTAL ? horizontalAnimation(props) : verticalAnimation};
+`;
+
 const animationDirection = ({ $animationDirection }: AnimationProps): RuleSet<object> =>
   $animationDirection === HorizontalAnimationDirection.RIGHT || $animationDirection === VerticalAnimationDirection.UP
     ? css`
@@ -53,8 +58,7 @@ const animationDirection = ({ $animationDirection }: AnimationProps): RuleSet<ob
       `;
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-name: ${({ $animationType, ...restProps }) =>
-    $animationType === AnimationType.HORIZONTAL ? horizontalAnimation(restProps) : verticalAnimation};
+  ${animationName};
   ${animationDirection};
   animation-duration: ${({ $animationDuration }) => $animationDuration}s;
   animation-iteration-count: 1;
@@ -71,9 +75,11 @@ const horizontalAnimationCss: RuleSet<HorizontalAnimationProps> = css<Horizontal
   }
 `;
 
-export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>({
+const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
   $animationType: AnimationType.HORIZONTAL,
-})`
+};
+
+export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
@@ -84,7 +90,9 @@ export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>({
   ${({ $animationDirection }) => $animationDirection && horizontalAnimationCss};
 `;
 
-export const VerticalAnimation = styled.div.attrs<VerticalAnimationProps>({ $animationType: AnimationType.VERTICAL })`
+const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType: AnimationType.VERTICAL };
+
+export const VerticalAnimation = styled.div.attrs<VerticalAnimationProps>(verticalAnimationAttrs)`
   ${animation};
   & > :last-child {
     position: absolute;

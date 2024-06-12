@@ -229,7 +229,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   );
 
   const getHorizontalAnimation = (): JSX.Element => (
-    <span>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</span>
+    <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
   );
 
   const getVerticalAnimation = (): JSX.Element =>
