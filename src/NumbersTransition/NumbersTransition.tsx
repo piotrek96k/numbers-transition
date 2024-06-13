@@ -48,7 +48,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     document.createElement('canvas').getContext('2d'),
   );
 
-  const isValueValid: boolean = !!`${value}`.match(/^-?([1-9]\d*|0)(\.\d+)?$/);
+  const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
   const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits] = [
     previousValueRef.current,
@@ -68,7 +68,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     .reduce<number[]>(digitsLengthReducer, []);
 
   const [previousValue, currentValue] = [previousValueDigits, currentValueDigits].map<bigint>(
-    (number: number[]): bigint => BigInt(number.join('')),
+    (digits: number[]): bigint => BigInt(digits.join('')),
   );
 
   const startAnimation = (): void =>
