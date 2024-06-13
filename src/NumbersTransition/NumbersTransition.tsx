@@ -1,5 +1,5 @@
 import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
-import { HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
+import { Container, HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
 import {
   AnimationType,
   HorizontalAnimationDirection,
@@ -43,7 +43,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const previousValueRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const previousValueAnimatingRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
-  const componentRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+  const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
   const canvasContextRef: RefObject<CanvasRenderingContext2D> = useRef<CanvasRenderingContext2D>(
     document.createElement('canvas').getContext('2d'),
   );
@@ -81,7 +81,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     setAnimationTypePlaying(undefined);
   };
 
-  const onAnimationEnd = (
+  const onAnimationEndFactory = (
     { length: shorterLength }: number[],
     { length: longerLength }: number[],
     newAnimationType: AnimationType,
@@ -94,10 +94,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   };
 
   const onHorizontalAnimationEnd = (): void =>
-    onAnimationEnd(previousValueDigits, currentValueDigits, AnimationType.VERTICAL);
+    onAnimationEndFactory(previousValueDigits, currentValueDigits, AnimationType.VERTICAL);
 
   const onVerticalAnimationEnd = (): void =>
-    onAnimationEnd(currentValueDigits, previousValueDigits, AnimationType.HORIZONTAL);
+    onAnimationEndFactory(currentValueDigits, previousValueDigits, AnimationType.HORIZONTAL);
+
+  const onAnimationEnd: () => void =
+    animationTypePlaying === AnimationType.HORIZONTAL ? onHorizontalAnimationEnd : onVerticalAnimationEnd;
 
   useEffect((): void => {
     if (!isValueValid) {
@@ -121,13 +124,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   }, [restartAnimation]);
 
   useEffect((): void => {
-    if (componentRef.current && canvasContextRef.current) {
+    if (containerRef.current && canvasContextRef.current) {
       canvasContextRef.current.font =
-        [...componentRef.current.classList]
-          .map<string>((className: string): string => window.getComputedStyle(componentRef.current!, className).font)
+        [...containerRef.current.classList]
+          .map<string>((className: string): string => window.getComputedStyle(containerRef.current!, className).font)
           .find((font: string): string => font) ?? '';
     }
-  }, [componentRef.current, canvasContextRef.current]);
+  }, [containerRef.current, canvasContextRef.current]);
 
   const getSeparatorWidth = (): number =>
     [digitGroupSeparator, '0']
@@ -206,7 +209,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
           currentValue > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN
         }
         $animationDuration={verticalAnimationDuration}
-        onAnimationEnd={onVerticalAnimationEnd}
       >
         {digits.map(digitsVerticalAnimationMapper)}
       </VerticalAnimation>,
@@ -229,7 +231,16 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   );
 
   const getHorizontalAnimation = (): JSX.Element => (
-    <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
+    <HorizontalAnimation
+      $animationDirection={
+        currentValue > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT
+      }
+      $animationDuration={horizontalAnimationDuration}
+      $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
+      $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
+    >
+      {getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}
+    </HorizontalAnimation>
   );
 
   const getVerticalAnimation = (): JSX.Element =>
@@ -249,19 +260,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     animationTypePlaying && isValueValid && currentValue !== previousValue ? getAnimation : getValue;
 
   return (
-    <HorizontalAnimation
-      ref={componentRef}
-      {...(animationTypePlaying === AnimationType.HORIZONTAL && {
-        $animationDirection:
-          currentValue > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT,
-        $animationDuration: horizontalAnimationDuration,
-        $animationStartWidth: getHorizontalAnimationWidth(minNumberOfDigits),
-        $animationEndWidth: getHorizontalAnimationWidth(maxNumberOfDigits),
-        onAnimationEnd: onHorizontalAnimationEnd,
-      })}
-    >
+    <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
       {getContent()}
-    </HorizontalAnimation>
+    </Container>
   );
 };
 

@@ -6,11 +6,11 @@ interface AnimationDurationProps {
   $animationDuration: number;
 }
 
-interface HorizontalAnimationProps extends Partial<AnimationDurationProps> {
+interface HorizontalAnimationProps extends AnimationDurationProps {
   $animationType?: AnimationType.HORIZONTAL;
-  $animationDirection?: HorizontalAnimationDirection;
-  $animationStartWidth?: number;
-  $animationEndWidth?: number;
+  $animationDirection: HorizontalAnimationDirection;
+  $animationStartWidth: number;
+  $animationEndWidth: number;
 }
 
 interface VerticalAnimationProps extends AnimationDurationProps {
@@ -65,21 +65,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-const horizontalAnimationCss: RuleSet<HorizontalAnimationProps> = css<HorizontalAnimationProps>`
-  ${animation};
-  & > :first-child {
-    position: absolute;
-    display: inherit;
-    height: inherit;
-    right: 0;
-  }
-`;
-
-const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
-  $animationType: AnimationType.HORIZONTAL,
-};
-
-export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
+export const Container = styled.div`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
@@ -87,7 +73,18 @@ export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(ho
   overflow: hidden;
   height: 1lh;
   white-space: nowrap;
-  ${({ $animationDirection }) => $animationDirection && horizontalAnimationCss};
+`;
+
+const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
+  $animationType: AnimationType.HORIZONTAL,
+};
+
+export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
+  position: absolute;
+  right: 0;
+  :has(> &) {
+    ${animation};
+  }
 `;
 
 const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType: AnimationType.VERTICAL };
