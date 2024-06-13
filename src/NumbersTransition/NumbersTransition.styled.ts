@@ -69,10 +69,11 @@ export const Container = styled.div`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
-  display: inline-block;
   overflow: hidden;
-  height: 1lh;
   white-space: nowrap;
+  max-width: 100%;
+  width: fit-content;
+  height: 1lh;
 `;
 
 const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
@@ -80,10 +81,11 @@ const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
 };
 
 export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
-  position: absolute;
-  right: 0;
-  :has(> &) {
-    ${animation};
+  ${animation};
+  height: inherit;
+  & > :first-child {
+    float: right;
+    height: inherit;
   }
 `;
 
@@ -101,7 +103,6 @@ export const Character = styled.div`
   overflow: hidden;
   display: inline-block;
   height: inherit;
-  white-space: pre;
 `;
 
 export const Digit = styled(Character)`

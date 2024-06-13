@@ -239,7 +239,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
       $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
       $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
     >
-      {getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}
+      <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
     </HorizontalAnimation>
   );
 
