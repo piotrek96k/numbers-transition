@@ -10,7 +10,7 @@ type Story = StoryObj<typeof NumbersTransition>;
 
 export const Primary: Story = {
   args: {
-    value: 123456,
+    value: 123456789,
     horizontalAnimationDuration: 0.5,
     verticalAnimationDuration: 2,
     digitGroupSeparator: DigitGroupSeparator.SPACE,

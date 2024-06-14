@@ -6,12 +6,12 @@ import {
   VerticalAnimationDirection,
   // DecimalSeparator,
   DigitGroupSeparator,
-  LinearAlgorithm,
   EmptyCharacter,
+  LinearAlgorithm,
   NumberPrecision,
 } from './NumbersTransition.enum';
 
-type BigDecimal = number | bigint | `${number}`;
+export type BigDecimal = number | bigint | `${number}`;
 
 interface AlgorithmValues {
   start: bigint;
@@ -188,7 +188,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     [...Array(maxNumberOfDigits)]
       .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
       .map<number[][]>(algorithmMapper)
-      .flat<number[][][]>();
+      .flat<number[][][], 1>();
 
   const getNumericValueDigits = (): number[] =>
     animationTypePlaying ? previousValueAnimatingDigits : previousValueDigits;

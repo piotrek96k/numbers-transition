@@ -1,4 +1,5 @@
 import { DigitGroupSeparator } from './NumbersTransition/NumbersTransition.enum';
-import NumbersTransition from './NumbersTransition/NumbersTransition';
+import NumbersTransition, { BigDecimal } from './NumbersTransition/NumbersTransition';
 
 export { DigitGroupSeparator, NumbersTransition };
+export type { BigDecimal };
