@@ -4,7 +4,7 @@ import {
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
-  // DecimalSeparator,
+  DecimalSeparator,
   DigitGroupSeparator,
   EmptyCharacter,
   LinearAlgorithm,
@@ -25,17 +25,23 @@ interface KeyProps {
 
 interface NumbersTransitionProps {
   value?: BigDecimal;
+  precision: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
+  decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
 }
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   const {
     value,
+    precision = 0,
     horizontalAnimationDuration = 0.5,
     verticalAnimationDuration = 2,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
+    decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
+      ? DecimalSeparator.DOT
+      : DecimalSeparator.COMMA,
   } = props;
 
   const [animationTypePlaying, setAnimationTypePlaying] = useState<AnimationType>();
@@ -50,11 +56,30 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
-  const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits] = [
+  const digitsFillReducer = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
+    ...accumulator,
+    currentValue,
+    ...(length === 1 ? [''] : []),
+  ];
+
+  const digitsPartReducer = (integer: string, fraction: string): string => {
+    const [start, mid, end, numberOfZeros]: [string, string, string, number] =
+      precision > 0
+        ? [integer, fraction, '', Math.max(precision - fraction.length, 0)]
+        : ['', integer, fraction, -precision];
+    const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
+    const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
+    const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
+    return `${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+  };
+
+  const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits]: number[][] = [
     previousValueRef.current,
     previousValueAnimatingRef.current,
     isValueValid ? value! : 0,
-  ].map<number[]>((number: BigDecimal): number[] => [...`${number}`].map<number>(Number));
+  ].map<number[]>((number: BigDecimal): number[] =>
+    [...`${number}`.split('.').reduce<string[]>(digitsFillReducer, []).reduce(digitsPartReducer)].map<number>(Number),
+  );
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
@@ -62,12 +87,15 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
   ];
 
-  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference] = [previousValueDigits, currentValueDigits]
+  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = [
+    previousValueDigits,
+    currentValueDigits,
+  ]
     .map<number>(({ length }: number[]): number => length)
     .sort((first: number, second: number): number => first - second)
     .reduce<number[]>(digitsLengthReducer, []);
 
-  const [previousValue, currentValue] = [previousValueDigits, currentValueDigits].map<bigint>(
+  const [previousValue, currentValue]: bigint[] = [previousValueDigits, currentValueDigits].map<bigint>(
     (digits: number[]): bigint => BigInt(digits.join('')),
   );
 
@@ -132,20 +160,25 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     }
   }, [containerRef.current, canvasContextRef.current]);
 
-  const getSeparatorWidth = (): number =>
-    [digitGroupSeparator, '0']
+  const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
+    [separator, '0']
       .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
       .reduce((accumulator: number, currentValue: number): number => accumulator / currentValue);
 
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
-    numberOfDigits + getSeparatorWidth() * Math.floor((numberOfDigits - 1) / 3);
+    numberOfDigits +
+    getSeparatorWidth(digitGroupSeparator) *
+      [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
+        .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
+        .reduce((previous: number, current: number): number => previous + current) +
+    (precision > 0 ? getSeparatorWidth(decimalSeparator) : 0);
 
   const algorithmValuesArrayReducer = (
     accumulator: AlgorithmValues[][],
     _: undefined,
     index: number,
   ): AlgorithmValues[][] => {
-    const [start, end] = [previousValue, currentValue]
+    const [start, end]: bigint[] = [previousValue, currentValue]
       .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
       .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
     const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
@@ -170,7 +203,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
         increasedValue / NumberPrecision.VALUE,
       ])
       .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
-        increasedValue - newValue * NumberPrecision.VALUE <= NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
+        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
       )
       .map<number>((roundedValue: bigint): number => Number(roundedValue % 10n));
     return numbers[numbers.length - 1] === Number(end % 10n) ? numbers : [...numbers, Number(end % 10n)];
@@ -223,8 +256,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   ): JSX.Element => (
     <>
       {accumulator}
-      {digitGroupSeparator !== DigitGroupSeparator.NONE && !((length - index) % 3) && (
-        <Character>{digitGroupSeparator}</Character>
+      {!((length - index - Math.max(precision, 0)) % 3) && (
+        <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
       )}
       {currentValue}
     </>
