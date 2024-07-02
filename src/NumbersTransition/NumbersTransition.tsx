@@ -56,13 +56,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
-  const digitsFillReducer = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
+  const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
     currentValue,
     ...(length === 1 ? [''] : []),
   ];
 
-  const digitsPartReducer = (integer: string, fraction: string): string => {
+  const floatingPointReducer = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
       precision > 0
         ? [integer, fraction, '', Math.max(precision - fraction.length, 0)]
@@ -78,7 +78,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     previousValueAnimatingRef.current,
     isValueValid ? value! : 0,
   ].map<number[]>((number: BigDecimal): number[] =>
-    [...`${number}`.split('.').reduce<string[]>(digitsFillReducer, []).reduce(digitsPartReducer)].map<number>(Number),
+    [...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer)].map<number>(
+      Number,
+    ),
   );
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
