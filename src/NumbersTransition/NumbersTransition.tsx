@@ -42,7 +42,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
       : DecimalSeparator.COMMA,
-  } = props;
+  }: NumbersTransitionProps = props;
 
   const [animationTypePlaying, setAnimationTypePlaying] = useState<AnimationType>();
   const [restartAnimation, setRestartAnimation] = useState<boolean>(false);
@@ -144,7 +144,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
       startAnimation();
     }
     previousValueAnimatingRef.current = value!;
-  }, [value]);
+  }, [value, precision]);
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -194,7 +194,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     );
 
   const nonLinearAlgorithmMapper = (values: AlgorithmValues, algorithmIndex: number): number[] => {
-    const { start, end } = values;
+    const { start, end }: AlgorithmValues = values;
     const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
       .map<bigint>(
         (_: undefined, index: number, { length }: number[]): bigint =>
