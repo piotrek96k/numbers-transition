@@ -32,7 +32,7 @@ interface NumbersTransitionProps {
   digitGroupSeparator?: DigitGroupSeparator;
 }
 
-const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
+const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
   const {
     value,
     precision = 0,
@@ -65,22 +65,28 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
   const floatingPointReducer = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
       precision > 0
-        ? [integer, fraction, '', Math.max(precision - fraction.length, 0)]
-        : ['', integer, fraction, -precision];
+        ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
+        : ['', integer.replace('-', ''), fraction, -precision];
     const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
     const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
-    return `${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+    return `${integer.replace(/\d+/, '')}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
   };
 
-  const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits]: number[][] = [
+  const [previousValueCharacters, previousValueAnimatingCharacters, currentValueCharacters]: string[][] = [
     previousValueRef.current,
     previousValueAnimatingRef.current,
     isValueValid ? value! : 0,
-  ].map<number[]>((number: BigDecimal): number[] =>
-    [...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer)].map<number>(
-      Number,
-    ),
+  ].map<string[]>((number: BigDecimal): string[] => [
+    ...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
+  ]);
+
+  const [previousValueDigits, previousValueAnimatingDigits, currentValueDigits]: number[][] = [
+    previousValueCharacters,
+    previousValueAnimatingCharacters,
+    currentValueCharacters,
+  ].map<number[]>((characters: string[]) =>
+    characters.filter((character: string): boolean => !!character.match(/\d/)).map<number>(Number),
   );
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
@@ -97,8 +103,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
     .sort((first: number, second: number): number => first - second)
     .reduce<number[]>(digitsLengthReducer, []);
 
-  const [previousValue, currentValue]: bigint[] = [previousValueDigits, currentValueDigits].map<bigint>(
-    (digits: number[]): bigint => BigInt(digits.join('')),
+  const [previousValue, currentValue]: bigint[] = [previousValueCharacters, currentValueCharacters].map<bigint>(
+    (digits: string[]): bigint => BigInt(digits.join('')),
   );
 
   const startAnimation = (): void =>
@@ -167,12 +173,15 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props) => {
       .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
       .reduce((accumulator: number, currentValue: number): number => accumulator / currentValue);
 
+  const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
+    getSeparatorWidth(digitGroupSeparator) *
+    [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
+      .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
+      .reduce((previous: number, current: number): number => previous + current);
+
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
     numberOfDigits +
-    getSeparatorWidth(digitGroupSeparator) *
-      [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
-        .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
-        .reduce((previous: number, current: number): number => previous + current) +
+    getDigitsSeparatorsWidth(numberOfDigits) +
     (precision > 0 ? getSeparatorWidth(decimalSeparator) : 0);
 
   const algorithmValuesArrayReducer = (
