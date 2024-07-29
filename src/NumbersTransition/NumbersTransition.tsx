@@ -85,7 +85,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueCharacters,
     previousValueAnimatingCharacters,
     currentValueCharacters,
-  ].map<number[]>((characters: string[]) =>
+  ].map<number[]>((characters: string[]): number[] =>
     characters.filter((character: string): boolean => !!character.match(/\d/)).map<number>(Number),
   );
 
