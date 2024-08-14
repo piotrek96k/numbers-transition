@@ -83,7 +83,7 @@ const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
 export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
   ${animation};
   height: inherit;
-  > :first-child {
+  :only-child {
     float: right;
     height: inherit;
   }
@@ -93,7 +93,7 @@ const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType
 
 export const VerticalAnimation = styled.div.attrs<VerticalAnimationProps>(verticalAnimationAttrs)`
   ${animation};
-  > :last-child {
+  :last-child {
     position: absolute;
     top: 100%;
   }
