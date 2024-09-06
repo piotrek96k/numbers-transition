@@ -13,6 +13,8 @@ export enum VerticalAnimationDirection {
   DOWN = 'DOWN',
 }
 
+export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
+
 export enum DecimalSeparator {
   COMMA = ',',
   DOT = '.',

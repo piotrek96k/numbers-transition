@@ -1,22 +1,25 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { Keyframes } from 'styled-components/dist/types';
-import { HorizontalAnimationDirection, VerticalAnimationDirection, AnimationType } from './NumbersTransition.enum';
+import {
+  AnimationType,
+  HorizontalAnimationDirection,
+  VerticalAnimationDirection,
+  AnimationDirection,
+} from './NumbersTransition.enum';
 
-interface AnimationDurationProps {
+interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
+  $animationType?: T;
+  $animationDirection: U;
   $animationDuration: number;
 }
 
-interface HorizontalAnimationProps extends AnimationDurationProps {
-  $animationType?: AnimationType.HORIZONTAL;
-  $animationDirection: HorizontalAnimationDirection;
+interface HorizontalAnimationProps
+  extends AnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection> {
   $animationStartWidth: number;
   $animationEndWidth: number;
 }
 
-interface VerticalAnimationProps extends AnimationDurationProps {
-  $animationType?: AnimationType.VERTICAL;
-  $animationDirection: VerticalAnimationDirection;
-}
+interface VerticalAnimationProps extends AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection> {}
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
