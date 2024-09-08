@@ -1,3 +1,9 @@
+export enum StyledComponentType {
+  STYLED = 'STYLED',
+  EXTENSION = 'EXTENSION',
+  ATTRIBUTES = 'ATTRIBUTES',
+}
+
 export enum AnimationType {
   HORIZONTAL = 'HORIZONTAL',
   VERTICAL = 'VERTICAL',

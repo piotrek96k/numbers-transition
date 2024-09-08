@@ -1,11 +1,60 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { Keyframes } from 'styled-components/dist/types';
+import { IStyledComponentBase, FastOmit, Substitute, Keyframes } from 'styled-components/dist/types';
 import {
+  RefObject,
+  HTMLAttributes,
+  DetailedHTMLProps,
+  DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES,
+} from 'react';
+import {
+  StyledComponentType,
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
   AnimationDirection,
 } from './NumbersTransition.enum';
+
+type RefFunction<T> = (
+  instance: T | null,
+) =>
+  | void
+  | DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES[keyof DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES];
+
+type Ref<T> = RefFunction<T> | RefObject<T> | null | undefined;
+
+interface RefProps<T> {
+  ref?: Ref<T>;
+}
+
+type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
+
+type OmitNever<T extends object> = FastOmit<T, never>;
+
+type OmitRef<T> = Omit<T, 'ref'>;
+
+type GenericStyledComponentType<
+  T extends StyledComponentType,
+  U,
+  V extends object = never,
+> = T extends StyledComponentType.STYLED
+  ? HTMLDetailedElement<U>
+  : T extends StyledComponentType.EXTENSION
+    ? OmitRef<OmitNever<HTMLDetailedElement<U>>> & RefProps<U>
+    : T extends StyledComponentType.ATTRIBUTES
+      ? Substitute<Substitute<HTMLDetailedElement<U>, OmitRef<HTMLDetailedElement<U>> & RefProps<U>>, V>
+      : never;
+
+type GenericStyledComponent<T extends StyledComponentType, U, V extends object = never> = IStyledComponentBase<
+  'web',
+  GenericStyledComponentType<T, U, V>
+> &
+  string;
+
+type StyledComponent<T> = GenericStyledComponent<StyledComponentType.STYLED, T>;
+
+type ExtensionStyledComponent<T> = GenericStyledComponent<StyledComponentType.EXTENSION, T>;
+
+type AttributesStyledComponent<T, U extends object> = GenericStyledComponent<StyledComponentType.ATTRIBUTES, T, U>;
 
 interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
   $animationType?: T;
@@ -68,7 +117,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-export const Container = styled.div`
+export const Container: StyledComponent<HTMLDivElement> = styled.div`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
@@ -83,31 +132,33 @@ const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
   $animationType: AnimationType.HORIZONTAL,
 };
 
-export const HorizontalAnimation = styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
-  ${animation};
-  height: inherit;
-  :only-child {
-    float: right;
+export const HorizontalAnimation: AttributesStyledComponent<HTMLDivElement, HorizontalAnimationProps> =
+  styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
+    ${animation};
     height: inherit;
-  }
-`;
+    :only-child {
+      float: right;
+      height: inherit;
+    }
+  `;
 
 const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType: AnimationType.VERTICAL };
 
-export const VerticalAnimation = styled.div.attrs<VerticalAnimationProps>(verticalAnimationAttrs)`
-  ${animation};
-  :last-child {
-    position: absolute;
-    top: 100%;
-  }
-`;
+export const VerticalAnimation: AttributesStyledComponent<HTMLDivElement, VerticalAnimationProps> =
+  styled.div.attrs<VerticalAnimationProps>(verticalAnimationAttrs)`
+    ${animation};
+    :last-child {
+      position: absolute;
+      top: 100%;
+    }
+  `;
 
-export const Character = styled.div`
+export const Character: StyledComponent<HTMLDivElement> = styled.div`
   overflow: hidden;
   display: inline-block;
   height: inherit;
 `;
 
-export const Digit = styled(Character)`
+export const Digit: ExtensionStyledComponent<HTMLDivElement> = styled(Character)`
   min-width: 1ch;
 `;
