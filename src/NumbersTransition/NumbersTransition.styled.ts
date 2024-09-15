@@ -94,7 +94,7 @@ const verticalAnimation: Keyframes = keyframes`
 `;
 
 const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-name: ${(props) =>
+  animation-name: ${(props: AnimationProps): Keyframes =>
     props.$animationType === AnimationType.HORIZONTAL ? horizontalAnimation(props) : verticalAnimation};
 `;
 
@@ -112,7 +112,7 @@ const animationDirection = ({ $animationDirection }: AnimationProps): RuleSet<ob
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   ${animationName};
   ${animationDirection};
-  animation-duration: ${({ $animationDuration }) => $animationDuration}s;
+  animation-duration: ${({ $animationDuration }: AnimationProps): number => $animationDuration}s;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 `;
