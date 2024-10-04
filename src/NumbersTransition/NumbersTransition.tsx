@@ -13,14 +13,14 @@ import {
 
 export type BigDecimal = number | bigint | `${number}`;
 
-interface AlgorithmValues {
-  start: bigint;
-  end: bigint;
-}
-
 interface KeyProps {
   key: string;
   children: ReactNode;
+}
+
+interface AlgorithmValues {
+  start: bigint;
+  end: bigint;
 }
 
 interface NumbersTransitionProps {
@@ -55,6 +55,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   );
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
+
+  const sum = (first: number, second: number): number => first + second;
+
+  const subtract = (first: number, second: number): number => first - second;
+
+  const divide = (first: number, second: number): number => first / second;
 
   const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
@@ -100,7 +106,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     currentValueDigits,
   ]
     .map<number>(({ length }: number[]): number => length)
-    .sort((first: number, second: number): number => first - second)
+    .sort(subtract)
     .reduce<number[]>(digitsLengthReducer, []);
 
   const [previousValue, currentValue]: bigint[] = [previousValueCharacters, currentValueCharacters].map<bigint>(
@@ -168,25 +174,23 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     }
   }, [containerRef.current, canvasContextRef.current]);
 
-  const sumReducer = (accumulator: number, currentValue: number): number => accumulator + currentValue;
-
   const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
     [separator, '0']
       .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
-      .reduce((accumulator: number, currentValue: number): number => accumulator / currentValue);
+      .reduce(divide);
 
   const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
     getSeparatorWidth(digitGroupSeparator) *
     [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
       .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
-      .reduce(sumReducer);
+      .reduce(sum);
 
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
     [
       numberOfDigits,
       getDigitsSeparatorsWidth(numberOfDigits),
       precision > 0 ? getSeparatorWidth(decimalSeparator) : 0,
-    ].reduce(sumReducer);
+    ].reduce(sum);
 
   const algorithmValuesArrayReducer = (
     accumulator: AlgorithmValues[][],
