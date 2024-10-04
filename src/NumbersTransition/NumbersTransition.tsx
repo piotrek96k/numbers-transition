@@ -168,6 +168,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     }
   }, [containerRef.current, canvasContextRef.current]);
 
+  const sumReducer = (accumulator: number, currentValue: number): number => accumulator + currentValue;
+
   const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
     [separator, '0']
       .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
@@ -177,12 +179,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     getSeparatorWidth(digitGroupSeparator) *
     [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
       .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
-      .reduce((previous: number, current: number): number => previous + current);
+      .reduce(sumReducer);
 
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
-    numberOfDigits +
-    getDigitsSeparatorsWidth(numberOfDigits) +
-    (precision > 0 ? getSeparatorWidth(decimalSeparator) : 0);
+    [
+      numberOfDigits,
+      getDigitsSeparatorsWidth(numberOfDigits),
+      precision > 0 ? getSeparatorWidth(decimalSeparator) : 0,
+    ].reduce(sumReducer);
 
   const algorithmValuesArrayReducer = (
     accumulator: AlgorithmValues[][],
