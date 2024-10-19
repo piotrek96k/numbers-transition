@@ -133,7 +133,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const stopAnimation = useCallback((): void => {
     previousValueRef.current = isValueValid ? value! : 0;
     setAnimationTypePlaying(undefined);
-  }, [value, previousValueRef.current, isValueValid]);
+  }, [value, isValueValid]);
 
   const onAnimationEndFactory = useCallback(
     (
@@ -160,10 +160,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [previousValueDigits, currentValueDigits, onAnimationEndFactory],
   );
 
-  const onAnimationEnd: () => void = useCallback(
-    animationTypePlaying === AnimationType.HORIZONTAL ? onHorizontalAnimationEnd : onVerticalAnimationEnd,
-    [animationTypePlaying, onHorizontalAnimationEnd, onVerticalAnimationEnd],
-  );
+  const onAnimationEnd: () => void =
+    animationTypePlaying === AnimationType.HORIZONTAL ? onHorizontalAnimationEnd : onVerticalAnimationEnd;
 
   useEffect((): void => {
     if (!isValueValid) {
@@ -193,14 +191,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           .map<string>((className: string): string => window.getComputedStyle(containerRef.current!, className).font)
           .find((font: string): string => font) ?? '';
     }
-  }, [containerRef.current, canvasContextRef.current]);
+  }, []);
 
   const getSeparatorWidth = useCallback(
     (separator: DecimalSeparator | DigitGroupSeparator): number =>
       [separator, '0']
         .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
         .reduce(divide),
-    [canvasContextRef.current, divide],
+    [divide],
   );
 
   const getDigitsSeparatorsWidth = useCallback(
@@ -366,10 +364,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [getVerticalAnimationDigitsArray, digitsVerticalAnimationArrayMapper, digitsReducer],
   );
 
-  const getAnimation: () => JSX.Element = useCallback(
-    animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation,
-    [animationTypePlaying, getHorizontalAnimation, getVerticalAnimation],
-  );
+  const getAnimation: () => JSX.Element =
+    animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation;
 
   const getEmptyValue = useCallback((): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>, []);
 
@@ -378,16 +374,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [getNumericValueDigits, digitsMapper, digitsReducer],
   );
 
-  const getValue: () => JSX.Element = useCallback(isValueValid ? getNumericValue : getEmptyValue, [
-    isValueValid,
-    getEmptyValue,
-    getNumericValue,
-  ]);
+  const getValue: () => JSX.Element = isValueValid ? getNumericValue : getEmptyValue;
 
-  const getContent: () => JSX.Element = useCallback(
-    animationTypePlaying && isValueValid && currentValue !== previousValue ? getAnimation : getValue,
-    [animationTypePlaying, isValueValid, previousValue, currentValue, getAnimation, getValue],
-  );
+  const getContent: () => JSX.Element =
+    animationTypePlaying && isValueValid && currentValue !== previousValue ? getAnimation : getValue;
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
