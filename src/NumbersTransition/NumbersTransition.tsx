@@ -1,4 +1,4 @@
-import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useRef, useState } from 'react';
+import { FC, MutableRefObject, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { Container, HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
 import {
   AnimationType,
@@ -56,28 +56,34 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
-  const sum = (first: number, second: number): number => first + second;
+  const sum = useCallback((first: number, second: number): number => first + second, []);
 
-  const subtract = (first: number, second: number): number => first - second;
+  const subtract = useCallback((first: number, second: number): number => first - second, []);
 
-  const divide = (first: number, second: number): number => first / second;
+  const divide = useCallback((first: number, second: number): number => first / second, []);
 
-  const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
-    ...accumulator,
-    currentValue,
-    ...(length === 1 ? [''] : []),
-  ];
+  const floatingPointFill = useCallback(
+    (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
+      ...accumulator,
+      currentValue,
+      ...(length === 1 ? [''] : []),
+    ],
+    [],
+  );
 
-  const floatingPointReducer = (integer: string, fraction: string): string => {
-    const [start, mid, end, numberOfZeros]: [string, string, string, number] =
-      precision > 0
-        ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
-        : ['', integer.replace('-', ''), fraction, -precision];
-    const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
-    const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
-    const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
-    return `${integer.replace(/\d+/, '')}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
-  };
+  const floatingPointReducer = useCallback(
+    (integer: string, fraction: string): string => {
+      const [start, mid, end, numberOfZeros]: [string, string, string, number] =
+        precision > 0
+          ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
+          : ['', integer.replace('-', ''), fraction, -precision];
+      const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
+      const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
+      const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
+      return `${integer.replace(/\d+/, '')}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+    },
+    [precision],
+  );
 
   const [previousValueCharacters, previousValueAnimatingCharacters, currentValueCharacters]: string[][] = [
     previousValueRef.current,
@@ -95,11 +101,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     characters.filter((character: string): boolean => !!character.match(/\d/)).map<number>(Number),
   );
 
-  const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
-    ...accumulator,
-    currentValue,
-    ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
-  ];
+  const digitsLengthReducer = useCallback(
+    (accumulator: number[], currentValue: number, index: number): number[] => [
+      ...accumulator,
+      currentValue,
+      ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
+    ],
+    [],
+  );
 
   const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = [
     previousValueDigits,
@@ -113,36 +122,48 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     (digits: string[]): bigint => BigInt(digits.join('')),
   );
 
-  const startAnimation = (): void =>
-    setAnimationTypePlaying(
-      currentValueDigits.length > previousValueDigits.length ? AnimationType.HORIZONTAL : AnimationType.VERTICAL,
-    );
+  const startAnimation = useCallback(
+    (): void =>
+      setAnimationTypePlaying(
+        currentValueDigits.length > previousValueDigits.length ? AnimationType.HORIZONTAL : AnimationType.VERTICAL,
+      ),
+    [previousValueDigits.length, currentValueDigits.length],
+  );
 
-  const stopAnimation = (): void => {
+  const stopAnimation = useCallback((): void => {
     previousValueRef.current = isValueValid ? value! : 0;
     setAnimationTypePlaying(undefined);
-  };
+  }, [value, previousValueRef.current, isValueValid]);
 
-  const onAnimationEndFactory = (
-    { length: shorterLength }: number[],
-    { length: longerLength }: number[],
-    newAnimationType: AnimationType,
-  ): void => {
-    if (shorterLength < longerLength) {
-      setAnimationTypePlaying(newAnimationType);
-    } else {
-      stopAnimation();
-    }
-  };
+  const onAnimationEndFactory = useCallback(
+    (
+      { length: shorterLength }: number[],
+      { length: longerLength }: number[],
+      newAnimationType: AnimationType,
+    ): void => {
+      if (shorterLength < longerLength) {
+        setAnimationTypePlaying(newAnimationType);
+      } else {
+        stopAnimation();
+      }
+    },
+    [stopAnimation],
+  );
 
-  const onHorizontalAnimationEnd = (): void =>
-    onAnimationEndFactory(previousValueDigits, currentValueDigits, AnimationType.VERTICAL);
+  const onHorizontalAnimationEnd = useCallback(
+    (): void => onAnimationEndFactory(previousValueDigits, currentValueDigits, AnimationType.VERTICAL),
+    [previousValueDigits, currentValueDigits, onAnimationEndFactory],
+  );
 
-  const onVerticalAnimationEnd = (): void =>
-    onAnimationEndFactory(currentValueDigits, previousValueDigits, AnimationType.HORIZONTAL);
+  const onVerticalAnimationEnd = useCallback(
+    (): void => onAnimationEndFactory(currentValueDigits, previousValueDigits, AnimationType.HORIZONTAL),
+    [previousValueDigits, currentValueDigits, onAnimationEndFactory],
+  );
 
-  const onAnimationEnd: () => void =
-    animationTypePlaying === AnimationType.HORIZONTAL ? onHorizontalAnimationEnd : onVerticalAnimationEnd;
+  const onAnimationEnd: () => void = useCallback(
+    animationTypePlaying === AnimationType.HORIZONTAL ? onHorizontalAnimationEnd : onVerticalAnimationEnd,
+    [animationTypePlaying, onHorizontalAnimationEnd, onVerticalAnimationEnd],
+  );
 
   useEffect((): void => {
     if (!isValueValid) {
@@ -156,7 +177,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       startAnimation();
     }
     previousValueAnimatingRef.current = value!;
-  }, [value, precision]);
+  }, [value, precision, isValueValid]);
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -174,43 +195,54 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     }
   }, [containerRef.current, canvasContextRef.current]);
 
-  const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
-    [separator, '0']
-      .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
-      .reduce(divide);
+  const getSeparatorWidth = useCallback(
+    (separator: DecimalSeparator | DigitGroupSeparator): number =>
+      [separator, '0']
+        .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
+        .reduce(divide),
+    [canvasContextRef.current, divide],
+  );
 
-  const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
-    getSeparatorWidth(digitGroupSeparator) *
-    [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
-      .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
-      .reduce(sum);
+  const getDigitsSeparatorsWidth = useCallback(
+    (numberOfDigits: number): number =>
+      getSeparatorWidth(digitGroupSeparator) *
+      [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
+        .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
+        .reduce(sum),
+    [precision, digitGroupSeparator, sum, getSeparatorWidth],
+  );
 
-  const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
-    [
-      numberOfDigits,
-      getDigitsSeparatorsWidth(numberOfDigits),
-      precision > 0 ? getSeparatorWidth(decimalSeparator) : 0,
-    ].reduce(sum);
+  const getHorizontalAnimationWidth = useCallback(
+    (numberOfDigits: number): number =>
+      [
+        numberOfDigits,
+        getDigitsSeparatorsWidth(numberOfDigits),
+        precision > 0 ? getSeparatorWidth(decimalSeparator) : 0,
+      ].reduce(sum),
+    [precision, decimalSeparator, sum, getSeparatorWidth, getDigitsSeparatorsWidth],
+  );
 
-  const algorithmValuesArrayReducer = (
-    accumulator: AlgorithmValues[][],
-    _: undefined,
-    index: number,
-  ): AlgorithmValues[][] => {
-    const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
-      .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
-    const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
-    accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
-    return accumulator;
-  };
+  const algorithmValuesArrayReducer = useCallback(
+    (accumulator: AlgorithmValues[][], _: undefined, index: number): AlgorithmValues[][] => {
+      const [start, end]: bigint[] = [previousValue, currentValue]
+        .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
+        .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
+      const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
+      accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+      return accumulator;
+    },
+    [previousValue, currentValue, maxNumberOfDigits],
+  );
 
-  const linearAlgorithmMapper = ({ start, end }: AlgorithmValues): number[] =>
-    [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
-      Number((start + BigInt(index)) % 10n),
-    );
+  const linearAlgorithmMapper = useCallback(
+    ({ start, end }: AlgorithmValues): number[] =>
+      [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
+        Number((start + BigInt(index)) % 10n),
+      ),
+    [],
+  );
 
-  const nonLinearAlgorithmMapper = (values: AlgorithmValues, algorithmIndex: number): number[] => {
+  const nonLinearAlgorithmMapper = useCallback((values: AlgorithmValues, algorithmIndex: number): number[] => {
     const { start, end }: AlgorithmValues = values;
     const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
       .map<bigint>(
@@ -226,90 +258,136 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       )
       .map<number>((roundedValue: bigint): number => Number(roundedValue % 10n));
     return numbers[numbers.length - 1] === Number(end % 10n) ? numbers : [...numbers, Number(end % 10n)];
-  };
+  }, []);
 
-  const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
-    algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
-
-  const getHorizontalAnimationDigits = (): number[] => [
-    ...Array(numberOfDigitsDifference).fill(0),
-    ...(currentValue > previousValue ? previousValueDigits : currentValueDigits),
-  ];
-
-  const getVerticalAnimationDigitsArray = (): number[][] =>
-    [...Array(maxNumberOfDigits)]
-      .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
-      .map<number[][]>(algorithmMapper)
-      .flat<number[][][], 1>();
-
-  const getNumericValueDigits = (): number[] =>
-    animationTypePlaying ? previousValueAnimatingDigits : previousValueDigits;
-
-  const digitsMapperFactory = (Component: FC<KeyProps> | string, digit: ReactNode, index: number): JSX.Element => (
-    <Component key={`${index + 1}`.padStart(2, '0')}>{digit}</Component>
+  const algorithmMapper = useCallback(
+    (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
+      algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper),
+    [linearAlgorithmMapper, nonLinearAlgorithmMapper],
   );
 
-  const digitsMapper = (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index);
+  const getHorizontalAnimationDigits = useCallback(
+    (): number[] => [
+      ...Array(numberOfDigitsDifference).fill(0),
+      ...(currentValue > previousValue ? previousValueDigits : currentValueDigits),
+    ],
+    [previousValueDigits, currentValueDigits, numberOfDigitsDifference, previousValue, currentValue],
+  );
 
-  const digitsVerticalAnimationMapper = (digit: number, index: number): JSX.Element =>
-    digitsMapperFactory('div', digit, index);
+  const getVerticalAnimationDigitsArray = useCallback(
+    (): number[][] =>
+      [...Array(maxNumberOfDigits)]
+        .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
+        .map<number[][]>(algorithmMapper)
+        .flat<number[][][], 1>(),
+    [maxNumberOfDigits, algorithmValuesArrayReducer, algorithmMapper],
+  );
 
-  const digitsVerticalAnimationArrayMapper = (digits: number[], index: number): JSX.Element =>
-    digitsMapper(
-      <VerticalAnimation
+  const getNumericValueDigits = useCallback(
+    (): number[] => (animationTypePlaying ? previousValueAnimatingDigits : previousValueDigits),
+    [animationTypePlaying, previousValueDigits, previousValueAnimatingDigits],
+  );
+
+  const digitsMapperFactory = useCallback(
+    (Component: FC<KeyProps> | string, digit: ReactNode, index: number): JSX.Element => (
+      <Component key={`${index + 1}`.padStart(2, '0')}>{digit}</Component>
+    ),
+    [],
+  );
+
+  const digitsMapper = useCallback(
+    (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index),
+    [digitsMapperFactory],
+  );
+
+  const digitsVerticalAnimationMapper = useCallback(
+    (digit: number, index: number): JSX.Element => digitsMapperFactory('div', digit, index),
+    [digitsMapperFactory],
+  );
+
+  const digitsVerticalAnimationArrayMapper = useCallback(
+    (digits: number[], index: number): JSX.Element =>
+      digitsMapper(
+        <VerticalAnimation
+          $animationDirection={
+            currentValue > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN
+          }
+          $animationDuration={verticalAnimationDuration}
+        >
+          {digits.map(digitsVerticalAnimationMapper)}
+        </VerticalAnimation>,
+        index,
+      ),
+    [verticalAnimationDuration, previousValue, currentValue, digitsMapper, digitsVerticalAnimationMapper],
+  );
+
+  const digitsReducer = useCallback(
+    (accumulator: JSX.Element, currentValue: JSX.Element, index: number, { length }: JSX.Element[]): JSX.Element => (
+      <>
+        {accumulator}
+        {!((length - index - Math.max(precision, 0)) % 3) && (
+          <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
+        )}
+        {currentValue}
+      </>
+    ),
+    [precision, digitGroupSeparator, decimalSeparator],
+  );
+
+  const getHorizontalAnimation = useCallback(
+    (): JSX.Element => (
+      <HorizontalAnimation
         $animationDirection={
-          currentValue > previousValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN
+          currentValue > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT
         }
-        $animationDuration={verticalAnimationDuration}
+        $animationDuration={horizontalAnimationDuration}
+        $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
+        $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
       >
-        {digits.map(digitsVerticalAnimationMapper)}
-      </VerticalAnimation>,
-      index,
-    );
-
-  const digitsReducer = (
-    accumulator: JSX.Element,
-    currentValue: JSX.Element,
-    index: number,
-    { length }: JSX.Element[],
-  ): JSX.Element => (
-    <>
-      {accumulator}
-      {!((length - index - Math.max(precision, 0)) % 3) && (
-        <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
-      )}
-      {currentValue}
-    </>
+        <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
+      </HorizontalAnimation>
+    ),
+    [
+      horizontalAnimationDuration,
+      minNumberOfDigits,
+      maxNumberOfDigits,
+      previousValue,
+      currentValue,
+      getHorizontalAnimationWidth,
+      getHorizontalAnimationDigits,
+      digitsMapper,
+      digitsReducer,
+    ],
   );
 
-  const getHorizontalAnimation = (): JSX.Element => (
-    <HorizontalAnimation
-      $animationDirection={
-        currentValue > previousValue ? HorizontalAnimationDirection.RIGHT : HorizontalAnimationDirection.LEFT
-      }
-      $animationDuration={horizontalAnimationDuration}
-      $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
-      $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
-    >
-      <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
-    </HorizontalAnimation>
+  const getVerticalAnimation = useCallback(
+    (): JSX.Element =>
+      getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer),
+    [getVerticalAnimationDigitsArray, digitsVerticalAnimationArrayMapper, digitsReducer],
   );
 
-  const getVerticalAnimation = (): JSX.Element =>
-    getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
+  const getAnimation: () => JSX.Element = useCallback(
+    animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation,
+    [animationTypePlaying, getHorizontalAnimation, getVerticalAnimation],
+  );
 
-  const getAnimation: () => JSX.Element =
-    animationTypePlaying === AnimationType.HORIZONTAL ? getHorizontalAnimation : getVerticalAnimation;
+  const getEmptyValue = useCallback((): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>, []);
 
-  const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
+  const getNumericValue = useCallback(
+    (): JSX.Element => getNumericValueDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer),
+    [getNumericValueDigits, digitsMapper, digitsReducer],
+  );
 
-  const getNumericValue = (): JSX.Element =>
-    getNumericValueDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer);
+  const getValue: () => JSX.Element = useCallback(isValueValid ? getNumericValue : getEmptyValue, [
+    isValueValid,
+    getEmptyValue,
+    getNumericValue,
+  ]);
 
-  const getValue: () => JSX.Element = isValueValid ? getNumericValue : getEmptyValue;
-
-  const getContent: () => JSX.Element =
-    animationTypePlaying && isValueValid && currentValue !== previousValue ? getAnimation : getValue;
+  const getContent: () => JSX.Element = useCallback(
+    animationTypePlaying && isValueValid && currentValue !== previousValue ? getAnimation : getValue,
+    [animationTypePlaying, isValueValid, previousValue, currentValue, getAnimation, getValue],
+  );
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>

@@ -157,6 +157,7 @@ export const Character: StyledComponent<HTMLDivElement> = styled.div`
   overflow: hidden;
   display: inline-block;
   height: inherit;
+  white-space: pre;
 `;
 
 export const Digit: ExtensionStyledComponent<HTMLDivElement> = styled(Character)`
