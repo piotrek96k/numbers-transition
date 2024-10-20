@@ -131,7 +131,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ].map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
 
   const isNewValue: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
-
   const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
     (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
   );
