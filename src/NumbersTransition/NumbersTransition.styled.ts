@@ -68,7 +68,7 @@ interface HorizontalAnimationProps
   $animationEndWidth: number;
 }
 
-interface VerticalAnimationProps extends AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection> {}
+type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 

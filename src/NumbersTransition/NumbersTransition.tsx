@@ -202,31 +202,36 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [previousValueOnAnimationEndBigInt, valueBigInt, maxNumberOfDigits],
   );
 
+  const digitMapper = useCallback((number: bigint): number => Math.abs(Number(number % 10n)), []);
+
   const linearAlgorithmMapper = useCallback(
     ({ start, end }: AlgorithmValues): number[] =>
       [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
-        Number((start + BigInt(index)) % 10n),
+        digitMapper(start + BigInt(index)),
       ),
-    [],
+    [digitMapper],
   );
 
-  const nonLinearAlgorithmMapper = useCallback((values: AlgorithmValues, algorithmIndex: number): number[] => {
-    const { start, end }: AlgorithmValues = values;
-    const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
-      .map<bigint>(
-        (_: undefined, index: number, { length }: number[]): bigint =>
-          (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
-      )
-      .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [
-        increasedValue,
-        increasedValue / NumberPrecision.VALUE,
-      ])
-      .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
-        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
-      )
-      .map<number>((roundedValue: bigint): number => Number(roundedValue % 10n));
-    return numbers[numbers.length - 1] === Number(end % 10n) ? numbers : [...numbers, Number(end % 10n)];
-  }, []);
+  const nonLinearAlgorithmMapper = useCallback(
+    (values: AlgorithmValues, algorithmIndex: number): number[] => {
+      const { start, end }: AlgorithmValues = values;
+      const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
+        .map<bigint>(
+          (_: undefined, index: number, { length }: number[]): bigint =>
+            (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
+        )
+        .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [
+          increasedValue,
+          increasedValue / NumberPrecision.VALUE,
+        ])
+        .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
+          increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
+        )
+        .map<number>(digitMapper);
+      return numbers[numbers.length - 1] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
+    },
+    [digitMapper],
+  );
 
   const algorithmMapper = useCallback(
     (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
