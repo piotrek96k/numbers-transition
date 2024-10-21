@@ -24,7 +24,7 @@ interface AlgorithmValues {
 
 interface NumbersTransitionProps {
   value?: BigDecimal;
-  precision: number;
+  precision?: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
   decimalSeparator?: DecimalSeparator;
