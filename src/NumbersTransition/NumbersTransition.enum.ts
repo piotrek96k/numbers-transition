@@ -9,6 +9,18 @@ export enum AnimationType {
   VERTICAL = 'VERTICAL',
 }
 
+export enum NumberOfAnimations {
+  ONE = 1,
+  TWO,
+  THREE,
+}
+
+export enum AnimationTransition {
+  NONE = 'NONE',
+  FIRST_TO_SECOND = 'FIRST_TO_SECOND',
+  SECOND_TO_THIRD = 'SECOND_TO_THIRD',
+}
+
 export enum HorizontalAnimationDirection {
   RIGHT = 'RIGHT',
   LEFT = 'LEFT',
@@ -34,6 +46,13 @@ export enum DigitGroupSeparator {
   SPACE = ' ',
   UNDERSCORE = '_',
   APOSTROPHE = "'",
+}
+
+export enum NegativeCharacter {
+  HYPHEN = '-',
+  HYPHEN_MINUS = '﹣',
+  MINUS = '−',
+  DASH = '–',
 }
 
 export enum EmptyCharacter {

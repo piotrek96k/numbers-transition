@@ -121,7 +121,6 @@ export const Container: StyledComponent<HTMLDivElement> = styled.div`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
-  overflow: hidden;
   white-space: nowrap;
   max-width: 100%;
   width: fit-content;
@@ -135,6 +134,8 @@ const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
 export const HorizontalAnimation: AttributesStyledComponent<HTMLDivElement, HorizontalAnimationProps> =
   styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
     ${animation};
+    display: inline-block;
+    overflow: hidden;
     height: inherit;
     :only-child {
       float: right;
@@ -156,6 +157,7 @@ export const VerticalAnimation: AttributesStyledComponent<HTMLDivElement, Vertic
 export const Character: StyledComponent<HTMLDivElement> = styled.div`
   overflow: hidden;
   display: inline-block;
+  text-align: end;
   height: inherit;
   white-space: pre;
 `;

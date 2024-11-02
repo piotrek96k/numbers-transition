@@ -1,7 +1,9 @@
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import { ComponentProps } from 'react';
 import NumbersTransition from './NumbersTransition';
-import { DecimalSeparator, DigitGroupSeparator } from './NumbersTransition.enum';
+import { DecimalSeparator, DigitGroupSeparator, NegativeCharacter } from './NumbersTransition.enum';
+
+type SelectType = typeof DigitGroupSeparator | typeof DecimalSeparator | typeof NegativeCharacter;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -9,10 +11,7 @@ type Story = StoryObj<typeof NumbersTransition>;
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
-const inputTypeMapper = ([fieldName, enumObject]: [
-  keyof ComponentArgTypes,
-  typeof DigitGroupSeparator | typeof DecimalSeparator,
-]): ComponentArgTypes => ({
+const inputTypeMapper = ([fieldName, enumObject]: [keyof ComponentArgTypes, SelectType]): ComponentArgTypes => ({
   [fieldName]: {
     options: Object.keys(enumObject),
     mapping: enumObject,
@@ -27,9 +26,10 @@ const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: Component
   ...currentValue,
 });
 
-const inputTypes: [keyof ComponentArgTypes, typeof DigitGroupSeparator | typeof DecimalSeparator][] = [
+const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['digitGroupSeparator', DigitGroupSeparator],
   ['decimalSeparator', DecimalSeparator],
+  ['negativeCharacter', NegativeCharacter],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
@@ -41,6 +41,7 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   verticalAnimationDuration: 2,
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   decimalSeparator: DecimalSeparator.COMMA,
+  negativeCharacter: NegativeCharacter.MINUS,
 };
 
 export const Primary: Story = {

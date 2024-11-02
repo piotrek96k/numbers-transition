@@ -1,10 +1,13 @@
 import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Container, HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
 import {
+  NumberOfAnimations,
+  AnimationTransition,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
   DecimalSeparator,
   DigitGroupSeparator,
+  NegativeCharacter,
   EmptyCharacter,
   LinearAlgorithm,
   NumberPrecision,
@@ -29,6 +32,7 @@ interface NumbersTransitionProps {
   verticalAnimationDuration?: number;
   decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
+  negativeCharacter?: NegativeCharacter;
 }
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
@@ -41,9 +45,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
       : DecimalSeparator.COMMA,
+    negativeCharacter = NegativeCharacter.MINUS,
   }: NumbersTransitionProps = props;
 
-  const [runNextAnimation, setRunNextAnimation] = useState<boolean>(false);
+  const [animationTransition, setAnimationTransition] = useState<AnimationTransition>(AnimationTransition.NONE);
   const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd] = useState<BigDecimal>(0);
 
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
@@ -112,14 +117,30 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ].map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
 
   const isNewValue: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
+  const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
+
+  const isTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
+  const isAtLeastTwoAnimations: boolean =
+    (previousValueOnAnimationEndDigits.length < valueDigits.length &&
+      previousValueOnAnimationEndBigInt < valueBigInt) ||
+    (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
+
   const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
     (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
   );
 
+  const numberOfAnimations: NumberOfAnimations = isSignChange
+    ? isAtLeastTwoAnimations
+      ? NumberOfAnimations.THREE
+      : NumberOfAnimations.TWO
+    : isTheSameNumberOfDigits
+      ? NumberOfAnimations.ONE
+      : NumberOfAnimations.TWO;
+
   useEffect((): void => {
     if (restartAnimation) {
       setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
-      setRunNextAnimation(false);
+      setAnimationTransition(AnimationTransition.NONE);
     }
     previousValueOnAnimationStartRef.current = isValueValid ? value! : 0;
   }, [value, isValueValid, restartAnimation]);
@@ -133,15 +154,26 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     }
   }, []);
 
+  const updatePreviousValueOnAnimationEnd = (): void => setPreviousValueOnAnimationEnd(value!);
+
   const onAnimationEnd = (): void => {
-    if (previousValueOnAnimationEndDigits.length === valueDigits.length) {
-      setPreviousValueOnAnimationEnd(value!);
+    if (numberOfAnimations === NumberOfAnimations.ONE) {
+      updatePreviousValueOnAnimationEnd();
       return;
     }
-    if (runNextAnimation) {
-      setPreviousValueOnAnimationEnd(value!);
+    if (
+      numberOfAnimations === NumberOfAnimations.THREE &&
+      animationTransition === AnimationTransition.FIRST_TO_SECOND
+    ) {
+      setAnimationTransition(AnimationTransition.SECOND_TO_THIRD);
+      return;
     }
-    setRunNextAnimation(!runNextAnimation);
+    if (animationTransition !== AnimationTransition.NONE) {
+      updatePreviousValueOnAnimationEnd();
+      setAnimationTransition(AnimationTransition.NONE);
+      return;
+    }
+    setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
   };
 
   const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
@@ -272,7 +304,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
 
   const getAnimation: () => JSX.Element =
-    valueDigits.length > previousValueOnAnimationEndDigits.length === runNextAnimation
+    valueDigits.length > previousValueOnAnimationEndDigits.length === (animationTransition !== AnimationTransition.NONE)
       ? getVerticalAnimation
       : getHorizontalAnimation;
 
@@ -287,6 +319,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
+      <Character>{negativeCharacter}</Character>
       {getContent()}
     </Container>
   );
