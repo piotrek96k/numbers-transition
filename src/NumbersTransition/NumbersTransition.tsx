@@ -117,17 +117,16 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ].map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
 
   const isNewValue: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
-  const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
+  const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
+    (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
+  );
 
+  const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
   const isTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
   const isAtLeastTwoAnimations: boolean =
     (previousValueOnAnimationEndDigits.length < valueDigits.length &&
       previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
-
-  const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
-    (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
-  );
 
   const numberOfAnimations: NumberOfAnimations = isSignChange
     ? isAtLeastTwoAnimations
@@ -136,6 +135,18 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     : isTheSameNumberOfDigits
       ? NumberOfAnimations.ONE
       : NumberOfAnimations.TWO;
+
+  const getHorizontalAnimationDirection = (): HorizontalAnimationDirection =>
+    (numberOfAnimations === NumberOfAnimations.TWO &&
+      (isSignChange
+        ? previousValueOnAnimationEndBigInt > valueBigInt
+        : previousValueOnAnimationEndDigits.length < valueDigits.length)) ||
+    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition === AnimationTransition.NONE)
+      ? HorizontalAnimationDirection.RIGHT
+      : HorizontalAnimationDirection.LEFT;
+
+  const getVerticalAnimationDirection = (): VerticalAnimationDirection =>
+    previousValueOnAnimationEndBigInt < valueBigInt ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -176,13 +187,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
   };
 
-  const getSeparatorWidth = (separator: DecimalSeparator | DigitGroupSeparator): number =>
-    [separator, '0']
+  const getCharacterWidth = (character: DecimalSeparator | DigitGroupSeparator | NegativeCharacter): number =>
+    [character, '0']
       .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
       .reduce(divide);
 
   const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
-    getSeparatorWidth(digitGroupSeparator) *
+    getCharacterWidth(digitGroupSeparator) *
     [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
       .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
       .reduce(sum);
@@ -191,7 +202,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [
       numberOfDigits,
       getDigitsSeparatorsWidth(numberOfDigits),
-      precision > 0 ? getSeparatorWidth(decimalSeparator) : 0,
+      precision > 0 ? getCharacterWidth(decimalSeparator) : 0,
     ].reduce(sum);
 
   const algorithmValuesArrayReducer = (
@@ -237,7 +248,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getHorizontalAnimationDigits = (): number[] => [
     ...Array(numberOfDigitsDifference).fill(0),
-    ...(valueBigInt > previousValueOnAnimationEndBigInt ? previousValueOnAnimationEndDigits : valueDigits),
+    ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
+      ? previousValueOnAnimationEndDigits
+      : valueDigits),
   ];
 
   const getVerticalAnimationDigitsArray = (): number[][] =>
@@ -258,11 +271,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const digitsVerticalAnimationArrayMapper = (digits: number[], index: number): JSX.Element =>
     digitsMapper(
       <VerticalAnimation
-        $animationDirection={
-          valueBigInt > previousValueOnAnimationEndBigInt
-            ? VerticalAnimationDirection.UP
-            : VerticalAnimationDirection.DOWN
-        }
+        $animationDirection={getVerticalAnimationDirection()}
         $animationDuration={verticalAnimationDuration}
       >
         {digits.map(digitsVerticalAnimationMapper)}
@@ -287,11 +296,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getHorizontalAnimation = (): JSX.Element => (
     <HorizontalAnimation
-      $animationDirection={
-        valueBigInt > previousValueOnAnimationEndBigInt
-          ? HorizontalAnimationDirection.RIGHT
-          : HorizontalAnimationDirection.LEFT
-      }
+      $animationDirection={getHorizontalAnimationDirection()}
       $animationDuration={horizontalAnimationDuration}
       $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
       $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
