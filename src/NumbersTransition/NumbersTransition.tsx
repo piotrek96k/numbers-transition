@@ -304,9 +304,17 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
 
   const getAnimation: () => JSX.Element =
-    valueDigits.length > previousValueOnAnimationEndDigits.length === (animationTransition !== AnimationTransition.NONE)
-      ? getVerticalAnimation
-      : getHorizontalAnimation;
+    (numberOfAnimations === NumberOfAnimations.TWO &&
+      (isSignChange
+        ? animationTransition === AnimationTransition.NONE
+          ? previousValueOnAnimationEndBigInt > valueBigInt
+          : previousValueOnAnimationEndBigInt < valueBigInt
+        : animationTransition === AnimationTransition.NONE
+          ? previousValueOnAnimationEndDigits.length < valueDigits.length
+          : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
+    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND)
+      ? getHorizontalAnimation
+      : getVerticalAnimation;
 
   const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
