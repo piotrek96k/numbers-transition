@@ -57,7 +57,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     document.createElement('canvas').getContext('2d'),
   );
 
-  const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
+  const singleDigitRegExp: RegExp = /^\d{1}$/;
+  const validationRegExp: RegExp = /^-?(([1-9]\d*)|0)(\.\d+)?$/;
+
+  const isValueValid: boolean = !!`${value}`.match(validationRegExp);
 
   const sum = (first: number, second: number): number => first + second;
 
@@ -93,7 +96,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueOnAnimationEndCharacters,
     valueCharacters,
   ].map<number[]>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(/\d/)).map<number>(Number),
+    characters.filter((character: string): boolean => !!character.match(singleDigitRegExp)).map<number>(Number),
   );
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
@@ -195,7 +198,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
     getCharacterWidth(digitGroupSeparator) *
     [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
-      .map((quantity: number): number => Math.trunc((quantity - 1) / 3))
+      .map<number>((quantity: number): number => Math.trunc((quantity - 1) / 3))
       .reduce(sum);
 
   const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
@@ -246,12 +249,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
 
-  const getHorizontalAnimationDigits = (): number[] => [
-    ...Array(numberOfDigitsDifference).fill(0),
-    ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
-      ? previousValueOnAnimationEndDigits
-      : valueDigits),
-  ];
+  const getHorizontalAnimationCharacters = (): string[] =>
+    [
+      ...Array(numberOfDigitsDifference).fill(0),
+      ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
+        ? previousValueOnAnimationEndDigits
+        : valueDigits),
+    ].map<string>(String);
 
   const getVerticalAnimationDigitsArray = (): number[][] =>
     [...Array(maxNumberOfDigits)]
@@ -259,14 +263,22 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       .map<number[][]>(algorithmMapper)
       .flat<number[][][], 1>();
 
-  const digitsMapperFactory = (Component: FC<KeyProps> | string, digit: ReactNode, index: number): JSX.Element => (
-    <Component key={`${index + 1}`.padStart(2, '0')}>{digit}</Component>
-  );
+  const charactersMapperFactory = (
+    Component: FC<KeyProps> | string,
+    character: ReactNode,
+    index: number,
+  ): JSX.Element => <Component key={`${index + 1}`.padStart(2, '0')}>{character}</Component>;
 
-  const digitsMapper = (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index);
+  const charactersMapper = (character: string, index: number): JSX.Element =>
+    charactersMapperFactory(Character, character, index);
+
+  const digitsMapper = (digit: ReactNode, index: number): JSX.Element => charactersMapperFactory(Digit, digit, index);
+
+  const numericMapper = (character: string, index: number): JSX.Element =>
+    character.match(singleDigitRegExp) ? digitsMapper(character, index) : charactersMapper(character, index);
 
   const digitsVerticalAnimationMapper = (digit: number, index: number): JSX.Element =>
-    digitsMapperFactory('div', digit, index);
+    charactersMapperFactory('div', digit, index);
 
   const digitsVerticalAnimationArrayMapper = (digits: number[], index: number): JSX.Element =>
     digitsMapper(
@@ -274,12 +286,20 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
         $animationDirection={getVerticalAnimationDirection()}
         $animationDuration={verticalAnimationDuration}
       >
-        {digits.map(digitsVerticalAnimationMapper)}
+        {digits.map<JSX.Element>(digitsVerticalAnimationMapper)}
       </VerticalAnimation>,
       index,
     );
 
-  const digitsReducer = (
+  const getElementNestedChild = (element: JSX.Element): ReactNode => {
+    const children: ReactNode = element?.props?.children;
+    return children === undefined ? element : getElementNestedChild(Array.isArray(children) ? children[0] : children);
+  };
+
+  const isNegativeCharacter = (index: number, element: JSX.Element): boolean =>
+    index === 1 && !`${getElementNestedChild(element)}`.match(singleDigitRegExp);
+
+  const charactersReducer = (
     accumulator: JSX.Element,
     currentValue: JSX.Element,
     index: number,
@@ -287,12 +307,15 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ): JSX.Element => (
     <>
       {accumulator}
-      {!((length - index - Math.max(precision, 0)) % 3) && (
+      {!isNegativeCharacter(index, accumulator) && !((length - index - Math.max(precision, 0)) % 3) && (
         <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
       )}
       {currentValue}
     </>
   );
+
+  const getNegativeCharacter = (): ReactNode =>
+    !isSignChange && valueBigInt < 0 && <Character>{negativeCharacter}</Character>;
 
   const getHorizontalAnimation = (): JSX.Element => (
     <HorizontalAnimation
@@ -301,12 +324,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
       $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
     >
-      <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
+      <div>{getHorizontalAnimationCharacters().map<JSX.Element>(numericMapper).reduce(charactersReducer)}</div>
     </HorizontalAnimation>
   );
 
   const getVerticalAnimation = (): JSX.Element =>
-    getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
+    getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(charactersReducer);
 
   const getAnimation: () => JSX.Element =
     (numberOfAnimations === NumberOfAnimations.TWO &&
@@ -324,7 +347,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
   const getNumericValue = (): JSX.Element =>
-    previousValueOnAnimationEndDigits.map<JSX.Element>(digitsMapper).reduce(digitsReducer);
+    previousValueOnAnimationEndDigits.map<JSX.Element>(digitsMapper).reduce(charactersReducer);
 
   const getValue: () => JSX.Element = isValueValid ? getNumericValue : getEmptyValue;
 
@@ -332,7 +355,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
-      <Character>{negativeCharacter}</Character>
+      {getNegativeCharacter()}
       {getContent()}
     </Container>
   );

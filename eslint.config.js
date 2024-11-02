@@ -66,6 +66,7 @@ export default [
       'import/order': ['error'],
       'import/no-duplicates': 'error',
       'object-shorthand': 'error',
+      'no-use-before-define': 'error',
       'no-useless-rename': 'error',
       'no-useless-concat': 'error',
       'prefer-template': 'error',
