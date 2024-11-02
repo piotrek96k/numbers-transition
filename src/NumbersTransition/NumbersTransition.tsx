@@ -63,9 +63,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const isValueValid: boolean = !!`${value}`.match(validationRegExp);
 
   const sum = (first: number, second: number): number => first + second;
-
   const subtract = (first: number, second: number): number => first - second;
-
   const divide = (first: number, second: number): number => first / second;
 
   const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
@@ -126,6 +124,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
   const isTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
+
   const isAtLeastTwoAnimations: boolean =
     (previousValueOnAnimationEndDigits.length < valueDigits.length &&
       previousValueOnAnimationEndBigInt < valueBigInt) ||
@@ -150,6 +149,29 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getVerticalAnimationDirection = (): VerticalAnimationDirection =>
     previousValueOnAnimationEndBigInt < valueBigInt ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
+
+  const isHorizontalAnimation = (): boolean =>
+    (numberOfAnimations === NumberOfAnimations.TWO &&
+      (isSignChange
+        ? animationTransition === AnimationTransition.NONE
+          ? previousValueOnAnimationEndBigInt > valueBigInt
+          : previousValueOnAnimationEndBigInt < valueBigInt
+        : animationTransition === AnimationTransition.NONE
+          ? previousValueOnAnimationEndDigits.length < valueDigits.length
+          : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
+    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
+
+  const isHorizontalAnimationInGivenTransition = (transition: AnimationTransition): boolean =>
+    numberOfAnimations === NumberOfAnimations.THREE &&
+    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === transition);
+
+  const hasHorizontalAnimationNegativeCharacter = (): boolean =>
+    isSignChange &&
+    (numberOfAnimations === NumberOfAnimations.TWO ||
+      isHorizontalAnimationInGivenTransition(AnimationTransition.SECOND_TO_THIRD));
+
+  const hasHorizontalAnimationZeros = (): boolean =>
+    numberOfAnimations === NumberOfAnimations.TWO || isHorizontalAnimationInGivenTransition(AnimationTransition.NONE);
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -201,8 +223,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       .map<number>((quantity: number): number => Math.trunc((quantity - 1) / 3))
       .reduce(sum);
 
-  const getHorizontalAnimationWidth = (numberOfDigits: number): number =>
+  const getHorizontalAnimationWidth = (numberOfDigits: number, hasNegativeCharacter: boolean): number =>
     [
+      hasNegativeCharacter ? getCharacterWidth(negativeCharacter) : 0,
       numberOfDigits,
       getDigitsSeparatorsWidth(numberOfDigits),
       precision > 0 ? getCharacterWidth(decimalSeparator) : 0,
@@ -251,7 +274,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getHorizontalAnimationCharacters = (): string[] =>
     [
-      ...Array(numberOfDigitsDifference).fill(0),
+      ...(hasHorizontalAnimationNegativeCharacter() ? [negativeCharacter] : []),
+      ...Array(hasHorizontalAnimationZeros() ? numberOfDigitsDifference : 0).fill(0),
       ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
         ? previousValueOnAnimationEndDigits
         : valueDigits),
@@ -296,8 +320,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     return children === undefined ? element : getElementNestedChild(Array.isArray(children) ? children[0] : children);
   };
 
-  const isNegativeCharacter = (index: number, element: JSX.Element): boolean =>
+  const isNegativeCharacter = (element: JSX.Element, index: number): boolean =>
     index === 1 && !`${getElementNestedChild(element)}`.match(singleDigitRegExp);
+
+  const getSeparatorElement = (element: JSX.Element, index: number, length: number): ReactNode =>
+    !isNegativeCharacter(element, index) &&
+    !((length - index - Math.max(precision, 0)) % 3) && (
+      <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
+    );
 
   const charactersReducer = (
     accumulator: JSX.Element,
@@ -307,22 +337,27 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ): JSX.Element => (
     <>
       {accumulator}
-      {!isNegativeCharacter(index, accumulator) && !((length - index - Math.max(precision, 0)) % 3) && (
-        <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
-      )}
+      {getSeparatorElement(accumulator, index, length)}
       {currentValue}
     </>
   );
 
-  const getNegativeCharacter = (): ReactNode =>
-    !isSignChange && valueBigInt < 0 && <Character>{negativeCharacter}</Character>;
+  const getNegativeElement = (): ReactNode =>
+    //TODO, delete it, it will be handled by Vertical animation
+    (((isSignChange || valueBigInt < 0) && !isHorizontalAnimation()) ||
+      //TODO end
+      (!isSignChange && valueBigInt < 0) ||
+      isHorizontalAnimationInGivenTransition(AnimationTransition.NONE)) && <Character>{negativeCharacter}</Character>;
 
   const getHorizontalAnimation = (): JSX.Element => (
     <HorizontalAnimation
       $animationDirection={getHorizontalAnimationDirection()}
       $animationDuration={horizontalAnimationDuration}
-      $animationStartWidth={getHorizontalAnimationWidth(minNumberOfDigits)}
-      $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits)}
+      $animationStartWidth={getHorizontalAnimationWidth(
+        hasHorizontalAnimationZeros() ? minNumberOfDigits : maxNumberOfDigits,
+        false,
+      )}
+      $animationEndWidth={getHorizontalAnimationWidth(maxNumberOfDigits, hasHorizontalAnimationNegativeCharacter())}
     >
       <div>{getHorizontalAnimationCharacters().map<JSX.Element>(numericMapper).reduce(charactersReducer)}</div>
     </HorizontalAnimation>
@@ -331,18 +366,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const getVerticalAnimation = (): JSX.Element =>
     getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(charactersReducer);
 
-  const getAnimation: () => JSX.Element =
-    (numberOfAnimations === NumberOfAnimations.TWO &&
-      (isSignChange
-        ? animationTransition === AnimationTransition.NONE
-          ? previousValueOnAnimationEndBigInt > valueBigInt
-          : previousValueOnAnimationEndBigInt < valueBigInt
-        : animationTransition === AnimationTransition.NONE
-          ? previousValueOnAnimationEndDigits.length < valueDigits.length
-          : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
-    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND)
-      ? getHorizontalAnimation
-      : getVerticalAnimation;
+  const getAnimation: () => JSX.Element = isHorizontalAnimation() ? getHorizontalAnimation : getVerticalAnimation;
 
   const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
@@ -355,7 +379,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
-      {getNegativeCharacter()}
+      {getNegativeElement()}
       {getContent()}
     </Container>
   );
