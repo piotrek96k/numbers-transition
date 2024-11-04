@@ -57,10 +57,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     document.createElement('canvas').getContext('2d'),
   );
 
-  const singleDigitRegExp: RegExp = /^\d{1}$/;
-  const validationRegExp: RegExp = /^-?(([1-9]\d*)|0)(\.\d+)?$/;
-
-  const isValueValid: boolean = !!`${value}`.match(validationRegExp);
+  const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
   const sum = (first: number, second: number): number => first + second;
   const subtract = (first: number, second: number): number => first - second;
@@ -94,7 +91,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueOnAnimationEndCharacters,
     valueCharacters,
   ].map<number[]>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(singleDigitRegExp)).map<number>(Number),
+    characters.filter((character: string): boolean => !!character.match(/^\d{1}$/)).map<number>(Number),
   );
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
@@ -291,8 +288,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       .map<number[][]>(algorithmMapper)
       .flat<number[][][], 1>();
 
-  const digitsMapperFactory = (Component: FC<KeyProps> | string, digit: ReactNode, index: number): JSX.Element => (
-    <Component key={`${index + 1}`.padStart(2, '0')}>{digit}</Component>
+  const digitsMapperFactory = (Component: FC<KeyProps> | string, children: ReactNode, index: number): JSX.Element => (
+    <Component key={`${index + 1}`.padStart(2, '0')}>{children}</Component>
   );
 
   const digitsMapper = (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index);
