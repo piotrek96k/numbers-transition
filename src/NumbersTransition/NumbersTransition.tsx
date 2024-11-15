@@ -1,5 +1,13 @@
 import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { Container, HorizontalAnimation, VerticalAnimation, Character, Digit } from './NumbersTransition.styled';
+import {
+  Container,
+  Character,
+  Digit,
+  Division,
+  HorizontalAnimation,
+  VerticalAnimation,
+  DivisionProps,
+} from './NumbersTransition.styled';
 import {
   NumberOfAnimations,
   AnimationTransition,
@@ -275,38 +283,68 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
 
-  const getHorizontalAnimationCharacters = (): number[] => [
+  const getHorizontalAnimationDigits = (): number[] => [
     ...(hasHorizontalAnimationZeros() ? Array(numberOfDigitsDifference).fill(0) : []),
     ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
       ? previousValueOnAnimationEndDigits
       : valueDigits),
   ];
 
-  const getVerticalAnimationDigitsArray = (): number[][] =>
+  const getVerticalAnimationDigits = (): number[][] =>
     [...Array(maxNumberOfDigits)]
       .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
       .map<number[][]>(algorithmMapper)
       .flat<number[][][], 1>();
 
-  const digitsMapperFactory = (Component: FC<KeyProps> | string, children: ReactNode, index: number): JSX.Element => (
-    <Component key={`${index + 1}`.padStart(2, '0')}>{children}</Component>
+  const elementMapperFactory = <T extends object>(
+    Component: FC<KeyProps> | string,
+    child: ReactNode,
+    index: number,
+    props?: T,
+  ): JSX.Element => (
+    <Component key={`${index + 1}`.padStart(2, '0')} {...props}>
+      {child}
+    </Component>
   );
 
-  const digitsMapper = (digit: ReactNode, index: number): JSX.Element => digitsMapperFactory(Digit, digit, index);
+  const divisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(Division, child, index);
 
-  const digitsVerticalAnimationMapper = (digit: number, index: number): JSX.Element =>
-    digitsMapperFactory('div', digit, index);
+  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(Character, child, index);
 
-  const digitsVerticalAnimationArrayMapper = (digits: number[], index: number): JSX.Element =>
-    digitsMapper(
-      <VerticalAnimation
-        $animationDirection={getVerticalAnimationDirection()}
-        $animationDuration={verticalAnimationDuration}
-      >
-        {digits.map<JSX.Element>(digitsVerticalAnimationMapper)}
-      </VerticalAnimation>,
+  const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(Digit, child, index);
+
+  const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
+    elementMapperFactory<DivisionProps>(Division, negativeCharacter, index, { $visible: visible });
+
+  const getVerticalAnimationElement = <T,>(
+    children: T[],
+    mapper: (child: T, index: number) => JSX.Element,
+    animationStartProgress?: number,
+  ): JSX.Element => (
+    <VerticalAnimation
+      $animationDirection={getVerticalAnimationDirection()}
+      $animationDuration={verticalAnimationDuration}
+      $animationStartProgress={animationStartProgress}
+    >
+      {children.map<JSX.Element>(mapper)}
+    </VerticalAnimation>
+  );
+
+  const characterVerticalAnimationElementMapper = (charactersVisible: boolean[], index: number): JSX.Element =>
+    characterElementMapper(
+      getVerticalAnimationElement<boolean>(
+        charactersVisible,
+        negativeCharacterElementMapper,
+        100 * (charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
+      ),
       index,
     );
+
+  const digitVerticalAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
+    digitElementMapper(getVerticalAnimationElement<number>(digits, divisionElementMapper), index);
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, 0)) % 3) && (
@@ -326,12 +364,36 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     </>
   );
 
+  const verticalAnimationNegativeCharacterVisibilityMapper = (
+    digit: number,
+    index: number,
+    digits: number[],
+  ): boolean => !index || (!!digit && digits[index - 1] > digit);
+
+  const verticalAnimationReducer = (
+    accumulator: [JSX.Element[], JSX.Element[]],
+    currentValue: number[],
+    index: number,
+  ): [JSX.Element[], JSX.Element[]] => [
+    !isSignChange || accumulator[0].length || currentValue.length === 1
+      ? accumulator[0]
+      : [
+          characterVerticalAnimationElementMapper(
+            currentValue.map(verticalAnimationNegativeCharacterVisibilityMapper),
+            index,
+          ),
+        ],
+    [...accumulator[1], digitVerticalAnimationElementMapper(currentValue, index + (isSignChange ? 1 : 0))],
+  ];
+
+  const verticalAnimationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
+    index ? elements.reduce(digitsReducer) : elements.length === 1 ? elements[0] : <></>;
+
   const getNegativeElement = (): ReactNode =>
-    //TODO, delete it, it will be handled by Vertical animation
-    (((isSignChange || valueBigInt < 0) && !isHorizontalAnimation()) ||
-      //TODO end
-      (!isSignChange && valueBigInt < 0) ||
-      isHorizontalAnimationInGivenTransition(AnimationTransition.NONE)) && <Character>{negativeCharacter}</Character>;
+    ((!isSignChange && valueBigInt < 0) ||
+      (isHorizontalAnimation() && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
+      <Character>{negativeCharacter}</Character>
+    );
 
   const getHorizontalAnimation = (): JSX.Element => (
     <HorizontalAnimation
@@ -340,23 +402,28 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       $animationStartWidth={getHorizontalAnimationStartWidth()}
       $animationEndWidth={getHorizontalAnimationEndWidth()}
     >
-      <div>{getHorizontalAnimationCharacters().map<JSX.Element>(digitsMapper).reduce(digitsReducer)}</div>
+      <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitElementMapper).reduce(digitsReducer)}</div>
     </HorizontalAnimation>
   );
 
-  const getVerticalAnimation = (): JSX.Element =>
-    getVerticalAnimationDigitsArray().map<JSX.Element>(digitsVerticalAnimationArrayMapper).reduce(digitsReducer);
+  const getVerticalAnimation = (): JSX.Element[] =>
+    getVerticalAnimationDigits()
+      .reduce<[JSX.Element[], JSX.Element[]]>(verticalAnimationReducer, [[], []])
+      .map<JSX.Element>(verticalAnimationElementsMapper);
 
-  const getAnimation: () => JSX.Element = isHorizontalAnimation() ? getHorizontalAnimation : getVerticalAnimation;
+  const getAnimation: () => JSX.Element | JSX.Element[] = isHorizontalAnimation()
+    ? getHorizontalAnimation
+    : getVerticalAnimation;
 
   const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
 
   const getNumericValue = (): JSX.Element =>
-    previousValueOnAnimationEndDigits.map<JSX.Element>(digitsMapper).reduce(digitsReducer);
+    previousValueOnAnimationEndDigits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
 
   const getValue: () => JSX.Element = isValueValid ? getNumericValue : getEmptyValue;
 
-  const getContent: () => JSX.Element = isValueValid && isNewValue && !restartAnimation ? getAnimation : getValue;
+  const getContent: () => JSX.Element | JSX.Element[] =
+    isValueValid && isNewValue && !restartAnimation ? getAnimation : getValue;
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>

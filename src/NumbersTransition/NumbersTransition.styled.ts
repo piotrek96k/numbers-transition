@@ -1,63 +1,40 @@
-import {
-  RefObject,
-  HTMLAttributes,
-  DetailedHTMLProps,
-  DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES,
-} from 'react';
+import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { IStyledComponentBase, FastOmit, Substitute, Keyframes } from 'styled-components/dist/types';
+import { Substitute, Keyframes, IStyledComponent, BaseObject, KnownTarget } from 'styled-components/dist/types';
 import {
-  StyledComponentType,
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
   AnimationDirection,
 } from './NumbersTransition.enum';
 
-type RefFunction<T> = (
-  instance: T | null,
-) =>
-  | void
-  | DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES[keyof DO_NOT_USE_OR_YOU_WILL_BE_FIRED_CALLBACK_REF_RETURN_VALUES];
-
-type Ref<T> = RefFunction<T> | RefObject<T> | null | undefined;
-
-interface RefProps<T> {
-  ref?: Ref<T>;
-}
+type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
 
 type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 
-type OmitNever<T extends object> = FastOmit<T, never>;
+type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
 
-type OmitRef<T> = Omit<T, 'ref'>;
+type ExtensionStyledComponent<T extends KnownTarget> = StyledComponentBase<
+  Substitute<ComponentPropsWithRef<T> & BaseObject, BaseObject>
+>;
 
-type GenericStyledComponentType<
-  T extends StyledComponentType,
-  U,
-  V extends object = never,
-> = T extends StyledComponentType.STYLED
-  ? HTMLDetailedElement<U>
-  : T extends StyledComponentType.EXTENSION
-    ? OmitRef<OmitNever<HTMLDetailedElement<U>>> & RefProps<U>
-    : T extends StyledComponentType.ATTRIBUTES
-      ? Substitute<Substitute<HTMLDetailedElement<U>, OmitRef<HTMLDetailedElement<U>> & RefProps<U>>, V>
-      : never;
+type AttributesStyledComponent<
+  T extends KnownTarget,
+  U extends object,
+  V extends object = BaseObject,
+> = StyledComponentBase<
+  Substitute<
+    Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>,
+    BaseObject
+  >
+>;
 
-type GenericStyledComponent<T extends StyledComponentType, U, V extends object = never> = IStyledComponentBase<
-  'web',
-  GenericStyledComponentType<T, U, V>
-> &
-  string;
-
-type StyledComponent<T> = GenericStyledComponent<StyledComponentType.STYLED, T>;
-
-type ExtensionStyledComponent<T> = GenericStyledComponent<StyledComponentType.EXTENSION, T>;
-
-type AttributesStyledComponent<T, U extends object> = GenericStyledComponent<StyledComponentType.ATTRIBUTES, T, U>;
+export interface DivisionProps {
+  $visible?: boolean;
+}
 
 interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
-  $animationType?: T;
+  $animationType: T;
   $animationDirection: U;
   $animationDuration: number;
 }
@@ -68,34 +45,91 @@ interface HorizontalAnimationProps
   $animationEndWidth: number;
 }
 
-type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
+interface VerticalAnimationProps extends AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection> {
+  $animationStartProgress?: number;
+}
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
-const horizontalAnimation = ({
+type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
+
+type CharacterStyledComponent = StyledComponent<HTMLDivElement>;
+
+type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
+
+type DivisionStyledComponent = StyledComponent<HTMLDivElement, DivisionProps>;
+
+type HorizontalAnimationStyledComponent = AttributesStyledComponent<
+  'div',
+  HTMLDetailedElement<HTMLDivElement>,
+  Omit<HorizontalAnimationProps, '$animationType'>
+>;
+
+type VerticalAnimationStyledComponent = AttributesStyledComponent<
+  'div',
+  HTMLDetailedElement<HTMLDivElement>,
+  Omit<VerticalAnimationProps, '$animationType'>
+>;
+
+export const Container: ContainerStyledComponent = styled.div`
+  font-size: 100px;
+  color: #f0ff95;
+  position: relative;
+  white-space: nowrap;
+  max-width: 100%;
+  width: fit-content;
+  height: 1lh;
+`;
+
+export const Character: CharacterStyledComponent = styled.div`
+  overflow: hidden;
+  display: inline-block;
+  text-align: end;
+  height: inherit;
+  white-space: pre;
+`;
+
+export const Digit: DigitStyledComponent = styled(Character)`
+  min-width: 1ch;
+`;
+
+export const Division: DivisionStyledComponent = styled.div<DivisionProps>`
+  color: ${({ $visible = true }: DivisionProps): string => ($visible ? 'inherit' : 'transparent')};
+`;
+
+const getHorizontalAnimation = ({
   $animationStartWidth,
   $animationEndWidth,
 }: HorizontalAnimationProps): Keyframes => keyframes`
-  from {
+  0% {
     width: calc(1ch * ${$animationStartWidth});
   }
-  to {
+  100% {
     width: calc(1ch * ${$animationEndWidth});
   }
 `;
 
-const verticalAnimation: Keyframes = keyframes`
-  from {
-    transform: translateY(0);
+const getVerticalAnimation = ({ $animationStartProgress }: VerticalAnimationProps): Keyframes => keyframes`
+  0% {
+    transform: translateY(-${$animationStartProgress ?? 0}%);
   }
-  to {
+  ${
+    $animationStartProgress
+      ? css`
+          ${$animationStartProgress}% {
+            transform: translateY(-${$animationStartProgress}%);
+          }
+        `
+      : css``
+  }
+  100% {
     transform: translateY(-100%);
   }
 `;
 
 const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${(props: AnimationProps): Keyframes =>
-    props.$animationType === AnimationType.HORIZONTAL ? horizontalAnimation(props) : verticalAnimation};
+    props.$animationType === AnimationType.HORIZONTAL ? getHorizontalAnimation(props) : getVerticalAnimation(props)};
 `;
 
 const animationDirection = ({ $animationDirection }: AnimationProps): RuleSet<object> =>
@@ -117,51 +151,31 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-export const Container: StyledComponent<HTMLDivElement> = styled.div`
-  font-size: 100px;
-  color: #f0ff95;
-  position: relative;
-  white-space: nowrap;
-  max-width: 100%;
-  width: fit-content;
-  height: 1lh;
-`;
-
 const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
   $animationType: AnimationType.HORIZONTAL,
 };
 
-export const HorizontalAnimation: AttributesStyledComponent<HTMLDivElement, HorizontalAnimationProps> =
-  styled.div.attrs<HorizontalAnimationProps>(horizontalAnimationAttrs)`
-    ${animation};
-    display: inline-block;
-    overflow: hidden;
-    height: inherit;
-    :only-child {
-      float: right;
-      height: inherit;
-    }
-  `;
-
 const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType: AnimationType.VERTICAL };
 
-export const VerticalAnimation: AttributesStyledComponent<HTMLDivElement, VerticalAnimationProps> =
-  styled.div.attrs<VerticalAnimationProps>(verticalAnimationAttrs)`
-    ${animation};
-    :last-child {
-      position: absolute;
-      top: 100%;
-    }
-  `;
-
-export const Character: StyledComponent<HTMLDivElement> = styled.div`
-  overflow: hidden;
+export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<HorizontalAnimationProps>(
+  horizontalAnimationAttrs,
+)`
+  ${animation};
   display: inline-block;
-  text-align: end;
+  overflow: hidden;
   height: inherit;
-  white-space: pre;
+  :only-child {
+    float: right;
+    height: inherit;
+  }
 `;
 
-export const Digit: ExtensionStyledComponent<HTMLDivElement> = styled(Character)`
-  min-width: 1ch;
+export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.attrs<VerticalAnimationProps>(
+  verticalAnimationAttrs,
+)`
+  ${animation};
+  :last-child {
+    position: absolute;
+    top: 100%;
+  }
 `;
