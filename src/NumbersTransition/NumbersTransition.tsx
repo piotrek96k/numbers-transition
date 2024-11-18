@@ -19,7 +19,6 @@ import {
   VerticalAnimationDirection,
   StepAnimationDirection,
   AnimationDirection,
-  StepAnimationPosition,
   NegativeCharacterAnimationMode,
   DecimalSeparator,
   DigitGroupSeparator,
@@ -388,23 +387,17 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
     elementMapperFactory<object>(Digit, child, index);
 
-  const stepAnimationElementMapper = (
-    index: number,
-    progress: number,
-    position: StepAnimationPosition,
-    reverseDirection: boolean,
-  ): JSX.Element =>
+  const stepAnimationElementMapper = (index: number, progress: number, reverseDirection: boolean): JSX.Element =>
     elementMapperFactory<OmitAnimationType<StepAnimationProps>>(StepAnimation, negativeCharacter, index, {
       $animationDirection: getStepAnimationDirection(reverseDirection),
       $animationDuration: verticalAnimationDuration,
       $animationTimingFunction: animationTimingFunction,
       $animationStepProgress: progress,
-      $animationPosition: position,
     });
 
   const negativeCharacterElementMapper = (visible: boolean, index: number, progress: number): JSX.Element =>
     negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && visible
-      ? stepAnimationElementMapper(index, progress, StepAnimationPosition.RELATIVE, false)
+      ? stepAnimationElementMapper(index, progress, false)
       : divisionElementMapper(negativeCharacter, index, { $visible: visible });
 
   const getVerticalAnimationElement = (children: JSX.Element[]): JSX.Element => (
@@ -432,7 +425,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ): JSX.Element => (
     <>
       {negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE &&
-        stepAnimationElementMapper(index - 1, 100 - progress, StepAnimationPosition.ABSOLUTE, true)}
+        stepAnimationElementMapper(index - 1, 100 - progress, true)}
       {characterElementMapper(
         getVerticalAnimationElement(characterVerticalAnimationElementChildrenMapper(charactersVisible, progress)),
         index,

@@ -8,7 +8,6 @@ import {
   VerticalAnimationDirection,
   StepAnimationDirection,
   AnimationDirection,
-  StepAnimationPosition,
 } from './NumbersTransition.enums';
 
 type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
@@ -52,7 +51,6 @@ type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, Verti
 
 export interface StepAnimationProps extends AnimationCommonProps<AnimationType.STEP, StepAnimationDirection> {
   $animationStepProgress: number;
-  $animationPosition: StepAnimationPosition;
 }
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps | StepAnimationProps;
@@ -187,11 +185,14 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
     position: absolute;
     top: 100%;
   }
+  :not(:last-child) {
+    position: relative;
+  }
 `;
 
 export const StepAnimation: StepAnimationStyledComponent = styled.div.attrs<StepAnimationProps>(stepAnimationAttrs)`
   ${animation};
-  position: ${({ $animationPosition }: StepAnimationProps): string => $animationPosition.toLowerCase()};
+  position: absolute;
 `;
 
 export const Character: CharacterStyledComponent = styled.div`

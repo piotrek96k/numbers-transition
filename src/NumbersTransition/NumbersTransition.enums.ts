@@ -46,11 +46,6 @@ export enum StepAnimationDirection {
 
 export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection | StepAnimationDirection;
 
-export enum StepAnimationPosition {
-  ABSOLUTE = 'ABSOLUTE',
-  RELATIVE = 'RELATIVE',
-}
-
 export enum NegativeCharacterAnimationMode {
   SINGLE = 'SINGLE',
   MULTI = 'MULTI',
