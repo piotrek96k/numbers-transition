@@ -51,8 +51,8 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   horizontalAnimationDuration: 0.5,
   verticalAnimationDuration: 2,
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
-  digitGroupSeparator: DigitGroupSeparator.SPACE,
   decimalSeparator: DecimalSeparator.COMMA,
+  digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,
   animationTimingFunction: [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
 };
