@@ -357,13 +357,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       currentValue[index],
     ]);
 
-  const getAnimationStepProgress = (progress: number, reverse: boolean): number => {
+  const getAnimationStepProgress = (progress: number): number => {
     const [xAxisCubicBezier, yAxisCubicBezier] = getAnimationTimingFunction(getVerticalAnimationDirection())
       .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
       .map<(time: number) => number>(cubicBezier);
     const toSolve = (functionVal: number): number => yAxisCubicBezier(functionVal) - progress;
-    const solvedValue: number = xAxisCubicBezier(solve(toSolve));
-    return 100 * (reverse ? 1 - solvedValue : solvedValue);
+    return 100 * xAxisCubicBezier(solve(toSolve));
   };
 
   const elementMapperFactory = <T extends object>(
@@ -399,7 +398,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       $animationDirection: getStepAnimationDirection(reverseDirection),
       $animationDuration: verticalAnimationDuration,
       $animationTimingFunction: animationTimingFunction,
-      $animationStepProgress: getAnimationStepProgress(progress, reverseDirection),
+      $animationStepProgress: progress,
       $animationPosition: position,
     });
 
@@ -429,11 +428,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const characterVerticalAnimationElementMapper = (
     charactersVisible: boolean[],
     index: number,
-    progress: number = charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1),
+    progress: number = getAnimationStepProgress(charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
   ): JSX.Element => (
     <>
       {negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE &&
-        stepAnimationElementMapper(index - 1, progress, StepAnimationPosition.ABSOLUTE, true)}
+        stepAnimationElementMapper(index - 1, 100 - progress, StepAnimationPosition.ABSOLUTE, true)}
       {characterElementMapper(
         getVerticalAnimationElement(characterVerticalAnimationElementChildrenMapper(charactersVisible, progress)),
         index,
