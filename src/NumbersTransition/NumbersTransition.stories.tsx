@@ -1,9 +1,19 @@
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import { ComponentProps } from 'react';
 import NumbersTransition from './NumbersTransition';
-import { DecimalSeparator, DigitGroupSeparator, NegativeCharacter } from './NumbersTransition.enum';
+import {
+  NegativeCharacterAnimationMode,
+  DecimalSeparator,
+  DigitGroupSeparator,
+  EaseAnimationTimingFunction,
+  NegativeCharacter,
+} from './NumbersTransition.enums';
 
-type SelectType = typeof DigitGroupSeparator | typeof DecimalSeparator | typeof NegativeCharacter;
+type SelectType =
+  | typeof NegativeCharacterAnimationMode
+  | typeof DigitGroupSeparator
+  | typeof DecimalSeparator
+  | typeof NegativeCharacter;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -27,6 +37,7 @@ const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: Component
 });
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
+  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
   ['digitGroupSeparator', DigitGroupSeparator],
   ['decimalSeparator', DecimalSeparator],
   ['negativeCharacter', NegativeCharacter],
@@ -39,9 +50,11 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   precision: 0,
   horizontalAnimationDuration: 0.5,
   verticalAnimationDuration: 2,
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   decimalSeparator: DecimalSeparator.COMMA,
   negativeCharacter: NegativeCharacter.MINUS,
+  animationTimingFunction: [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
 };
 
 export const Primary: Story = {

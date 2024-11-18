@@ -1,27 +1,36 @@
-import { FC, MutableRefObject, ReactNode, RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { FC, ReactNode, RefObject, MutableRefObject, useState, useEffect, useLayoutEffect, useRef } from 'react';
 import {
+  DivisionProps,
+  StepAnimationProps,
+  OmitAnimationType,
   Container,
+  HorizontalAnimation,
+  VerticalAnimation,
+  StepAnimation,
   Character,
   Digit,
   Division,
-  HorizontalAnimation,
-  VerticalAnimation,
-  DivisionProps,
-} from './NumbersTransition.styled';
+} from './NumbersTransition.styles';
 import {
+  AnimationTimingFunction,
   NumberOfAnimations,
   AnimationTransition,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
+  StepAnimationDirection,
+  AnimationDirection,
+  StepAnimationPosition,
+  NegativeCharacterAnimationMode,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   EmptyCharacter,
   LinearAlgorithm,
+  EaseAnimationTimingFunction,
   NumberPrecision,
-} from './NumbersTransition.enum';
-
-export type BigDecimal = number | bigint | `${number}`;
+  EquationSolver,
+} from './NumbersTransition.enums';
+import { BigDecimal } from './NumbersTransition.types';
 
 interface KeyProps {
   key: string;
@@ -38,9 +47,11 @@ interface NumbersTransitionProps {
   precision?: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
+  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
+  animationTimingFunction?: AnimationTimingFunction;
 }
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
@@ -49,11 +60,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     precision = 0,
     horizontalAnimationDuration = 0.5,
     verticalAnimationDuration = 2,
+    negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
       : DecimalSeparator.COMMA,
     negativeCharacter = NegativeCharacter.MINUS,
+    animationTimingFunction = [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
   }: NumbersTransitionProps = props;
 
   const [animationTransition, setAnimationTransition] = useState<AnimationTransition>(AnimationTransition.NONE);
@@ -154,6 +167,23 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getVerticalAnimationDirection = (): VerticalAnimationDirection =>
     previousValueOnAnimationEndBigInt < valueBigInt ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
+
+  const getStepAnimationDirection = (reversed: boolean): StepAnimationDirection =>
+    previousValueOnAnimationEndBigInt > valueBigInt === reversed
+      ? StepAnimationDirection.FORWARDS
+      : StepAnimationDirection.BACKWARDS;
+
+  const reverseAnimationTimingFunctionMapper = (
+    tuple: AnimationTimingFunction[number],
+  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
+
+  const reverseAnimationTimingFunction = (animationTimingFunction: AnimationTimingFunction): AnimationTimingFunction =>
+    animationTimingFunction.map<AnimationTimingFunction[number]>(reverseAnimationTimingFunctionMapper).reverse();
+
+  const getAnimationTimingFunction = (animationDirection: AnimationDirection): AnimationTimingFunction =>
+    animationDirection === HorizontalAnimationDirection.RIGHT || animationDirection === VerticalAnimationDirection.UP
+      ? animationTimingFunction
+      : reverseAnimationTimingFunction(animationTimingFunction);
 
   const isHorizontalAnimation = (): boolean =>
     (numberOfAnimations === NumberOfAnimations.TWO &&
@@ -296,19 +326,62 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       .map<number[][]>(algorithmMapper)
       .flat<number[][][], 1>();
 
+  const derivative = (func: (val: number) => number, val: number) =>
+    (func(val + EquationSolver.DERIVATIVE_DELTA) - func(val - EquationSolver.DERIVATIVE_DELTA)) /
+    (2 * EquationSolver.DERIVATIVE_DELTA);
+
+  const solve = (
+    func: (inputValue: number) => number,
+    previousValue: number = EquationSolver.INITIAL_VALUE,
+    previousFuncResult: number = func(previousValue),
+  ): number => {
+    const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
+    const newFuncResult: number = func(newValue);
+    return Math.abs(newValue - previousValue) < EquationSolver.DERIVATIVE_DELTA &&
+      newFuncResult < EquationSolver.DERIVATIVE_DELTA
+      ? newValue
+      : solve(func, newValue, newFuncResult);
+  };
+
+  const cubicBezier =
+    ([firstPoint, secondPoint]: number[]): ((time: number) => number) =>
+    (time: number): number =>
+      3 * (firstPoint * time * (1 - time) ** 2 + secondPoint * (1 - time) * time ** 2) + time ** 3;
+
+  const animationTimingFunctionReducer = (
+    accumulator: [number[], number[]],
+    currentValue: AnimationTimingFunction[number],
+  ): [number[], number[]] =>
+    accumulator.map<number[]>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
+
+  const getAnimationStepProgress = (progress: number, reverse: boolean): number => {
+    const [xAxisCubicBezier, yAxisCubicBezier] = getAnimationTimingFunction(getVerticalAnimationDirection())
+      .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
+      .map<(time: number) => number>(cubicBezier);
+    const toSolve = (functionVal: number): number => yAxisCubicBezier(functionVal) - progress;
+    const solvedValue: number = xAxisCubicBezier(solve(toSolve));
+    return 100 * (reverse ? 1 - solvedValue : solvedValue);
+  };
+
   const elementMapperFactory = <T extends object>(
     Component: FC<KeyProps> | string,
     child: ReactNode,
     index: number,
     props?: T,
   ): JSX.Element => (
-    <Component key={`${index + 1}`.padStart(2, '0')} {...props}>
+    <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
   );
 
-  const divisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Division, child, index);
+  const divisionElementMapper = (child: ReactNode, index: number, props?: DivisionProps): JSX.Element =>
+    elementMapperFactory<DivisionProps>(Division, child, index, props);
+
+  const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    divisionElementMapper(child, index);
 
   const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
     elementMapperFactory<object>(Character, child, index);
@@ -316,35 +389,60 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
     elementMapperFactory<object>(Digit, child, index);
 
-  const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
-    elementMapperFactory<DivisionProps>(Division, negativeCharacter, index, { $visible: visible });
+  const stepAnimationElementMapper = (
+    index: number,
+    progress: number,
+    position: StepAnimationPosition,
+    reverseDirection: boolean,
+  ): JSX.Element =>
+    elementMapperFactory<OmitAnimationType<StepAnimationProps>>(StepAnimation, negativeCharacter, index, {
+      $animationDirection: getStepAnimationDirection(reverseDirection),
+      $animationDuration: verticalAnimationDuration,
+      $animationTimingFunction: animationTimingFunction,
+      $animationStepProgress: getAnimationStepProgress(progress, reverseDirection),
+      $animationPosition: position,
+    });
 
-  const getVerticalAnimationElement = <T,>(
-    children: T[],
-    mapper: (child: T, index: number) => JSX.Element,
-    animationStartProgress?: number,
-  ): JSX.Element => (
+  const negativeCharacterElementMapper = (visible: boolean, index: number, progress: number): JSX.Element =>
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && visible
+      ? stepAnimationElementMapper(index, progress, StepAnimationPosition.RELATIVE, false)
+      : divisionElementMapper(negativeCharacter, index, { $visible: visible });
+
+  const getVerticalAnimationElement = (children: JSX.Element[]): JSX.Element => (
     <VerticalAnimation
       $animationDirection={getVerticalAnimationDirection()}
       $animationDuration={verticalAnimationDuration}
-      $animationStartProgress={animationStartProgress}
+      $animationTimingFunction={getAnimationTimingFunction(getVerticalAnimationDirection())}
     >
-      {children.map<JSX.Element>(mapper)}
+      {children}
     </VerticalAnimation>
   );
 
-  const characterVerticalAnimationElementMapper = (charactersVisible: boolean[], index: number): JSX.Element =>
-    characterElementMapper(
-      getVerticalAnimationElement<boolean>(
-        charactersVisible,
-        negativeCharacterElementMapper,
-        100 * (charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
-      ),
-      index,
+  const characterVerticalAnimationElementChildrenMapper = (
+    charactersVisible: boolean[],
+    progress: number,
+  ): JSX.Element[] =>
+    charactersVisible.map<JSX.Element>(
+      (visible: boolean, index: number): JSX.Element => negativeCharacterElementMapper(visible, index, progress),
     );
 
+  const characterVerticalAnimationElementMapper = (
+    charactersVisible: boolean[],
+    index: number,
+    progress: number = charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1),
+  ): JSX.Element => (
+    <>
+      {negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE &&
+        stepAnimationElementMapper(index - 1, progress, StepAnimationPosition.ABSOLUTE, true)}
+      {characterElementMapper(
+        getVerticalAnimationElement(characterVerticalAnimationElementChildrenMapper(charactersVisible, progress)),
+        index,
+      )}
+    </>
+  );
+
   const digitVerticalAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
-    digitElementMapper(getVerticalAnimationElement<number>(digits, divisionElementMapper), index);
+    digitElementMapper(getVerticalAnimationElement(digits.map<JSX.Element>(simpleDivisionElementMapper)), index);
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, 0)) % 3) && (
@@ -368,7 +466,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     digit: number,
     index: number,
     digits: number[],
-  ): boolean => !index || (!!digit && digits[index - 1] > digit);
+  ): boolean =>
+    index !== digits.length - 1 &&
+    (!index || (!!digit && digits[index - 1] > digit)) &&
+    (negativeCharacterAnimationMode === NegativeCharacterAnimationMode.MULTI ||
+      digits.length - 1 === index + 1 ||
+      !digits[index + 1] ||
+      digit <= digits[index + 1]);
 
   const verticalAnimationReducer = (
     accumulator: [JSX.Element[], JSX.Element[]],
@@ -387,7 +491,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   ];
 
   const verticalAnimationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
-    index ? elements.reduce(digitsReducer) : elements.length === 1 ? elements[0] : <></>;
+    index ? elements.reduce(digitsReducer) : elements[0];
 
   const getNegativeElement = (): ReactNode =>
     ((!isSignChange && valueBigInt < 0) ||
@@ -399,6 +503,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     <HorizontalAnimation
       $animationDirection={getHorizontalAnimationDirection()}
       $animationDuration={horizontalAnimationDuration}
+      $animationTimingFunction={getAnimationTimingFunction(getHorizontalAnimationDirection())}
       $animationStartWidth={getHorizontalAnimationStartWidth()}
       $animationEndWidth={getHorizontalAnimationEndWidth()}
     >
