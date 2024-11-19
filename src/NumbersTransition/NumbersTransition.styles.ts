@@ -15,9 +15,6 @@ import {
   AttributesStyledComponent,
 } from './NumbersTransition.types';
 
-export interface DivisionProps {
-  $visible?: boolean;
-}
 interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
   $animationType: T;
   $animationDirection: U;
@@ -40,6 +37,10 @@ export interface StepAnimationProps extends AnimationCommonProps<AnimationType.S
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps | StepAnimationProps;
 
 export type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
+
+export interface DivisionProps {
+  $visible?: boolean;
+}
 
 type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
 

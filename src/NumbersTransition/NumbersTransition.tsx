@@ -1,45 +1,29 @@
-import { FC, ReactNode, RefObject, MutableRefObject, useState, useEffect, useLayoutEffect, useRef } from 'react';
-import {
-  DivisionProps,
-  StepAnimationProps,
-  OmitAnimationType,
-  Container,
-  HorizontalAnimation,
-  VerticalAnimation,
-  StepAnimation,
-  Character,
-  Digit,
-  Division,
-} from './NumbersTransition.styles';
+import { FC, ReactNode, RefObject, MutableRefObject, useState, useEffect, useRef } from 'react';
+import { Container, Character } from './NumbersTransition.styles';
 import {
   AnimationTimingFunction,
   NumberOfAnimations,
   AnimationTransition,
-  HorizontalAnimationDirection,
-  VerticalAnimationDirection,
-  StepAnimationDirection,
-  AnimationDirection,
   NegativeCharacterAnimationMode,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   EmptyCharacter,
-  LinearAlgorithm,
   EaseAnimationTimingFunction,
-  NumberPrecision,
-  EquationSolver,
 } from './NumbersTransition.enums';
 import { BigDecimal } from './NumbersTransition.types';
-
-interface KeyProps {
-  key: string;
-  children: ReactNode;
-}
-
-interface AlgorithmValues {
-  start: bigint;
-  end: bigint;
-}
+import {
+  DigitElementMapper,
+  DigitsReducer,
+  GetAnimationTimingFunction,
+  GetHorizontalAnimation,
+  GetVerticalAnimation,
+  useAnimationTimingFunction,
+  useDigitElementMapper,
+  useDigitsReducer,
+  useHorizontalAnimation,
+  useVerticalAnimation,
+} from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   value?: BigDecimal;
@@ -73,15 +57,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
-  const canvasContextRef: RefObject<CanvasRenderingContext2D> = useRef<CanvasRenderingContext2D>(
-    document.createElement('canvas').getContext('2d'),
-  );
+
+  const getAnimationTimingFunction: GetAnimationTimingFunction = useAnimationTimingFunction(animationTimingFunction);
+  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
+  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
-  const sum = (first: number, second: number): number => first + second;
   const subtract = (first: number, second: number): number => first - second;
-  const divide = (first: number, second: number): number => first / second;
 
   const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
@@ -155,35 +138,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       ? NumberOfAnimations.ONE
       : NumberOfAnimations.TWO;
 
-  const getHorizontalAnimationDirection = (): HorizontalAnimationDirection =>
-    (numberOfAnimations === NumberOfAnimations.TWO &&
-      (isSignChange
-        ? previousValueOnAnimationEndBigInt > valueBigInt
-        : previousValueOnAnimationEndDigits.length < valueDigits.length)) ||
-    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition === AnimationTransition.NONE)
-      ? HorizontalAnimationDirection.RIGHT
-      : HorizontalAnimationDirection.LEFT;
-
-  const getVerticalAnimationDirection = (): VerticalAnimationDirection =>
-    previousValueOnAnimationEndBigInt < valueBigInt ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
-
-  const getStepAnimationDirection = (reversed: boolean): StepAnimationDirection =>
-    previousValueOnAnimationEndBigInt > valueBigInt === reversed
-      ? StepAnimationDirection.FORWARDS
-      : StepAnimationDirection.BACKWARDS;
-
-  const reverseAnimationTimingFunctionMapper = (
-    tuple: AnimationTimingFunction[number],
-  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
-
-  const reverseAnimationTimingFunction = (animationTimingFunction: AnimationTimingFunction): AnimationTimingFunction =>
-    animationTimingFunction.map<AnimationTimingFunction[number]>(reverseAnimationTimingFunctionMapper).reverse();
-
-  const getAnimationTimingFunction = (animationDirection: AnimationDirection): AnimationTimingFunction =>
-    animationDirection === HorizontalAnimationDirection.RIGHT || animationDirection === VerticalAnimationDirection.UP
-      ? animationTimingFunction
-      : reverseAnimationTimingFunction(animationTimingFunction);
-
   const isHorizontalAnimation = (): boolean =>
     (numberOfAnimations === NumberOfAnimations.TWO &&
       (isSignChange
@@ -199,13 +153,41 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     numberOfAnimations === NumberOfAnimations.THREE &&
     previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === transition);
 
-  const hasHorizontalAnimationEmptyNegativeCharacter = (): boolean =>
-    isSignChange &&
-    (numberOfAnimations === NumberOfAnimations.TWO ||
-      isHorizontalAnimationInGivenTransition(AnimationTransition.SECOND_TO_THIRD));
+  const getHorizontalAnimation: GetHorizontalAnimation = useHorizontalAnimation({
+    precision,
+    animationDuration: horizontalAnimationDuration,
+    decimalSeparator,
+    digitGroupSeparator,
+    negativeCharacter,
+    animationTransition,
+    containerRef,
+    previousValueDigits: previousValueOnAnimationEndDigits,
+    currentValueDigits: valueDigits,
+    minNumberOfDigits,
+    maxNumberOfDigits,
+    numberOfDigitsDifference,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    isSignChange,
+    numberOfAnimations,
+    isHorizontalAnimationInGivenTransition,
+    getAnimationTimingFunction,
+    digitElementMapper,
+    digitsReducer,
+  });
 
-  const hasHorizontalAnimationZeros = (): boolean =>
-    numberOfAnimations === NumberOfAnimations.TWO || isHorizontalAnimationInGivenTransition(AnimationTransition.NONE);
+  const getVerticalAnimation: GetVerticalAnimation = useVerticalAnimation({
+    animationDuration: verticalAnimationDuration,
+    negativeCharacterAnimationMode,
+    negativeCharacter,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    maxNumberOfDigits,
+    isSignChange,
+    getAnimationTimingFunction,
+    digitElementMapper,
+    digitsReducer,
+  });
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -214,15 +196,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     }
     previousValueOnAnimationStartRef.current = isValueValid ? value! : 0;
   }, [value, isValueValid, restartAnimation]);
-
-  useLayoutEffect((): void => {
-    if (containerRef.current && canvasContextRef.current) {
-      canvasContextRef.current.font =
-        [...containerRef.current.classList]
-          .map<string>((className: string): string => window.getComputedStyle(containerRef.current!, className).font)
-          .find((font: string): string => font) ?? '';
-    }
-  }, []);
 
   const updatePreviousValueOnAnimationEnd = (): void => setPreviousValueOnAnimationEnd(value!);
 
@@ -246,267 +219,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
   };
 
-  const getCharacterWidth = (character: DecimalSeparator | DigitGroupSeparator | NegativeCharacter): number =>
-    [character, '0']
-      .map<number>((text: string): number => canvasContextRef.current!.measureText(text).width)
-      .reduce(divide);
-
-  const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
-    getCharacterWidth(digitGroupSeparator) *
-    [numberOfDigits - Math.max(precision, 0), Math.max(precision, 0)]
-      .map<number>((quantity: number): number => Math.trunc((quantity - 1) / 3))
-      .reduce(sum);
-
-  const getHorizontalAnimationWidth = (numberOfDigits: number, hasNegativeCharacter: boolean): number =>
-    [
-      hasNegativeCharacter ? getCharacterWidth(negativeCharacter) : 0,
-      numberOfDigits,
-      getDigitsSeparatorsWidth(numberOfDigits),
-      precision > 0 ? getCharacterWidth(decimalSeparator) : 0,
-    ].reduce(sum);
-
-  const getHorizontalAnimationStartWidth = (): number =>
-    getHorizontalAnimationWidth(hasHorizontalAnimationZeros() ? minNumberOfDigits : maxNumberOfDigits, false);
-
-  const getHorizontalAnimationEndWidth = (): number =>
-    getHorizontalAnimationWidth(maxNumberOfDigits, hasHorizontalAnimationEmptyNegativeCharacter());
-
-  const algorithmValuesArrayReducer = (
-    accumulator: AlgorithmValues[][],
-    _: undefined,
-    index: number,
-  ): AlgorithmValues[][] => {
-    const [start, end]: bigint[] = [previousValueOnAnimationEndBigInt, valueBigInt]
-      .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
-      .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
-    const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
-    accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
-    return accumulator;
-  };
-
-  const digitMapper = (number: bigint): number => Math.abs(Number(number % 10n));
-
-  const linearAlgorithmMapper = ({ start, end }: AlgorithmValues): number[] =>
-    [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
-      digitMapper(start + BigInt(index)),
-    );
-
-  const nonLinearAlgorithmMapper = (values: AlgorithmValues, algorithmIndex: number): number[] => {
-    const { start, end }: AlgorithmValues = values;
-    const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
-      .map<bigint>(
-        (_: undefined, index: number, { length }: number[]): bigint =>
-          (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
-      )
-      .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [
-        increasedValue,
-        increasedValue / NumberPrecision.VALUE,
-      ])
-      .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
-        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
-      )
-      .map<number>(digitMapper);
-    return numbers[numbers.length - 1] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
-  };
-
-  const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
-    algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
-
-  const getHorizontalAnimationDigits = (): number[] => [
-    ...(hasHorizontalAnimationZeros() ? Array(numberOfDigitsDifference).fill(0) : []),
-    ...(getHorizontalAnimationDirection() === HorizontalAnimationDirection.RIGHT
-      ? previousValueOnAnimationEndDigits
-      : valueDigits),
-  ];
-
-  const getVerticalAnimationDigits = (): number[][] =>
-    [...Array(maxNumberOfDigits)]
-      .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
-      .map<number[][]>(algorithmMapper)
-      .flat<number[][][], 1>();
-
-  const derivative = (func: (val: number) => number, val: number) =>
-    (func(val + EquationSolver.DERIVATIVE_DELTA) - func(val - EquationSolver.DERIVATIVE_DELTA)) /
-    (2 * EquationSolver.DERIVATIVE_DELTA);
-
-  const solve = (
-    func: (inputValue: number) => number,
-    previousValue: number = EquationSolver.INITIAL_VALUE,
-    previousFuncResult: number = func(previousValue),
-  ): number => {
-    const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
-    const newFuncResult: number = func(newValue);
-    return Math.abs(newValue - previousValue) < EquationSolver.DERIVATIVE_DELTA &&
-      newFuncResult < EquationSolver.DERIVATIVE_DELTA
-      ? newValue
-      : solve(func, newValue, newFuncResult);
-  };
-
-  const cubicBezier =
-    ([firstPoint, secondPoint]: number[]): ((time: number) => number) =>
-    (time: number): number =>
-      3 * (firstPoint * time * (1 - time) ** 2 + secondPoint * (1 - time) * time ** 2) + time ** 3;
-
-  const animationTimingFunctionReducer = (
-    accumulator: [number[], number[]],
-    currentValue: AnimationTimingFunction[number],
-  ): [number[], number[]] =>
-    accumulator.map<number[]>((coordinates: number[], index: number): number[] => [
-      ...coordinates,
-      currentValue[index],
-    ]);
-
-  const getAnimationStepProgress = (progress: number): number => {
-    const [xAxisCubicBezier, yAxisCubicBezier] = getAnimationTimingFunction(getVerticalAnimationDirection())
-      .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
-      .map<(time: number) => number>(cubicBezier);
-    const toSolve = (functionVal: number): number => yAxisCubicBezier(functionVal) - progress;
-    return 100 * xAxisCubicBezier(solve(toSolve));
-  };
-
-  const elementMapperFactory = <T extends object>(
-    Component: FC<T | KeyProps> | string,
-    child: ReactNode,
-    index: number,
-    props?: T,
-  ): JSX.Element => (
-    <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
-      {child}
-    </Component>
-  );
-
-  const divisionElementMapper = (child: ReactNode, index: number, props?: DivisionProps): JSX.Element =>
-    elementMapperFactory<DivisionProps>(Division, child, index, props);
-
-  const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    divisionElementMapper(child, index);
-
-  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Character, child, index);
-
-  const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Digit, child, index);
-
-  const stepAnimationElementMapper = (index: number, progress: number, reverseDirection: boolean): JSX.Element =>
-    elementMapperFactory<OmitAnimationType<StepAnimationProps>>(StepAnimation, negativeCharacter, index, {
-      $animationDirection: getStepAnimationDirection(reverseDirection),
-      $animationDuration: verticalAnimationDuration,
-      $animationTimingFunction: animationTimingFunction,
-      $animationStepProgress: progress,
-    });
-
-  const negativeCharacterElementMapper = (visible: boolean, index: number, progress: number): JSX.Element =>
-    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && visible
-      ? stepAnimationElementMapper(index, progress, false)
-      : divisionElementMapper(negativeCharacter, index, { $visible: visible });
-
-  const getVerticalAnimationElement = (children: JSX.Element[]): JSX.Element => (
-    <VerticalAnimation
-      $animationDirection={getVerticalAnimationDirection()}
-      $animationDuration={verticalAnimationDuration}
-      $animationTimingFunction={getAnimationTimingFunction(getVerticalAnimationDirection())}
-    >
-      {children}
-    </VerticalAnimation>
-  );
-
-  const characterVerticalAnimationElementChildrenMapper = (
-    charactersVisible: boolean[],
-    progress: number,
-  ): JSX.Element[] =>
-    charactersVisible.map<JSX.Element>(
-      (visible: boolean, index: number): JSX.Element => negativeCharacterElementMapper(visible, index, progress),
-    );
-
-  const characterVerticalAnimationElementMapper = (
-    charactersVisible: boolean[],
-    index: number,
-    progress: number = getAnimationStepProgress(charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
-  ): JSX.Element => (
-    <>
-      {negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE &&
-        stepAnimationElementMapper(index - 1, 100 - progress, true)}
-      {characterElementMapper(
-        getVerticalAnimationElement(characterVerticalAnimationElementChildrenMapper(charactersVisible, progress)),
-        index,
-      )}
-    </>
-  );
-
-  const digitVerticalAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
-    digitElementMapper(getVerticalAnimationElement(digits.map<JSX.Element>(simpleDivisionElementMapper)), index);
-
-  const getSeparatorElement = (index: number, length: number): ReactNode =>
-    !((length - index - Math.max(precision, 0)) % 3) && (
-      <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
-    );
-
-  const digitsReducer = (
-    accumulator: JSX.Element,
-    currentValue: JSX.Element,
-    index: number,
-    { length }: JSX.Element[],
-  ): JSX.Element => (
-    <>
-      {accumulator}
-      {getSeparatorElement(index, length)}
-      {currentValue}
-    </>
-  );
-
-  const verticalAnimationNegativeCharacterVisibilityMapper = (
-    digit: number,
-    index: number,
-    digits: number[],
-  ): boolean =>
-    index !== digits.length - 1 &&
-    (!index || (!!digit && digits[index - 1] > digit)) &&
-    (negativeCharacterAnimationMode === NegativeCharacterAnimationMode.MULTI ||
-      digits.length - 1 === index + 1 ||
-      !digits[index + 1] ||
-      digit <= digits[index + 1]);
-
-  const verticalAnimationReducer = (
-    accumulator: [JSX.Element[], JSX.Element[]],
-    currentValue: number[],
-    index: number,
-  ): [JSX.Element[], JSX.Element[]] => [
-    !isSignChange || accumulator[0].length || currentValue.length === 1
-      ? accumulator[0]
-      : [
-          characterVerticalAnimationElementMapper(
-            currentValue.map(verticalAnimationNegativeCharacterVisibilityMapper),
-            index,
-          ),
-        ],
-    [...accumulator[1], digitVerticalAnimationElementMapper(currentValue, index + (isSignChange ? 1 : 0))],
-  ];
-
-  const verticalAnimationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
-    index ? elements.reduce(digitsReducer) : elements[0];
-
   const getNegativeElement = (): ReactNode =>
     ((!isSignChange && valueBigInt < 0) ||
       (isHorizontalAnimation() && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
       <Character>{negativeCharacter}</Character>
     );
-
-  const getHorizontalAnimation = (): JSX.Element => (
-    <HorizontalAnimation
-      $animationDirection={getHorizontalAnimationDirection()}
-      $animationDuration={horizontalAnimationDuration}
-      $animationTimingFunction={getAnimationTimingFunction(getHorizontalAnimationDirection())}
-      $animationStartWidth={getHorizontalAnimationStartWidth()}
-      $animationEndWidth={getHorizontalAnimationEndWidth()}
-    >
-      <div>{getHorizontalAnimationDigits().map<JSX.Element>(digitElementMapper).reduce(digitsReducer)}</div>
-    </HorizontalAnimation>
-  );
-
-  const getVerticalAnimation = (): JSX.Element[] =>
-    getVerticalAnimationDigits()
-      .reduce<[JSX.Element[], JSX.Element[]]>(verticalAnimationReducer, [[], []])
-      .map<JSX.Element>(verticalAnimationElementsMapper);
 
   const getAnimation: () => JSX.Element | JSX.Element[] = isHorizontalAnimation()
     ? getHorizontalAnimation
