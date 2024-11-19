@@ -1,6 +1,5 @@
-import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { Substitute, Keyframes, IStyledComponent, BaseObject, KnownTarget } from 'styled-components/dist/types';
+import { Keyframes } from 'styled-components/dist/types';
 import {
   AnimationTimingFunction,
   AnimationType,
@@ -9,27 +8,12 @@ import {
   StepAnimationDirection,
   AnimationDirection,
 } from './NumbersTransition.enums';
-
-type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
-
-type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
-
-type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
-
-type ExtensionStyledComponent<T extends KnownTarget> = StyledComponentBase<
-  Substitute<ComponentPropsWithRef<T> & BaseObject, BaseObject>
->;
-
-type AttributesStyledComponent<
-  T extends KnownTarget,
-  U extends object,
-  V extends object = BaseObject,
-> = StyledComponentBase<
-  Substitute<
-    Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>,
-    BaseObject
-  >
->;
+import {
+  HTMLDetailedElement,
+  StyledComponent,
+  ExtensionStyledComponent,
+  AttributesStyledComponent,
+} from './NumbersTransition.types';
 
 export interface DivisionProps {
   $visible?: boolean;
