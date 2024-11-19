@@ -365,7 +365,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   };
 
   const elementMapperFactory = <T extends object>(
-    Component: FC<KeyProps> | string,
+    Component: FC<T | KeyProps> | string,
     child: ReactNode,
     index: number,
     props?: T,
