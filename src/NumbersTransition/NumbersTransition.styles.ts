@@ -40,7 +40,7 @@ type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
 
 export type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
 
-export interface DivisionProps {
+export interface VisibilityProps {
   $visible?: boolean;
 }
 
@@ -58,11 +58,15 @@ type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimati
 
 type StepAnimationStyledComponent = AnimationStyledComponent<StepAnimationProps>;
 
-type CharacterStyledComponent = StyledComponent<HTMLDivElement>;
+type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
 
 type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
 
-type DivisionStyledComponent = StyledComponent<HTMLDivElement, DivisionProps>;
+type DivisionStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
+
+const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
+  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
+`;
 
 const horizontalAnimation = ({
   $animationStartWidth,
@@ -184,7 +188,8 @@ export const StepAnimation: StepAnimationStyledComponent = styled.div.attrs<Step
   position: absolute;
 `;
 
-export const Character: CharacterStyledComponent = styled.div`
+export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
+  ${visible};
   overflow: hidden;
   display: inline-block;
   text-align: end;
@@ -196,6 +201,6 @@ export const Digit: DigitStyledComponent = styled(Character)`
   min-width: 1ch;
 `;
 
-export const Division: DivisionStyledComponent = styled.div<DivisionProps>`
-  color: ${({ $visible = true }: DivisionProps): string => ($visible ? 'inherit' : 'transparent')};
+export const Division: DivisionStyledComponent = styled.div<VisibilityProps>`
+  ${visible};
 `;

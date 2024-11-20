@@ -1,6 +1,6 @@
 import { FC, ReactNode, RefObject, useLayoutEffect, useRef } from 'react';
 import {
-  DivisionProps,
+  VisibilityProps,
   StepAnimationProps,
   OmitAnimationType,
   HorizontalAnimation,
@@ -202,6 +202,16 @@ const useElementMapperFactory: UseElementMapperFactory =
     </Component>
   );
 
+export type CharacterElementMapper = (child: ReactNode, index: number, props?: VisibilityProps) => JSX.Element;
+
+type UseCharacterElementMapper = () => CharacterElementMapper;
+
+export const useCharacterElementMapper: UseCharacterElementMapper = (): CharacterElementMapper => {
+  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
+  return (child: ReactNode, index: number, props?: VisibilityProps): JSX.Element =>
+    elementMapperFactory<VisibilityProps>(Character, child, index, props);
+};
+
 export type DigitElementMapper = (child: ReactNode, index: number) => JSX.Element;
 
 type UseDigitElementMapper = () => DigitElementMapper;
@@ -302,6 +312,7 @@ interface UseHorizontalAnimationOptions {
   numberOfAnimations: NumberOfAnimations;
   isHorizontalAnimationInGivenTransition: (transition: AnimationTransition) => boolean;
   getAnimationTimingFunction: GetAnimationTimingFunction;
+  characterElementMapper: CharacterElementMapper;
   digitElementMapper: DigitElementMapper;
   digitsReducer: DigitsReducer;
 }
@@ -332,6 +343,7 @@ export const useHorizontalAnimation: UseHorizontalAnimation = (
     numberOfAnimations,
     isHorizontalAnimationInGivenTransition,
     getAnimationTimingFunction,
+    characterElementMapper,
     digitElementMapper,
     digitsReducer,
   }: UseHorizontalAnimationOptions = options;
@@ -407,7 +419,10 @@ export const useHorizontalAnimation: UseHorizontalAnimation = (
       $animationStartWidth={getAnimationStartWidth()}
       $animationEndWidth={getAnimationEndWidth()}
     >
-      <Division>{getAnimationDigits().map<JSX.Element>(digitElementMapper).reduce(digitsReducer)}</Division>
+      <Division>
+        {hasEmptyNegativeCharacter() && characterElementMapper(negativeCharacter, 0, { $visible: false })}
+        {getAnimationDigits().map<JSX.Element>(digitElementMapper).reduce(digitsReducer)}
+      </Division>
     </HorizontalAnimation>
   );
 };
@@ -421,6 +436,7 @@ interface UseVerticalAnimationOptions {
   currentValue: bigint;
   isSignChange: boolean;
   getAnimationTimingFunction: GetAnimationTimingFunction;
+  characterElementMapper: CharacterElementMapper;
   digitElementMapper: DigitElementMapper;
   digitsReducer: DigitsReducer;
 }
@@ -439,6 +455,7 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
     currentValue,
     isSignChange,
     getAnimationTimingFunction,
+    characterElementMapper,
     digitElementMapper,
     digitsReducer,
   }: UseVerticalAnimationOptions = options;
@@ -481,14 +498,11 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
     return 100 * xAxisCubicBezier(solve(toSolve));
   };
 
-  const divisionElementMapper = (child: ReactNode, index: number, props?: DivisionProps): JSX.Element =>
-    elementMapperFactory<DivisionProps>(Division, child, index, props);
+  const divisionElementMapper = (child: ReactNode, index: number, props?: VisibilityProps): JSX.Element =>
+    elementMapperFactory<VisibilityProps>(Division, child, index, props);
 
   const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
     divisionElementMapper(child, index);
-
-  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Character, child, index);
 
   const negativeCharacterElementMapper = (visible: boolean, index: number, progress: number): JSX.Element =>
     negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && visible

@@ -13,12 +13,14 @@ import {
 } from './NumbersTransition.enums';
 import { BigDecimal } from './NumbersTransition.types';
 import {
+  CharacterElementMapper,
   DigitElementMapper,
   DigitsReducer,
   GetAnimationTimingFunction,
   GetHorizontalAnimation,
   GetVerticalAnimation,
   useAnimationTimingFunction,
+  useCharacterElementMapper,
   useDigitElementMapper,
   useDigitsReducer,
   useHorizontalAnimation,
@@ -59,6 +61,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const getAnimationTimingFunction: GetAnimationTimingFunction = useAnimationTimingFunction(animationTimingFunction);
+  const characterElementMapper: CharacterElementMapper = useCharacterElementMapper();
   const digitElementMapper: DigitElementMapper = useDigitElementMapper();
   const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
@@ -172,6 +175,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     numberOfAnimations,
     isHorizontalAnimationInGivenTransition,
     getAnimationTimingFunction,
+    characterElementMapper,
     digitElementMapper,
     digitsReducer,
   });
@@ -185,6 +189,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     maxNumberOfDigits,
     isSignChange,
     getAnimationTimingFunction,
+    characterElementMapper,
     digitElementMapper,
     digitsReducer,
   });
