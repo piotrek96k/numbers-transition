@@ -36,6 +36,8 @@ export interface StepAnimationProps extends AnimationCommonProps<AnimationType.S
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps | StepAnimationProps;
 
+type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
+
 export type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
 
 export interface DivisionProps {
@@ -131,13 +133,15 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-const horizontalAnimationAttrs: Partial<HorizontalAnimationProps> = {
+const horizontalAnimationAttrs: PickAnimationType<HorizontalAnimationProps> = {
   $animationType: AnimationType.HORIZONTAL,
 };
 
-const verticalAnimationAttrs: Partial<VerticalAnimationProps> = { $animationType: AnimationType.VERTICAL };
+const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
+  $animationType: AnimationType.VERTICAL,
+};
 
-const stepAnimationAttrs: Partial<StepAnimationProps> = { $animationType: AnimationType.STEP };
+const stepAnimationAttrs: PickAnimationType<StepAnimationProps> = { $animationType: AnimationType.STEP };
 
 export const Container: ContainerStyledComponent = styled.div`
   font-size: 100px;
