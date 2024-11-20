@@ -231,7 +231,7 @@ export type DigitsReducer = (
   accumulator: JSX.Element,
   currentValue: JSX.Element,
   index: number,
-  { length }: JSX.Element[],
+  array: JSX.Element[],
 ) => JSX.Element;
 
 type UseDigitsReducer = (options: UseDigitsReducerOptions) => DigitsReducer;
