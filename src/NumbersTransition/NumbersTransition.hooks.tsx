@@ -41,12 +41,10 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
   const reverseAnimationTimingFunction = (animationTimingFunction: AnimationTimingFunction): AnimationTimingFunction =>
     animationTimingFunction.map<AnimationTimingFunction[number]>(reverseAnimationTimingFunctionMapper).reverse();
 
-  const getAnimationTimingFunction = (animationDirection: AnimationDirection): AnimationTimingFunction =>
+  return (animationDirection: AnimationDirection): AnimationTimingFunction =>
     animationDirection === HorizontalAnimationDirection.RIGHT || animationDirection === VerticalAnimationDirection.UP
       ? animationTimingFunction
       : reverseAnimationTimingFunction(animationTimingFunction);
-
-  return getAnimationTimingFunction;
 };
 
 type CubicBezier = (points: number[]) => (time: number) => number;
