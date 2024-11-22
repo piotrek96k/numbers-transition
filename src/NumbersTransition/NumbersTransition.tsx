@@ -138,7 +138,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       ? NumberOfAnimations.ONE
       : NumberOfAnimations.TWO;
 
-  const isHorizontalAnimation = (): boolean =>
+  const isHorizontalAnimation: boolean =
     (numberOfAnimations === NumberOfAnimations.TWO &&
       (isSignChange
         ? animationTransition === AnimationTransition.NONE
@@ -221,11 +221,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const getNegativeElement = (): ReactNode =>
     ((!isSignChange && valueBigInt < 0) ||
-      (isHorizontalAnimation() && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
+      (isHorizontalAnimation && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
       <Character>{negativeCharacter}</Character>
     );
 
-  const getAnimation: () => JSX.Element | JSX.Element[] = isHorizontalAnimation()
+  const getAnimation: () => JSX.Element | JSX.Element[] = isHorizontalAnimation
     ? getHorizontalAnimation
     : getVerticalAnimation;
 
