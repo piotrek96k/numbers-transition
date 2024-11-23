@@ -1,31 +1,31 @@
 import { FC, Fragment, ReactNode, RefObject, useLayoutEffect, useRef } from 'react';
 import {
-  VisibilityProps,
-  StepAnimationProps,
-  OmitAnimationType,
-  HorizontalAnimation,
-  VerticalAnimation,
-  StepAnimation,
+  AnimationDirection,
+  AnimationTimingFunction,
+  AnimationTransition,
+  DecimalSeparator,
+  DigitGroupSeparator,
+  EquationSolver,
+  HorizontalAnimationDirection,
+  LinearAlgorithm,
+  NegativeCharacter,
+  NegativeCharacterAnimationMode,
+  NumberOfAnimations,
+  NumberPrecision,
+  StepAnimationDirection,
+  VerticalAnimationDirection,
+} from './NumbersTransition.enums';
+import {
   Character,
   Digit,
   Division,
+  HorizontalAnimation,
+  OmitAnimationType,
+  StepAnimation,
+  StepAnimationProps,
+  VerticalAnimation,
+  VisibilityProps,
 } from './NumbersTransition.styles';
-import {
-  AnimationTimingFunction,
-  NumberOfAnimations,
-  AnimationTransition,
-  HorizontalAnimationDirection,
-  VerticalAnimationDirection,
-  StepAnimationDirection,
-  AnimationDirection,
-  NegativeCharacterAnimationMode,
-  DecimalSeparator,
-  DigitGroupSeparator,
-  NegativeCharacter,
-  LinearAlgorithm,
-  NumberPrecision,
-  EquationSolver,
-} from './NumbersTransition.enums';
 
 export type GetAnimationTimingFunction = (animationDirection: AnimationDirection) => AnimationTimingFunction;
 

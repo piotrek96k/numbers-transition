@@ -1,13 +1,13 @@
-import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import { ComponentProps } from 'react';
-import NumbersTransition from './NumbersTransition';
+import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import {
-  NegativeCharacterAnimationMode,
   DecimalSeparator,
   DigitGroupSeparator,
   EaseAnimationTimingFunction,
   NegativeCharacter,
+  NegativeCharacterAnimationMode,
 } from './NumbersTransition.enums';
+import NumbersTransition from './NumbersTransition';
 
 type SelectType =
   | typeof NegativeCharacterAnimationMode

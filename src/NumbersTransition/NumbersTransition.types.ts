@@ -1,5 +1,5 @@
 import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
-import { Substitute, IStyledComponent, BaseObject, KnownTarget } from 'styled-components/dist/types';
+import { BaseObject, IStyledComponent, KnownTarget, Substitute } from 'styled-components/dist/types';
 
 export type ReadOnly<T> = {
   +readonly [K in keyof T]: ReadOnly<T[K]>;

@@ -65,6 +65,7 @@ export default [
       'no-duplicate-imports': 'error',
       'import/order': ['error'],
       'import/no-duplicates': 'error',
+      'sort-imports': ['error', { ignoreDeclarationSort: true }],
       'object-shorthand': 'error',
       'no-use-before-define': 'error',
       'no-useless-rename': 'error',

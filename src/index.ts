@@ -1,11 +1,11 @@
+import NumbersTransition from './NumbersTransition/NumbersTransition';
 import {
-  NegativeCharacterAnimationMode,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
+  NegativeCharacterAnimationMode,
 } from './NumbersTransition/NumbersTransition.enums';
-import NumbersTransition from './NumbersTransition/NumbersTransition';
 import { BigDecimal } from './NumbersTransition/NumbersTransition.types';
 
-export { NegativeCharacterAnimationMode, DecimalSeparator, DigitGroupSeparator, NegativeCharacter, NumbersTransition };
+export { DecimalSeparator, DigitGroupSeparator, NegativeCharacter, NegativeCharacterAnimationMode, NumbersTransition };
 export type { BigDecimal };

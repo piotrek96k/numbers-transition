@@ -1,17 +1,14 @@
-import { FC, ReactNode, RefObject, MutableRefObject, useState, useEffect, useRef } from 'react';
-import { Container, Character } from './NumbersTransition.styles';
 import {
-  AnimationTimingFunction,
-  NumberOfAnimations,
-  AnimationTransition,
-  NegativeCharacterAnimationMode,
-  DecimalSeparator,
-  DigitGroupSeparator,
-  NegativeCharacter,
-  EmptyCharacter,
-  EaseAnimationTimingFunction,
-} from './NumbersTransition.enums';
-import { BigDecimal } from './NumbersTransition.types';
+  Dispatch,
+  FC,
+  MutableRefObject,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   DigitElementMapper,
   DigitsReducer,
@@ -24,6 +21,19 @@ import {
   useHorizontalAnimation,
   useVerticalAnimation,
 } from './NumbersTransition.hooks';
+import { Character, Container } from './NumbersTransition.styles';
+import {
+  AnimationTimingFunction,
+  AnimationTransition,
+  DecimalSeparator,
+  DigitGroupSeparator,
+  EaseAnimationTimingFunction,
+  EmptyCharacter,
+  NegativeCharacter,
+  NegativeCharacterAnimationMode,
+  NumberOfAnimations,
+} from './NumbersTransition.enums';
+import { BigDecimal } from './NumbersTransition.types';
 
 interface NumbersTransitionProps {
   value?: BigDecimal;
@@ -52,8 +62,15 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     animationTimingFunction = [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
   }: NumbersTransitionProps = props;
 
-  const [animationTransition, setAnimationTransition] = useState<AnimationTransition>(AnimationTransition.NONE);
-  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd] = useState<BigDecimal>(0);
+  const [animationTransition, setAnimationTransition]: [
+    AnimationTransition,
+    Dispatch<SetStateAction<AnimationTransition>>,
+  ] = useState<AnimationTransition>(AnimationTransition.NONE);
+
+  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [
+    BigDecimal,
+    Dispatch<SetStateAction<BigDecimal>>,
+  ] = useState<BigDecimal>(0);
 
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);

@@ -1,18 +1,18 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { Keyframes } from 'styled-components/dist/types';
 import {
+  AnimationDirection,
   AnimationTimingFunction,
   AnimationType,
   HorizontalAnimationDirection,
-  VerticalAnimationDirection,
   StepAnimationDirection,
-  AnimationDirection,
+  VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import {
+  AttributesStyledComponent,
+  ExtensionStyledComponent,
   HTMLDetailedElement,
   StyledComponent,
-  ExtensionStyledComponent,
-  AttributesStyledComponent,
 } from './NumbersTransition.types';
 
 interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
