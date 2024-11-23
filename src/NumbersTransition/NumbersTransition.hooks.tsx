@@ -1,4 +1,4 @@
-import { FC, ReactNode, RefObject, useLayoutEffect, useRef } from 'react';
+import { FC, Fragment, ReactNode, RefObject, useLayoutEffect, useRef } from 'react';
 import {
   VisibilityProps,
   StepAnimationProps,
@@ -195,7 +195,7 @@ type UseElementMapperFactory = () => ElementMapperFactory;
 const useElementMapperFactory: UseElementMapperFactory =
   (): ElementMapperFactory =>
   <T extends object>(Component: FC<T | KeyProps> | string, child: ReactNode, index: number, props?: T): JSX.Element => (
-    <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
+    <Component key={`${typeof Component === 'symbol' ? '' : Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
   );
@@ -482,6 +482,9 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
     return 100 * xAxisCubicBezier(solve(toSolve));
   };
 
+  const fragmentElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(Fragment, child, index);
+
   const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
     elementMapperFactory<VisibilityProps>(Character, child, index);
 
@@ -506,12 +509,15 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
     </VerticalAnimation>
   );
 
-  const characterAnimationElementChildrenMapper = (charactersVisible: boolean[], progress: number): JSX.Element[] =>
+  const negativeCharacterAnimationElementChildrenMapper = (
+    charactersVisible: boolean[],
+    progress: number,
+  ): JSX.Element[] =>
     charactersVisible.map<JSX.Element>(
       (visible: boolean, index: number): JSX.Element => negativeCharacterElementMapper(visible, index, progress),
     );
 
-  const characterAnimationElementMapper = (
+  const negativeCharacterAnimationElementMapper = (
     charactersVisible: boolean[],
     index: number,
     progress: number = getAnimationStepProgress(charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
@@ -520,22 +526,22 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
       {negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE &&
         getStepAnimation(100 - progress, true, index - 1)}
       {characterElementMapper(
-        getVerticalAnimationElement(characterAnimationElementChildrenMapper(charactersVisible, progress)),
+        getVerticalAnimationElement(negativeCharacterAnimationElementChildrenMapper(charactersVisible, progress)),
         index,
       )}
     </>
   );
 
-  const digitAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
-    digitElementMapper(getVerticalAnimationElement(digits.map<JSX.Element>(simpleDivisionElementMapper)), index);
-
-  const animationNegativeCharacterVisibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
+  const negativeCharacterVisibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
     index !== digits.length - 1 &&
     (!index || (!!digit && digits[index - 1] > digit)) &&
     (negativeCharacterAnimationMode === NegativeCharacterAnimationMode.MULTI ||
       digits.length - 1 === index + 1 ||
       !digits[index + 1] ||
       digit <= digits[index + 1]);
+
+  const digitAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
+    digitElementMapper(getVerticalAnimationElement(digits.map<JSX.Element>(simpleDivisionElementMapper)), index);
 
   const animationReducer = (
     accumulator: [JSX.Element[], JSX.Element[]],
@@ -544,12 +550,12 @@ export const useVerticalAnimation: UseVerticalAnimation = (options: UseVerticalA
   ): [JSX.Element[], JSX.Element[]] => [
     !isSignChange || accumulator[0].length || currentValue.length === 1
       ? accumulator[0]
-      : [characterAnimationElementMapper(currentValue.map(animationNegativeCharacterVisibilityMapper), index)],
+      : [negativeCharacterAnimationElementMapper(currentValue.map(negativeCharacterVisibilityMapper), index)],
     [...accumulator[1], digitAnimationElementMapper(currentValue, index + (isSignChange ? 1 : 0))],
   ];
 
   const animationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
-    index ? elements.reduce(digitsReducer) : elements[0];
+    fragmentElementMapper(index ? elements.reduce(digitsReducer) : elements[0], index);
 
   return (): JSX.Element[] =>
     getAnimationDigits()
