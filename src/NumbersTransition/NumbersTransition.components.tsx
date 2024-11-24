@@ -4,6 +4,7 @@ import {
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
+  EmptyCharacter,
   HorizontalAnimationDirection,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
@@ -36,14 +37,22 @@ interface ConditionalProps {
   condition: boolean;
 }
 
-export const Conditional: FC<ConditionalProps> = (props: ConditionalProps): ReactNode => {
-  const {
-    children: [onTrue, onFalse],
-    condition,
-  }: ConditionalProps = props;
+export const Conditional: FC<ConditionalProps> = ({
+  children: [onTrue, onFalse],
+  condition,
+}: ConditionalProps): ReactNode => (condition ? onTrue : onFalse);
 
-  return condition ? onTrue : onFalse;
-};
+interface OptionalProps {
+  children: ReactNode;
+  condition: boolean;
+}
+
+const Optional: FC<OptionalProps> = ({ children, condition }: OptionalProps): ReactNode => (
+  <Conditional condition={condition}>
+    {children}
+    {undefined}
+  </Conditional>
+);
 
 interface SwitchProps {
   children: [ReactNode, ReactNode];
@@ -68,6 +77,58 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   return switched === reverse ? before : after;
 };
 
+export const EmptyElement: FC = (): ReactNode => <StyledCharacter>{EmptyCharacter.VALUE}</StyledCharacter>;
+
+interface NegativeElementProps {
+  negativeCharacter: NegativeCharacter;
+  animationTransition: AnimationTransition;
+  previousValue: bigint;
+  currentValue: bigint;
+  isSignChange: boolean;
+  numberOfAnimations: NumberOfAnimations;
+  isHorizontalAnimation: boolean;
+}
+
+export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElementProps): ReactNode => {
+  const {
+    negativeCharacter,
+    animationTransition,
+    previousValue,
+    currentValue,
+    isSignChange,
+    numberOfAnimations,
+    isHorizontalAnimation,
+  }: NegativeElementProps = props;
+
+  const condition: boolean =
+    (!isSignChange && currentValue < 0) ||
+    (isHorizontalAnimation &&
+      numberOfAnimations === NumberOfAnimations.THREE &&
+      previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
+
+  return (
+    <Optional condition={condition}>
+      <StyledCharacter>{negativeCharacter}</StyledCharacter>
+    </Optional>
+  );
+};
+
+interface NumberElementProps {
+  precision: number;
+  decimalSeparator: DecimalSeparator;
+  digitGroupSeparator: DigitGroupSeparator;
+  digits: number[];
+}
+
+export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
+  const { precision, decimalSeparator, digitGroupSeparator, digits }: NumberElementProps = props;
+
+  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
+  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
+
+  return digits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
+};
+
 interface HorizontalAnimationProps {
   precision: number;
   animationDuration: number;
@@ -86,7 +147,6 @@ interface HorizontalAnimationProps {
   currentValue: bigint;
   isSignChange: boolean;
   numberOfAnimations: NumberOfAnimations;
-  isHorizontalAnimationInGivenTransition: (transition: AnimationTransition) => boolean;
 }
 
 export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: HorizontalAnimationProps): ReactNode => {
@@ -108,7 +168,6 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     currentValue,
     isSignChange,
     numberOfAnimations,
-    isHorizontalAnimationInGivenTransition,
   }: HorizontalAnimationProps = props;
 
   const digitElementMapper: DigitElementMapper = useDigitElementMapper();
@@ -127,10 +186,13 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
   const hasEmptyNegativeCharacter: boolean =
     isSignChange &&
     (numberOfAnimations === NumberOfAnimations.TWO ||
-      isHorizontalAnimationInGivenTransition(AnimationTransition.SECOND_TO_THIRD));
+      (numberOfAnimations === NumberOfAnimations.THREE &&
+        previousValue < currentValue === (animationTransition === AnimationTransition.SECOND_TO_THIRD)));
 
   const hasZeros: boolean =
-    numberOfAnimations === NumberOfAnimations.TWO || isHorizontalAnimationInGivenTransition(AnimationTransition.NONE);
+    numberOfAnimations === NumberOfAnimations.TWO ||
+    (numberOfAnimations === NumberOfAnimations.THREE &&
+      previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
   const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction(
     animationTimingFunctionInput,

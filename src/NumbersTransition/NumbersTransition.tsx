@@ -10,16 +10,21 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Conditional, HorizontalAnimation, VerticalAnimation } from './NumbersTransition.components';
-import { DigitElementMapper, DigitsReducer, useDigitElementMapper, useDigitsReducer } from './NumbersTransition.hooks';
-import { StyledCharacter, StyledContainer } from './NumbersTransition.styles';
+import {
+  Conditional,
+  EmptyElement,
+  HorizontalAnimation,
+  NegativeElement,
+  NumberElement,
+  VerticalAnimation,
+} from './NumbersTransition.components';
+import { StyledContainer } from './NumbersTransition.styles';
 import {
   AnimationTimingFunction,
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
   EaseAnimationTimingFunction,
-  EmptyCharacter,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
@@ -70,9 +75,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
-
-  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
-  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
@@ -161,10 +163,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
-  const isHorizontalAnimationInGivenTransition = (transition: AnimationTransition): boolean =>
-    numberOfAnimations === NumberOfAnimations.THREE &&
-    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === transition);
-
   useLayoutEffect((): void => {
     const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
     newCanvasContext.font =
@@ -204,11 +202,17 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
   };
 
-  const getNegativeElement = (): ReactNode =>
-    ((!isSignChange && valueBigInt < 0) ||
-      (isHorizontalAnimation && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
-      <StyledCharacter>{negativeCharacter}</StyledCharacter>
-    );
+  const negativeElement: JSX.Element = (
+    <NegativeElement
+      negativeCharacter={negativeCharacter}
+      animationTransition={animationTransition}
+      previousValue={previousValueOnAnimationEndBigInt}
+      currentValue={valueBigInt}
+      isSignChange={isSignChange}
+      numberOfAnimations={numberOfAnimations}
+      isHorizontalAnimation={isHorizontalAnimation}
+    />
+  );
 
   const horizontalAnimation: JSX.Element = (
     <HorizontalAnimation
@@ -229,7 +233,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       currentValue={valueBigInt}
       isSignChange={isSignChange}
       numberOfAnimations={numberOfAnimations}
-      isHorizontalAnimationInGivenTransition={isHorizontalAnimationInGivenTransition}
     />
   );
 
@@ -249,27 +252,36 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     />
   );
 
-  const getAnimation = (): JSX.Element => (
+  const numberElement: JSX.Element = (
+    <NumberElement
+      precision={precision}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      digits={previousValueOnAnimationEndDigits}
+    />
+  );
+
+  const animationElement: JSX.Element = (
     <Conditional condition={isHorizontalAnimation}>
       {horizontalAnimation}
       {verticalAnimation}
     </Conditional>
   );
 
-  const getEmptyValue = (): JSX.Element => <StyledCharacter>{EmptyCharacter.VALUE}</StyledCharacter>;
-
-  const getNumericValue = (): JSX.Element =>
-    previousValueOnAnimationEndDigits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
-
-  const getValue: () => JSX.Element = isValueValid ? getNumericValue : getEmptyValue;
-
-  const getContent: () => JSX.Element | JSX.Element[] =
-    isValueValid && isNewValue && !restartAnimation ? getAnimation : getValue;
+  const valueElement: JSX.Element = (
+    <Conditional condition={isValueValid}>
+      {numberElement}
+      <EmptyElement />
+    </Conditional>
+  );
 
   return (
     <StyledContainer ref={containerRef} onAnimationEnd={onAnimationEnd}>
-      {getNegativeElement()}
-      {getContent()}
+      {negativeElement}
+      <Conditional condition={isValueValid && isNewValue && !restartAnimation}>
+        {animationElement}
+        {valueElement}
+      </Conditional>
     </StyledContainer>
   );
 };
