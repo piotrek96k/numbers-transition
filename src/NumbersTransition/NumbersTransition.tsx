@@ -215,6 +215,15 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     />
   );
 
+  const numberElement: JSX.Element = (
+    <NumberElement
+      precision={precision}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      digits={previousValueOnAnimationEndDigits}
+    />
+  );
+
   const horizontalAnimation: JSX.Element = (
     <HorizontalAnimation
       precision={precision}
@@ -250,15 +259,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       isSignChange={isSignChange}
-    />
-  );
-
-  const numberElement: JSX.Element = (
-    <NumberElement
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      digits={previousValueOnAnimationEndDigits}
     />
   );
 
