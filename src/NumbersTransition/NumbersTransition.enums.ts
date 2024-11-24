@@ -71,8 +71,10 @@ export enum EmptyCharacter {
   VALUE = '-',
 }
 
-export enum LinearAlgorithm {
-  MAX_LENGTH = 14,
+export enum DigitsGenerator {
+  SWITCH_VALUE = 14,
+  INITIAL_VALUE = 1,
+  MULTIPLY_VALUE = 0.5,
 }
 
 export enum EquationSolver {

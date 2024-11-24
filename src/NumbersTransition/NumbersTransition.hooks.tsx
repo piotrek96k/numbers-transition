@@ -4,9 +4,9 @@ import {
   AnimationTimingFunction,
   DecimalSeparator,
   DigitGroupSeparator,
+  DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
-  LinearAlgorithm,
   NumberPrecision,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
@@ -98,7 +98,7 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (
   ];
 };
 
-interface AlgorithmValues {
+interface DigitsGeneratorValues {
   start: bigint;
   end: bigint;
 }
@@ -116,29 +116,34 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 ): number[][] => {
   const { maxNumberOfDigits, previousValue, currentValue }: UseVerticalAnimationDigitsOptions = options;
 
-  const algorithmValuesArrayReducer = (
-    accumulator: AlgorithmValues[][],
+  const digitsGeneratorValuesArrayReducer = (
+    accumulator: DigitsGeneratorValues[][],
     _: undefined,
     index: number,
-  ): AlgorithmValues[][] => {
+  ): DigitsGeneratorValues[][] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
       .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
       .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
-    const accumulatorIndex: number = end - start < LinearAlgorithm.MAX_LENGTH ? 0 : 1;
+    const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? 0 : 1;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
     return accumulator;
   };
 
   const digitMapper = (number: bigint): number => Math.abs(Number(number % 10n));
 
-  const linearAlgorithmMapper = ({ start, end }: AlgorithmValues): number[] =>
+  const linearDigitsGeneratorMapper = ({ start, end }: DigitsGeneratorValues): number[] =>
     [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
       digitMapper(start + BigInt(index)),
     );
 
-  const nonLinearAlgorithmMapper = (values: AlgorithmValues, algorithmIndex: number): number[] => {
-    const { start, end }: AlgorithmValues = values;
-    const numbers: number[] = [...Array(LinearAlgorithm.MAX_LENGTH * (1 + 0.5 * algorithmIndex))]
+  const nonLinearDigitsGeneratorMapper = (values: DigitsGeneratorValues, algorithmIndex: number): number[] => {
+    const { start, end }: DigitsGeneratorValues = values;
+    const numbers: number[] = [
+      ...Array(
+        DigitsGenerator.SWITCH_VALUE *
+          (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * algorithmIndex),
+      ),
+    ]
       .map<bigint>(
         (_: undefined, index: number, { length }: number[]): bigint =>
           (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
@@ -154,12 +159,12 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
     return numbers[numbers.length - 1] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
   };
 
-  const algorithmMapper = (algorithmValuesArray: AlgorithmValues[], index: number): number[][] =>
-    algorithmValuesArray.map<number[]>(index ? nonLinearAlgorithmMapper : linearAlgorithmMapper);
+  const digitsGeneratorMapper = (algorithmValuesArray: DigitsGeneratorValues[], index: number): number[][] =>
+    algorithmValuesArray.map<number[]>(index ? nonLinearDigitsGeneratorMapper : linearDigitsGeneratorMapper);
 
   return [...Array(maxNumberOfDigits)]
-    .reduce<AlgorithmValues[][]>(algorithmValuesArrayReducer, [[], []])
-    .map<number[][]>(algorithmMapper)
+    .reduce<DigitsGeneratorValues[][]>(digitsGeneratorValuesArrayReducer, [[], []])
+    .map<number[][]>(digitsGeneratorMapper)
     .flat<number[][][], 1>();
 };
 
