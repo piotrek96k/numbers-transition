@@ -76,7 +76,7 @@ interface HorizontalAnimationProps {
   negativeCharacter: NegativeCharacter;
   animationTimingFunction: AnimationTimingFunction;
   animationTransition: AnimationTransition;
-  canvasContext: CanvasRenderingContext2D;
+  canvasContext: CanvasRenderingContext2D | null;
   previousValueDigits: number[];
   currentValueDigits: number[];
   minNumberOfDigits: number;
@@ -146,7 +146,9 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
   });
 
   const getCharacterWidth = (character: DecimalSeparator | DigitGroupSeparator | NegativeCharacter): number =>
-    [character, '0'].map<number>((text: string): number => canvasContext?.measureText?.(text)?.width).reduce(divide);
+    [character, '0']
+      .map<number>((text: string): number => canvasContext?.measureText?.(text)?.width ?? 0)
+      .reduce(divide);
 
   const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
     getCharacterWidth(digitGroupSeparator) *
