@@ -105,8 +105,9 @@ const animationDirection: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-timing-function: ${({ $animationTimingFunction }: AnimationProps): RuleSet<object> =>
-    css<object>`cubic-bezier(${$animationTimingFunction.join()})`};
+  animation-timing-function: cubic-bezier(
+    ${({ $animationTimingFunction }: AnimationProps): string => $animationTimingFunction.join()}
+  );
 `;
 
 const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
