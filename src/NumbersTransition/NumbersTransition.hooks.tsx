@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { FC, Fragment, ReactNode } from 'react';
 import {
   AnimationDirection,
   AnimationTimingFunction,
@@ -10,17 +10,20 @@ import {
   NumberPrecision,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import { StyledCharacter, StyledDigit } from './NumbersTransition.styles';
+import { StyledCharacter, StyledDigit, StyledDivision, StyledVisibilityProps } from './NumbersTransition.styles';
 
-type UseAnimationTimingFunction = (
-  animationTimingFunction: AnimationTimingFunction,
-  animationDirection: AnimationDirection,
-) => AnimationTimingFunction;
+interface UseAnimationTimingFunctionOptions {
+  animationTimingFunction: AnimationTimingFunction;
+  animationDirection: AnimationDirection;
+}
+
+type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunction;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  animationTimingFunction: AnimationTimingFunction,
-  animationDirection: AnimationDirection,
+  options: UseAnimationTimingFunctionOptions,
 ): AnimationTimingFunction => {
+  const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionOptions = options;
+
   const reverseAnimationTimingFunctionMapper = (
     tuple: AnimationTimingFunction[number],
   ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
@@ -165,30 +168,50 @@ interface KeyProps {
   children: ReactNode;
 }
 
-export type ElementMapperFactory = <T extends object>(
-  Component: FC<T | KeyProps> | string,
-  child: ReactNode,
-  index: number,
-  props?: T,
-) => JSX.Element;
+export interface ElementMappers {
+  fragmentElementMapper: (child: ReactNode, index: number) => JSX.Element;
+  divisionElementMapper: (child: ReactNode, index: number, props?: StyledVisibilityProps) => JSX.Element;
+  simpleDivisionElementMapper: (child: ReactNode, index: number) => JSX.Element;
+  characterElementMapper: (child: ReactNode, index: number) => JSX.Element;
+  digitElementMapper: (child: ReactNode, index: number) => JSX.Element;
+}
 
-type UseElementMapperFactory = () => ElementMapperFactory;
+type UseElementMappers = () => ElementMappers;
 
-export const useElementMapperFactory: UseElementMapperFactory =
-  (): ElementMapperFactory =>
-  <T extends object>(Component: FC<T | KeyProps> | string, child: ReactNode, index: number, props?: T): JSX.Element => (
+export const useElementMappers: UseElementMappers = (): ElementMappers => {
+  const elementMapperFactory = <T extends object>(
+    Component: FC<T | KeyProps> | string,
+    child: ReactNode,
+    index: number,
+    props?: T,
+  ): JSX.Element => (
     <Component key={`${typeof Component === 'symbol' ? '' : Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
   );
 
-export type DigitElementMapper = (child: ReactNode, index: number) => JSX.Element;
+  const fragmentElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(Fragment, child, index);
 
-type UseDigitElementMapper = () => DigitElementMapper;
+  const divisionElementMapper = (child: ReactNode, index: number, props?: StyledVisibilityProps): JSX.Element =>
+    elementMapperFactory<StyledVisibilityProps>(StyledDivision, child, index, props);
 
-export const useDigitElementMapper: UseDigitElementMapper = (): DigitElementMapper => {
-  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
-  return (child: ReactNode, index: number): JSX.Element => elementMapperFactory<object>(StyledDigit, child, index);
+  const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    divisionElementMapper(child, index);
+
+  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<StyledVisibilityProps>(StyledCharacter, child, index);
+
+  const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(StyledDigit, child, index);
+
+  return {
+    fragmentElementMapper,
+    divisionElementMapper,
+    simpleDivisionElementMapper,
+    characterElementMapper,
+    digitElementMapper,
+  };
 };
 
 interface UseDigitsReducerOptions {

@@ -136,6 +136,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
   );
 
+  const isAnimation: boolean = isValueValid && isNewValue && !restartAnimation;
   const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
   const isTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
 
@@ -278,7 +279,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   return (
     <StyledContainer ref={containerRef} onAnimationEnd={onAnimationEnd}>
       {negativeElement}
-      <Conditional condition={isValueValid && isNewValue && !restartAnimation}>
+      <Conditional condition={isAnimation}>
         {animationElement}
         {valueElement}
       </Conditional>

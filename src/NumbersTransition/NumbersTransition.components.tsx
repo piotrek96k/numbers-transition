@@ -1,4 +1,4 @@
-import { Dispatch, FC, Fragment, ReactNode, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationTimingFunction,
   AnimationTransition,
@@ -13,14 +13,12 @@ import {
 } from './NumbersTransition.enums';
 import {
   CubicBezierTuple,
-  DigitElementMapper,
   DigitsReducer,
-  ElementMapperFactory,
+  ElementMappers,
   useAnimationTimingFunction,
   useCubicBezier,
-  useDigitElementMapper,
   useDigitsReducer,
-  useElementMapperFactory,
+  useElementMappers,
   useHorizontalAnimationDigits,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
@@ -29,7 +27,6 @@ import {
   StyledDivision,
   StyledHorizontalAnimation,
   StyledVerticalAnimation,
-  StyledVisibilityProps,
 } from './NumbersTransition.styles';
 
 interface ConditionalProps {
@@ -123,7 +120,7 @@ interface NumberElementProps {
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
   const { precision, decimalSeparator, digitGroupSeparator, digits }: NumberElementProps = props;
 
-  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
+  const { digitElementMapper }: ElementMappers = useElementMappers();
   const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
   return digits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
@@ -170,7 +167,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     numberOfAnimations,
   }: HorizontalAnimationProps = props;
 
-  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
+  const { digitElementMapper }: ElementMappers = useElementMappers();
   const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
   const sum = (first: number, second: number): number => first + second;
@@ -194,10 +191,10 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     (numberOfAnimations === NumberOfAnimations.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
-  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction(
-    animationTimingFunctionInput,
+  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction({
+    animationTimingFunction: animationTimingFunctionInput,
     animationDirection,
-  );
+  });
 
   const animationDigits: number[] = useHorizontalAnimationDigits({
     numberOfDigitsDifference,
@@ -272,23 +269,30 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
   }: VerticalAnimationProps = props;
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
+
   const animationDigits: number[][] = useVerticalAnimationDigits({
     maxNumberOfDigits,
     previousValue,
     currentValue,
   });
 
-  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
-  const digitElementMapper: DigitElementMapper = useDigitElementMapper();
+  const {
+    fragmentElementMapper,
+    divisionElementMapper,
+    simpleDivisionElementMapper,
+    characterElementMapper,
+    digitElementMapper,
+  }: ElementMappers = useElementMappers();
+
   const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
   const animationDirection: VerticalAnimationDirection =
     previousValue < currentValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
 
-  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction(
-    animationTimingFunctionInput,
+  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction({
+    animationTimingFunction: animationTimingFunctionInput,
     animationDirection,
-  );
+  });
 
   const animationTimingFunctionReducer = (
     accumulator: [number[], number[]],
@@ -306,18 +310,6 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     const toSolve = (functionVal: number): number => yAxisCubicBezier(functionVal) - progress;
     return xAxisCubicBezier(solve(toSolve));
   };
-
-  const fragmentElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Fragment, child, index);
-
-  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<StyledVisibilityProps>(StyledCharacter, child, index);
-
-  const divisionElementMapper = (child: ReactNode, index: number, props?: StyledVisibilityProps): JSX.Element =>
-    elementMapperFactory<StyledVisibilityProps>(StyledDivision, child, index, props);
-
-  const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    divisionElementMapper(child, index);
 
   const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
     divisionElementMapper(negativeCharacter, index, { $visible: visible });
