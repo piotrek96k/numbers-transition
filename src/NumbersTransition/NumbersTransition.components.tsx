@@ -7,11 +7,11 @@ interface ConditionalProps {
 
 export const Conditional: FC<ConditionalProps> = (props: ConditionalProps): ReactNode => {
   const {
-    children: [first, second],
+    children: [onTrue, onFalse],
     condition,
   }: ConditionalProps = props;
 
-  return condition ? first : second;
+  return condition ? onTrue : onFalse;
 };
 
 interface SwitchProps {
@@ -22,7 +22,7 @@ interface SwitchProps {
 
 export const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   const {
-    children: [first, second],
+    children: [before, after],
     time,
     reverse,
   }: SwitchProps = props;
@@ -34,5 +34,5 @@ export const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
     return (): void => clearTimeout(timeout);
   }, [time]);
 
-  return switched === reverse ? first : second;
+  return switched === reverse ? before : after;
 };
