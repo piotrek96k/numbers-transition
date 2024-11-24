@@ -14,7 +14,7 @@ import {
   StyledComponent,
 } from './NumbersTransition.types';
 
-interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
+interface StyledAnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
   $animationType: T;
   $animationDirection: U;
   $animationDuration: number;
@@ -22,50 +22,50 @@ interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirec
   $animationDelay?: number;
 }
 
-interface HorizontalAnimationProps
-  extends AnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection> {
+interface StyledHorizontalAnimationProps
+  extends StyledAnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection> {
   $animationStartWidth: number;
   $animationEndWidth: number;
 }
 
-type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
+type StyledVerticalAnimationProps = StyledAnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
 
-type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
+type StyledAnimationProps = StyledHorizontalAnimationProps | StyledVerticalAnimationProps;
 
-type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
+type PickAnimationType<T extends StyledAnimationProps> = Pick<T, '$animationType'>;
 
-type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
+type OmitAnimationType<T extends StyledAnimationProps> = Omit<T, '$animationType'>;
 
-export interface VisibilityProps {
+export interface StyledVisibilityProps {
   $visible?: boolean;
 }
 
 type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
 
-type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledComponent<
+type AnimationStyledComponent<T extends StyledAnimationProps> = AttributesStyledComponent<
   'div',
   HTMLDetailedElement<HTMLDivElement>,
   OmitAnimationType<T>
 >;
 
-type HorizontalAnimationStyledComponent = AnimationStyledComponent<HorizontalAnimationProps>;
+type HorizontalAnimationStyledComponent = AnimationStyledComponent<StyledHorizontalAnimationProps>;
 
-type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimationProps>;
+type VerticalAnimationStyledComponent = AnimationStyledComponent<StyledVerticalAnimationProps>;
 
-type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
+type CharacterStyledComponent = StyledComponent<HTMLDivElement, StyledVisibilityProps>;
 
 type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
 
-type DivisionStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
+type DivisionStyledComponent = StyledComponent<HTMLDivElement, StyledVisibilityProps>;
 
-const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
-  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
+const visible: RuleSet<StyledVisibilityProps> = css<StyledVisibilityProps>`
+  color: ${({ $visible = true }: StyledVisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
 `;
 
 const horizontalAnimation = ({
   $animationStartWidth,
   $animationEndWidth,
-}: OmitAnimationType<HorizontalAnimationProps>): Keyframes => keyframes`
+}: OmitAnimationType<StyledHorizontalAnimationProps>): Keyframes => keyframes`
   0% {
     width: calc(1ch * ${$animationStartWidth});
   }
@@ -83,38 +83,38 @@ const verticalAnimation: Keyframes = keyframes`
   }
 `;
 
-const getAnimation = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
+const getAnimation = ({ $animationType, ...restProps }: StyledAnimationProps): Keyframes => {
   switch ($animationType) {
     case AnimationType.HORIZONTAL:
-      return horizontalAnimation(<OmitAnimationType<HorizontalAnimationProps>>restProps);
+      return horizontalAnimation(<OmitAnimationType<StyledHorizontalAnimationProps>>restProps);
     case AnimationType.VERTICAL:
       return verticalAnimation;
   }
 };
 
-const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-name: ${(props: AnimationProps): Keyframes => getAnimation(props)};
+const animationName: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
+  animation-name: ${(props: StyledAnimationProps): Keyframes => getAnimation(props)};
 `;
 
-const animationDuration: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-duration: ${({ $animationDuration }: AnimationProps): number => $animationDuration}s;
+const animationDuration: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
+  animation-duration: ${({ $animationDuration }: StyledAnimationProps): number => $animationDuration}s;
 `;
 
-const animationDirection: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-direction: ${({ $animationDirection }: AnimationProps): string => $animationDirection.toLowerCase()};
+const animationDirection: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
+  animation-direction: ${({ $animationDirection }: StyledAnimationProps): string => $animationDirection.toLowerCase()};
 `;
 
-const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
+const animationTimingFunction: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
   animation-timing-function: cubic-bezier(
-    ${({ $animationTimingFunction }: AnimationProps): string => $animationTimingFunction.join()}
+    ${({ $animationTimingFunction }: StyledAnimationProps): string => $animationTimingFunction.join()}
   );
 `;
 
-const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? 0}s;
+const animationDelay: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
+  animation-delay: ${({ $animationDelay }: StyledAnimationProps): number => $animationDelay ?? 0}s;
 `;
 
-const animation: RuleSet<AnimationProps> = css<AnimationProps>`
+const animation: RuleSet<StyledAnimationProps> = css<StyledAnimationProps>`
   ${animationName};
   ${animationDuration};
   ${animationDirection};
@@ -124,15 +124,15 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-const horizontalAnimationAttrs: PickAnimationType<HorizontalAnimationProps> = {
+const horizontalAnimationAttrs: PickAnimationType<StyledHorizontalAnimationProps> = {
   $animationType: AnimationType.HORIZONTAL,
 };
 
-const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
+const verticalAnimationAttrs: PickAnimationType<StyledVerticalAnimationProps> = {
   $animationType: AnimationType.VERTICAL,
 };
 
-export const Container: ContainerStyledComponent = styled.div`
+export const StyledContainer: ContainerStyledComponent = styled.div`
   font-size: 100px;
   color: #f0ff95;
   position: relative;
@@ -142,7 +142,7 @@ export const Container: ContainerStyledComponent = styled.div`
   height: 1lh;
 `;
 
-export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<HorizontalAnimationProps>(
+export const StyledHorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<StyledHorizontalAnimationProps>(
   horizontalAnimationAttrs,
 )`
   ${animation};
@@ -155,7 +155,7 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
   }
 `;
 
-export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.attrs<VerticalAnimationProps>(
+export const StyledVerticalAnimation: VerticalAnimationStyledComponent = styled.div.attrs<StyledVerticalAnimationProps>(
   verticalAnimationAttrs,
 )`
   ${animation};
@@ -168,7 +168,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   }
 `;
 
-export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
+export const StyledCharacter: CharacterStyledComponent = styled.div<StyledVisibilityProps>`
   ${visible};
   overflow: hidden;
   display: inline-block;
@@ -177,10 +177,10 @@ export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
   white-space: pre;
 `;
 
-export const Digit: DigitStyledComponent = styled(Character)`
+export const StyledDigit: DigitStyledComponent = styled(StyledCharacter)`
   min-width: 1ch;
 `;
 
-export const Division: DivisionStyledComponent = styled.div<VisibilityProps>`
+export const StyledDivision: DivisionStyledComponent = styled.div<StyledVisibilityProps>`
   ${visible};
 `;

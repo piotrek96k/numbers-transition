@@ -6,22 +6,13 @@ import {
   RefObject,
   SetStateAction,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
-import {
-  DigitElementMapper,
-  DigitsReducer,
-  GetAnimationTimingFunction,
-  GetHorizontalAnimation,
-  GetVerticalAnimation,
-  useAnimationTimingFunction,
-  useDigitElementMapper,
-  useDigitsReducer,
-  useHorizontalAnimation,
-  useVerticalAnimation,
-} from './NumbersTransition.hooks';
-import { Character, Container } from './NumbersTransition.styles';
+import { Conditional, HorizontalAnimation, VerticalAnimation } from './NumbersTransition.components';
+import { DigitElementMapper, DigitsReducer, useDigitElementMapper, useDigitsReducer } from './NumbersTransition.hooks';
+import { StyledCharacter, StyledContainer } from './NumbersTransition.styles';
 import {
   AnimationTimingFunction,
   AnimationTransition,
@@ -72,10 +63,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     Dispatch<SetStateAction<BigDecimal>>,
   ] = useState<BigDecimal>(0);
 
+  const [canvasContext, setCanvasContext]: [
+    CanvasRenderingContext2D,
+    Dispatch<SetStateAction<CanvasRenderingContext2D>>,
+  ] = useState<CanvasRenderingContext2D>(document.createElement('canvas').getContext('2d')!);
+
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
-  const getAnimationTimingFunction: GetAnimationTimingFunction = useAnimationTimingFunction(animationTimingFunction);
   const digitElementMapper: DigitElementMapper = useDigitElementMapper();
   const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
 
@@ -170,41 +165,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     numberOfAnimations === NumberOfAnimations.THREE &&
     previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === transition);
 
-  const getHorizontalAnimation: GetHorizontalAnimation = useHorizontalAnimation({
-    precision,
-    animationDuration: horizontalAnimationDuration,
-    decimalSeparator,
-    digitGroupSeparator,
-    negativeCharacter,
-    animationTransition,
-    containerRef,
-    previousValueDigits: previousValueOnAnimationEndDigits,
-    currentValueDigits: valueDigits,
-    minNumberOfDigits,
-    maxNumberOfDigits,
-    numberOfDigitsDifference,
-    previousValue: previousValueOnAnimationEndBigInt,
-    currentValue: valueBigInt,
-    isSignChange,
-    numberOfAnimations,
-    isHorizontalAnimationInGivenTransition,
-    getAnimationTimingFunction,
-    digitElementMapper,
-    digitsReducer,
-  });
-
-  const getVerticalAnimation: GetVerticalAnimation = useVerticalAnimation({
-    animationDuration: verticalAnimationDuration,
-    negativeCharacterAnimationMode,
-    negativeCharacter,
-    previousValue: previousValueOnAnimationEndBigInt,
-    currentValue: valueBigInt,
-    maxNumberOfDigits,
-    isSignChange,
-    getAnimationTimingFunction,
-    digitElementMapper,
-    digitsReducer,
-  });
+  useLayoutEffect((): void => {
+    const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
+    newCanvasContext.font =
+      [...containerRef.current!.classList]
+        .map<string>((className: string): string => window.getComputedStyle(containerRef.current!, className).font)
+        .find((font: string): string => font) ?? '';
+    setCanvasContext(newCanvasContext);
+  }, []);
 
   useEffect((): void => {
     if (restartAnimation) {
@@ -239,14 +207,56 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const getNegativeElement = (): ReactNode =>
     ((!isSignChange && valueBigInt < 0) ||
       (isHorizontalAnimation && isHorizontalAnimationInGivenTransition(AnimationTransition.NONE))) && (
-      <Character>{negativeCharacter}</Character>
+      <StyledCharacter>{negativeCharacter}</StyledCharacter>
     );
 
-  const getAnimation: () => JSX.Element | JSX.Element[] = isHorizontalAnimation
-    ? getHorizontalAnimation
-    : getVerticalAnimation;
+  const horizontalAnimation: JSX.Element = (
+    <HorizontalAnimation
+      precision={precision}
+      animationDuration={horizontalAnimationDuration}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      negativeCharacter={negativeCharacter}
+      animationTimingFunction={animationTimingFunction}
+      animationTransition={animationTransition}
+      canvasContext={canvasContext}
+      previousValueDigits={previousValueOnAnimationEndDigits}
+      currentValueDigits={valueDigits}
+      minNumberOfDigits={minNumberOfDigits}
+      maxNumberOfDigits={maxNumberOfDigits}
+      numberOfDigitsDifference={numberOfDigitsDifference}
+      previousValue={previousValueOnAnimationEndBigInt}
+      currentValue={valueBigInt}
+      isSignChange={isSignChange}
+      numberOfAnimations={numberOfAnimations}
+      isHorizontalAnimationInGivenTransition={isHorizontalAnimationInGivenTransition}
+    />
+  );
 
-  const getEmptyValue = (): JSX.Element => <Character>{EmptyCharacter.VALUE}</Character>;
+  const verticalAnimation: JSX.Element = (
+    <VerticalAnimation
+      precision={precision}
+      animationDuration={verticalAnimationDuration}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+      negativeCharacter={negativeCharacter}
+      animationTimingFunction={animationTimingFunction}
+      previousValue={previousValueOnAnimationEndBigInt}
+      currentValue={valueBigInt}
+      maxNumberOfDigits={maxNumberOfDigits}
+      isSignChange={isSignChange}
+    />
+  );
+
+  const getAnimation = (): JSX.Element => (
+    <Conditional condition={isHorizontalAnimation}>
+      {horizontalAnimation}
+      {verticalAnimation}
+    </Conditional>
+  );
+
+  const getEmptyValue = (): JSX.Element => <StyledCharacter>{EmptyCharacter.VALUE}</StyledCharacter>;
 
   const getNumericValue = (): JSX.Element =>
     previousValueOnAnimationEndDigits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
@@ -257,10 +267,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     isValueValid && isNewValue && !restartAnimation ? getAnimation : getValue;
 
   return (
-    <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
+    <StyledContainer ref={containerRef} onAnimationEnd={onAnimationEnd}>
       {getNegativeElement()}
       {getContent()}
-    </Container>
+    </StyledContainer>
   );
 };
 
