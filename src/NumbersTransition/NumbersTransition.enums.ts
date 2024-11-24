@@ -14,7 +14,6 @@ interface NumberPrecisionEnum {
 export enum AnimationType {
   HORIZONTAL = 'HORIZONTAL',
   VERTICAL = 'VERTICAL',
-  STEP = 'STEP',
 }
 
 export enum NumberOfAnimations {
@@ -39,12 +38,7 @@ export enum VerticalAnimationDirection {
   DOWN = 'REVERSE',
 }
 
-export enum StepAnimationDirection {
-  FORWARDS = 'NORMAL',
-  BACKWARDS = 'REVERSE',
-}
-
-export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection | StepAnimationDirection;
+export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
 export enum NegativeCharacterAnimationMode {
   SINGLE = 'SINGLE',

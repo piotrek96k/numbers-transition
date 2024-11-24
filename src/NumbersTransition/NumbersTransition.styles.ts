@@ -5,7 +5,6 @@ import {
   AnimationTimingFunction,
   AnimationType,
   HorizontalAnimationDirection,
-  StepAnimationDirection,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import {
@@ -20,6 +19,7 @@ interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirec
   $animationDirection: U;
   $animationDuration: number;
   $animationTimingFunction: AnimationTimingFunction;
+  $animationDelay?: number;
 }
 
 interface HorizontalAnimationProps
@@ -30,15 +30,11 @@ interface HorizontalAnimationProps
 
 type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
 
-export interface StepAnimationProps extends AnimationCommonProps<AnimationType.STEP, StepAnimationDirection> {
-  $animationStepProgress: number;
-}
-
-type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps | StepAnimationProps;
+type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
 type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
 
-export type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
+type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
 
 export interface VisibilityProps {
   $visible?: boolean;
@@ -55,8 +51,6 @@ type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledCompon
 type HorizontalAnimationStyledComponent = AnimationStyledComponent<HorizontalAnimationProps>;
 
 type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimationProps>;
-
-type StepAnimationStyledComponent = AnimationStyledComponent<StepAnimationProps>;
 
 type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
 
@@ -89,23 +83,12 @@ const verticalAnimation: Keyframes = keyframes`
   }
 `;
 
-const stepAnimation = ({ $animationStepProgress }: OmitAnimationType<StepAnimationProps>): Keyframes => keyframes`
-  0% {
-    color: transparent;
-  }
-  ${$animationStepProgress}% {
-    color: inherit;
-  }
-`;
-
 const getAnimation = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
   switch ($animationType) {
     case AnimationType.HORIZONTAL:
       return horizontalAnimation(<OmitAnimationType<HorizontalAnimationProps>>restProps);
     case AnimationType.VERTICAL:
       return verticalAnimation;
-    case AnimationType.STEP:
-      return stepAnimation(<OmitAnimationType<StepAnimationProps>>restProps);
   }
 };
 
@@ -122,10 +105,12 @@ const animationDirection: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-timing-function: ${({ $animationType, $animationTimingFunction }: AnimationProps): RuleSet<object> =>
-    $animationType === AnimationType.STEP
-      ? css<object>`steps(1)`
-      : css<object>`cubic-bezier(${$animationTimingFunction.join()})`};
+  animation-timing-function: ${({ $animationTimingFunction }: AnimationProps): RuleSet<object> =>
+    css<object>`cubic-bezier(${$animationTimingFunction.join()})`};
+`;
+
+const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
+  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? 0}s;
 `;
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
@@ -133,6 +118,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   ${animationDuration};
   ${animationDirection};
   ${animationTimingFunction};
+  ${animationDelay};
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
 `;
@@ -144,8 +130,6 @@ const horizontalAnimationAttrs: PickAnimationType<HorizontalAnimationProps> = {
 const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
   $animationType: AnimationType.VERTICAL,
 };
-
-const stepAnimationAttrs: PickAnimationType<StepAnimationProps> = { $animationType: AnimationType.STEP };
 
 export const Container: ContainerStyledComponent = styled.div`
   font-size: 100px;
@@ -181,11 +165,6 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   :not(:last-child) {
     position: relative;
   }
-`;
-
-export const StepAnimation: StepAnimationStyledComponent = styled.div.attrs<StepAnimationProps>(stepAnimationAttrs)`
-  ${animation};
-  position: absolute;
 `;
 
 export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
