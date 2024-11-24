@@ -92,7 +92,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
     const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
-    return `${integer.replace(/\d+/, '')}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+    return `${integer.replace(/\d+/, '')}${BigInt(start) ? '' : start}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
   };
 
   const [previousValueOnAnimationEndCharacters, previousValueOnAnimationStartCharacters, valueCharacters]: string[][] =
