@@ -33,6 +33,7 @@ import { BigDecimal } from './NumbersTransition.types';
 import { AnimationValuesTuple, useAnimationValues } from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
+  initialValue?: BigDecimal;
   value?: BigDecimal;
   precision?: number;
   horizontalAnimationDuration?: number;
@@ -46,6 +47,7 @@ interface NumbersTransitionProps {
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
   const {
+    initialValue = 0,
     value,
     precision = 0,
     horizontalAnimationDuration = 0.5,
@@ -67,14 +69,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [
     BigDecimal,
     Dispatch<SetStateAction<BigDecimal>>,
-  ] = useState<BigDecimal>(0);
+  ] = useState<BigDecimal>(initialValue);
 
   const [canvasContext, setCanvasContext]: [
     CanvasRenderingContext2D | null,
     Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
   ] = useState<CanvasRenderingContext2D | null>(null);
 
-  const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(0);
+  const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(initialValue);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);

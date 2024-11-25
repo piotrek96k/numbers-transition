@@ -46,6 +46,7 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
+  initialValue: 0,
   value: 123456789,
   precision: 0,
   horizontalAnimationDuration: 0.5,
