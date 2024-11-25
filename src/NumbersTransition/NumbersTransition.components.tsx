@@ -167,9 +167,6 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     numberOfAnimations,
   }: HorizontalAnimationProps = props;
 
-  const { digitElementMapper }: ElementMappers = useElementMappers();
-  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
-
   const sum = (first: number, second: number): number => first + second;
   const divide = (first: number, second: number): number => first / second;
 
@@ -223,6 +220,15 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
       precision > 0 ? getCharacterWidth(decimalSeparator) : 0,
     ].reduce(sum);
 
+  const numberElement: JSX.Element = (
+    <NumberElement
+      precision={precision}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      digits={animationDigits}
+    />
+  );
+
   return (
     <StyledHorizontalAnimation
       $animationDirection={animationDirection}
@@ -233,7 +239,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     >
       <StyledDivision>
         {hasEmptyNegativeCharacter && <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>}
-        {animationDigits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer)}
+        {numberElement}
       </StyledDivision>
     </StyledHorizontalAnimation>
   );
