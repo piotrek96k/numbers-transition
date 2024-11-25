@@ -313,7 +313,7 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
       .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
       .map<(time: number) => number>(cubicBezier);
-    const toSolve = (functionVal: number): number => yAxisCubicBezier(functionVal) - progress;
+    const toSolve = (value: number): number => yAxisCubicBezier(value) - progress;
     return xAxisCubicBezier(solve(toSolve));
   };
 

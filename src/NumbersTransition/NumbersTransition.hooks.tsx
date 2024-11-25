@@ -159,12 +159,12 @@ export type CubicBezierTuple = [CubicBezier, Solve];
 type UseCubicBezier = () => CubicBezierTuple;
 
 export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
-  const derivative = (func: (val: number) => number, val: number) =>
-    (func(val + EquationSolver.DERIVATIVE_DELTA) - func(val - EquationSolver.DERIVATIVE_DELTA)) /
+  const derivative = (func: (value: number) => number, value: number) =>
+    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
     (2 * EquationSolver.DERIVATIVE_DELTA);
 
   const solve = (
-    func: (inputValue: number) => number,
+    func: (value: number) => number,
     previousValue: number = EquationSolver.INITIAL_VALUE,
     previousFuncResult: number = func(previousValue),
   ): number => {
