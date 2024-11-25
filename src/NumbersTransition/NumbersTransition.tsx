@@ -30,6 +30,7 @@ import {
   NumberOfAnimations,
 } from './NumbersTransition.enums';
 import { BigDecimal } from './NumbersTransition.types';
+import { AnimationValuesTuple, useAnimationValues } from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   value?: BigDecimal;
@@ -78,58 +79,16 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
 
-  const subtract = (first: number, second: number): number => first - second;
-
-  const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
-    ...accumulator,
-    currentValue,
-    ...(length === 1 ? [''] : []),
-  ];
-
-  const floatingPointReducer = (integer: string, fraction: string): string => {
-    const [start, mid, end, numberOfZeros]: [string, string, string, number] =
-      precision > 0
-        ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
-        : ['', integer.replace('-', ''), fraction, -precision];
-    const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
-    const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
-    const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
-    return `${integer.replace(/\d+/, '')}${BigInt(start) ? '' : start}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
-  };
-
-  const [previousValueOnAnimationEndCharacters, previousValueOnAnimationStartCharacters, valueCharacters]: string[][] =
-    [previousValueOnAnimationEnd, previousValueOnAnimationStartRef.current, isValueValid ? value! : 0].map<string[]>(
-      (number: BigDecimal): string[] => [
-        ...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
-      ],
-    );
-
-  const [previousValueOnAnimationEndDigits, valueDigits]: number[][] = [
-    previousValueOnAnimationEndCharacters,
-    valueCharacters,
-  ].map<number[]>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(/^\d{1}$/)).map<number>(Number),
-  );
-
-  const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
-    ...accumulator,
-    currentValue,
-    ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
-  ];
-
-  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = [
-    previousValueOnAnimationEndDigits,
-    valueDigits,
-  ]
-    .map<number>(({ length }: number[]): number => length)
-    .sort(subtract)
-    .reduce<number[]>(digitsLengthReducer, []);
-
-  const [previousValueOnAnimationEndBigInt, previousValueOnAnimationStartBigInt, valueBigInt]: bigint[] = [
-    previousValueOnAnimationEndCharacters,
-    previousValueOnAnimationStartCharacters,
-    valueCharacters,
-  ].map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
+  const [
+    [previousValueOnAnimationEndDigits, valueDigits],
+    [previousValueOnAnimationEndBigInt, previousValueOnAnimationStartBigInt, valueBigInt],
+    [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
+  ]: AnimationValuesTuple = useAnimationValues({
+    precision,
+    currentValue: isValueValid ? value! : 0,
+    previousValueOnAnimationEnd,
+    previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
+  });
 
   const isNewValue: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
@@ -236,11 +195,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       canvasContext={canvasContext}
       previousValueDigits={previousValueOnAnimationEndDigits}
       currentValueDigits={valueDigits}
+      previousValue={previousValueOnAnimationEndBigInt}
+      currentValue={valueBigInt}
       minNumberOfDigits={minNumberOfDigits}
       maxNumberOfDigits={maxNumberOfDigits}
       numberOfDigitsDifference={numberOfDigitsDifference}
-      previousValue={previousValueOnAnimationEndBigInt}
-      currentValue={valueBigInt}
       isSignChange={isSignChange}
       numberOfAnimations={numberOfAnimations}
     />

@@ -137,11 +137,11 @@ interface HorizontalAnimationProps {
   canvasContext: CanvasRenderingContext2D | null;
   previousValueDigits: number[];
   currentValueDigits: number[];
+  previousValue: bigint;
+  currentValue: bigint;
   minNumberOfDigits: number;
   maxNumberOfDigits: number;
   numberOfDigitsDifference: number;
-  previousValue: bigint;
-  currentValue: bigint;
   isSignChange: boolean;
   numberOfAnimations: NumberOfAnimations;
 }
@@ -158,11 +158,11 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     canvasContext,
     previousValueDigits,
     currentValueDigits,
+    previousValue,
+    currentValue,
     minNumberOfDigits,
     maxNumberOfDigits,
     numberOfDigitsDifference,
-    previousValue,
-    currentValue,
     isSignChange,
     numberOfAnimations,
   }: HorizontalAnimationProps = props;
@@ -247,9 +247,9 @@ interface VerticalAnimationProps {
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   negativeCharacter: NegativeCharacter;
   animationTimingFunction: AnimationTimingFunction;
-  maxNumberOfDigits: number;
   previousValue: bigint;
   currentValue: bigint;
+  maxNumberOfDigits: number;
   isSignChange: boolean;
 }
 
@@ -262,9 +262,9 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     negativeCharacterAnimationMode,
     negativeCharacter,
     animationTimingFunction: animationTimingFunctionInput,
-    maxNumberOfDigits,
     previousValue,
     currentValue,
+    maxNumberOfDigits,
     isSignChange,
   }: VerticalAnimationProps = props;
 

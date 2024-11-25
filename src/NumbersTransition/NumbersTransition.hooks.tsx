@@ -11,6 +11,119 @@ import {
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import { StyledCharacter, StyledDigit, StyledDivision, StyledVisibilityProps } from './NumbersTransition.styles';
+import { BigDecimal } from './NumbersTransition.types';
+
+interface UseAnimationCharactersOptions {
+  precision: number;
+  values: [BigDecimal, BigDecimal, BigDecimal];
+}
+
+type AnimationCharactersTuple = [string[], string[], string[]];
+
+type UseAnimationCharacters = (options: UseAnimationCharactersOptions) => AnimationCharactersTuple;
+
+const useAnimationCharacters: UseAnimationCharacters = (
+  options: UseAnimationCharactersOptions,
+): AnimationCharactersTuple => {
+  const { precision, values }: UseAnimationCharactersOptions = options;
+
+  const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
+    ...accumulator,
+    currentValue,
+    ...(length === 1 ? [''] : []),
+  ];
+
+  const floatingPointReducer = (integer: string, fraction: string): string => {
+    const [start, mid, end, numberOfZeros]: [string, string, string, number] =
+      precision > 0
+        ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
+        : ['', integer.replace('-', ''), fraction, -precision];
+    const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
+    const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
+    const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
+    return `${integer.replace(/\d+/, '')}${BigInt(start) ? '' : start}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+  };
+
+  return values.map<string[]>((number: BigDecimal): string[] => [
+    ...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
+  ]);
+};
+
+type UseAnimationDigitsOptions = [string[], string[]];
+
+type AnimationDigitsTuple = [number[], number[]];
+
+type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigitsTuple;
+
+const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
+  options.map<number[]>((characters: string[]): number[] =>
+    characters.filter((character: string): boolean => !!character.match(/^\d{1}$/)).map<number>(Number),
+  );
+
+type UseAnimationBigIntsOptions = AnimationCharactersTuple;
+
+type AnimationBigIntsTuple = [bigint, bigint, bigint];
+
+type UseAnimationBigInts = (options: UseAnimationBigIntsOptions) => AnimationBigIntsTuple;
+
+const useAnimationBigInts: UseAnimationBigInts = (options: UseAnimationBigIntsOptions): AnimationBigIntsTuple =>
+  options.map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
+
+type UseAnimationNumbersOfDigitsOptions = AnimationDigitsTuple;
+
+type AnimationNumbersOfDigitsTuple = [number, number, number];
+
+type UseAnimationNumbersOfDigits = (options: UseAnimationNumbersOfDigitsOptions) => AnimationNumbersOfDigitsTuple;
+
+const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
+  options: UseAnimationNumbersOfDigitsOptions,
+): AnimationNumbersOfDigitsTuple => {
+  const subtract = (first: number, second: number): number => first - second;
+
+  const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
+    ...accumulator,
+    currentValue,
+    ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
+  ];
+
+  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = options
+    .map<number>(({ length }: number[]): number => length)
+    .sort(subtract)
+    .reduce<number[]>(digitsLengthReducer, []);
+
+  return [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference];
+};
+
+interface UseAnimationValuesOptions {
+  precision: number;
+  currentValue: BigDecimal;
+  previousValueOnAnimationEnd: BigDecimal;
+  previousValueOnAnimationStart: BigDecimal;
+}
+
+export type AnimationValuesTuple = [AnimationDigitsTuple, AnimationBigIntsTuple, AnimationNumbersOfDigitsTuple];
+
+type UseAnimationValues = (options: UseAnimationValuesOptions) => AnimationValuesTuple;
+
+export const useAnimationValues: UseAnimationValues = (options: UseAnimationValuesOptions): AnimationValuesTuple => {
+  const {
+    precision,
+    currentValue,
+    previousValueOnAnimationEnd,
+    previousValueOnAnimationStart,
+  }: UseAnimationValuesOptions = options;
+
+  const characters: AnimationCharactersTuple = useAnimationCharacters({
+    precision,
+    values: [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue],
+  });
+
+  const digits: AnimationDigitsTuple = useAnimationDigits([characters[0], characters[2]]);
+  const bigInts: AnimationBigIntsTuple = useAnimationBigInts(characters);
+  const numbersOfDigits: AnimationNumbersOfDigitsTuple = useAnimationNumberOfDigits(digits);
+
+  return [digits, bigInts, numbersOfDigits];
+};
 
 interface UseAnimationTimingFunctionOptions {
   animationTimingFunction: AnimationTimingFunction;
