@@ -92,31 +92,30 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
 
-  const isNewValue: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
-  const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(
-    (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt,
-  );
+  const notValueOnAnimationStart = (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt;
 
-  const isAnimation: boolean = isValueValid && isNewValue && !restartAnimation;
-  const isSignChange: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
-  const isTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
+  const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
+  const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
+  const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
+  const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(notValueOnAnimationStart);
+  const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
 
-  const isAtLeastTwoAnimations: boolean =
+  const hasAtLeastTwoAnimations: boolean =
     (previousValueOnAnimationEndDigits.length < valueDigits.length &&
       previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
 
-  const numberOfAnimations: NumberOfAnimations = isSignChange
-    ? isAtLeastTwoAnimations
+  const numberOfAnimations: NumberOfAnimations = hasSignChanged
+    ? hasAtLeastTwoAnimations
       ? NumberOfAnimations.THREE
       : NumberOfAnimations.TWO
-    : isTheSameNumberOfDigits
+    : hasTheSameNumberOfDigits
       ? NumberOfAnimations.ONE
       : NumberOfAnimations.TWO;
 
-  const isHorizontalAnimation: boolean =
+  const renderHorizontalAnimation: boolean =
     (numberOfAnimations === NumberOfAnimations.TWO &&
-      (isSignChange
+      (hasSignChanged
         ? animationTransition === AnimationTransition.NONE
           ? previousValueOnAnimationEndBigInt > valueBigInt
           : previousValueOnAnimationEndBigInt < valueBigInt
@@ -170,9 +169,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       animationTransition={animationTransition}
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}
-      isSignChange={isSignChange}
+      hasSignChanged={hasSignChanged}
       numberOfAnimations={numberOfAnimations}
-      isHorizontalAnimation={isHorizontalAnimation}
+      renderHorizontalAnimation={renderHorizontalAnimation}
     />
   );
 
@@ -202,7 +201,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       minNumberOfDigits={minNumberOfDigits}
       maxNumberOfDigits={maxNumberOfDigits}
       numberOfDigitsDifference={numberOfDigitsDifference}
-      isSignChange={isSignChange}
+      hasSignChanged={hasSignChanged}
       numberOfAnimations={numberOfAnimations}
     />
   );
@@ -219,12 +218,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
-      isSignChange={isSignChange}
+      hasSignChanged={hasSignChanged}
     />
   );
 
   const animationElement: JSX.Element = (
-    <Conditional condition={isHorizontalAnimation}>
+    <Conditional condition={renderHorizontalAnimation}>
       {horizontalAnimation}
       {verticalAnimation}
     </Conditional>
@@ -240,7 +239,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   return (
     <StyledContainer ref={containerRef} onAnimationEnd={onAnimationEnd}>
       {negativeElement}
-      <Conditional condition={isAnimation}>
+      <Conditional condition={renderAnimation}>
         {animationElement}
         {valueElement}
       </Conditional>

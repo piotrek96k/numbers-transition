@@ -81,9 +81,9 @@ interface NegativeElementProps {
   animationTransition: AnimationTransition;
   previousValue: bigint;
   currentValue: bigint;
-  isSignChange: boolean;
+  hasSignChanged: boolean;
   numberOfAnimations: NumberOfAnimations;
-  isHorizontalAnimation: boolean;
+  renderHorizontalAnimation: boolean;
 }
 
 export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElementProps): ReactNode => {
@@ -92,14 +92,14 @@ export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElement
     animationTransition,
     previousValue,
     currentValue,
-    isSignChange,
+    hasSignChanged,
     numberOfAnimations,
-    isHorizontalAnimation,
+    renderHorizontalAnimation,
   }: NegativeElementProps = props;
 
   const condition: boolean =
-    (!isSignChange && currentValue < 0) ||
-    (isHorizontalAnimation &&
+    (!hasSignChanged && currentValue < 0) ||
+    (renderHorizontalAnimation &&
       numberOfAnimations === NumberOfAnimations.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
@@ -142,7 +142,7 @@ interface HorizontalAnimationProps {
   minNumberOfDigits: number;
   maxNumberOfDigits: number;
   numberOfDigitsDifference: number;
-  isSignChange: boolean;
+  hasSignChanged: boolean;
   numberOfAnimations: NumberOfAnimations;
 }
 
@@ -163,7 +163,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     minNumberOfDigits,
     maxNumberOfDigits,
     numberOfDigitsDifference,
-    isSignChange,
+    hasSignChanged,
     numberOfAnimations,
   }: HorizontalAnimationProps = props;
 
@@ -172,13 +172,13 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
 
   const animationDirection: HorizontalAnimationDirection =
     (numberOfAnimations === NumberOfAnimations.TWO &&
-      (isSignChange ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
+      (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition === AnimationTransition.NONE)
       ? HorizontalAnimationDirection.RIGHT
       : HorizontalAnimationDirection.LEFT;
 
   const hasEmptyNegativeCharacter: boolean =
-    isSignChange &&
+    hasSignChanged &&
     (numberOfAnimations === NumberOfAnimations.TWO ||
       (numberOfAnimations === NumberOfAnimations.THREE &&
         previousValue < currentValue === (animationTransition === AnimationTransition.SECOND_TO_THIRD)));
@@ -256,7 +256,7 @@ interface VerticalAnimationProps {
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
-  isSignChange: boolean;
+  hasSignChanged: boolean;
 }
 
 export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAnimationProps): ReactNode => {
@@ -271,7 +271,7 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     previousValue,
     currentValue,
     maxNumberOfDigits,
-    isSignChange,
+    hasSignChanged,
   }: VerticalAnimationProps = props;
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
@@ -369,10 +369,10 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     currentValue: number[],
     index: number,
   ): [JSX.Element[], JSX.Element[]] => [
-    !isSignChange || accumulator[0].length || currentValue.length === 1
+    !hasSignChanged || accumulator[0].length || currentValue.length === 1
       ? accumulator[0]
       : [negativeCharacterAnimationElementMapper(currentValue.map(negativeCharacterVisibilityMapper), index)],
-    [...accumulator[1], digitAnimationElementMapper(currentValue, index + (isSignChange ? 1 : 0))],
+    [...accumulator[1], digitAnimationElementMapper(currentValue, index + (hasSignChanged ? 1 : 0))],
   ];
 
   const animationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
