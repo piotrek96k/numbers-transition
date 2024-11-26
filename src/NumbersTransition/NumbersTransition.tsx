@@ -6,7 +6,6 @@ import {
   RefObject,
   SetStateAction,
   useEffect,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
@@ -125,7 +124,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
-  useLayoutEffect((): void => {
+  useEffect((): void => {
     const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
     newCanvasContext.font =
       [...containerRef.current!.classList]
