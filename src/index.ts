@@ -1,4 +1,5 @@
 import {
+  AnimationTimingFunction,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
@@ -8,4 +9,4 @@ import NumbersTransition from './NumbersTransition/NumbersTransition';
 import { BigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export { DecimalSeparator, DigitGroupSeparator, NegativeCharacter, NegativeCharacterAnimationMode, NumbersTransition };
-export type { BigDecimal };
+export type { AnimationTimingFunction, BigDecimal };
