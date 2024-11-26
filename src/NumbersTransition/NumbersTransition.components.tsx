@@ -177,7 +177,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
       ? HorizontalAnimationDirection.RIGHT
       : HorizontalAnimationDirection.LEFT;
 
-  const hasEmptyNegativeCharacter: boolean =
+  const hasNegativeCharacter: boolean =
     hasSignChanged &&
     (numberOfAnimations === NumberOfAnimations.TWO ||
       (numberOfAnimations === NumberOfAnimations.THREE &&
@@ -235,10 +235,10 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
       $animationStartWidth={getAnimationWidth(hasZeros ? minNumberOfDigits : maxNumberOfDigits, false)}
-      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, hasEmptyNegativeCharacter)}
+      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, hasNegativeCharacter)}
     >
       <StyledDivision>
-        {hasEmptyNegativeCharacter && <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>}
+        {hasNegativeCharacter && <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>}
         {numberElement}
       </StyledDivision>
     </StyledHorizontalAnimation>
