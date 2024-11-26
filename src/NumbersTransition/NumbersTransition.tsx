@@ -80,6 +80,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
+  const validValue: BigDecimal = isValueValid ? value! : 0;
 
   const [
     [previousValueOnAnimationEndDigits, valueDigits],
@@ -87,7 +88,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
   ]: AnimationValuesTuple = useAnimationValues({
     precision,
-    currentValue: isValueValid ? value! : 0,
+    currentValue: validValue,
     previousValueOnAnimationEnd,
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
@@ -138,10 +139,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
       setAnimationTransition(AnimationTransition.NONE);
     }
-    previousValueOnAnimationStartRef.current = isValueValid ? value! : 0;
-  }, [value, isValueValid, restartAnimation]);
+    previousValueOnAnimationStartRef.current = validValue;
+  }, [validValue, restartAnimation]);
 
-  const updatePreviousValueOnAnimationEnd = (): void => setPreviousValueOnAnimationEnd(value!);
+  const updatePreviousValueOnAnimationEnd = (): void => setPreviousValueOnAnimationEnd(validValue);
 
   const onAnimationEnd = (): void => {
     if (numberOfAnimations === NumberOfAnimations.ONE) {
