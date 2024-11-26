@@ -1,5 +1,5 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { Keyframes } from 'styled-components/dist/types';
+import { BaseObject, Keyframes } from 'styled-components/dist/types';
 import {
   AnimationDirection,
   AnimationTimingFunction,
@@ -163,9 +163,6 @@ export const StyledVerticalAnimation: VerticalAnimationStyledComponent = styled.
     position: absolute;
     top: 100%;
   }
-  :not(:last-child) {
-    position: relative;
-  }
 `;
 
 export const StyledCharacter: CharacterStyledComponent = styled.div<StyledVisibilityProps>`
@@ -177,7 +174,7 @@ export const StyledCharacter: CharacterStyledComponent = styled.div<StyledVisibi
   white-space: pre;
 `;
 
-export const StyledDigit: DigitStyledComponent = styled(StyledCharacter)`
+export const StyledDigit: DigitStyledComponent = styled<CharacterStyledComponent, BaseObject>(StyledCharacter)`
   min-width: 1ch;
 `;
 
