@@ -38,10 +38,10 @@ interface NumbersTransitionProps {
   precision?: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
-  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
+  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   animationTimingFunction?: AnimationTimingFunction;
 }
 
@@ -52,12 +52,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     precision = 0,
     horizontalAnimationDuration = 0.5,
     verticalAnimationDuration = 2,
-    negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
       : DecimalSeparator.COMMA,
     negativeCharacter = NegativeCharacter.MINUS,
+    negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction = [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
   }: NumbersTransitionProps = props;
 
@@ -213,8 +213,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       animationDuration={verticalAnimationDuration}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
-      negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       negativeCharacter={negativeCharacter}
+      negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationTimingFunction={animationTimingFunction}
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}

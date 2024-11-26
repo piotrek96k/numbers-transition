@@ -250,8 +250,8 @@ interface VerticalAnimationProps {
   animationDuration: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
-  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   negativeCharacter: NegativeCharacter;
+  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   animationTimingFunction: AnimationTimingFunction;
   previousValue: bigint;
   currentValue: bigint;
@@ -265,8 +265,8 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     animationDuration,
     decimalSeparator,
     digitGroupSeparator,
-    negativeCharacterAnimationMode,
     negativeCharacter,
+    negativeCharacterAnimationMode,
     animationTimingFunction: animationTimingFunctionInput,
     previousValue,
     currentValue,
