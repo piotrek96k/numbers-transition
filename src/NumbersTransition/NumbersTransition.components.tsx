@@ -21,12 +21,12 @@ import {
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
-  StyledCharacter,
-  StyledDigit,
-  StyledDivision,
-  StyledHorizontalAnimation,
-  StyledVerticalAnimation,
-  StyledVisibilityProps,
+  Character,
+  Digit,
+  Division,
+  HorizontalAnimation,
+  VerticalAnimation,
+  VisibilityProps,
 } from './NumbersTransition.styles';
 
 interface ConditionalProps {
@@ -74,7 +74,7 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   return switched === reverse ? before : after;
 };
 
-export const EmptyElement: FC = (): ReactNode => <StyledCharacter>{EmptyCharacter.VALUE}</StyledCharacter>;
+export const EmptyElement: FC = (): ReactNode => <Character>{EmptyCharacter.VALUE}</Character>;
 
 interface NegativeElementProps {
   negativeCharacter: NegativeCharacter;
@@ -105,7 +105,7 @@ export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElement
 
   return (
     <Optional condition={condition}>
-      <StyledCharacter>{negativeCharacter}</StyledCharacter>
+      <Character>{negativeCharacter}</Character>
     </Optional>
   );
 };
@@ -116,9 +116,7 @@ interface HorizontalAnimationNegativeElementProps {
 
 const HorizontalAnimationNegativeElement: FC<HorizontalAnimationNegativeElementProps> = ({
   negativeCharacter,
-}: HorizontalAnimationNegativeElementProps): ReactNode => (
-  <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>
-);
+}: HorizontalAnimationNegativeElementProps): ReactNode => <Character $visible={false}>{negativeCharacter}</Character>;
 
 interface VerticalAnimationNegativeElementProps {
   animationDuration: number;
@@ -179,11 +177,11 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : 0;
 
   const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
-    elementMapperFactory<StyledVisibilityProps>(StyledDivision, negativeCharacter, index, { $visible: visible });
+    elementMapperFactory<VisibilityProps>(Division, negativeCharacter, index, { $visible: visible });
 
   const characterVerticalAnimationElement: JSX.Element = (
-    <StyledCharacter>
-      <StyledVerticalAnimation
+    <Character>
+      <VerticalAnimation
         $animationDirection={animationDirection}
         $animationDuration={animationDuration}
         $animationTimingFunction={animationTimingFunction}
@@ -192,14 +190,14 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
         })}
       >
         {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
-      </StyledVerticalAnimation>
-    </StyledCharacter>
+      </VerticalAnimation>
+    </Character>
   );
 
   return (
     <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
       <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
-        <StyledCharacter>{negativeCharacter}</StyledCharacter>
+        <Character>{negativeCharacter}</Character>
         {characterVerticalAnimationElement}
       </Switch>
       {characterVerticalAnimationElement}
@@ -220,11 +218,11 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
   const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
 
   const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(StyledDigit, child, index);
+    elementMapperFactory<object>(Digit, child, index);
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, 0)) % 3) && (
-      <StyledCharacter>{length - index === precision ? decimalSeparator : digitGroupSeparator}</StyledCharacter>
+      <Character>{length - index === precision ? decimalSeparator : digitGroupSeparator}</Character>
     );
 
   const digitsReducer = (
@@ -243,7 +241,7 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
   return digits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
 };
 
-interface HorizontalAnimationProps {
+interface HorizontalAnimationElementProps {
   precision: number;
   animationDuration: number;
   decimalSeparator: DecimalSeparator;
@@ -263,7 +261,9 @@ interface HorizontalAnimationProps {
   numberOfAnimations: NumberOfAnimations;
 }
 
-export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: HorizontalAnimationProps): ReactNode => {
+export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
+  props: HorizontalAnimationElementProps,
+): ReactNode => {
   const {
     precision,
     animationDuration,
@@ -282,7 +282,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
     numberOfDigitsDifference,
     hasSignChanged,
     numberOfAnimations,
-  }: HorizontalAnimationProps = props;
+  }: HorizontalAnimationElementProps = props;
 
   const sum = (first: number, second: number): number => first + second;
   const divide = (first: number, second: number): number => first / second;
@@ -353,22 +353,22 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
   );
 
   return (
-    <StyledHorizontalAnimation
+    <HorizontalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
       $animationStartWidth={getAnimationWidth(hasZeros ? minNumberOfDigits : maxNumberOfDigits, false)}
       $animationEndWidth={getAnimationWidth(maxNumberOfDigits, hasNegativeCharacter)}
     >
-      <StyledDivision>
+      <Division>
         {negativeElement}
         {numberElement}
-      </StyledDivision>
-    </StyledHorizontalAnimation>
+      </Division>
+    </HorizontalAnimation>
   );
 };
 
-interface VerticalAnimationProps {
+interface VerticalAnimationElementProps {
   precision: number;
   animationDuration: number;
   decimalSeparator: DecimalSeparator;
@@ -382,7 +382,9 @@ interface VerticalAnimationProps {
   hasSignChanged: boolean;
 }
 
-export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAnimationProps): ReactNode => {
+export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
+  props: VerticalAnimationElementProps,
+): ReactNode => {
   const {
     precision,
     animationDuration,
@@ -395,7 +397,7 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     currentValue,
     maxNumberOfDigits,
     hasSignChanged,
-  }: VerticalAnimationProps = props;
+  }: VerticalAnimationElementProps = props;
 
   const animationDigits: number[][] = useVerticalAnimationDigits({
     maxNumberOfDigits,
@@ -414,16 +416,16 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
   });
 
   const divisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(StyledDivision, child, index);
+    elementMapperFactory<object>(Division, child, index);
 
   const verticalAnimationElementMapper = (digits: number[]) => (
-    <StyledVerticalAnimation
+    <VerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
     >
       {digits.map<JSX.Element>(divisionElementMapper)}
-    </StyledVerticalAnimation>
+    </VerticalAnimation>
   );
 
   const negativeElement: JSX.Element = (

@@ -12,12 +12,12 @@ import {
 import {
   Conditional,
   EmptyElement,
-  HorizontalAnimation,
+  HorizontalAnimationElement,
   NegativeElement,
   NumberElement,
-  VerticalAnimation,
+  VerticalAnimationElement,
 } from './NumbersTransition.components';
-import { StyledContainer } from './NumbersTransition.styles';
+import { Container } from './NumbersTransition.styles';
 import {
   AnimationTimingFunction,
   AnimationTransition,
@@ -184,8 +184,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     />
   );
 
-  const horizontalAnimation: JSX.Element = (
-    <HorizontalAnimation
+  const horizontalAnimationElement: JSX.Element = (
+    <HorizontalAnimationElement
       precision={precision}
       animationDuration={horizontalAnimationDuration}
       decimalSeparator={decimalSeparator}
@@ -206,8 +206,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     />
   );
 
-  const verticalAnimation: JSX.Element = (
-    <VerticalAnimation
+  const verticalAnimationElement: JSX.Element = (
+    <VerticalAnimationElement
       precision={precision}
       animationDuration={verticalAnimationDuration}
       decimalSeparator={decimalSeparator}
@@ -224,8 +224,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const animationElement: JSX.Element = (
     <Conditional condition={renderHorizontalAnimation}>
-      {horizontalAnimation}
-      {verticalAnimation}
+      {horizontalAnimationElement}
+      {verticalAnimationElement}
     </Conditional>
   );
 
@@ -237,13 +237,13 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   );
 
   return (
-    <StyledContainer ref={containerRef} onAnimationEnd={onAnimationEnd}>
+    <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
       {negativeElement}
       <Conditional condition={renderAnimation}>
         {animationElement}
         {valueElement}
       </Conditional>
-    </StyledContainer>
+    </Container>
   );
 };
 
