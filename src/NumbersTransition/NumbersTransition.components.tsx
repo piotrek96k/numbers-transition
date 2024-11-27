@@ -110,11 +110,108 @@ export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElement
   );
 };
 
+interface HorizontalAnimationNegativeElementProps {
+  negativeCharacter: NegativeCharacter;
+}
+
+const HorizontalAnimationNegativeElement: FC<HorizontalAnimationNegativeElementProps> = ({
+  negativeCharacter,
+}: HorizontalAnimationNegativeElementProps): ReactNode => (
+  <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>
+);
+
+interface VerticalAnimationNegativeElementProps {
+  animationDuration: number;
+  negativeCharacter: NegativeCharacter;
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
+  animationTimingFunction: AnimationTimingFunction;
+  animationDirection: VerticalAnimationDirection;
+  animationDigits: number[];
+}
+
+const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps> = (
+  props: VerticalAnimationNegativeElementProps,
+): ReactNode => {
+  const {
+    animationDuration,
+    negativeCharacter,
+    negativeCharacterAnimationMode,
+    animationTimingFunction,
+    animationDirection,
+    animationDigits,
+  }: VerticalAnimationNegativeElementProps = props;
+
+  const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
+
+  const { divisionElementMapper }: ElementMappers = useElementMappers();
+
+  const animationTimingFunctionReducer = (
+    accumulator: [number[], number[]],
+    currentValue: AnimationTimingFunction[number],
+  ): [number[], number[]] =>
+    accumulator.map<number[]>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
+
+  const getOutputAnimationProgress = (charactersVisible: boolean[]): number =>
+    charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1);
+
+  const solveInputAnimationProgress = (progress: number): number => {
+    const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
+      .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
+      .map<(time: number) => number>(cubicBezier);
+    const toSolve = (value: number): number => yAxisCubicBezier(value) - progress;
+    return xAxisCubicBezier(solve(toSolve));
+  };
+
+  const visibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
+    !index || (!!digit && digits[index - 1] > digit);
+
+  const negativeCharactersVisible: boolean[] = animationDigits.map<boolean>(visibilityMapper);
+
+  const animationTime: number =
+    animationDuration * solveInputAnimationProgress(getOutputAnimationProgress(negativeCharactersVisible));
+
+  const animationSwitchTime: number =
+    animationDirection === VerticalAnimationDirection.UP ? animationTime : animationDuration - animationTime;
+
+  const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : 0;
+
+  const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
+    divisionElementMapper(negativeCharacter, index, { $visible: visible });
+
+  const characterVerticalAnimationElement: JSX.Element = (
+    <StyledCharacter>
+      <StyledVerticalAnimation
+        $animationDirection={animationDirection}
+        $animationDuration={animationDuration}
+        $animationTimingFunction={animationTimingFunction}
+        {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
+          $animationDelay: animationDelay,
+        })}
+      >
+        {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
+      </StyledVerticalAnimation>
+    </StyledCharacter>
+  );
+
+  return (
+    <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
+      <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
+        <StyledCharacter>{negativeCharacter}</StyledCharacter>
+        {characterVerticalAnimationElement}
+      </Switch>
+      {characterVerticalAnimationElement}
+    </Conditional>
+  );
+};
+
 interface NumberElementProps {
   precision: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
-  digits: number[];
+  digits: ReactNode[];
 }
 
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
@@ -220,6 +317,12 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
       precision > 0 ? getCharacterWidth(decimalSeparator) : 0,
     ].reduce(sum);
 
+  const negativeElement: JSX.Element = (
+    <Optional condition={hasNegativeCharacter}>
+      <HorizontalAnimationNegativeElement negativeCharacter={negativeCharacter} />
+    </Optional>
+  );
+
   const numberElement: JSX.Element = (
     <NumberElement
       precision={precision}
@@ -238,7 +341,7 @@ export const HorizontalAnimation: FC<HorizontalAnimationProps> = (props: Horizon
       $animationEndWidth={getAnimationWidth(maxNumberOfDigits, hasNegativeCharacter)}
     >
       <StyledDivision>
-        {hasNegativeCharacter && <StyledCharacter $visible={false}>{negativeCharacter}</StyledCharacter>}
+        {negativeElement}
         {numberElement}
       </StyledDivision>
     </StyledHorizontalAnimation>
@@ -251,7 +354,7 @@ interface VerticalAnimationProps {
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
-  negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationTimingFunction: AnimationTimingFunction;
   previousValue: bigint;
   currentValue: bigint;
@@ -274,23 +377,13 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     hasSignChanged,
   }: VerticalAnimationProps = props;
 
-  const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
-
   const animationDigits: number[][] = useVerticalAnimationDigits({
     maxNumberOfDigits,
     previousValue,
     currentValue,
   });
 
-  const {
-    fragmentElementMapper,
-    divisionElementMapper,
-    simpleDivisionElementMapper,
-    characterElementMapper,
-    digitElementMapper,
-  }: ElementMappers = useElementMappers();
-
-  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
+  const { simpleDivisionElementMapper }: ElementMappers = useElementMappers();
 
   const animationDirection: VerticalAnimationDirection =
     previousValue < currentValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
@@ -300,85 +393,38 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     animationDirection,
   });
 
-  const animationTimingFunctionReducer = (
-    accumulator: [number[], number[]],
-    currentValue: AnimationTimingFunction[number],
-  ): [number[], number[]] =>
-    accumulator.map<number[]>((coordinates: number[], index: number): number[] => [
-      ...coordinates,
-      currentValue[index],
-    ]);
-
-  const getAnimationProgress = (progress: number): number => {
-    const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
-      .reduce<[number[], number[]]>(animationTimingFunctionReducer, [[], []])
-      .map<(time: number) => number>(cubicBezier);
-    const toSolve = (value: number): number => yAxisCubicBezier(value) - progress;
-    return xAxisCubicBezier(solve(toSolve));
-  };
-
-  const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
-    divisionElementMapper(negativeCharacter, index, { $visible: visible });
-
-  const getVerticalAnimationElement = <T,>(
-    children: T[],
-    mapper: (element: T, index: number) => JSX.Element,
-    animationDelay: number = 0,
-  ): JSX.Element => (
+  const verticalAnimationElementMapper = (digits: number[]) => (
     <StyledVerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
-      $animationDelay={animationDelay}
     >
-      {children.map<JSX.Element>(mapper)}
+      {digits.map<JSX.Element>(simpleDivisionElementMapper)}
     </StyledVerticalAnimation>
   );
 
-  const negativeCharacterAnimationElementMapper = (
-    charactersVisible: boolean[],
-    index: number,
-    time: number = animationDuration *
-      getAnimationProgress(charactersVisible.lastIndexOf(true) / (charactersVisible.length - 1)),
-    getAnimation = (delay: number = 0): JSX.Element =>
-      characterElementMapper(
-        getVerticalAnimationElement<boolean>(charactersVisible, negativeCharacterElementMapper, delay),
-        index,
-      ),
-  ): JSX.Element => (
-    <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
-      <Switch
-        time={animationDirection === VerticalAnimationDirection.UP ? time : animationDuration - time}
-        reverse={animationDirection === VerticalAnimationDirection.DOWN}
-      >
-        <StyledCharacter>{negativeCharacter}</StyledCharacter>
-        {getAnimation(animationDirection === VerticalAnimationDirection.UP ? -time : 0)}
-      </Switch>
-      {getAnimation()}
-    </Conditional>
+  const negativeElement: JSX.Element = (
+    <Optional condition={hasSignChanged}>
+      <VerticalAnimationNegativeElement
+        animationDuration={animationDuration}
+        negativeCharacter={negativeCharacter}
+        negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+        animationTimingFunction={animationTimingFunction}
+        animationDirection={animationDirection}
+        animationDigits={animationDigits.find(({ length }: number[]): boolean => length > 1)!}
+      />
+    </Optional>
   );
 
-  const negativeCharacterVisibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
-    !index || (!!digit && digits[index - 1] > digit);
-
-  const digitAnimationElementMapper = (digits: number[], index: number): JSX.Element =>
-    digitElementMapper(getVerticalAnimationElement<number>(digits, simpleDivisionElementMapper), index);
-
-  const animationReducer = (
-    [negativeCharacters, digits]: [JSX.Element[], JSX.Element[]],
-    currentValue: number[],
-    index: number,
-  ): [JSX.Element[], JSX.Element[]] => [
-    !hasSignChanged || negativeCharacters.length || currentValue.length === 1
-      ? negativeCharacters
-      : [negativeCharacterAnimationElementMapper(currentValue.map(negativeCharacterVisibilityMapper), index)],
-    [...digits, digitAnimationElementMapper(currentValue, index + (hasSignChanged ? 1 : 0))],
-  ];
-
-  const animationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
-    fragmentElementMapper(index ? elements.reduce(digitsReducer) : elements[0], index);
-
-  return animationDigits
-    .reduce<[JSX.Element[], JSX.Element[]]>(animationReducer, [[], []])
-    .map<JSX.Element>(animationElementsMapper);
+  return (
+    <>
+      {negativeElement}
+      <NumberElement
+        precision={precision}
+        decimalSeparator={decimalSeparator}
+        digitGroupSeparator={digitGroupSeparator}
+        digits={animationDigits.map<JSX.Element>(verticalAnimationElementMapper)}
+      />
+    </>
+  );
 };

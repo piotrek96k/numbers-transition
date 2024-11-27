@@ -1,4 +1,4 @@
-import { FC, Fragment, ReactNode } from 'react';
+import { FC, ReactNode } from 'react';
 import {
   AnimationDirection,
   AnimationTimingFunction,
@@ -287,10 +287,8 @@ interface KeyProps {
 }
 
 export interface ElementMappers {
-  fragmentElementMapper: (child: ReactNode, index: number) => JSX.Element;
   divisionElementMapper: (child: ReactNode, index: number, props?: StyledVisibilityProps) => JSX.Element;
   simpleDivisionElementMapper: (child: ReactNode, index: number) => JSX.Element;
-  characterElementMapper: (child: ReactNode, index: number) => JSX.Element;
   digitElementMapper: (child: ReactNode, index: number) => JSX.Element;
 }
 
@@ -303,13 +301,10 @@ export const useElementMappers: UseElementMappers = (): ElementMappers => {
     index: number,
     props?: T,
   ): JSX.Element => (
-    <Component key={`${typeof Component === 'symbol' ? '' : Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
+    <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
   );
-
-  const fragmentElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(Fragment, child, index);
 
   const divisionElementMapper = (child: ReactNode, index: number, props?: StyledVisibilityProps): JSX.Element =>
     elementMapperFactory<StyledVisibilityProps>(StyledDivision, child, index, props);
@@ -317,17 +312,12 @@ export const useElementMappers: UseElementMappers = (): ElementMappers => {
   const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
     divisionElementMapper(child, index);
 
-  const characterElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<StyledVisibilityProps>(StyledCharacter, child, index);
-
   const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
     elementMapperFactory<object>(StyledDigit, child, index);
 
   return {
-    fragmentElementMapper,
     divisionElementMapper,
     simpleDivisionElementMapper,
-    characterElementMapper,
     digitElementMapper,
   };
 };
