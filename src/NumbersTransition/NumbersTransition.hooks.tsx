@@ -2,15 +2,12 @@ import { FC, ReactNode } from 'react';
 import {
   AnimationDirection,
   AnimationTimingFunction,
-  DecimalSeparator,
-  DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
   NumberPrecision,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import { StyledCharacter, StyledDigit, StyledDivision, StyledVisibilityProps } from './NumbersTransition.styles';
 import { BigDecimal } from './NumbersTransition.types';
 
 interface UseAnimationCharactersOptions {
@@ -286,75 +283,19 @@ interface KeyProps {
   children: ReactNode;
 }
 
-export interface ElementMappers {
-  divisionElementMapper: (child: ReactNode, index: number, props?: StyledVisibilityProps) => JSX.Element;
-  simpleDivisionElementMapper: (child: ReactNode, index: number) => JSX.Element;
-  digitElementMapper: (child: ReactNode, index: number) => JSX.Element;
-}
+export type ElementMapperFactory = <T extends object>(
+  Component: FC<T | KeyProps> | string,
+  child: ReactNode,
+  index: number,
+  props?: T,
+) => JSX.Element;
 
-type UseElementMappers = () => ElementMappers;
+type UseElementMapperFactory = () => ElementMapperFactory;
 
-export const useElementMappers: UseElementMappers = (): ElementMappers => {
-  const elementMapperFactory = <T extends object>(
-    Component: FC<T | KeyProps> | string,
-    child: ReactNode,
-    index: number,
-    props?: T,
-  ): JSX.Element => (
+export const useElementMapperFactory: UseElementMapperFactory =
+  (): ElementMapperFactory =>
+  <T extends object>(Component: FC<T | KeyProps> | string, child: ReactNode, index: number, props?: T): JSX.Element => (
     <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
   );
-
-  const divisionElementMapper = (child: ReactNode, index: number, props?: StyledVisibilityProps): JSX.Element =>
-    elementMapperFactory<StyledVisibilityProps>(StyledDivision, child, index, props);
-
-  const simpleDivisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    divisionElementMapper(child, index);
-
-  const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
-    elementMapperFactory<object>(StyledDigit, child, index);
-
-  return {
-    divisionElementMapper,
-    simpleDivisionElementMapper,
-    digitElementMapper,
-  };
-};
-
-interface UseDigitsReducerOptions {
-  precision: number;
-  decimalSeparator: DecimalSeparator;
-  digitGroupSeparator: DigitGroupSeparator;
-}
-
-export type DigitsReducer = (
-  accumulator: JSX.Element,
-  currentValue: JSX.Element,
-  index: number,
-  array: JSX.Element[],
-) => JSX.Element;
-
-type UseDigitsReducer = (options: UseDigitsReducerOptions) => DigitsReducer;
-
-export const useDigitsReducer: UseDigitsReducer = (options: UseDigitsReducerOptions): DigitsReducer => {
-  const { precision, decimalSeparator, digitGroupSeparator }: UseDigitsReducerOptions = options;
-
-  const getSeparatorElement = (index: number, length: number): ReactNode =>
-    !((length - index - Math.max(precision, 0)) % 3) && (
-      <StyledCharacter>{length - index === precision ? decimalSeparator : digitGroupSeparator}</StyledCharacter>
-    );
-
-  return (
-    accumulator: JSX.Element,
-    currentValue: JSX.Element,
-    index: number,
-    { length }: JSX.Element[],
-  ): JSX.Element => (
-    <>
-      {accumulator}
-      {getSeparatorElement(index, length)}
-      {currentValue}
-    </>
-  );
-};

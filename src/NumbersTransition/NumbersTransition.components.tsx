@@ -13,20 +13,20 @@ import {
 } from './NumbersTransition.enums';
 import {
   CubicBezierTuple,
-  DigitsReducer,
-  ElementMappers,
+  ElementMapperFactory,
   useAnimationTimingFunction,
   useCubicBezier,
-  useDigitsReducer,
-  useElementMappers,
+  useElementMapperFactory,
   useHorizontalAnimationDigits,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
   StyledCharacter,
+  StyledDigit,
   StyledDivision,
   StyledHorizontalAnimation,
   StyledVerticalAnimation,
+  StyledVisibilityProps,
 } from './NumbersTransition.styles';
 
 interface ConditionalProps {
@@ -143,7 +143,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
-  const { divisionElementMapper }: ElementMappers = useElementMappers();
+  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
 
   const animationTimingFunctionReducer = (
     accumulator: [number[], number[]],
@@ -179,7 +179,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : 0;
 
   const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
-    divisionElementMapper(negativeCharacter, index, { $visible: visible });
+    elementMapperFactory<StyledVisibilityProps>(StyledDivision, negativeCharacter, index, { $visible: visible });
 
   const characterVerticalAnimationElement: JSX.Element = (
     <StyledCharacter>
@@ -217,8 +217,28 @@ interface NumberElementProps {
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
   const { precision, decimalSeparator, digitGroupSeparator, digits }: NumberElementProps = props;
 
-  const { digitElementMapper }: ElementMappers = useElementMappers();
-  const digitsReducer: DigitsReducer = useDigitsReducer({ precision, decimalSeparator, digitGroupSeparator });
+  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
+
+  const digitElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(StyledDigit, child, index);
+
+  const getSeparatorElement = (index: number, length: number): ReactNode =>
+    !((length - index - Math.max(precision, 0)) % 3) && (
+      <StyledCharacter>{length - index === precision ? decimalSeparator : digitGroupSeparator}</StyledCharacter>
+    );
+
+  const digitsReducer = (
+    accumulator: JSX.Element,
+    currentValue: JSX.Element,
+    index: number,
+    { length }: JSX.Element[],
+  ): JSX.Element => (
+    <>
+      {accumulator}
+      {getSeparatorElement(index, length)}
+      {currentValue}
+    </>
+  );
 
   return digits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
 };
@@ -383,7 +403,7 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     currentValue,
   });
 
-  const { simpleDivisionElementMapper }: ElementMappers = useElementMappers();
+  const elementMapperFactory: ElementMapperFactory = useElementMapperFactory();
 
   const animationDirection: VerticalAnimationDirection =
     previousValue < currentValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
@@ -393,13 +413,16 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     animationDirection,
   });
 
+  const divisionElementMapper = (child: ReactNode, index: number): JSX.Element =>
+    elementMapperFactory<object>(StyledDivision, child, index);
+
   const verticalAnimationElementMapper = (digits: number[]) => (
     <StyledVerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
     >
-      {digits.map<JSX.Element>(simpleDivisionElementMapper)}
+      {digits.map<JSX.Element>(divisionElementMapper)}
     </StyledVerticalAnimation>
   );
 
