@@ -67,7 +67,7 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   const [switched, setSwitched]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
 
   useEffect((): (() => void) => {
-    const timeout: NodeJS.Timeout = setTimeout((): void => setSwitched(true), 1_000 * time);
+    const timeout: NodeJS.Timeout = setTimeout((): void => setSwitched(true), time);
     return (): void => clearTimeout(timeout);
   }, [time]);
 

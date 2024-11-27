@@ -49,8 +49,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     initialValue = 0,
     value,
     precision = 0,
-    horizontalAnimationDuration = 0.5,
-    verticalAnimationDuration = 2,
+    horizontalAnimationDuration = 2000,
+    verticalAnimationDuration = 5000,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT

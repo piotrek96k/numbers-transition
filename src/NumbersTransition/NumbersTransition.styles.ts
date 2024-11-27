@@ -97,7 +97,7 @@ const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const animationDuration: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-duration: ${({ $animationDuration }: AnimationProps): number => $animationDuration}s;
+  animation-duration: ${({ $animationDuration }: AnimationProps): number => $animationDuration}ms;
 `;
 
 const animationDirection: RuleSet<AnimationProps> = css<AnimationProps>`
