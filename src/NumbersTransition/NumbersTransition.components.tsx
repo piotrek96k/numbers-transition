@@ -179,29 +179,29 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
     elementMapperFactory<VisibilityProps>(Division, negativeCharacter, index, { $visible: visible });
 
-  const characterVerticalAnimationElement: JSX.Element = (
-    <Character>
-      <VerticalAnimation
-        $animationDirection={animationDirection}
-        $animationDuration={animationDuration}
-        $animationTimingFunction={animationTimingFunction}
-        {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
-          $animationDelay: animationDelay,
-        })}
-      >
-        {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
-      </VerticalAnimation>
-    </Character>
+  const verticalAnimationElement: JSX.Element = (
+    <VerticalAnimation
+      $animationDirection={animationDirection}
+      $animationDuration={animationDuration}
+      $animationTimingFunction={animationTimingFunction}
+      {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
+        $animationDelay: animationDelay,
+      })}
+    >
+      {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
+    </VerticalAnimation>
   );
 
   return (
-    <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
-      <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
-        <Character>{negativeCharacter}</Character>
-        {characterVerticalAnimationElement}
-      </Switch>
-      {characterVerticalAnimationElement}
-    </Conditional>
+    <Character>
+      <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
+        <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
+          {negativeCharacter}
+          {verticalAnimationElement}
+        </Switch>
+        {verticalAnimationElement}
+      </Conditional>
+    </Character>
   );
 };
 
