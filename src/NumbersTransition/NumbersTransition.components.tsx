@@ -365,14 +365,14 @@ export const VerticalAnimation: FC<VerticalAnimationProps> = (props: VerticalAni
     digitElementMapper(getVerticalAnimationElement<number>(digits, simpleDivisionElementMapper), index);
 
   const animationReducer = (
-    accumulator: [JSX.Element[], JSX.Element[]],
+    [negativeCharacters, digits]: [JSX.Element[], JSX.Element[]],
     currentValue: number[],
     index: number,
   ): [JSX.Element[], JSX.Element[]] => [
-    !hasSignChanged || accumulator[0].length || currentValue.length === 1
-      ? accumulator[0]
+    !hasSignChanged || negativeCharacters.length || currentValue.length === 1
+      ? negativeCharacters
       : [negativeCharacterAnimationElementMapper(currentValue.map(negativeCharacterVisibilityMapper), index)],
-    [...accumulator[1], digitAnimationElementMapper(currentValue, index + (hasSignChanged ? 1 : 0))],
+    [...digits, digitAnimationElementMapper(currentValue, index + (hasSignChanged ? 1 : 0))],
   ];
 
   const animationElementsMapper = (elements: JSX.Element[], index: number): JSX.Element =>
