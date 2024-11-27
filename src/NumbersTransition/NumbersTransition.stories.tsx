@@ -10,10 +10,10 @@ import {
 import NumbersTransition from './NumbersTransition';
 
 type SelectType =
-  | typeof NegativeCharacterAnimationMode
   | typeof DigitGroupSeparator
   | typeof DecimalSeparator
-  | typeof NegativeCharacter;
+  | typeof NegativeCharacter
+  | typeof NegativeCharacterAnimationMode;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -37,24 +37,24 @@ const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: Component
 });
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
-  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
   ['digitGroupSeparator', DigitGroupSeparator],
   ['decimalSeparator', DecimalSeparator],
   ['negativeCharacter', NegativeCharacter],
+  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   initialValue: 0,
-  value: 123456789,
+  value: 123_456_789,
   precision: 0,
-  horizontalAnimationDuration: 2000,
-  verticalAnimationDuration: 5000,
-  negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
+  horizontalAnimationDuration: 2_000,
+  verticalAnimationDuration: 5_000,
   decimalSeparator: DecimalSeparator.COMMA,
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   animationTimingFunction: [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
 };
 
