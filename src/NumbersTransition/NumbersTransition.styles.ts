@@ -111,7 +111,7 @@ const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? 0}s;
+  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? 0}ms;
 `;
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
