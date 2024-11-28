@@ -284,9 +284,6 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     numberOfAnimations,
   }: HorizontalAnimationElementProps = props;
 
-  const sum = (first: number, second: number): number => first + second;
-  const divide = (first: number, second: number): number => first / second;
-
   const animationDirection: HorizontalAnimationDirection =
     (numberOfAnimations === NumberOfAnimations.TWO &&
       (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
@@ -317,6 +314,9 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     animationDirection,
     hasZeros,
   });
+
+  const sum = (first: number, second: number): number => first + second;
+  const divide = (first: number, second: number): number => first / second;
 
   const getCharacterWidth = (character: DecimalSeparator | DigitGroupSeparator | NegativeCharacter): number =>
     [character, '0']
