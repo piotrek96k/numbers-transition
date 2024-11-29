@@ -246,13 +246,10 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
       digitMapper(start + BigInt(index)),
     );
 
-  const nonLinearDigitsGeneratorMapper = (values: DigitsGeneratorValues, algorithmIndex: number): number[] => {
+  const nonLinearDigitsGeneratorMapper = (values: DigitsGeneratorValues, index: number): number[] => {
     const { start, end }: DigitsGeneratorValues = values;
     const numbers: number[] = [
-      ...Array(
-        DigitsGenerator.SWITCH_VALUE *
-          (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * algorithmIndex),
-      ),
+      ...Array(DigitsGenerator.SWITCH_VALUE * (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * index)),
     ]
       .map<bigint>(
         (_: undefined, index: number, { length }: number[]): bigint =>
