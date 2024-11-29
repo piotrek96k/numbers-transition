@@ -277,11 +277,18 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 
 interface KeyProps {
   key: string;
+}
+
+interface ChildrenProps {
   children: ReactNode;
 }
 
+type Props<T extends object> = (T & KeyProps & ChildrenProps) | (KeyProps & ChildrenProps);
+
+type ComponentProps<T extends object> = FC<Props<T>> | string;
+
 export type ElementMapperFactory = <T extends object>(
-  Component: FC<T | KeyProps> | string,
+  Component: ComponentProps<T>,
   child: ReactNode,
   index: number,
   props?: T,
@@ -291,7 +298,7 @@ type UseElementMapperFactory = () => ElementMapperFactory;
 
 export const useElementMapperFactory: UseElementMapperFactory =
   (): ElementMapperFactory =>
-  <T extends object>(Component: FC<T | KeyProps> | string, child: ReactNode, index: number, props?: T): JSX.Element => (
+  <T extends object>(Component: ComponentProps<T>, child: ReactNode, index: number, props?: T): JSX.Element => (
     <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...props}>
       {child}
     </Component>
