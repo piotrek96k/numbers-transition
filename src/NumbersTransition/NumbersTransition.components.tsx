@@ -176,8 +176,8 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : 0;
 
-  const negativeCharacterElementMapper = (visible: boolean, index: number): JSX.Element =>
-    divisionElementMapper(negativeCharacter, index, { $visible: visible });
+  const negativeCharacterElementMapper = (visible: boolean, index: number, array: boolean[]): JSX.Element =>
+    divisionElementMapper(negativeCharacter, index, array, { $visible: visible });
 
   const verticalAnimationElement: JSX.Element = (
     <VerticalAnimation

@@ -287,14 +287,19 @@ type ComponentProps<T extends object> = (T & KeyProps & ChildrenProps) | (KeyPro
 
 type FunctionalComponent<T extends object> = FC<ComponentProps<T>> | string;
 
-export type ElementMapper<T extends object> = (child: ReactNode, index: number, props?: T) => JSX.Element;
+export type ElementMapper<T extends object> = (
+  child: ReactNode,
+  index: number,
+  children: ReactNode[],
+  props?: T,
+) => JSX.Element;
 
 type UseElementMapper = <T extends object>(Component: FunctionalComponent<T>) => ElementMapper<T>;
 
 export const useElementMapper: UseElementMapper =
   <T extends object>(Component: FunctionalComponent<T>): ElementMapper<T> =>
-  (child: ReactNode, index: number, props?: T): JSX.Element => (
-    <Component key={`${Component}${`${index + 1}`.padStart(2, '0')}`} {...(!Array.isArray(props) && props)}>
+  (child: ReactNode, index: number, { length }: ReactNode[], props?: T): JSX.Element => (
+    <Component key={`${Component}${`${index + 1}`.padStart(`${length}`.length, '0')}`} {...props}>
       {child}
     </Component>
   );
