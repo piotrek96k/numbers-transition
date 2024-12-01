@@ -147,7 +147,7 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
     : reverseAnimationTimingFunction(animationTimingFunction);
 };
 
-type CubicBezier = (points: number[]) => (time: number) => number;
+type CubicBezier = (points: [number, number]) => (time: number) => number;
 
 type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
 
@@ -174,7 +174,7 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   };
 
   const cubicBezier =
-    ([firstPoint, secondPoint]: number[]): ((time: number) => number) =>
+    ([firstPoint, secondPoint]: [number, number]): ((time: number) => number) =>
     (time: number): number =>
       3 * (firstPoint * time * (1 - time) ** 2 + secondPoint * (1 - time) * time ** 2) + time ** 3;
 
