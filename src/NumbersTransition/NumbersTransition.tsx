@@ -29,7 +29,7 @@ import {
   NumberOfAnimations,
 } from './NumbersTransition.enums';
 import { BigDecimal } from './NumbersTransition.types';
-import { AnimationValuesTuple, useAnimationValues } from './NumbersTransition.hooks';
+import { AnimationValuesTuple, useAnimationValues, useCanvasContext } from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   initialValue?: BigDecimal;
@@ -70,13 +70,10 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     Dispatch<SetStateAction<BigDecimal>>,
   ] = useState<BigDecimal>(initialValue);
 
-  const [canvasContext, setCanvasContext]: [
-    CanvasRenderingContext2D | null,
-    Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
-  ] = useState<CanvasRenderingContext2D | null>(null);
-
   const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(initialValue);
   const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+
+  const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
 
   const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
   const validValue: BigDecimal = isValueValid ? value! : 0;
@@ -123,15 +120,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           ? previousValueOnAnimationEndDigits.length < valueDigits.length
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
-
-  useEffect((): void => {
-    const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
-    newCanvasContext.font =
-      [...containerRef.current!.classList]
-        .map<string>((className: string): string => window.getComputedStyle(containerRef.current!, className).font)
-        .find((font: string): string => font) ?? '';
-    setCanvasContext(newCanvasContext);
-  }, []);
 
   useEffect((): void => {
     if (restartAnimation) {

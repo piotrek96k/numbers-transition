@@ -1,4 +1,4 @@
-import { FC, ReactNode } from 'react';
+import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationDirection,
   AnimationTimingFunction,
@@ -9,6 +9,28 @@ import {
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import { BigDecimal } from './NumbersTransition.types';
+
+type UseCanvasContext = (ref: RefObject<HTMLElement>) => CanvasRenderingContext2D | null;
+
+export const useCanvasContext: UseCanvasContext = (ref: RefObject<HTMLElement>): CanvasRenderingContext2D | null => {
+  const { current }: RefObject<HTMLElement> = ref;
+
+  const [canvasContext, setCanvasContext]: [
+    CanvasRenderingContext2D | null,
+    Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
+  ] = useState<CanvasRenderingContext2D | null>(null);
+
+  useEffect((): void => {
+    const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
+    newCanvasContext.font =
+      [...(current?.classList ?? [])]
+        .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
+        .find((font: string): string => font) ?? '';
+    setCanvasContext(newCanvasContext);
+  }, [current]);
+
+  return canvasContext;
+};
 
 interface UseAnimationCharactersOptions {
   precision: number;
