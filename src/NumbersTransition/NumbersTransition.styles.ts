@@ -76,7 +76,7 @@ const horizontalAnimation = ({
 
 const verticalAnimation: Keyframes = keyframes`
   0% {
-    transform: translateY(0%);
+    transform: translateY(0);
   }
   100% {
     transform: translateY(-100%);
