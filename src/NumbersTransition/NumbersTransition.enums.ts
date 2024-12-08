@@ -130,3 +130,12 @@ export const AnimationTimingFunctions = {
     [0.58, 1],
   ],
 } as const;
+
+export enum DefaultAnimationDuration {
+  HORIZONTAL_ANIMATION = 2_000,
+  VERTICAL_ANIMATION = 5_000,
+}
+
+export enum DefaultValue {
+  VALUE = 123_456_789,
+}

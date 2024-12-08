@@ -22,6 +22,7 @@ import {
   AnimationTimingFunctions,
   AnimationTransition,
   DecimalSeparator,
+  DefaultAnimationDuration,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
@@ -51,8 +52,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     initialValue = Numbers.ZERO,
     value,
     precision = Numbers.ZERO,
-    horizontalAnimationDuration = 2_000,
-    verticalAnimationDuration = 5_000,
+    horizontalAnimationDuration = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+    verticalAnimationDuration = DefaultAnimationDuration.VERTICAL_ANIMATION,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT

@@ -3,6 +3,8 @@ import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import {
   AnimationTimingFunctions,
   DecimalSeparator,
+  DefaultAnimationDuration,
+  DefaultValue,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
@@ -48,10 +50,10 @@ const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeM
 
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   initialValue: Numbers.ZERO,
-  value: 123_456_789,
+  value: DefaultValue.VALUE,
   precision: Numbers.ZERO,
-  horizontalAnimationDuration: 2_000,
-  verticalAnimationDuration: 5_000,
+  horizontalAnimationDuration: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+  verticalAnimationDuration: DefaultAnimationDuration.VERTICAL_ANIMATION,
   decimalSeparator: DecimalSeparator.COMMA,
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,
