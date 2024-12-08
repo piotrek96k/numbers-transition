@@ -1,11 +1,15 @@
 import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationDirection,
+  BigInts,
   Canvas,
   DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
   NumberPrecision,
+  Numbers,
+  RegExps,
+  Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
@@ -28,7 +32,7 @@ export const useCanvasContext: UseCanvasContext = (ref: RefObject<HTMLElement>):
     newCanvasContext.font =
       [...(current?.classList ?? [])]
         .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
-        .find((font: string): string => font) ?? '';
+        .find((font: string): string => font) ?? Strings.EMPTY;
     setCanvasContext(newCanvasContext);
   }, [current]);
 
@@ -52,22 +56,30 @@ const useAnimationCharacters: UseAnimationCharacters = (
   const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
     currentValue,
-    ...(length === 1 ? [''] : []),
+    ...(length === Numbers.ONE ? [Strings.EMPTY] : []),
   ];
 
   const floatingPointReducer = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
-      precision > 0
-        ? [integer.replace('-', ''), fraction, '', Math.max(precision - fraction.length, 0)]
-        : ['', integer.replace('-', ''), fraction, -precision];
-    const digits: string = `${start}${mid.slice(0, precision || mid.length) ?? 0}`;
+      precision > Numbers.ZERO
+        ? [
+            integer.replace(Strings.MINUS, Strings.EMPTY),
+            fraction,
+            Strings.EMPTY,
+            Math.max(precision - fraction.length, Numbers.ZERO),
+          ]
+        : [Strings.EMPTY, integer.replace(Strings.MINUS, Strings.EMPTY), fraction, -precision];
+    const digits: string = `${start}${mid.slice(Numbers.ZERO, precision || mid.length) ?? Numbers.ZERO}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
-    const increase: bigint = BigInt(restDigits) < BigInt('5'.padEnd(restDigits.length, '0')) ? 0n : 1n;
-    return `${integer.replace(/\d+/, '')}${BigInt(start) ? '' : start}${(BigInt(digits) + increase) * 10n ** BigInt(numberOfZeros)}`;
+    const increase: bigint =
+      BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(restDigits.length, `${Numbers.ZERO}`))
+        ? BigInts.ZERO
+        : BigInts.ONE;
+    return `${integer.replace(RegExps.DIGITS, Strings.EMPTY)}${BigInt(start) ? Strings.EMPTY : start}${(BigInt(digits) + increase) * BigInts.TEN ** BigInt(numberOfZeros)}`;
   };
 
   return values.map<string[]>((number: BigDecimal): string[] => [
-    ...`${number}`.split('.').reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
+    ...`${number}`.split(Strings.DOT).reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
   ]);
 };
 
@@ -79,7 +91,7 @@ type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigit
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
   options.map<number[]>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(/^\d{1}$/)).map<number>(Number),
+    characters.filter((character: string): boolean => !!character.match(RegExps.SINGLE_DIGIT)).map<number>(Number),
   );
 
 type UseAnimationBigIntsOptions = AnimationCharactersTuple;
@@ -89,7 +101,7 @@ type AnimationBigIntsTuple = [bigint, bigint, bigint];
 type UseAnimationBigInts = (options: UseAnimationBigIntsOptions) => AnimationBigIntsTuple;
 
 const useAnimationBigInts: UseAnimationBigInts = (options: UseAnimationBigIntsOptions): AnimationBigIntsTuple =>
-  options.map<bigint>((digits: string[]): bigint => BigInt(digits.join('')));
+  options.map<bigint>((digits: string[]): bigint => BigInt(digits.join(Strings.EMPTY)));
 
 type UseAnimationNumbersOfDigitsOptions = AnimationDigitsTuple;
 
@@ -105,7 +117,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
     currentValue,
-    ...(index ? [currentValue - accumulator[accumulator.length - 1]] : []),
+    ...(index ? [currentValue - accumulator[accumulator.length - Numbers.ONE]] : []),
   ];
 
   const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = options
@@ -140,7 +152,7 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
     values: [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue],
   });
 
-  const digits: AnimationDigitsTuple = useAnimationDigits([characters[0], characters[2]]);
+  const digits: AnimationDigitsTuple = useAnimationDigits([characters[Numbers.ZERO], characters[Numbers.TWO]]);
   const bigInts: AnimationBigIntsTuple = useAnimationBigInts(characters);
   const numbersOfDigits: AnimationNumbersOfDigitsTuple = useAnimationNumberOfDigits(digits);
 
@@ -165,7 +177,7 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
 
   const reverseAnimationTimingFunctionMapper = (
     tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
-  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
+  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => Numbers.ONE - number);
 
   return animationDirection === HorizontalAnimationDirection.RIGHT ||
     animationDirection === VerticalAnimationDirection.UP
@@ -188,7 +200,7 @@ type UseCubicBezier = () => CubicBezierTuple;
 export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   const derivative = (func: (value: number) => number, value: number) =>
     (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
-    (2 * EquationSolver.DERIVATIVE_DELTA);
+    (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
 
   const solve = (
     func: (value: number) => number,
@@ -206,7 +218,10 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   const cubicBezier =
     ([firstPoint, secondPoint]: AnimationTimingFunction[number]): ((time: number) => number) =>
     (time: number): number =>
-      3 * (firstPoint * time * (1 - time) ** 2 + secondPoint * (1 - time) * time ** 2) + time ** 3;
+      Numbers.THREE *
+        (firstPoint * time * (Numbers.ONE - time) ** Numbers.TWO +
+          secondPoint * (Numbers.ONE - time) * time ** Numbers.TWO) +
+      time ** Numbers.THREE;
 
   return [cubicBezier, solve];
 };
@@ -233,7 +248,7 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (
   }: UseHorizontalAnimationDigitsOptions = options;
 
   return [
-    ...(hasZeros ? Array(numberOfDigitsDifference).fill(0) : []),
+    ...(hasZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
     ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
   ];
 };
@@ -262,17 +277,19 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
     index: number,
   ): DigitsGeneratorValues[][] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / 10n ** BigInt(maxNumberOfDigits - index - 1))
-      .sort((first: bigint, second: bigint): number => (first < second ? -1 : first > second ? 1 : 0));
-    const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? 0 : 1;
+      .map<bigint>((number: bigint): bigint => number / BigInts.TEN ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
+      .sort((first: bigint, second: bigint): number =>
+        first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO,
+      );
+    const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? Numbers.ZERO : Numbers.ONE;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
     return accumulator;
   };
 
-  const digitMapper = (number: bigint): number => Math.abs(Number(number % 10n));
+  const digitMapper = (number: bigint): number => Math.abs(Number(number % BigInts.TEN));
 
   const linearDigitsGeneratorMapper = ({ start, end }: DigitsGeneratorValues): number[] =>
-    [...Array(Number(end - start) + 1)].map<number>((_: undefined, index: number): number =>
+    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number =>
       digitMapper(start + BigInt(index)),
     );
 
@@ -293,7 +310,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
         increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
       )
       .map<number>(digitMapper);
-    return numbers[numbers.length - 1] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
+    return numbers[numbers.length - Numbers.ONE] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
   };
 
   const digitsGeneratorMapper = (algorithmValuesArray: DigitsGeneratorValues[], index: number): number[][] =>
@@ -302,7 +319,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
   return [...Array(maxNumberOfDigits)]
     .reduce<DigitsGeneratorValues[][]>(digitsGeneratorValuesArrayReducer, [[], []])
     .map<number[][]>(digitsGeneratorMapper)
-    .flat<number[][][], 1>();
+    .flat<number[][][], Numbers.ONE>();
 };
 
 interface KeyProps {
@@ -329,7 +346,10 @@ type UseElementMapper = <T extends object>(Component: FunctionalComponent<T>) =>
 export const useElementMapper: UseElementMapper =
   <T extends object>(Component: FunctionalComponent<T>): ElementMapper<T> =>
   (child: ReactNode, index: number, { length }: ReactNode[], props?: T): JSX.Element => (
-    <Component key={`${Component}${`${index + 1}`.padStart(`${length}`.length, '0')}`} {...props}>
+    <Component
+      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
+      {...props}
+    >
       {child}
     </Component>
   );

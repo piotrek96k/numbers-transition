@@ -79,6 +79,35 @@ export const NumberPrecision = {
   HALF_VALUE: 500_000_000_000_000n,
 } as const;
 
+export const RegExps = {
+  BIG_DECIMAL: /^-?(([1-9]\d*)|0)(\.\d+)?$/,
+  DIGITS: /\d+/,
+  SINGLE_DIGIT: /^\d{1}$/,
+} as const;
+
+export enum Strings {
+  EMPTY = '',
+  MINUS = '-',
+  DOT = '.',
+}
+
+export enum Numbers {
+  MINUS_ONE_HUNDRED = -100,
+  MINUS_ONE = -1,
+  ZERO,
+  ONE,
+  TWO,
+  THREE,
+  FIVE = 5,
+  ONE_HUNDRED = 100,
+}
+
+export const BigInts = {
+  ZERO: 0n,
+  ONE: 1n,
+  TEN: 10n,
+} as const;
+
 export const AnimationTimingFunctions = {
   LINEAR: [
     [0, 0],

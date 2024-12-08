@@ -26,6 +26,8 @@ import {
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
+  Numbers,
+  RegExps,
 } from './NumbersTransition.enums';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
 import { AnimationValuesTuple, useAnimationValues, useCanvasContext } from './NumbersTransition.hooks';
@@ -46,9 +48,9 @@ interface NumbersTransitionProps {
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
   const {
-    initialValue = 0,
+    initialValue = Numbers.ZERO,
     value,
-    precision = 0,
+    precision = Numbers.ZERO,
     horizontalAnimationDuration = 2_000,
     verticalAnimationDuration = 5_000,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
@@ -76,8 +78,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
 
-  const isValueValid: boolean = !!`${value}`.match(/^-?(([1-9]\d*)|0)(\.\d+)?$/);
-  const validValue: BigDecimal = isValueValid ? value! : 0;
+  const isValueValid: boolean = !!`${value}`.match(RegExps.BIG_DECIMAL);
+  const validValue: BigDecimal = isValueValid ? value! : Numbers.ZERO;
 
   const [
     [previousValueOnAnimationEndDigits, valueDigits],
@@ -93,7 +95,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const notValueOnAnimationStart = (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt;
 
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
-  const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < 0;
+  const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
   const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
   const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(notValueOnAnimationStart);
   const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;

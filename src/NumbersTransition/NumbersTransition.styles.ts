@@ -4,6 +4,7 @@ import {
   AnimationDirection,
   AnimationType,
   HorizontalAnimationDirection,
+  Numbers,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import {
@@ -67,20 +68,20 @@ const horizontalAnimation = ({
   $animationStartWidth,
   $animationEndWidth,
 }: OmitAnimationType<HorizontalAnimationProps>): Keyframes => keyframes`
-  0% {
-    width: calc(1ch * ${$animationStartWidth});
+  ${Numbers.ZERO}% {
+    width: calc(${Numbers.ONE}ch * ${$animationStartWidth});
   }
-  100% {
-    width: calc(1ch * ${$animationEndWidth});
+  ${Numbers.ONE_HUNDRED}% {
+    width: calc(${Numbers.ONE}ch * ${$animationEndWidth});
   }
 `;
 
 const verticalAnimation: Keyframes = keyframes`
-  0% {
-    transform: translateY(0);
+  ${Numbers.ZERO}% {
+    transform: translateY(${Numbers.ZERO});
   }
-  100% {
-    transform: translateY(-100%);
+  ${Numbers.ONE_HUNDRED}% {
+    transform: translateY(${Numbers.MINUS_ONE_HUNDRED}%);
   }
 `;
 
@@ -112,7 +113,7 @@ const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? 0}ms;
+  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? Numbers.ZERO}ms;
 `;
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
@@ -121,7 +122,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   ${animationDirection};
   ${animationTimingFunction};
   ${animationDelay};
-  animation-iteration-count: 1;
+  animation-iteration-count: ${Numbers.ONE};
   animation-fill-mode: forwards;
 `;
 
@@ -134,13 +135,13 @@ const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
 };
 
 export const Container: ContainerStyledComponent = styled.div`
-  font-size: 100px;
+  font-size: ${Numbers.ONE_HUNDRED}px;
   color: #f0ff95;
   position: relative;
   white-space: nowrap;
-  max-width: 100%;
+  max-width: ${Numbers.ONE_HUNDRED}%;
   width: fit-content;
-  height: 1lh;
+  height: ${Numbers.ONE}lh;
 `;
 
 export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<HorizontalAnimationProps>(
@@ -162,7 +163,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   ${animation};
   :last-child {
     position: absolute;
-    top: 100%;
+    top: ${Numbers.ONE_HUNDRED}%;
   }
 `;
 
@@ -176,7 +177,7 @@ export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
 `;
 
 export const Digit: DigitStyledComponent = styled<CharacterStyledComponent, BaseObject>(Character)`
-  min-width: 1ch;
+  min-width: ${Numbers.ONE}ch;
 `;
 
 export const Division: DivisionStyledComponent = styled.div<VisibilityProps>`

@@ -6,6 +6,7 @@ import {
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
+  Numbers,
 } from './NumbersTransition.enums';
 import NumbersTransition from './NumbersTransition';
 
@@ -46,9 +47,9 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
-  initialValue: 0,
+  initialValue: Numbers.ZERO,
   value: 123_456_789,
-  precision: 0,
+  precision: Numbers.ZERO,
   horizontalAnimationDuration: 2_000,
   verticalAnimationDuration: 5_000,
   decimalSeparator: DecimalSeparator.COMMA,
