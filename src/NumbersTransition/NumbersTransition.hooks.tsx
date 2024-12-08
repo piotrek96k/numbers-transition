@@ -1,7 +1,6 @@
 import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationDirection,
-  AnimationTimingFunction,
   Canvas,
   DigitsGenerator,
   EquationSolver,
@@ -9,7 +8,8 @@ import {
   NumberPrecision,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import { BigDecimal } from './NumbersTransition.types';
+import { AnimationTimingFunction } from './NumbersTransition.styles';
+import { BigDecimal, ReadOnly } from './NumbersTransition.types';
 
 type UseCanvasContext = (ref: RefObject<HTMLElement>) => CanvasRenderingContext2D | null;
 
@@ -148,7 +148,7 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
 };
 
 interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction: AnimationTimingFunction;
+  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   animationDirection: AnimationDirection;
 }
 
@@ -159,20 +159,25 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
 ): AnimationTimingFunction => {
   const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionOptions = options;
 
-  const reverseAnimationTimingFunctionMapper = (
-    tuple: AnimationTimingFunction[number],
-  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
+  const mutableAnimationTimingFunctionMapper = (
+    tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
+  ): AnimationTimingFunction[number] => [...tuple];
 
-  const reverseAnimationTimingFunction = (animationTimingFunction: AnimationTimingFunction): AnimationTimingFunction =>
-    animationTimingFunction.map<AnimationTimingFunction[number]>(reverseAnimationTimingFunctionMapper).reverse();
+  const reverseAnimationTimingFunctionMapper = (
+    tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
+  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => 1 - number);
 
   return animationDirection === HorizontalAnimationDirection.RIGHT ||
     animationDirection === VerticalAnimationDirection.UP
-    ? animationTimingFunction
-    : reverseAnimationTimingFunction(animationTimingFunction);
+    ? animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(
+        mutableAnimationTimingFunctionMapper,
+      )
+    : animationTimingFunction
+        .map<AnimationTimingFunction[number], AnimationTimingFunction>(reverseAnimationTimingFunctionMapper)
+        .reverse();
 };
 
-type CubicBezier = (points: [number, number]) => (time: number) => number;
+type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
 
 type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
 
@@ -199,7 +204,7 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   };
 
   const cubicBezier =
-    ([firstPoint, secondPoint]: [number, number]): ((time: number) => number) =>
+    ([firstPoint, secondPoint]: AnimationTimingFunction[number]): ((time: number) => number) =>
     (time: number): number =>
       3 * (firstPoint * time * (1 - time) ** 2 + secondPoint * (1 - time) * time ** 2) + time ** 3;
 

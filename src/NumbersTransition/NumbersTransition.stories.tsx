@@ -1,9 +1,9 @@
 import { ComponentProps } from 'react';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import {
+  AnimationTimingFunctions,
   DecimalSeparator,
   DigitGroupSeparator,
-  EaseAnimationTimingFunction,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
 } from './NumbersTransition.enums';
@@ -55,7 +55,8 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
-  animationTimingFunction: [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
+  horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
+  verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
 };
 
 export const Primary: Story = {

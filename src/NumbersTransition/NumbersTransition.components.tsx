@@ -1,6 +1,5 @@
 import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import {
-  AnimationTimingFunction,
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
@@ -21,6 +20,7 @@ import {
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
+  AnimationTimingFunction,
   Character,
   Digit,
   Division,
@@ -28,7 +28,7 @@ import {
   VerticalAnimation,
   VisibilityProps,
 } from './NumbersTransition.styles';
-import { PartialTuple } from './NumbersTransition.types';
+import { PartialTuple, ReadOnly } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -147,8 +147,8 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const animationTimingFunctionReducer = (
     accumulator: [PartialTuple<number, 2>, PartialTuple<number, 2>],
     currentValue: AnimationTimingFunction[number],
-  ): [[number, number], [number, number]] =>
-    accumulator.map<PartialTuple<number, 3>, [number, number]>(
+  ): AnimationTimingFunction =>
+    accumulator.map<PartialTuple<number, 3>, AnimationTimingFunction>(
       (coordinates: PartialTuple<number, 2>, index: number): PartialTuple<number, 3> => [
         ...coordinates,
         currentValue[index],
@@ -162,7 +162,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
     const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
       .reduce<
         [PartialTuple<number, 2>, PartialTuple<number, 2>],
-        [[number, number], [number, number]]
+        AnimationTimingFunction
       >(animationTimingFunctionReducer, [[], []])
       .map<(time: number) => number>(cubicBezier);
     const toSolve = (value: number): number => yAxisCubicBezier(value) - progress;
@@ -250,7 +250,7 @@ interface HorizontalAnimationElementProps {
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
-  animationTimingFunction: AnimationTimingFunction;
+  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   animationTransition: AnimationTransition;
   canvasContext: CanvasRenderingContext2D | null;
   previousValueDigits: number[];
@@ -378,7 +378,7 @@ interface VerticalAnimationElementProps {
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
-  animationTimingFunction: AnimationTimingFunction;
+  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;

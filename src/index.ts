@@ -1,12 +1,20 @@
 import {
-  AnimationTimingFunction,
+  AnimationTimingFunctions,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
 } from './NumbersTransition/NumbersTransition.enums';
+import { AnimationTimingFunction } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition from './NumbersTransition/NumbersTransition';
 import { BigDecimal } from './NumbersTransition/NumbersTransition.types';
 
-export { DecimalSeparator, DigitGroupSeparator, NegativeCharacter, NegativeCharacterAnimationMode, NumbersTransition };
+export {
+  AnimationTimingFunctions,
+  DecimalSeparator,
+  DigitGroupSeparator,
+  NegativeCharacter,
+  NegativeCharacterAnimationMode,
+  NumbersTransition,
+};
 export type { AnimationTimingFunction, BigDecimal };

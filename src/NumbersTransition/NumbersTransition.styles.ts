@@ -2,7 +2,6 @@ import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { BaseObject, Keyframes } from 'styled-components/dist/types';
 import {
   AnimationDirection,
-  AnimationTimingFunction,
   AnimationType,
   HorizontalAnimationDirection,
   VerticalAnimationDirection,
@@ -13,6 +12,8 @@ import {
   HTMLDetailedElement,
   StyledComponent,
 } from './NumbersTransition.types';
+
+export type AnimationTimingFunction = [[number, number], [number, number]];
 
 interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
   $animationType: T;

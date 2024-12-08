@@ -1,16 +1,3 @@
-import { ReadOnly } from './NumbersTransition.types';
-
-export type AnimationTimingFunction = [[number, number], [number, number]];
-
-interface EaseAnimationTimingFunctionEnum {
-  readonly VALUES: ReadOnly<AnimationTimingFunction>;
-}
-
-interface NumberPrecisionEnum {
-  readonly VALUE: bigint;
-  readonly HALF_VALUE: bigint;
-}
-
 export enum AnimationType {
   HORIZONTAL = 'HORIZONTAL',
   VERTICAL = 'VERTICAL',
@@ -87,14 +74,30 @@ export enum EquationSolver {
   INITIAL_VALUE = 0.5,
 }
 
-export const EaseAnimationTimingFunction: EaseAnimationTimingFunctionEnum = {
-  VALUES: [
+export const NumberPrecision = {
+  VALUE: 1_000_000_000_000_000n,
+  HALF_VALUE: 500_000_000_000_000n,
+} as const;
+
+export const AnimationTimingFunctions = {
+  LINEAR: [
+    [0, 0],
+    [1, 1],
+  ],
+  EASE: [
     [0.25, 0.1],
     [0.25, 1],
   ],
-};
-
-export const NumberPrecision: NumberPrecisionEnum = {
-  VALUE: 1_000_000_000_000_000n,
-  HALF_VALUE: 500_000_000_000_000n,
-};
+  EASE_IN: [
+    [0.42, 0],
+    [1, 1],
+  ],
+  EASE_OUT: [
+    [0, 0],
+    [0.58, 1],
+  ],
+  EASE_IN_OUT: [
+    [0.42, 0],
+    [0.58, 1],
+  ],
+} as const;

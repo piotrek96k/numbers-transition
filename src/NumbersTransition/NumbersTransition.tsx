@@ -17,18 +17,17 @@ import {
   NumberElement,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
-import { Container } from './NumbersTransition.styles';
+import { AnimationTimingFunction, Container } from './NumbersTransition.styles';
 import {
-  AnimationTimingFunction,
+  AnimationTimingFunctions,
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
-  EaseAnimationTimingFunction,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
 } from './NumbersTransition.enums';
-import { BigDecimal } from './NumbersTransition.types';
+import { BigDecimal, ReadOnly } from './NumbersTransition.types';
 import { AnimationValuesTuple, useAnimationValues, useCanvasContext } from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
@@ -41,7 +40,8 @@ interface NumbersTransitionProps {
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
-  animationTimingFunction?: AnimationTimingFunction;
+  horizontalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  verticalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
 }
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
@@ -57,7 +57,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       : DecimalSeparator.COMMA,
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
-    animationTimingFunction = [[...EaseAnimationTimingFunction.VALUES[0]], [...EaseAnimationTimingFunction.VALUES[1]]],
+    horizontalAnimationTimingFunction = AnimationTimingFunctions.EASE,
+    verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
   }: NumbersTransitionProps = props;
 
   const [animationTransition, setAnimationTransition]: [
@@ -179,7 +180,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
-      animationTimingFunction={animationTimingFunction}
+      animationTimingFunction={horizontalAnimationTimingFunction}
       animationTransition={animationTransition}
       canvasContext={canvasContext}
       previousValueDigits={previousValueOnAnimationEndDigits}
@@ -202,7 +203,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-      animationTimingFunction={animationTimingFunction}
+      animationTimingFunction={verticalAnimationTimingFunction}
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
