@@ -71,6 +71,11 @@ export enum EmptyCharacter {
   VALUE = '-',
 }
 
+export enum Canvas {
+  ELEMENT = 'canvas',
+  CONTEXT_ID = '2d',
+}
+
 export enum DigitsGenerator {
   SWITCH_VALUE = 14,
   INITIAL_VALUE = 1,

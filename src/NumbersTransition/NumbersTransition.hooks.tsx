@@ -2,6 +2,7 @@ import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState
 import {
   AnimationDirection,
   AnimationTimingFunction,
+  Canvas,
   DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
@@ -21,7 +22,9 @@ export const useCanvasContext: UseCanvasContext = (ref: RefObject<HTMLElement>):
   ] = useState<CanvasRenderingContext2D | null>(null);
 
   useEffect((): void => {
-    const newCanvasContext: CanvasRenderingContext2D = document.createElement('canvas').getContext('2d')!;
+    const newCanvasContext: CanvasRenderingContext2D = document
+      .createElement(Canvas.ELEMENT)
+      .getContext(Canvas.CONTEXT_ID)!;
     newCanvasContext.font =
       [...(current?.classList ?? [])]
         .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
