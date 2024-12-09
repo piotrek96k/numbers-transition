@@ -1,14 +1,13 @@
 import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationDirection,
-  BigInts,
   Canvas,
   DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
   NumberPrecision,
   Numbers,
-  RegExps,
+  RegularExpressions,
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
@@ -29,10 +28,12 @@ export const useCanvasContext: UseCanvasContext = (ref: RefObject<HTMLElement>):
     const newCanvasContext: CanvasRenderingContext2D = document
       .createElement(Canvas.ELEMENT)
       .getContext(Canvas.CONTEXT_ID)!;
+
     newCanvasContext.font =
       [...(current?.classList ?? [])]
         .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
         .find((font: string): string => font) ?? Strings.EMPTY;
+
     setCanvasContext(newCanvasContext);
   }, [current]);
 
@@ -69,13 +70,19 @@ const useAnimationCharacters: UseAnimationCharacters = (
             Math.max(precision - fraction.length, Numbers.ZERO),
           ]
         : [Strings.EMPTY, integer.replace(Strings.MINUS, Strings.EMPTY), fraction, -precision];
+
     const digits: string = `${start}${mid.slice(Numbers.ZERO, precision || mid.length) ?? Numbers.ZERO}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
-    const increase: bigint =
+    const increase: number =
       BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(restDigits.length, `${Numbers.ZERO}`))
-        ? BigInts.ZERO
-        : BigInts.ONE;
-    return `${integer.replace(RegExps.DIGITS, Strings.EMPTY)}${BigInt(start) ? Strings.EMPTY : start}${(BigInt(digits) + increase) * BigInts.TEN ** BigInt(numberOfZeros)}`;
+        ? Numbers.ZERO
+        : Numbers.ONE;
+
+    return [
+      integer.replace(RegularExpressions.DIGITS, Strings.EMPTY),
+      BigInt(start) ? Strings.EMPTY : start,
+      (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros),
+    ].join(Strings.EMPTY);
   };
 
   return values.map<string[]>((number: BigDecimal): string[] => [
@@ -91,7 +98,9 @@ type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigit
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
   options.map<number[]>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(RegExps.SINGLE_DIGIT)).map<number>(Number),
+    characters
+      .filter((character: string): boolean => !!character.match(RegularExpressions.SINGLE_DIGIT))
+      .map<number>(Number),
   );
 
 type UseAnimationBigIntsOptions = AnimationCharactersTuple;
@@ -277,16 +286,19 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
     index: number,
   ): DigitsGeneratorValues[][] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / BigInts.TEN ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
+      .map<bigint>(
+        (number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE),
+      )
       .sort((first: bigint, second: bigint): number =>
         first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO,
       );
+
     const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? Numbers.ZERO : Numbers.ONE;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
     return accumulator;
   };
 
-  const digitMapper = (number: bigint): number => Math.abs(Number(number % BigInts.TEN));
+  const digitMapper = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
 
   const linearDigitsGeneratorMapper = ({ start, end }: DigitsGeneratorValues): number[] =>
     [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number =>

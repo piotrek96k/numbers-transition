@@ -28,7 +28,7 @@ import {
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
   Numbers,
-  RegExps,
+  RegularExpressions,
 } from './NumbersTransition.enums';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
 import { AnimationValuesTuple, useAnimationValues, useCanvasContext } from './NumbersTransition.hooks';
@@ -79,7 +79,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
 
-  const isValueValid: boolean = !!`${value}`.match(RegExps.BIG_DECIMAL);
+  const isValueValid: boolean = !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
   const validValue: BigDecimal = isValueValid ? value! : Numbers.ZERO;
 
   const [

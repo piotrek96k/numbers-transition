@@ -79,7 +79,7 @@ export const NumberPrecision = {
   HALF_VALUE: 500_000_000_000_000n,
 } as const;
 
-export const RegExps = {
+export const RegularExpressions = {
   BIG_DECIMAL: /^-?(([1-9]\d*)|0)(\.\d+)?$/,
   DIGITS: /\d+/,
   SINGLE_DIGIT: /^\d{1}$/,
@@ -99,14 +99,9 @@ export enum Numbers {
   TWO,
   THREE,
   FIVE = 5,
+  TEN = 10,
   ONE_HUNDRED = 100,
 }
-
-export const BigInts = {
-  ZERO: 0n,
-  ONE: 1n,
-  TEN: 10n,
-} as const;
 
 export const AnimationTimingFunctions = {
   LINEAR: [
