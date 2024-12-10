@@ -64,26 +64,47 @@ const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
   color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
 `;
 
+const animationKeyframesMapper =
+  (keyframeMapper: (value: number) => RuleSet<object>): ((value: number, index: number) => RuleSet<object>) =>
+  (keyframeValue: number, index: number): RuleSet<object> => css`
+    ${index * Numbers.ONE_HUNDRED}% {
+      ${keyframeMapper(keyframeValue)};
+    }
+  `;
+
+const animationKeyframesReducer = (
+  previousValue: RuleSet<object>,
+  currentValue: RuleSet<object>,
+): RuleSet<object> => css`
+  ${previousValue}
+  ${currentValue}
+`;
+
+const animationKeyframes = (
+  keyframeMapper: (keyframeValue: number) => RuleSet<object>,
+  keyframeValues: [number, number],
+): Keyframes => keyframes`
+  ${keyframeValues.map<RuleSet<object>>(animationKeyframesMapper(keyframeMapper)).reduce(animationKeyframesReducer)}
+`;
+
+const horizontalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css`
+  width: calc(${Numbers.ONE}ch * ${keyframeValue});
+`;
+
+const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css`
+  transform: translateY(${keyframeValue}%);
+`;
+
 const horizontalAnimation = ({
   $animationStartWidth,
   $animationEndWidth,
-}: OmitAnimationType<HorizontalAnimationProps>): Keyframes => keyframes`
-  ${Numbers.ZERO}% {
-    width: calc(${Numbers.ONE}ch * ${$animationStartWidth});
-  }
-  ${Numbers.ONE_HUNDRED}% {
-    width: calc(${Numbers.ONE}ch * ${$animationEndWidth});
-  }
-`;
+}: OmitAnimationType<HorizontalAnimationProps>): Keyframes =>
+  animationKeyframes(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
 
-const verticalAnimation: Keyframes = keyframes`
-  ${Numbers.ZERO}% {
-    transform: translateY(${Numbers.ZERO});
-  }
-  ${Numbers.ONE_HUNDRED}% {
-    transform: translateY(${Numbers.MINUS_ONE_HUNDRED}%);
-  }
-`;
+const verticalAnimation: Keyframes = animationKeyframes(verticalAnimationKeyframe, [
+  Numbers.ZERO,
+  Numbers.MINUS_ONE_HUNDRED,
+]);
 
 const getAnimation = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
   switch ($animationType) {
