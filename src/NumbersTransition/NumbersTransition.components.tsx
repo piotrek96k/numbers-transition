@@ -156,19 +156,18 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
       ],
     );
 
+  const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
+    .reduce<
+      [PartialTuple<number, Numbers.TWO>, PartialTuple<number, Numbers.TWO>],
+      AnimationTimingFunction
+    >(animationTimingFunctionReducer, [[], []])
+    .map<(time: number) => number>(cubicBezier);
+
   const getOutputAnimationProgress = (charactersVisible: boolean[]): number =>
     charactersVisible.lastIndexOf(true) / (charactersVisible.length - Numbers.ONE);
 
-  const solveInputAnimationProgress = (progress: number): number => {
-    const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
-      .reduce<
-        [PartialTuple<number, Numbers.TWO>, PartialTuple<number, Numbers.TWO>],
-        AnimationTimingFunction
-      >(animationTimingFunctionReducer, [[], []])
-      .map<(time: number) => number>(cubicBezier);
-    const toSolve = (value: number): number => yAxisCubicBezier(value) - progress;
-    return xAxisCubicBezier(solve(toSolve));
-  };
+  const solveInputAnimationProgress = (progress: number): number =>
+    xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - progress));
 
   const visibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
     !index || (!!digit && digits[index - Numbers.ONE] > digit);

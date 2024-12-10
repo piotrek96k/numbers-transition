@@ -218,6 +218,7 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   ): number => {
     const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
     const newFuncResult: number = func(newValue);
+
     return Math.abs(newValue - previousValue) < EquationSolver.DERIVATIVE_DELTA &&
       newFuncResult < EquationSolver.DERIVATIVE_DELTA
       ? newValue
