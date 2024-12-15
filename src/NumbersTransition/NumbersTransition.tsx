@@ -5,6 +5,7 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -98,6 +99,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
   const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
+  const omitAnimation: boolean = isValueValid && value !== previousValueOnAnimationEnd && !hasValueChanged;
   const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(notValueOnAnimationStart);
   const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
 
@@ -125,15 +127,21 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
+  const updatePreviousValueOnAnimationEnd = useCallback(
+    (): void => setPreviousValueOnAnimationEnd(validValue),
+    [validValue],
+  );
+
   useEffect((): void => {
+    if (omitAnimation) {
+      updatePreviousValueOnAnimationEnd();
+    }
     if (restartAnimation) {
       setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
       setAnimationTransition(AnimationTransition.NONE);
     }
     previousValueOnAnimationStartRef.current = validValue;
-  }, [validValue, restartAnimation]);
-
-  const updatePreviousValueOnAnimationEnd = (): void => setPreviousValueOnAnimationEnd(validValue);
+  }, [validValue, omitAnimation, restartAnimation, updatePreviousValueOnAnimationEnd]);
 
   const onAnimationEnd = (): void => {
     if (numberOfAnimations === NumberOfAnimations.ONE) {
