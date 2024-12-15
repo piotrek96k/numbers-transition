@@ -9,6 +9,8 @@ export type PartialTuple<T, U extends number, V extends T[] = []> = V extends { 
   ? V
   : V | PartialTuple<T, U, [...V, T]>;
 
+export type BigDecimal = number | bigint | `${number}`;
+
 type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
 
 export type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
@@ -31,5 +33,3 @@ export type AttributesStyledComponent<
     BaseObject
   >
 >;
-
-export type BigDecimal = number | bigint | `${number}`;
