@@ -9,8 +9,6 @@ import { AnimationTimingFunction } from './NumbersTransition/NumbersTransition.s
 import NumbersTransition from './NumbersTransition/NumbersTransition';
 import { BigDecimal } from './NumbersTransition/NumbersTransition.types';
 
-export default NumbersTransition;
-
 export {
   AnimationTimingFunctions,
   DecimalSeparator,
@@ -20,3 +18,5 @@ export {
 };
 
 export type { AnimationTimingFunction, BigDecimal };
+
+export default NumbersTransition;
