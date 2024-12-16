@@ -129,12 +129,10 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
     ...(index ? [currentValue - accumulator[accumulator.length - Numbers.ONE]] : []),
   ];
 
-  const [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference]: number[] = options
+  return options
     .map<number>(({ length }: number[]): number => length)
     .sort(subtract)
-    .reduce<number[]>(digitsLengthReducer, []);
-
-  return [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference];
+    .reduce<number[], AnimationNumbersOfDigitsTuple>(digitsLengthReducer, []);
 };
 
 interface UseAnimationValuesOptions {
