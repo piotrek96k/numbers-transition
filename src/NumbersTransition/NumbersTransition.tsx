@@ -127,7 +127,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
-  const updatePreviousValueOnAnimationEnd = useCallback(
+  const updatePreviousValueOnAnimationEnd = useCallback<() => void>(
     (): void => setPreviousValueOnAnimationEnd(validValue),
     [validValue],
   );
