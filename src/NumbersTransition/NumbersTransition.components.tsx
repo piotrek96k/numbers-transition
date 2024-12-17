@@ -29,7 +29,7 @@ import {
   VerticalAnimation,
   VisibilityProps,
 } from './NumbersTransition.styles';
-import { PartialTuple, ReadOnly } from './NumbersTransition.types';
+import { ReadOnly } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -146,21 +146,16 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const divisionElementMapper: ElementMapper<VisibilityProps> = useElementMapper<VisibilityProps>(Division);
 
   const animationTimingFunctionReducer = (
-    accumulator: [PartialTuple<number, Numbers.TWO>, PartialTuple<number, Numbers.TWO>],
+    accumulator: [number[], number[]],
     currentValue: AnimationTimingFunction[number],
   ): AnimationTimingFunction =>
-    accumulator.map<PartialTuple<number, Numbers.THREE>, AnimationTimingFunction>(
-      (coordinates: PartialTuple<number, Numbers.TWO>, index: number): PartialTuple<number, Numbers.THREE> => [
-        ...coordinates,
-        currentValue[index],
-      ],
-    );
+    accumulator.map<number[], AnimationTimingFunction>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
 
   const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
-    .reduce<
-      [PartialTuple<number, Numbers.TWO>, PartialTuple<number, Numbers.TWO>],
-      AnimationTimingFunction
-    >(animationTimingFunctionReducer, [[], []])
+    .reduce<[number[], number[]], AnimationTimingFunction>(animationTimingFunctionReducer, [[], []])
     .map<(time: number) => number>(cubicBezier);
 
   const getOutputAnimationProgress = (charactersVisible: boolean[]): number =>

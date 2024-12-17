@@ -5,10 +5,6 @@ export type ReadOnly<T> = {
   +readonly [K in keyof T]: ReadOnly<T[K]>;
 };
 
-export type PartialTuple<T, U extends number, V extends T[] = []> = V extends { length: U }
-  ? V
-  : V | PartialTuple<T, U, [...V, T]>;
-
 export type BigDecimal = number | bigint | `${number}`;
 
 type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
