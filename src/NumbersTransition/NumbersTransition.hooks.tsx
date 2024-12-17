@@ -294,6 +294,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 
     const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? Numbers.ZERO : Numbers.ONE;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+
     return accumulator;
   };
 
@@ -321,6 +322,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
         increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
       )
       .map<number>(digitMapper);
+
     return numbers[numbers.length - Numbers.ONE] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
   };
 
