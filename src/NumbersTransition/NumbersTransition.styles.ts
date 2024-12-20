@@ -65,33 +65,33 @@ const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
 `;
 
 const animationKeyframesMapper =
-  (keyframeMapper: (value: number) => RuleSet<object>): ((value: number, index: number) => RuleSet<object>) =>
-  (keyframeValue: number, index: number): RuleSet<object> => css`
-    ${index * Numbers.ONE_HUNDRED}% {
-      ${keyframeMapper(keyframeValue)};
+  (mapper: (value: number) => RuleSet<object>): ((value: number, index: number, array: number[]) => RuleSet<object>) =>
+  (keyframeValue: number, index: number, { length }: number[]): RuleSet<object> => css<object>`
+    ${(index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
+      ${mapper(keyframeValue)};
     }
   `;
 
 const animationKeyframesReducer = (
   previousValue: RuleSet<object>,
   currentValue: RuleSet<object>,
-): RuleSet<object> => css`
+): RuleSet<object> => css<object>`
   ${previousValue}
   ${currentValue}
 `;
 
 const animationKeyframes = (
   keyframeMapper: (keyframeValue: number) => RuleSet<object>,
-  keyframeValues: [number, number],
+  keyframeValues: number[],
 ): Keyframes => keyframes`
   ${keyframeValues.map<RuleSet<object>>(animationKeyframesMapper(keyframeMapper)).reduce(animationKeyframesReducer)}
 `;
 
-const horizontalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css`
+const horizontalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
   width: calc(${Numbers.ONE}ch * ${keyframeValue});
 `;
 
-const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css`
+const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
   transform: translateY(${keyframeValue}%);
 `;
 
