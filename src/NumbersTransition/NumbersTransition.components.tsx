@@ -1,4 +1,4 @@
-import { Dispatch, FC, ReactNode, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, JSX, ReactNode, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationTransition,
   DecimalSeparator,

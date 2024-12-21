@@ -1,7 +1,7 @@
 import {
   Dispatch,
   FC,
-  MutableRefObject,
+  JSX,
   ReactNode,
   RefObject,
   SetStateAction,
@@ -75,8 +75,8 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     Dispatch<SetStateAction<BigDecimal>>,
   ] = useState<BigDecimal>(initialValue);
 
-  const previousValueOnAnimationStartRef: MutableRefObject<BigDecimal> = useRef<BigDecimal>(initialValue);
-  const containerRef: RefObject<HTMLDivElement> = useRef<HTMLDivElement>(null);
+  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(initialValue);
+  const containerRef: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
 
   const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
 

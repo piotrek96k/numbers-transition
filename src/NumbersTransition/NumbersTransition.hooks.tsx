@@ -1,4 +1,4 @@
-import { Dispatch, FC, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationDirection,
   Canvas,
@@ -14,10 +14,12 @@ import {
 import { AnimationTimingFunction } from './NumbersTransition.styles';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
 
-type UseCanvasContext = (ref: RefObject<HTMLElement>) => CanvasRenderingContext2D | null;
+type UseCanvasContext = (ref: RefObject<HTMLElement | null>) => CanvasRenderingContext2D | null;
 
-export const useCanvasContext: UseCanvasContext = (ref: RefObject<HTMLElement>): CanvasRenderingContext2D | null => {
-  const { current }: RefObject<HTMLElement> = ref;
+export const useCanvasContext: UseCanvasContext = (
+  ref: RefObject<HTMLElement | null>,
+): CanvasRenderingContext2D | null => {
+  const { current }: RefObject<HTMLElement | null> = ref;
 
   const [canvasContext, setCanvasContext]: [
     CanvasRenderingContext2D | null,
