@@ -94,7 +94,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
 
-  const notValueOnAnimationStart = (val: bigint): boolean => val !== previousValueOnAnimationStartBigInt;
+  const notValueOnAnimationStart = (value: bigint): boolean => value !== previousValueOnAnimationStartBigInt;
 
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;

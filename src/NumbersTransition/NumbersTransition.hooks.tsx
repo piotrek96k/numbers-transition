@@ -246,22 +246,16 @@ interface UseHorizontalAnimationDigitsOptions {
 
 type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
 
-export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (
-  options: UseHorizontalAnimationDigitsOptions,
-): number[] => {
-  const {
-    numberOfDigitsDifference,
-    previousValueDigits,
-    currentValueDigits,
-    animationDirection,
-    hasZeros,
-  }: UseHorizontalAnimationDigitsOptions = options;
-
-  return [
-    ...(hasZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
-    ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
-  ];
-};
+export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
+  numberOfDigitsDifference,
+  previousValueDigits,
+  currentValueDigits,
+  animationDirection,
+  hasZeros,
+}: UseHorizontalAnimationDigitsOptions): number[] => [
+  ...(hasZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
+  ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
+];
 
 interface DigitsGeneratorValues {
   start: bigint;
