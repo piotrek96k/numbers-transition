@@ -276,10 +276,10 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
   const { maxNumberOfDigits, previousValue, currentValue }: UseVerticalAnimationDigitsOptions = options;
 
   const digitsGeneratorValuesArrayReducer = (
-    accumulator: DigitsGeneratorValues[][],
+    accumulator: [DigitsGeneratorValues[], DigitsGeneratorValues[]],
     _: undefined,
     index: number,
-  ): DigitsGeneratorValues[][] => {
+  ): [DigitsGeneratorValues[], DigitsGeneratorValues[]] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
       .map<bigint>(
         (number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE),
@@ -325,9 +325,9 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
     algorithmValuesArray.map<number[]>(index ? nonLinearDigitsGeneratorMapper : linearDigitsGeneratorMapper);
 
   return [...Array(maxNumberOfDigits)]
-    .reduce<DigitsGeneratorValues[][]>(digitsGeneratorValuesArrayReducer, [[], []])
+    .reduce<[DigitsGeneratorValues[], DigitsGeneratorValues[]]>(digitsGeneratorValuesArrayReducer, [[], []])
     .map<number[][]>(digitsGeneratorMapper)
-    .flat<number[][][], Numbers.ONE>();
+    .flat<[number[][], number[][]], Numbers.ONE>();
 };
 
 interface KeyProps {
