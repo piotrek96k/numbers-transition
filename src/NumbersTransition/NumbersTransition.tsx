@@ -1,15 +1,4 @@
-import {
-  Dispatch,
-  FC,
-  JSX,
-  ReactNode,
-  RefObject,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
 import {
   Conditional,
   EmptyElement,
@@ -127,25 +116,20 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
-  const updatePreviousValueOnAnimationEnd = useCallback<() => void>(
-    (): void => setPreviousValueOnAnimationEnd(validValue),
-    [validValue],
-  );
-
   useEffect((): void => {
     if (omitAnimation) {
-      updatePreviousValueOnAnimationEnd();
+      setPreviousValueOnAnimationEnd(validValue);
     }
     if (restartAnimation) {
       setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
       setAnimationTransition(AnimationTransition.NONE);
     }
     previousValueOnAnimationStartRef.current = validValue;
-  }, [validValue, omitAnimation, restartAnimation, updatePreviousValueOnAnimationEnd]);
+  }, [validValue, omitAnimation, restartAnimation]);
 
   const onAnimationEnd = (): void => {
     if (numberOfAnimations === NumberOfAnimations.ONE) {
-      updatePreviousValueOnAnimationEnd();
+      setPreviousValueOnAnimationEnd(validValue);
       return;
     }
     if (
@@ -156,7 +140,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       return;
     }
     if (animationTransition !== AnimationTransition.NONE) {
-      updatePreviousValueOnAnimationEnd();
+      setPreviousValueOnAnimationEnd(validValue);
       setAnimationTransition(AnimationTransition.NONE);
       return;
     }
