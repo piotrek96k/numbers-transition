@@ -38,32 +38,6 @@ type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
 
 type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
 
-export interface VisibilityProps {
-  $visible?: boolean;
-}
-
-type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
-
-type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledComponent<
-  'div',
-  HTMLDetailedElement<HTMLDivElement>,
-  OmitAnimationType<T>
->;
-
-type HorizontalAnimationStyledComponent = AnimationStyledComponent<HorizontalAnimationProps>;
-
-type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimationProps>;
-
-type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
-
-type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
-
-type DivisionStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
-
-const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
-  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
-`;
-
 const animationKeyframesMapper =
   (mapper: (value: number) => RuleSet<object>): ((value: number, index: number, array: number[]) => RuleSet<object>) =>
   (keyframeValue: number, index: number, { length }: number[]): RuleSet<object> => css<object>`
@@ -155,6 +129,16 @@ const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
   $animationType: AnimationType.VERTICAL,
 };
 
+export interface VisibilityProps {
+  $visible?: boolean;
+}
+
+const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
+  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
+`;
+
+type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
+
 export const Container: ContainerStyledComponent = styled.div`
   font-size: ${Numbers.ONE_HUNDRED}px;
   color: #f0ff95;
@@ -164,6 +148,14 @@ export const Container: ContainerStyledComponent = styled.div`
   width: fit-content;
   height: ${Numbers.ONE}lh;
 `;
+
+type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledComponent<
+  'div',
+  HTMLDetailedElement<HTMLDivElement>,
+  OmitAnimationType<T>
+>;
+
+type HorizontalAnimationStyledComponent = AnimationStyledComponent<HorizontalAnimationProps>;
 
 export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<HorizontalAnimationProps>(
   horizontalAnimationAttrs,
@@ -178,6 +170,8 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
   }
 `;
 
+type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimationProps>;
+
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.attrs<VerticalAnimationProps>(
   verticalAnimationAttrs,
 )`
@@ -188,6 +182,8 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   }
 `;
 
+type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
+
 export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
   ${visible};
   overflow: hidden;
@@ -197,9 +193,13 @@ export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
   white-space: pre;
 `;
 
+type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
+
 export const Digit: DigitStyledComponent = styled<CharacterStyledComponent, BaseObject>(Character)`
   min-width: ${Numbers.ONE}ch;
 `;
+
+type DivisionStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
 
 export const Division: DivisionStyledComponent = styled.div<VisibilityProps>`
   ${visible};
