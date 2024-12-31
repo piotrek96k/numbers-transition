@@ -99,14 +99,14 @@ export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElement
     renderHorizontalAnimation,
   }: NegativeElementProps = props;
 
-  const condition: boolean =
+  const renderNegativeCharacter: boolean =
     (!hasSignChanged && currentValue < Numbers.ZERO) ||
     (renderHorizontalAnimation &&
       numberOfAnimations === NumberOfAnimations.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
   return (
-    <Optional condition={condition}>
+    <Optional condition={renderNegativeCharacter}>
       <Character>{negativeCharacter}</Character>
     </Optional>
   );
@@ -289,13 +289,13 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       ? HorizontalAnimationDirection.RIGHT
       : HorizontalAnimationDirection.LEFT;
 
-  const hasNegativeCharacter: boolean =
+  const renderNegativeCharacter: boolean =
     hasSignChanged &&
     (numberOfAnimations === NumberOfAnimations.TWO ||
       (numberOfAnimations === NumberOfAnimations.THREE &&
         previousValue < currentValue === (animationTransition === AnimationTransition.SECOND_TO_THIRD)));
 
-  const hasZeros: boolean =
+  const renderZeros: boolean =
     numberOfAnimations === NumberOfAnimations.TWO ||
     (numberOfAnimations === NumberOfAnimations.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
@@ -310,7 +310,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     previousValueDigits,
     currentValueDigits,
     animationDirection,
-    hasZeros,
+    renderZeros,
   });
 
   const sum = (first: number, second: number): number => first + second;
@@ -327,16 +327,16 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
       .reduce(sum);
 
-  const getAnimationWidth = (numberOfDigits: number, hasNegativeCharacter: boolean): number =>
+  const getAnimationWidth = (numberOfDigits: number, renderNegativeCharacter: boolean): number =>
     [
-      hasNegativeCharacter ? getCharacterWidth(negativeCharacter) : Numbers.ZERO,
+      renderNegativeCharacter ? getCharacterWidth(negativeCharacter) : Numbers.ZERO,
       numberOfDigits,
       getDigitsSeparatorsWidth(numberOfDigits),
       precision > Numbers.ZERO ? getCharacterWidth(decimalSeparator) : Numbers.ZERO,
     ].reduce(sum);
 
   const negativeElement: JSX.Element = (
-    <Optional condition={hasNegativeCharacter}>
+    <Optional condition={renderNegativeCharacter}>
       <HorizontalAnimationNegativeElement negativeCharacter={negativeCharacter} />
     </Optional>
   );
@@ -355,8 +355,8 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
-      $animationStartWidth={getAnimationWidth(hasZeros ? minNumberOfDigits : maxNumberOfDigits, false)}
-      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, hasNegativeCharacter)}
+      $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits, false)}
+      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeCharacter)}
     >
       <Division>
         {negativeElement}

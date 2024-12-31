@@ -241,7 +241,7 @@ interface UseHorizontalAnimationDigitsOptions {
   currentValueDigits: number[];
   numberOfDigitsDifference: number;
   animationDirection: HorizontalAnimationDirection;
-  hasZeros: boolean;
+  renderZeros: boolean;
 }
 
 type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
@@ -251,9 +251,9 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
   previousValueDigits,
   currentValueDigits,
   animationDirection,
-  hasZeros,
+  renderZeros,
 }: UseHorizontalAnimationDigitsOptions): number[] => [
-  ...(hasZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
+  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
   ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
 ];
 
