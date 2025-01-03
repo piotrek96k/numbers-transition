@@ -18,10 +18,15 @@ import {
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
   Numbers,
-  RegularExpressions,
 } from './NumbersTransition.enums';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
-import { AnimationValuesTuple, useAnimationValues, useCanvasContext } from './NumbersTransition.hooks';
+import {
+  AnimationValuesTuple,
+  ValidationTuple,
+  useAnimationValues,
+  useCanvasContext,
+  useValidation,
+} from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   initialValue?: BigDecimal;
@@ -39,7 +44,7 @@ interface NumbersTransitionProps {
 
 const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
   const {
-    initialValue = Numbers.ZERO,
+    initialValue,
     value,
     precision = Numbers.ZERO,
     horizontalAnimationDuration = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
@@ -54,6 +59,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
   }: NumbersTransitionProps = props;
 
+  const [validInitialValue]: ValidationTuple = useValidation(initialValue);
+  const [validValue, isValueValid]: ValidationTuple = useValidation(value);
+
   const [animationTransition, setAnimationTransition]: [
     AnimationTransition,
     Dispatch<SetStateAction<AnimationTransition>>,
@@ -62,15 +70,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [
     BigDecimal,
     Dispatch<SetStateAction<BigDecimal>>,
-  ] = useState<BigDecimal>(initialValue);
+  ] = useState<BigDecimal>(validInitialValue);
 
-  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(initialValue);
+  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
   const containerRef: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
 
   const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
-
-  const isValueValid: boolean = !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
-  const validValue: BigDecimal = isValueValid ? value! : Numbers.ZERO;
 
   const [
     [previousValueOnAnimationEndDigits, valueDigits],
