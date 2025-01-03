@@ -384,10 +384,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
   props: VerticalAnimationElementProps,
 ): ReactNode => {
   const {
-    precision,
     animationDuration,
-    decimalSeparator,
-    digitGroupSeparator,
     negativeCharacter,
     negativeCharacterAnimationMode,
     animationTimingFunction: animationTimingFunctionInput,
@@ -395,6 +392,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     currentValue,
     maxNumberOfDigits,
     hasSignChanged,
+    ...restProps
   }: VerticalAnimationElementProps = props;
 
   const animationDirection: VerticalAnimationDirection =
@@ -423,28 +421,19 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     </VerticalAnimation>
   );
 
-  const negativeElement: JSX.Element = (
-    <Optional condition={hasSignChanged}>
-      <VerticalAnimationNegativeElement
-        animationDuration={animationDuration}
-        negativeCharacter={negativeCharacter}
-        negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-        animationTimingFunction={animationTimingFunction}
-        animationDirection={animationDirection}
-        animationDigits={animationDigits.find(({ length }: number[]): boolean => length > Numbers.ONE)!}
-      />
-    </Optional>
-  );
-
   return (
     <>
-      {negativeElement}
-      <NumberElement
-        precision={precision}
-        decimalSeparator={decimalSeparator}
-        digitGroupSeparator={digitGroupSeparator}
-        digits={animationDigits.map<JSX.Element>(verticalAnimationElementMapper)}
-      />
+      <Optional condition={hasSignChanged}>
+        <VerticalAnimationNegativeElement
+          animationDuration={animationDuration}
+          negativeCharacter={negativeCharacter}
+          negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+          animationTimingFunction={animationTimingFunction}
+          animationDirection={animationDirection}
+          animationDigits={animationDigits.find(({ length }: number[]): boolean => length > Numbers.ONE)!}
+        />
+      </Optional>
+      <NumberElement digits={animationDigits.map<JSX.Element>(verticalAnimationElementMapper)} {...restProps} />
     </>
   );
 };
