@@ -79,6 +79,10 @@ export const NumberPrecision = {
   HALF_VALUE: 500_000_000_000_000n,
 } as const;
 
+export enum Types {
+  UNDEFINED = 'undefined',
+}
+
 export const RegularExpressions = {
   BIG_DECIMAL: /^-?(([1-9]\d*)|0)(\.\d+)?$/,
   DIGITS: /\d+/,
