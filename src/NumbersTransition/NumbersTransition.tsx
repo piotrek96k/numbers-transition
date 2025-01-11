@@ -135,21 +135,17 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   const onAnimationEnd = (): void => {
     if (numberOfAnimations === NumberOfAnimations.ONE) {
       setPreviousValueOnAnimationEnd(validValue);
-      return;
-    }
-    if (
+    } else if (
       numberOfAnimations === NumberOfAnimations.THREE &&
       animationTransition === AnimationTransition.FIRST_TO_SECOND
     ) {
       setAnimationTransition(AnimationTransition.SECOND_TO_THIRD);
-      return;
-    }
-    if (animationTransition !== AnimationTransition.NONE) {
+    } else if (animationTransition !== AnimationTransition.NONE) {
       setPreviousValueOnAnimationEnd(validValue);
       setAnimationTransition(AnimationTransition.NONE);
-      return;
+    } else {
+      setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
     }
-    setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
   };
 
   const negativeElement: JSX.Element = (
