@@ -231,10 +231,11 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
     const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
     const newFuncResult: number = func(newValue);
 
-    return Math.abs(newValue - previousValue) < EquationSolver.DERIVATIVE_DELTA &&
-      Math.abs(newFuncResult) < EquationSolver.DERIVATIVE_DELTA
-      ? newValue
-      : solve(func, newValue, newFuncResult);
+    const isConvergent: boolean = [newValue - previousValue, newFuncResult]
+      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DERIVATIVE_DELTA)
+      .reduce((accumulator: boolean, currentValue: boolean): boolean => accumulator && currentValue);
+
+    return isConvergent ? newValue : solve(func, newValue, newFuncResult);
   };
 
   const cubicBezier =
