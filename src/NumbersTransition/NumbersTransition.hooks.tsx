@@ -100,7 +100,10 @@ const useAnimationCharacters: UseAnimationCharacters = (
   };
 
   return values.map<string[]>((number: BigDecimal): string[] => [
-    ...`${number}`.split(Strings.DOT).reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
+    ...`${number}`
+      .split(RegularExpressions.DOT_OR_COMMA)
+      .reduce<string[]>(floatingPointFill, [])
+      .reduce(floatingPointReducer),
   ]);
 };
 
