@@ -203,8 +203,7 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
     tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
   ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => Numbers.ONE - number);
 
-  return animationDirection === HorizontalAnimationDirection.RIGHT ||
-    animationDirection === VerticalAnimationDirection.UP
+  return [HorizontalAnimationDirection.RIGHT, VerticalAnimationDirection.UP].includes(animationDirection)
     ? animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(
         mutableAnimationTimingFunctionMapper,
       )
