@@ -20,13 +20,7 @@ import {
   Numbers,
 } from './NumbersTransition.enums';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
-import {
-  AnimationValuesTuple,
-  ValidationTuple,
-  useAnimationValues,
-  useCanvasContext,
-  useValidation,
-} from './NumbersTransition.hooks';
+import { AnimationValuesTuple, ValidationTuple, useAnimationValues, useValidation } from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   initialValue?: BigDecimal;
@@ -74,8 +68,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
   const containerRef: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
-
-  const canvasContext: CanvasRenderingContext2D | null = useCanvasContext(containerRef);
 
   const [
     [previousValueOnAnimationEndDigits, valueDigits],
@@ -178,7 +170,7 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       negativeCharacter={negativeCharacter}
       animationTimingFunction={horizontalAnimationTimingFunction}
       animationTransition={animationTransition}
-      canvasContext={canvasContext}
+      containerRef={containerRef}
       previousValueDigits={previousValueOnAnimationEndDigits}
       currentValueDigits={valueDigits}
       previousValue={previousValueOnAnimationEndBigInt}

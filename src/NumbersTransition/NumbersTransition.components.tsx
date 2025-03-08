@@ -1,4 +1,4 @@
-import { Dispatch, FC, JSX, ReactNode, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationTransition,
   DecimalSeparator,
@@ -14,7 +14,9 @@ import {
 import {
   CubicBezierTuple,
   ElementMapper,
+  GetCharacterWidth,
   useAnimationTimingFunction,
+  useCharacterWidth,
   useCubicBezier,
   useElementMapper,
   useHorizontalAnimationDigits,
@@ -247,7 +249,7 @@ interface HorizontalAnimationElementProps {
   negativeCharacter: NegativeCharacter;
   animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   animationTransition: AnimationTransition;
-  canvasContext: CanvasRenderingContext2D | null;
+  containerRef: RefObject<HTMLDivElement | null>;
   previousValueDigits: number[];
   currentValueDigits: number[];
   previousValue: bigint;
@@ -270,7 +272,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     negativeCharacter,
     animationTimingFunction: animationTimingFunctionInput,
     animationTransition,
-    canvasContext,
+    containerRef,
     previousValueDigits,
     currentValueDigits,
     previousValue,
@@ -313,13 +315,9 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     renderZeros,
   });
 
-  const sum = (first: number, second: number): number => first + second;
-  const divide = (first: number, second: number): number => first / second;
+  const getCharacterWidth: GetCharacterWidth = useCharacterWidth(containerRef);
 
-  const getCharacterWidth = (character: DecimalSeparator | DigitGroupSeparator | NegativeCharacter): number =>
-    [character, `${Numbers.ZERO}`]
-      .map<number>((text: string): number => canvasContext?.measureText?.(text)?.width ?? Numbers.ZERO)
-      .reduce(divide);
+  const sum = (first: number, second: number): number => first + second;
 
   const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
     getCharacterWidth(digitGroupSeparator) *

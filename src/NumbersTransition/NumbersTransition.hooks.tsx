@@ -2,9 +2,12 @@ import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, use
 import {
   AnimationDirection,
   Canvas,
+  DecimalSeparator,
+  DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
   HorizontalAnimationDirection,
+  NegativeCharacter,
   NumberPrecision,
   Numbers,
   RegularExpressions,
@@ -14,34 +17,6 @@ import {
 } from './NumbersTransition.enums';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
 import { BigDecimal, ReadOnly } from './NumbersTransition.types';
-
-type UseCanvasContext = (ref: RefObject<HTMLElement | null>) => CanvasRenderingContext2D | null;
-
-export const useCanvasContext: UseCanvasContext = (
-  ref: RefObject<HTMLElement | null>,
-): CanvasRenderingContext2D | null => {
-  const { current }: RefObject<HTMLElement | null> = ref;
-
-  const [canvasContext, setCanvasContext]: [
-    CanvasRenderingContext2D | null,
-    Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
-  ] = useState<CanvasRenderingContext2D | null>(null);
-
-  useEffect((): void => {
-    const newCanvasContext: CanvasRenderingContext2D = document
-      .createElement(Canvas.ELEMENT)
-      .getContext(Canvas.CONTEXT_ID)!;
-
-    newCanvasContext.font =
-      [...(current?.classList ?? [])]
-        .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
-        .find((font: string): string => font) ?? Strings.EMPTY;
-
-    setCanvasContext(newCanvasContext);
-  }, [current]);
-
-  return canvasContext;
-};
 
 export type ValidationTuple = [BigDecimal, boolean];
 
@@ -210,6 +185,41 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
     : animationTimingFunction
         .map<AnimationTimingFunction[number], AnimationTimingFunction>(reverseAnimationTimingFunctionMapper)
         .reverse();
+};
+
+type Character = DecimalSeparator | DigitGroupSeparator | NegativeCharacter;
+
+export type GetCharacterWidth = (character: Character) => number;
+
+type UseCharacterWidth = (ref: RefObject<HTMLElement | null>) => GetCharacterWidth;
+
+export const useCharacterWidth: UseCharacterWidth = (ref: RefObject<HTMLElement | null>): GetCharacterWidth => {
+  const { current }: RefObject<HTMLElement | null> = ref;
+
+  const [canvasContext, setCanvasContext]: [
+    CanvasRenderingContext2D | null,
+    Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
+  ] = useState<CanvasRenderingContext2D | null>(null);
+
+  useEffect((): void => {
+    const newCanvasContext: CanvasRenderingContext2D = document
+      .createElement(Canvas.ELEMENT)
+      .getContext(Canvas.CONTEXT_ID)!;
+
+    newCanvasContext.font =
+      [...(current?.classList ?? [])]
+        .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
+        .find((font: string): string => font) ?? Strings.EMPTY;
+
+    setCanvasContext(newCanvasContext);
+  }, [current]);
+
+  const divide = (first: number, second: number): number => first / second;
+
+  const characterWidthMapper = (text: string): number => canvasContext?.measureText?.(text)?.width ?? Numbers.ZERO;
+
+  return (character: Character): number =>
+    [character, `${Numbers.ZERO}`].map<number>(characterWidthMapper).reduce(divide);
 };
 
 type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
