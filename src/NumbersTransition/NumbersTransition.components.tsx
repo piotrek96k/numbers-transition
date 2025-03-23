@@ -325,7 +325,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
       .reduce(sum);
 
-  const getAnimationWidth = (numberOfDigits: number, renderNegativeCharacter: boolean): number =>
+  const getAnimationWidth = (numberOfDigits: number, renderNegativeCharacter: boolean = false): number =>
     [
       renderNegativeCharacter ? getCharacterWidth(negativeCharacter) : Numbers.ZERO,
       numberOfDigits,
@@ -353,7 +353,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
-      $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits, false)}
+      $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits)}
       $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeCharacter)}
     >
       <Division>

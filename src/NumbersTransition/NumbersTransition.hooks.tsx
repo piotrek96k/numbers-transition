@@ -258,7 +258,7 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
           secondPoint * (Numbers.ONE - time) * time ** Numbers.TWO) +
       time ** Numbers.THREE;
 
-  return [cubicBezier, solve];
+  return [cubicBezier, (func: (value: number) => number): number => solve(func)];
 };
 
 interface UseHorizontalAnimationDigitsOptions {
