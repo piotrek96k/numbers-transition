@@ -48,7 +48,7 @@ interface OptionalProps {
   condition: boolean;
 }
 
-const Optional: FC<OptionalProps> = ({ children, condition }: OptionalProps): ReactNode => (
+export const Optional: FC<OptionalProps> = ({ children, condition }: OptionalProps): ReactNode => (
   <Conditional condition={condition}>
     {children}
     {undefined}
@@ -82,37 +82,13 @@ export const EmptyElement: FC = (): ReactNode => <Character>{EmptyCharacter.VALU
 
 interface NegativeElementProps {
   negativeCharacter: NegativeCharacter;
-  animationTransition: AnimationTransition;
-  previousValue: bigint;
-  currentValue: bigint;
-  hasSignChanged: boolean;
-  numberOfAnimations: NumberOfAnimations;
-  renderHorizontalAnimation: boolean;
+  visible?: boolean;
 }
 
-export const NegativeElement: FC<NegativeElementProps> = (props: NegativeElementProps): ReactNode => {
-  const {
-    negativeCharacter,
-    animationTransition,
-    previousValue,
-    currentValue,
-    hasSignChanged,
-    numberOfAnimations,
-    renderHorizontalAnimation,
-  }: NegativeElementProps = props;
-
-  const renderNegativeCharacter: boolean =
-    (!hasSignChanged && currentValue < Numbers.ZERO) ||
-    (renderHorizontalAnimation &&
-      numberOfAnimations === NumberOfAnimations.THREE &&
-      previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
-
-  return (
-    <Optional condition={renderNegativeCharacter}>
-      <Character>{negativeCharacter}</Character>
-    </Optional>
-  );
-};
+export const NegativeElement: FC<NegativeElementProps> = ({
+  negativeCharacter,
+  visible = true,
+}: NegativeElementProps): ReactNode => <Character $visible={visible}>{negativeCharacter}</Character>;
 
 interface HorizontalAnimationNegativeElementProps {
   negativeCharacter: NegativeCharacter;
@@ -120,7 +96,9 @@ interface HorizontalAnimationNegativeElementProps {
 
 const HorizontalAnimationNegativeElement: FC<HorizontalAnimationNegativeElementProps> = ({
   negativeCharacter,
-}: HorizontalAnimationNegativeElementProps): ReactNode => <Character $visible={false}>{negativeCharacter}</Character>;
+}: HorizontalAnimationNegativeElementProps): ReactNode => (
+  <NegativeElement negativeCharacter={negativeCharacter} visible={false} />
+);
 
 interface VerticalAnimationNegativeElementProps {
   animationDuration: number;
@@ -183,28 +161,28 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
     divisionElementMapper(negativeCharacter, index, array, { $visible: visible });
 
   const verticalAnimationElement: JSX.Element = (
-    <VerticalAnimation
-      $animationDirection={animationDirection}
-      $animationDuration={animationDuration}
-      $animationTimingFunction={animationTimingFunction}
-      {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
-        $animationDelay: animationDelay,
-      })}
-    >
-      {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
-    </VerticalAnimation>
+    <Character>
+      <VerticalAnimation
+        $animationDirection={animationDirection}
+        $animationDuration={animationDuration}
+        $animationTimingFunction={animationTimingFunction}
+        {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
+          $animationDelay: animationDelay,
+        })}
+      >
+        {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
+      </VerticalAnimation>
+    </Character>
   );
 
   return (
-    <Character>
-      <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
-        <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
-          {negativeCharacter}
-          {verticalAnimationElement}
-        </Switch>
+    <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE}>
+      <Switch time={animationSwitchTime} reverse={animationDirection === VerticalAnimationDirection.DOWN}>
+        <NegativeElement negativeCharacter={negativeCharacter} />
         {verticalAnimationElement}
-      </Conditional>
-    </Character>
+      </Switch>
+      {verticalAnimationElement}
+    </Conditional>
   );
 };
 

@@ -5,6 +5,7 @@ import {
   HorizontalAnimationElement,
   NegativeElement,
   NumberElement,
+  Optional,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import { AnimationTimingFunction, Container } from './NumbersTransition.styles';
@@ -113,6 +114,12 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
           : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
+  const renderNegativeElement: boolean =
+    (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
+    (renderHorizontalAnimation &&
+      numberOfAnimations === NumberOfAnimations.THREE &&
+      previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransition.NONE));
+
   useEffect((): void => {
     if (omitAnimation) {
       setPreviousValueOnAnimationEnd(validValue);
@@ -139,18 +146,6 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
       setAnimationTransition(AnimationTransition.FIRST_TO_SECOND);
     }
   };
-
-  const negativeElement: JSX.Element = (
-    <NegativeElement
-      negativeCharacter={negativeCharacter}
-      animationTransition={animationTransition}
-      previousValue={previousValueOnAnimationEndBigInt}
-      currentValue={valueBigInt}
-      hasSignChanged={hasSignChanged}
-      numberOfAnimations={numberOfAnimations}
-      renderHorizontalAnimation={renderHorizontalAnimation}
-    />
-  );
 
   const numberElement: JSX.Element = (
     <NumberElement
@@ -215,7 +210,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
 
   return (
     <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
-      {negativeElement}
+      <Optional condition={renderNegativeElement}>
+        <NegativeElement negativeCharacter={negativeCharacter} />
+      </Optional>
       <Conditional condition={renderAnimation}>
         {animationElement}
         {valueElement}
