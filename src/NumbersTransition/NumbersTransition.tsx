@@ -148,12 +148,9 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   };
 
   const numberElement: JSX.Element = (
-    <NumberElement
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      digits={previousValueOnAnimationEndDigits}
-    />
+    <NumberElement precision={precision} decimalSeparator={decimalSeparator} digitGroupSeparator={digitGroupSeparator}>
+      {previousValueOnAnimationEndDigits}
+    </NumberElement>
   );
 
   const horizontalAnimationElement: JSX.Element = (

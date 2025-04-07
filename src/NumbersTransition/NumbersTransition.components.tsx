@@ -1,4 +1,4 @@
-import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, Fragment, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationTransition,
   DecimalSeparator,
@@ -190,11 +190,11 @@ interface NumberElementProps {
   precision: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
-  digits: ReactNode[];
+  children: ReactNode[];
 }
 
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
-  const { precision, decimalSeparator, digitGroupSeparator, digits }: NumberElementProps = props;
+  const { precision, decimalSeparator, digitGroupSeparator, children }: NumberElementProps = props;
 
   const digitElementMapper: ElementMapper<object> = useElementMapper<object>(Digit);
 
@@ -216,7 +216,7 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
     </>
   );
 
-  return digits.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
+  return children.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
 };
 
 interface HorizontalAnimationElementProps {
@@ -318,12 +318,9 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
   );
 
   const numberElement: JSX.Element = (
-    <NumberElement
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      digits={animationDigits}
-    />
+    <NumberElement precision={precision} decimalSeparator={decimalSeparator} digitGroupSeparator={digitGroupSeparator}>
+      {animationDigits}
+    </NumberElement>
   );
 
   return (
@@ -385,9 +382,10 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     currentValue,
   });
 
+  const fragmentElementMapper: ElementMapper<object> = useElementMapper<object>(Fragment);
   const divisionElementMapper: ElementMapper<object> = useElementMapper<object>(Division);
 
-  const verticalAnimationElementMapper = (digits: number[]) => (
+  const verticalAnimationElementMapper = (digits: number[]): JSX.Element => (
     <VerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
@@ -409,7 +407,9 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
           animationDigits={animationDigits.find(({ length }: number[]): boolean => length > Numbers.ONE)!}
         />
       </Optional>
-      <NumberElement digits={animationDigits.map<JSX.Element>(verticalAnimationElementMapper)} {...restProps} />
+      <NumberElement {...restProps}>
+        {animationDigits.map<JSX.Element>(verticalAnimationElementMapper).map<JSX.Element>(fragmentElementMapper)}
+      </NumberElement>
     </>
   );
 };

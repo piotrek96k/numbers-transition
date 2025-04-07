@@ -380,7 +380,7 @@ export const useElementMapper: UseElementMapper =
   <T extends object>(Component: FunctionalComponent<T>): ElementMapper<T> =>
   (child: ReactNode, index: number, { length }: ReactNode[], props?: T): JSX.Element => (
     <Component
-      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
+      key={`${String(Component)}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
       {...props}
     >
       {child}
