@@ -363,25 +363,19 @@ interface ChildrenProps {
   children: ReactNode;
 }
 
-type ComponentProps<T extends object> = (T & KeyProps & ChildrenProps) | (KeyProps & ChildrenProps);
+type ComponentProps = KeyProps & ChildrenProps;
 
-type FunctionalComponent<T extends object> = FC<ComponentProps<T>> | string;
+type FunctionalComponent = FC<ComponentProps> | string;
 
-export type ElementMapper<T extends object> = (
-  child: ReactNode,
-  index: number,
-  children: ReactNode[],
-  props?: T,
-) => JSX.Element;
+export type ElementKeyMapper = (child: ReactNode, index: number, children: ReactNode[]) => JSX.Element;
 
-type UseElementMapper = <T extends object>(Component: FunctionalComponent<T>) => ElementMapper<T>;
+type UseElementKeyMapper = (Component: FunctionalComponent) => ElementKeyMapper;
 
-export const useElementMapper: UseElementMapper =
-  <T extends object>(Component: FunctionalComponent<T>): ElementMapper<T> =>
-  (child: ReactNode, index: number, { length }: ReactNode[], props?: T): JSX.Element => (
+export const useElementKeyMapper: UseElementKeyMapper =
+  (Component: FunctionalComponent): ElementKeyMapper =>
+  (child: ReactNode, index: number, { length }: ReactNode[]): JSX.Element => (
     <Component
-      key={`${String(Component)}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
-      {...props}
+      key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
     >
       {child}
     </Component>

@@ -129,7 +129,7 @@ const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
   $animationType: AnimationType.VERTICAL,
 };
 
-export interface VisibilityProps {
+interface VisibilityProps {
   $visible?: boolean;
 }
 

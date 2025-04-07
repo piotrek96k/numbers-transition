@@ -13,12 +13,12 @@ import {
 } from './NumbersTransition.enums';
 import {
   CubicBezierTuple,
-  ElementMapper,
+  ElementKeyMapper,
   GetCharacterWidth,
   useAnimationTimingFunction,
   useCharacterWidth,
   useCubicBezier,
-  useElementMapper,
+  useElementKeyMapper,
   useHorizontalAnimationDigits,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
@@ -29,7 +29,6 @@ import {
   Division,
   HorizontalAnimation,
   VerticalAnimation,
-  VisibilityProps,
 } from './NumbersTransition.styles';
 import { ReadOnly } from './NumbersTransition.types';
 
@@ -123,7 +122,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
-  const divisionElementMapper: ElementMapper<VisibilityProps> = useElementMapper<VisibilityProps>(Division);
+  const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
 
   const animationTimingFunctionReducer = (
     accumulator: [number[], number[]],
@@ -157,8 +156,9 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : Numbers.ZERO;
 
-  const negativeCharacterElementMapper = (visible: boolean, index: number, array: boolean[]): JSX.Element =>
-    divisionElementMapper(negativeCharacter, index, array, { $visible: visible });
+  const negativeCharacterElementMapper = (visible: boolean): JSX.Element => (
+    <Division $visible={visible}>{negativeCharacter}</Division>
+  );
 
   const verticalAnimationElement: JSX.Element = (
     <Character>
@@ -170,7 +170,9 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
           $animationDelay: animationDelay,
         })}
       >
-        {negativeCharactersVisible.map<JSX.Element>(negativeCharacterElementMapper)}
+        {negativeCharactersVisible
+          .map<JSX.Element>(negativeCharacterElementMapper)
+          .map<JSX.Element>(fragmentElementMapper)}
       </VerticalAnimation>
     </Character>
   );
@@ -196,7 +198,7 @@ interface NumberElementProps {
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
   const { precision, decimalSeparator, digitGroupSeparator, children }: NumberElementProps = props;
 
-  const digitElementMapper: ElementMapper<object> = useElementMapper<object>(Digit);
+  const digitElementMapper: ElementKeyMapper = useElementKeyMapper(Digit);
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) && (
@@ -382,8 +384,8 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     currentValue,
   });
 
-  const fragmentElementMapper: ElementMapper<object> = useElementMapper<object>(Fragment);
-  const divisionElementMapper: ElementMapper<object> = useElementMapper<object>(Division);
+  const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
+  const divisionElementMapper: ElementKeyMapper = useElementKeyMapper(Division);
 
   const verticalAnimationElementMapper = (digits: number[]): JSX.Element => (
     <VerticalAnimation
