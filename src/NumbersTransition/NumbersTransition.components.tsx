@@ -27,7 +27,6 @@ import {
   AnimationTimingFunction,
   Character,
   Digit,
-  Division,
   HorizontalAnimation,
   VerticalAnimation,
 } from './NumbersTransition.styles';
@@ -340,10 +339,10 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits)}
       $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeCharacter)}
     >
-      <Division>
+      <Character $display={Display.BLOCK}>
         {negativeElement}
         {numberElement}
-      </Division>
+      </Character>
     </HorizontalAnimation>
   );
 };
@@ -392,7 +391,8 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
   });
 
   const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
-  const divisionElementMapper: ElementKeyMapper = useElementKeyMapper(Division);
+
+  const digitElementMapper = (digit: number): JSX.Element => <Digit $display={Display.BLOCK}>{digit}</Digit>;
 
   const verticalAnimationElementMapper = (digits: number[]): JSX.Element => (
     <VerticalAnimation
@@ -400,7 +400,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
     >
-      {digits.map<JSX.Element>(divisionElementMapper)}
+      {digits.map<JSX.Element>(digitElementMapper).map<JSX.Element>(fragmentElementMapper)}
     </VerticalAnimation>
   );
 

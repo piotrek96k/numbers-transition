@@ -211,13 +211,9 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   }
 `;
 
-type DivisionStyledComponent = StyledComponent<HTMLDivElement>;
+type CharacterStyledComponent = StyledComponent<HTMLDivElement, CharacterProps>;
 
-export const Division: DivisionStyledComponent = styled.div``;
-
-type CharacterStyledComponent = ExtensionStyledComponent<DivisionStyledComponent, CharacterProps>;
-
-export const Character: CharacterStyledComponent = styled<DivisionStyledComponent>(Division)<CharacterProps>`
+export const Character: CharacterStyledComponent = styled.div<CharacterProps>`
   ${visible};
   ${display};
   overflow: hidden;
