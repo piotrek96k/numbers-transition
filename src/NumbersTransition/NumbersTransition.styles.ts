@@ -148,17 +148,21 @@ const verticalAnimationAttrs: AnimationTypeProps<AnimationType.VERTICAL> = {
   $animationType: AnimationType.VERTICAL,
 };
 
-interface CharacterProps {
+interface VisibilityProps {
   $visible?: boolean;
+}
+interface DisplayProps {
   $display?: Display;
 }
 
-const visible: RuleSet<CharacterProps> = css<CharacterProps>`
-  color: ${({ $visible = true }: CharacterProps): string => ($visible ? 'inherit' : 'transparent')};
+interface CharacterProps extends VisibilityProps, DisplayProps {}
+
+const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
+  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
 `;
 
-const display: RuleSet<CharacterProps> = css<CharacterProps>`
-  display: ${({ $display = Display.INLINE }: CharacterProps): string =>
+const display: RuleSet<DisplayProps> = css<DisplayProps>`
+  display: ${({ $display = Display.INLINE }: DisplayProps): string =>
     $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
 `;
 
