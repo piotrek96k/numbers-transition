@@ -15,8 +15,8 @@ export type StyledComponent<T, U extends object = BaseObject> = StyledComponentB
   Substitute<HTMLDetailedElement<T>, U>
 >;
 
-export type ExtensionStyledComponent<T extends KnownTarget> = StyledComponentBase<
-  Substitute<ComponentPropsWithRef<T> & BaseObject, BaseObject>
+export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+  Substitute<ComponentPropsWithRef<T> & BaseObject, U>
 >;
 
 export type AttributesStyledComponent<

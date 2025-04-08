@@ -1,10 +1,12 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { BaseObject, Keyframes } from 'styled-components/dist/types';
+import { Keyframes } from 'styled-components/dist/types';
 import {
   AnimationDirection,
   AnimationType,
+  Display,
   HorizontalAnimationDirection,
   Numbers,
+  Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import {
@@ -16,27 +18,46 @@ import {
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
-interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection> {
+interface AnimationTypeProps<T extends AnimationType> {
   $animationType: T;
-  $animationDirection: U;
+}
+interface AnimationDirectionProps<T extends AnimationDirection> {
+  $animationDirection: T;
+}
+interface AnimationDurationProps {
   $animationDuration: number;
+}
+interface AnimationTimingFunctionProps {
   $animationTimingFunction: AnimationTimingFunction;
+}
+interface AnimationDelayProps {
   $animationDelay?: number;
 }
 
-interface HorizontalAnimationProps
-  extends AnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection> {
+type UnselectedAnimationTypeProps = AnimationTypeProps<AnimationType>;
+type UnselectedAnimationDirectionProps = AnimationDirectionProps<AnimationDirection>;
+
+interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection>
+  extends AnimationTypeProps<T>,
+    AnimationDirectionProps<U>,
+    AnimationDurationProps,
+    AnimationTimingFunctionProps,
+    AnimationDelayProps {}
+
+interface AnimationWidthProps {
   $animationStartWidth: number;
   $animationEndWidth: number;
 }
+
+interface HorizontalAnimationProps
+  extends AnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection>,
+    AnimationWidthProps {}
 
 type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
-type PickAnimationType<T extends AnimationProps> = Pick<T, '$animationType'>;
-
-type OmitAnimationType<T extends AnimationProps> = Omit<T, '$animationType'>;
+type OmitAnimationType<T extends AnimationProps> = Omit<T, keyof UnselectedAnimationTypeProps>;
 
 const animationKeyframesMapper =
   (mapper: (value: number) => RuleSet<object>): ((value: number, index: number, array: number[]) => RuleSet<object>) =>
@@ -69,10 +90,7 @@ const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => cs
   transform: translateY(${keyframeValue}%);
 `;
 
-const horizontalAnimation = ({
-  $animationStartWidth,
-  $animationEndWidth,
-}: OmitAnimationType<HorizontalAnimationProps>): Keyframes =>
+const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
   animationKeyframes(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
 
 const verticalAnimation: Keyframes = animationKeyframes(verticalAnimationKeyframe, [
@@ -93,22 +111,23 @@ const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${(props: AnimationProps): Keyframes => getAnimation(props)};
 `;
 
-const animationDuration: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-duration: ${({ $animationDuration }: AnimationProps): number => $animationDuration}ms;
+const animationDuration: RuleSet<AnimationDurationProps> = css<AnimationDurationProps>`
+  animation-duration: ${({ $animationDuration }: AnimationDurationProps): number => $animationDuration}ms;
 `;
 
-const animationDirection: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-direction: ${({ $animationDirection }: AnimationProps): string => $animationDirection.toLowerCase()};
+const animationDirection: RuleSet<UnselectedAnimationDirectionProps> = css<UnselectedAnimationDirectionProps>`
+  animation-direction: ${({ $animationDirection }: UnselectedAnimationDirectionProps): string =>
+    $animationDirection.toLowerCase()};
 `;
 
-const animationTimingFunction: RuleSet<AnimationProps> = css<AnimationProps>`
+const animationTimingFunction: RuleSet<AnimationTimingFunctionProps> = css<AnimationTimingFunctionProps>`
   animation-timing-function: cubic-bezier(
-    ${({ $animationTimingFunction }: AnimationProps): string => $animationTimingFunction.join()}
+    ${({ $animationTimingFunction }: AnimationTimingFunctionProps): string => $animationTimingFunction.join()}
   );
 `;
 
-const animationDelay: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-delay: ${({ $animationDelay }: AnimationProps): number => $animationDelay ?? Numbers.ZERO}ms;
+const animationDelay: RuleSet<AnimationDelayProps> = css<AnimationDelayProps>`
+  animation-delay: ${({ $animationDelay = Numbers.ZERO }: AnimationDelayProps): number => $animationDelay}ms;
 `;
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
@@ -121,20 +140,26 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-const horizontalAnimationAttrs: PickAnimationType<HorizontalAnimationProps> = {
+const horizontalAnimationAttrs: AnimationTypeProps<AnimationType.HORIZONTAL> = {
   $animationType: AnimationType.HORIZONTAL,
 };
 
-const verticalAnimationAttrs: PickAnimationType<VerticalAnimationProps> = {
+const verticalAnimationAttrs: AnimationTypeProps<AnimationType.VERTICAL> = {
   $animationType: AnimationType.VERTICAL,
 };
 
-interface VisibilityProps {
+interface CharacterProps {
   $visible?: boolean;
+  $display?: Display;
 }
 
-const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
-  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
+const visible: RuleSet<CharacterProps> = css<CharacterProps>`
+  color: ${({ $visible = true }: CharacterProps): string => ($visible ? 'inherit' : 'transparent')};
+`;
+
+const display: RuleSet<CharacterProps> = css<CharacterProps>`
+  display: ${({ $display = Display.INLINE }: CharacterProps): string =>
+    $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
 `;
 
 type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
@@ -182,12 +207,16 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   }
 `;
 
-type CharacterStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
+type DivisionStyledComponent = StyledComponent<HTMLDivElement>;
 
-export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
+export const Division: DivisionStyledComponent = styled.div``;
+
+type CharacterStyledComponent = ExtensionStyledComponent<DivisionStyledComponent, CharacterProps>;
+
+export const Character: CharacterStyledComponent = styled<DivisionStyledComponent>(Division)<CharacterProps>`
   ${visible};
+  ${display};
   overflow: hidden;
-  display: inline-block;
   text-align: end;
   height: inherit;
   white-space: pre;
@@ -195,12 +224,6 @@ export const Character: CharacterStyledComponent = styled.div<VisibilityProps>`
 
 type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
 
-export const Digit: DigitStyledComponent = styled<CharacterStyledComponent, BaseObject>(Character)`
+export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character)`
   min-width: ${Numbers.ONE}ch;
-`;
-
-type DivisionStyledComponent = StyledComponent<HTMLDivElement, VisibilityProps>;
-
-export const Division: DivisionStyledComponent = styled.div<VisibilityProps>`
-  ${visible};
 `;

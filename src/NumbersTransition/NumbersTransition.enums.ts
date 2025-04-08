@@ -1,3 +1,8 @@
+export enum Display {
+  BLOCK = 'BLOCK',
+  INLINE = 'INLINE_BLOCK',
+}
+
 export enum AnimationType {
   HORIZONTAL = 'HORIZONTAL',
   VERTICAL = 'VERTICAL',
@@ -93,6 +98,7 @@ export const RegularExpressions = {
 export enum Strings {
   EMPTY = '',
   MINUS = '-',
+  UNDERSCORE = '_',
 }
 
 export enum Numbers {

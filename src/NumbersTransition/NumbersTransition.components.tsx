@@ -3,6 +3,7 @@ import {
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
+  Display,
   EmptyCharacter,
   HorizontalAnimationDirection,
   NegativeCharacter,
@@ -82,12 +83,18 @@ export const EmptyElement: FC = (): ReactNode => <Character>{EmptyCharacter.VALU
 interface NegativeElementProps {
   negativeCharacter: NegativeCharacter;
   visible?: boolean;
+  display?: Display;
 }
 
 export const NegativeElement: FC<NegativeElementProps> = ({
   negativeCharacter,
-  visible = true,
-}: NegativeElementProps): ReactNode => <Character $visible={visible}>{negativeCharacter}</Character>;
+  visible,
+  display,
+}: NegativeElementProps): ReactNode => (
+  <Character $visible={visible} $display={display}>
+    {negativeCharacter}
+  </Character>
+);
 
 interface HorizontalAnimationNegativeElementProps {
   negativeCharacter: NegativeCharacter;
@@ -157,7 +164,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : Numbers.ZERO;
 
   const negativeCharacterElementMapper = (visible: boolean): JSX.Element => (
-    <Division $visible={visible}>{negativeCharacter}</Division>
+    <NegativeElement negativeCharacter={negativeCharacter} visible={visible} display={Display.BLOCK} />
   );
 
   const verticalAnimationElement: JSX.Element = (
