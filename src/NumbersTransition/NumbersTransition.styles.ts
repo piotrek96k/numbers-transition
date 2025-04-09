@@ -98,7 +98,7 @@ const verticalAnimation: Keyframes = animationKeyframes(verticalAnimationKeyfram
   Numbers.MINUS_ONE_HUNDRED,
 ]);
 
-const getAnimation = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
+const animationType = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
   switch ($animationType) {
     case AnimationType.HORIZONTAL:
       return horizontalAnimation(<OmitAnimationType<HorizontalAnimationProps>>restProps);
@@ -108,7 +108,7 @@ const getAnimation = ({ $animationType, ...restProps }: AnimationProps): Keyfram
 };
 
 const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-name: ${(props: AnimationProps): Keyframes => getAnimation(props)};
+  animation-name: ${animationType};
 `;
 
 const animationDuration: RuleSet<AnimationDurationProps> = css<AnimationDurationProps>`
@@ -157,9 +157,14 @@ interface DisplayProps {
 
 interface CharacterProps extends VisibilityProps, DisplayProps {}
 
-const visible: RuleSet<VisibilityProps> = css<VisibilityProps>`
-  color: ${({ $visible = true }: VisibilityProps): string => ($visible ? 'inherit' : 'transparent')};
-`;
+const visible = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
+  !$visible &&
+  css`
+    color: transparent;
+    &::selection {
+      color: transparent;
+    }
+  `;
 
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ $display = Display.INLINE }: DisplayProps): string =>
