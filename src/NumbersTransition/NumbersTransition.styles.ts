@@ -160,10 +160,7 @@ interface CharacterProps extends VisibilityProps, DisplayProps {}
 const visible = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
   !$visible &&
   css`
-    color: transparent;
-    &::selection {
-      color: transparent;
-    }
+    opacity: ${Numbers.ZERO};
   `;
 
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
