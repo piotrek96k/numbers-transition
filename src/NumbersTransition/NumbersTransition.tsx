@@ -81,44 +81,47 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
 
-  const notValueOnAnimationStart = (value: bigint): boolean => value !== previousValueOnAnimationStartBigInt;
-
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
   const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
   const omitAnimation: boolean = isValueValid && value !== previousValueOnAnimationEnd && !hasValueChanged;
-  const restartAnimation: boolean = [valueBigInt, previousValueOnAnimationEndBigInt].every(notValueOnAnimationStart);
+  const restartAnimation: boolean =
+    valueBigInt !== previousValueOnAnimationStartBigInt &&
+    previousValueOnAnimationEndBigInt !== previousValueOnAnimationStartBigInt;
   const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
 
-  const hasAtLeastTwoAnimations: boolean =
+  const hasThreeAnimations: boolean =
     (previousValueOnAnimationEndDigits.length < valueDigits.length &&
       previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
 
   const numberOfAnimations: NumberOfAnimations = hasSignChanged
-    ? hasAtLeastTwoAnimations
+    ? hasThreeAnimations
       ? NumberOfAnimations.THREE
       : NumberOfAnimations.TWO
     : hasTheSameNumberOfDigits
       ? NumberOfAnimations.ONE
       : NumberOfAnimations.TWO;
 
+  const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
+    ? animationTransition === AnimationTransition.NONE
+      ? previousValueOnAnimationEndBigInt > valueBigInt
+      : previousValueOnAnimationEndBigInt < valueBigInt
+    : animationTransition === AnimationTransition.NONE
+      ? previousValueOnAnimationEndDigits.length < valueDigits.length
+      : previousValueOnAnimationEndDigits.length > valueDigits.length;
+
   const renderHorizontalAnimation: boolean =
-    (numberOfAnimations === NumberOfAnimations.TWO &&
-      (hasSignChanged
-        ? animationTransition === AnimationTransition.NONE
-          ? previousValueOnAnimationEndBigInt > valueBigInt
-          : previousValueOnAnimationEndBigInt < valueBigInt
-        : animationTransition === AnimationTransition.NONE
-          ? previousValueOnAnimationEndDigits.length < valueDigits.length
-          : previousValueOnAnimationEndDigits.length > valueDigits.length)) ||
+    (numberOfAnimations === NumberOfAnimations.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
     (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
+
+  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
+    numberOfAnimations === NumberOfAnimations.THREE &&
+    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransition.NONE);
 
   const renderNegativeElement: boolean =
     (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
-    (renderHorizontalAnimation &&
-      numberOfAnimations === NumberOfAnimations.THREE &&
-      previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransition.NONE));
+    (renderHorizontalAnimation && renderNegativeElementWhenNumberOfAnimationsIsThree);
 
   useEffect((): void => {
     if (omitAnimation) {
