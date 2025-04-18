@@ -1,5 +1,6 @@
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { Keyframes } from 'styled-components/dist/types';
+import { BaseObject, IStyledComponent, Keyframes, KnownTarget, Substitute } from 'styled-components/dist/types';
+import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import {
   AnimationDirection,
   AnimationType,
@@ -9,12 +10,27 @@ import {
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import {
-  AttributesStyledComponent,
-  ExtensionStyledComponent,
-  HTMLDetailedElement,
-  StyledComponent,
-} from './NumbersTransition.types';
+
+type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
+
+type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
+
+type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
+
+type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+  Substitute<ComponentPropsWithRef<T> & BaseObject, U>
+>;
+
+type AttributesStyledComponent<
+  T extends KnownTarget,
+  U extends object,
+  V extends object = BaseObject,
+> = StyledComponentBase<
+  Substitute<
+    Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>,
+    BaseObject
+  >
+>;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 

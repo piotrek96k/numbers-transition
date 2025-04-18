@@ -7,7 +7,7 @@ import {
 } from './NumbersTransition/NumbersTransition.enums';
 import { AnimationTimingFunction } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition from './NumbersTransition/NumbersTransition';
-import { BigDecimal } from './NumbersTransition/NumbersTransition.types';
+import { BigDecimal } from './NumbersTransition/NumbersTransition.hooks';
 
 export {
   AnimationTimingFunctions,

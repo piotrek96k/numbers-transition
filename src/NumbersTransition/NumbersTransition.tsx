@@ -20,8 +20,14 @@ import {
   NumberOfAnimations,
   Numbers,
 } from './NumbersTransition.enums';
-import { BigDecimal, ReadOnly } from './NumbersTransition.types';
-import { AnimationValuesTuple, ValidationTuple, useAnimationValues, useValidation } from './NumbersTransition.hooks';
+import {
+  AnimationValuesTuple,
+  BigDecimal,
+  ReadOnly,
+  ValidationTuple,
+  useAnimationValues,
+  useValidation,
+} from './NumbersTransition.hooks';
 
 interface NumbersTransitionProps {
   initialValue?: BigDecimal;

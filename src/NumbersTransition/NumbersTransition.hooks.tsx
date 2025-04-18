@@ -16,7 +16,12 @@ import {
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
-import { BigDecimal, ReadOnly } from './NumbersTransition.types';
+
+export type ReadOnly<T> = {
+  +readonly [K in keyof T]: ReadOnly<T[K]>;
+};
+
+export type BigDecimal = number | bigint | `${number}`;
 
 export type ValidationTuple = [BigDecimal, boolean];
 

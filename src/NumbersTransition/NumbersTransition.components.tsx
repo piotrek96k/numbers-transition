@@ -16,6 +16,7 @@ import {
   CubicBezierTuple,
   ElementKeyMapper,
   GetCharacterWidth,
+  ReadOnly,
   useAnimationTimingFunction,
   useCharacterWidth,
   useCubicBezier,
@@ -30,7 +31,6 @@ import {
   HorizontalAnimation,
   VerticalAnimation,
 } from './NumbersTransition.styles';
-import { ReadOnly } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
