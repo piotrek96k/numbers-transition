@@ -7,11 +7,12 @@ import {
   Display,
   HorizontalAnimationDirection,
   Numbers,
+  Runtime,
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 
-type StyledComponentBase<T extends object> = IStyledComponent<'web', T>;
+type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
 type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 

@@ -1,3 +1,7 @@
+export enum Runtime {
+  WEB = 'web',
+}
+
 export enum Display {
   BLOCK = 'BLOCK',
   INLINE = 'INLINE_BLOCK',
