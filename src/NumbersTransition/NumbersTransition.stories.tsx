@@ -1,5 +1,6 @@
 import { ComponentProps } from 'react';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
+import { RuleSet, css } from 'styled-components';
 import {
   AnimationTimingFunctions,
   DecimalSeparator,
@@ -48,6 +49,11 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
+const style: RuleSet<object> = css`
+  font-size: ${Numbers.ONE_HUNDRED}px;
+  color: #f0ff95;
+`;
+
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   initialValue: Numbers.ZERO,
   value: DefaultValue.VALUE,
@@ -60,6 +66,7 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
   verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
+  css: style,
 };
 
 export const Primary: Story = {

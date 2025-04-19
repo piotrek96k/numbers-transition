@@ -21,15 +21,17 @@ export type ReadOnly<T> = {
   +readonly [K in keyof T]: ReadOnly<T[K]>;
 };
 
+export type UncheckedBigDecimal = number | bigint | string;
+
 export type BigDecimal = number | bigint | `${number}`;
 
 export type ValidationTuple = [BigDecimal, boolean];
 
-type UseValidation = (value?: BigDecimal) => ValidationTuple;
+type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
 
-export const useValidation: UseValidation = (value?: BigDecimal): ValidationTuple => {
+export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
   const isValid: boolean = typeof value !== Types.UNDEFINED && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
-  const validValue: BigDecimal = isValid ? value! : Numbers.ZERO;
+  const validValue: BigDecimal = isValid ? (value as BigDecimal) : Numbers.ZERO;
 
   return [validValue, isValid];
 };

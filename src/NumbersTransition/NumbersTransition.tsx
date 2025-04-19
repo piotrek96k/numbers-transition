@@ -1,4 +1,5 @@
-import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import { CSSProperties, Dispatch, JSX, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import { RuleSet } from 'styled-components';
 import {
   Conditional,
   EmptyElement,
@@ -24,14 +25,15 @@ import {
   AnimationValuesTuple,
   BigDecimal,
   ReadOnly,
+  UncheckedBigDecimal,
   ValidationTuple,
   useAnimationValues,
   useValidation,
 } from './NumbersTransition.hooks';
 
-interface NumbersTransitionProps {
-  initialValue?: BigDecimal;
-  value?: BigDecimal;
+export interface NumbersTransitionProps<T extends object = object> {
+  initialValue?: UncheckedBigDecimal;
+  value?: UncheckedBigDecimal;
   precision?: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
@@ -41,9 +43,13 @@ interface NumbersTransitionProps {
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   horizontalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   verticalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  css?: RuleSet<T>;
+  cssProps?: T;
+  className?: string;
+  style?: CSSProperties;
 }
 
-const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionProps): ReactNode => {
+const NumbersTransition = <T extends object = object>(props: NumbersTransitionProps<T>): ReactNode => {
   const {
     initialValue,
     value,
@@ -58,7 +64,11 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     horizontalAnimationTimingFunction = AnimationTimingFunctions.EASE,
     verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
-  }: NumbersTransitionProps = props;
+    css,
+    cssProps,
+    className,
+    style,
+  }: NumbersTransitionProps<T> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
@@ -215,7 +225,14 @@ const NumbersTransition: FC<NumbersTransitionProps> = (props: NumbersTransitionP
   );
 
   return (
-    <Container ref={containerRef} onAnimationEnd={onAnimationEnd}>
+    <Container
+      {...cssProps}
+      $css={css}
+      className={className}
+      style={style}
+      ref={containerRef}
+      onAnimationEnd={onAnimationEnd}
+    >
       <Optional condition={renderNegativeElement}>
         <NegativeElement negativeCharacter={negativeCharacter} />
       </Optional>

@@ -6,8 +6,8 @@ import {
   NegativeCharacterAnimationMode,
 } from './NumbersTransition/NumbersTransition.enums';
 import { AnimationTimingFunction } from './NumbersTransition/NumbersTransition.styles';
-import NumbersTransition from './NumbersTransition/NumbersTransition';
-import { BigDecimal } from './NumbersTransition/NumbersTransition.hooks';
+import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
+import { BigDecimal, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.hooks';
 
 export {
   AnimationTimingFunctions,
@@ -17,6 +17,6 @@ export {
   NegativeCharacterAnimationMode,
 };
 
-export type { AnimationTimingFunction, BigDecimal };
+export type { AnimationTimingFunction, BigDecimal, NumbersTransitionProps, UncheckedBigDecimal };
 
 export default NumbersTransition;

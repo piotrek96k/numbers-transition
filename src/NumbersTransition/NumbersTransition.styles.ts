@@ -5,6 +5,7 @@ import {
   AnimationDirection,
   AnimationType,
   Display,
+  HTMLElements,
   HorizontalAnimationDirection,
   Numbers,
   Runtime,
@@ -176,7 +177,7 @@ interface CharacterProps extends VisibilityProps, DisplayProps {}
 
 const visible = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
   !$visible &&
-  css`
+  css<object>`
     opacity: ${Numbers.ZERO};
   `;
 
@@ -185,11 +186,14 @@ const display: RuleSet<DisplayProps> = css<DisplayProps>`
     $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
 `;
 
-type ContainerStyledComponent = StyledComponent<HTMLDivElement>;
+interface ContainerProps extends Record<string, unknown> {
+  $css?: RuleSet<never>;
+}
 
-export const Container: ContainerStyledComponent = styled.div`
-  font-size: ${Numbers.ONE_HUNDRED}px;
-  color: #f0ff95;
+type ContainerStyledComponent = StyledComponent<HTMLDivElement, ContainerProps>;
+
+export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
+  ${({ $css = css<object>`` }: ContainerProps): RuleSet<object> => <RuleSet<object>>$css};
   position: relative;
   white-space: nowrap;
   max-width: ${Numbers.ONE_HUNDRED}%;
@@ -198,7 +202,7 @@ export const Container: ContainerStyledComponent = styled.div`
 `;
 
 type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledComponent<
-  'div',
+  HTMLElements.DIV,
   HTMLDetailedElement<HTMLDivElement>,
   OmitAnimationType<T>
 >;
