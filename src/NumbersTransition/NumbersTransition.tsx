@@ -31,6 +31,13 @@ import {
   useValidation,
 } from './NumbersTransition.hooks';
 
+export interface View<T extends object = object> {
+  css?: RuleSet<T>;
+  cssProps?: T;
+  className?: string;
+  style?: CSSProperties;
+}
+
 export interface NumbersTransitionProps<T extends object = object> {
   initialValue?: UncheckedBigDecimal;
   value?: UncheckedBigDecimal;
@@ -43,10 +50,7 @@ export interface NumbersTransitionProps<T extends object = object> {
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   horizontalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   verticalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
-  css?: RuleSet<T>;
-  cssProps?: T;
-  className?: string;
-  style?: CSSProperties;
+  view?: View<T>;
 }
 
 const NumbersTransition = <T extends object = object>(props: NumbersTransitionProps<T>): ReactNode => {
@@ -64,10 +68,7 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     horizontalAnimationTimingFunction = AnimationTimingFunctions.EASE,
     verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
-    css,
-    cssProps,
-    className,
-    style,
+    view: { css, cssProps, className, style } = {},
   }: NumbersTransitionProps<T> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);

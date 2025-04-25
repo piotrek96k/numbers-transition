@@ -66,7 +66,9 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
   verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
-  css: style,
+  view: {
+    css: style,
+  },
 };
 
 export const Primary: Story = {
