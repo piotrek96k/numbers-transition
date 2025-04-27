@@ -149,6 +149,6 @@ export enum DefaultAnimationDuration {
   VERTICAL_ANIMATION = 5_000,
 }
 
-export enum DefaultValue {
+export enum StorybookDefaultValue {
   VALUE = 123_456_789,
 }

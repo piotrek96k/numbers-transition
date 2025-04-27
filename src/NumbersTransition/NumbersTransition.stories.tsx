@@ -5,11 +5,11 @@ import {
   AnimationTimingFunctions,
   DecimalSeparator,
   DefaultAnimationDuration,
-  DefaultValue,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   Numbers,
+  StorybookDefaultValue,
 } from './NumbersTransition.enums';
 import NumbersTransition from './NumbersTransition';
 
@@ -51,12 +51,12 @@ const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeM
 
 const style: RuleSet<object> = css`
   font-size: ${Numbers.ONE_HUNDRED}px;
-  color: #f0ff95;
+  color: rgb(240, 255, 149);
 `;
 
 const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   initialValue: Numbers.ZERO,
-  value: DefaultValue.VALUE,
+  value: StorybookDefaultValue.VALUE,
   precision: Numbers.ZERO,
   horizontalAnimationDuration: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
   verticalAnimationDuration: DefaultAnimationDuration.VERTICAL_ANIMATION,
@@ -66,9 +66,7 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
   verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
-  view: {
-    css: style,
-  },
+  css: style,
 };
 
 export const Primary: Story = {
