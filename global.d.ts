@@ -1,9 +1,6 @@
 declare global {
-  interface ArrayConstructor {
-    depth<T>(array: T | T[]): number;
-  }
-
   interface Array<T> {
+    depth(): number;
     invert(invert: boolean): [...this];
     map<U, V = { [K in keyof this]: U }>(
       callbackfn: (value: T, index: number, array: [...this]) => U,

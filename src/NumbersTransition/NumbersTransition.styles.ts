@@ -220,9 +220,7 @@ const parseKeyframeFunctions = (
   [keyframeFunction].flat<(KeyframeFunctionFactory<any, any> | KeyframeFunctionFactory<any, any>[])[], Numbers.ONE>();
 
 const parseKeyframes = (keyframes: Keyframe<any>[] | Keyframe<any>[][] = []): Keyframe<any>[][] =>
-  <Keyframe<any>[][]>(
-    (Array.depth<Keyframe<any> | Keyframe<any>[]>(keyframes) === Numbers.ONE ? [keyframes] : keyframes)
-  );
+  <Keyframe<any>[][]>(keyframes.depth() === Numbers.ONE ? [keyframes] : keyframes);
 
 const customAnimationName = <T>(
   keyframeFunction: KeyframeFunctionFactory<any, any>[],
