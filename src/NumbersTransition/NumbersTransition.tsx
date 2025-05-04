@@ -1,5 +1,5 @@
 import { CSSProperties, Dispatch, JSX, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
-import { RuleSet } from 'styled-components';
+import { ThemeProvider } from 'styled-components';
 import {
   Conditional,
   EmptyElement,
@@ -9,7 +9,13 @@ import {
   Optional,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
-import { AnimationTimingFunction, Container } from './NumbersTransition.styles';
+import {
+  AnimationTimingFunction,
+  Container,
+  CssRule,
+  Keyframe,
+  KeyframeFunctionFactory,
+} from './NumbersTransition.styles';
 import {
   AnimationTimingFunctions,
   AnimationTransition,
@@ -20,6 +26,7 @@ import {
   NegativeCharacterAnimationMode,
   NumberOfAnimations,
   Numbers,
+  Strings,
 } from './NumbersTransition.enums';
 import {
   AnimationValuesTuple,
@@ -28,17 +35,20 @@ import {
   UncheckedBigDecimal,
   ValidationTuple,
   useAnimationValues,
+  useTotalAnimationDuration,
   useValidation,
 } from './NumbersTransition.hooks';
 
-interface View<T extends object = object> {
-  css?: RuleSet<T>;
+export interface View<T extends object = object, U = unknown> {
+  css?: CssRule<T> | CssRule<T>[];
   cssProps?: T;
-  className?: string;
+  keyframeFunction?: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[];
+  keyframes?: Keyframe<U>[] | Keyframe<U>[][];
+  className?: string | string[];
   style?: CSSProperties;
 }
 
-export interface NumbersTransitionProps<T extends object = object> extends View<T> {
+export interface NumbersTransitionProps<T extends object = object, U = unknown> {
   initialValue?: UncheckedBigDecimal;
   value?: UncheckedBigDecimal;
   precision?: number;
@@ -50,9 +60,10 @@ export interface NumbersTransitionProps<T extends object = object> extends View<
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   horizontalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   verticalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  view?: View<T, U>;
 }
 
-const NumbersTransition = <T extends object = object>(props: NumbersTransitionProps<T>): ReactNode => {
+const NumbersTransition = <T extends object = object, U = unknown>(props: NumbersTransitionProps<T, U>): ReactNode => {
   const {
     initialValue,
     value,
@@ -67,11 +78,8 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     horizontalAnimationTimingFunction = AnimationTimingFunctions.EASE,
     verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
-    css,
-    cssProps,
-    className,
-    style,
-  }: NumbersTransitionProps<T> = props;
+    view: { css, cssProps, keyframeFunction, keyframes, className, style } = {},
+  }: NumbersTransitionProps<T, U> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
@@ -114,13 +122,15 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
       previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
 
-  const numberOfAnimations: NumberOfAnimations = hasSignChanged
-    ? hasThreeAnimations
-      ? NumberOfAnimations.THREE
-      : NumberOfAnimations.TWO
-    : hasTheSameNumberOfDigits
-      ? NumberOfAnimations.ONE
-      : NumberOfAnimations.TWO;
+  const numberOfAnimations: NumberOfAnimations = renderAnimation
+    ? hasSignChanged
+      ? hasThreeAnimations
+        ? NumberOfAnimations.THREE
+        : NumberOfAnimations.TWO
+      : hasTheSameNumberOfDigits
+        ? NumberOfAnimations.ONE
+        : NumberOfAnimations.TWO
+    : NumberOfAnimations.ZERO;
 
   const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
     ? animationTransition === AnimationTransition.NONE
@@ -141,6 +151,12 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
   const renderNegativeElement: boolean =
     (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
     (renderHorizontalAnimation && renderNegativeElementWhenNumberOfAnimationsIsThree);
+
+  const totalAnimationDuration: number = useTotalAnimationDuration({
+    numberOfAnimations,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+  });
 
   useEffect((): void => {
     if (omitAnimation) {
@@ -194,6 +210,7 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
       numberOfDigitsDifference={numberOfDigitsDifference}
       hasSignChanged={hasSignChanged}
       numberOfAnimations={numberOfAnimations}
+      onAnimationEnd={onAnimationEnd}
     />
   );
 
@@ -210,6 +227,7 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
+      onAnimationEnd={onAnimationEnd}
     />
   );
 
@@ -228,22 +246,25 @@ const NumbersTransition = <T extends object = object>(props: NumbersTransitionPr
   );
 
   return (
-    <Container
-      {...cssProps}
-      $css={css}
-      className={className}
-      style={style}
-      ref={containerRef}
-      onAnimationEnd={onAnimationEnd}
-    >
-      <Optional condition={renderNegativeElement}>
-        <NegativeElement negativeCharacter={negativeCharacter} />
-      </Optional>
-      <Conditional condition={renderAnimation}>
-        {animationElement}
-        {valueElement}
-      </Conditional>
-    </Container>
+    <ThemeProvider theme={{ $totalAnimationDuration: totalAnimationDuration }}>
+      <Container
+        {...cssProps}
+        $css={css}
+        $keyframeFunction={keyframeFunction}
+        $keyframes={keyframes}
+        className={[className].flat<(string | string[] | undefined)[], Numbers.ONE>().join(Strings.SPACE)}
+        style={style}
+        ref={containerRef}
+      >
+        <Optional condition={renderNegativeElement}>
+          <NegativeElement negativeCharacter={negativeCharacter} />
+        </Optional>
+        <Conditional condition={renderAnimation}>
+          {animationElement}
+          {valueElement}
+        </Conditional>
+      </Container>
+    </ThemeProvider>
   );
 };
 

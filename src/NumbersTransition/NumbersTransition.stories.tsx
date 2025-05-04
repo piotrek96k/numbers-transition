@@ -11,6 +11,7 @@ import {
   Numbers,
   StorybookDefaultValue,
 } from './NumbersTransition.enums';
+import { Keyframe, KeyframeFunctionFactory, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
 import NumbersTransition from './NumbersTransition';
 
 type SelectType =
@@ -21,7 +22,7 @@ type SelectType =
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
-type Story = StoryObj<typeof NumbersTransition>;
+type Story = StoryObj<typeof NumbersTransition<NumbersTransitionExecutionContext, number>>;
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
@@ -49,12 +50,30 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
-const style: RuleSet<object> = css`
-  font-size: ${Numbers.ONE_HUNDRED}px;
-  color: rgb(240, 255, 149);
+const opacityKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
+  opacity: ${keyframeValue};
 `;
 
-const args: Partial<ComponentProps<typeof NumbersTransition>> = {
+const opacityKeyframeFunction: KeyframeFunctionFactory<object, number> = ({
+  theme: { $totalAnimationDuration },
+}: NumbersTransitionExecutionContext): ((keyframeValue: number) => RuleSet<object>) | undefined =>
+  $totalAnimationDuration ? opacityKeyframe : undefined;
+
+const opacityKeyframes: Keyframe<number>[] = [{ value: Numbers.ONE }, { value: Numbers.ONE / Numbers.THREE }];
+
+const opacityAnimationDuration = ({ theme: { $totalAnimationDuration } }: NumbersTransitionExecutionContext): number =>
+  $totalAnimationDuration;
+
+const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionExecutionContext>`
+  font-size: ${Numbers.FIVE}rem;
+  color: #f0ff95;
+  animation-duration: calc(${opacityAnimationDuration}ms / ${Numbers.TWO});
+  animation-direction: alternate;
+  animation-iteration-count: ${Numbers.TWO};
+  animation-fill-mode: forwards;
+`;
+
+const args: ComponentProps<typeof NumbersTransition<NumbersTransitionExecutionContext, number>> = {
   initialValue: Numbers.ZERO,
   value: StorybookDefaultValue.VALUE,
   precision: Numbers.ZERO,
@@ -66,7 +85,7 @@ const args: Partial<ComponentProps<typeof NumbersTransition>> = {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
   verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
-  css: style,
+  view: { css: style, keyframeFunction: opacityKeyframeFunction, keyframes: opacityKeyframes },
 };
 
 export const Primary: Story = {

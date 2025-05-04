@@ -17,7 +17,8 @@ export enum AnimationType {
 }
 
 export enum NumberOfAnimations {
-  ONE = 1,
+  ZERO,
+  ONE,
   TWO,
   THREE,
 }
@@ -104,8 +105,10 @@ export const RegularExpressions = {
 } as const;
 
 export enum Strings {
+  COMMA = ',',
   EMPTY = '',
   MINUS = '-',
+  SPACE = ' ',
   UNDERSCORE = '_',
 }
 

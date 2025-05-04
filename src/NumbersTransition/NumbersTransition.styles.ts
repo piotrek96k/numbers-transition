@@ -1,5 +1,13 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { BaseObject, IStyledComponent, Keyframes, KnownTarget, Substitute } from 'styled-components/dist/types';
+import {
+  BaseObject,
+  ExecutionProps,
+  IStyledComponent,
+  Keyframes,
+  KnownTarget,
+  Substitute,
+} from 'styled-components/dist/types';
 import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import {
   AnimationDirection,
@@ -12,6 +20,7 @@ import {
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
+import './NumbersTransition.extensions';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
@@ -33,6 +42,27 @@ type AttributesStyledComponent<
     BaseObject
   >
 >;
+
+export interface NumbersTransitionTheme {
+  $totalAnimationDuration: number;
+}
+
+export interface NumbersTransitionExecutionContext extends ExecutionProps {
+  theme: NumbersTransitionTheme;
+}
+
+export type CssRule<T extends object> = RuleSet<T> | string;
+
+export interface Keyframe<U> {
+  percentage?: number;
+  value: U;
+}
+
+export type KeyframeFunction<T extends object, U> = ((keyframeValue: U) => CssRule<T>) | undefined;
+
+export type KeyframeFunctionFactory<T extends object, U> = (
+  props: NumbersTransitionExecutionContext & T,
+) => KeyframeFunction<T, U>;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
@@ -78,10 +108,10 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 type OmitAnimationType<T extends AnimationProps> = Omit<T, keyof UnselectedAnimationTypeProps>;
 
 const animationKeyframesMapper =
-  (mapper: (value: number) => RuleSet<object>): ((value: number, index: number, array: number[]) => RuleSet<object>) =>
-  (keyframeValue: number, index: number, { length }: number[]): RuleSet<object> => css<object>`
-    ${(index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
-      ${mapper(keyframeValue)};
+  <T>(mapper: (t: T) => CssRule<object>): ((val: Keyframe<T>, index: number, arr: Keyframe<T>[]) => RuleSet<object>) =>
+  ({ value, percentage }: Keyframe<T>, index: number, { length }: Keyframe<T>[]): RuleSet<object> => css<object>`
+    ${percentage ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
+      ${mapper(value)};
     }
   `;
 
@@ -93,11 +123,11 @@ const animationKeyframesReducer = (
   ${currentValue}
 `;
 
-const animationKeyframes = (
-  keyframeMapper: (keyframeValue: number) => RuleSet<object>,
-  keyframeValues: number[],
+const animationKeyframes = <T>(
+  keyframeMapper: (keyframeValue: T) => CssRule<object>,
+  keyframeValues: Keyframe<T>[],
 ): Keyframes => keyframes`
-  ${keyframeValues.map<RuleSet<object>>(animationKeyframesMapper(keyframeMapper)).reduce(animationKeyframesReducer)}
+  ${keyframeValues.map<RuleSet<object>>(animationKeyframesMapper(keyframeMapper)).reduce<RuleSet<object>>(animationKeyframesReducer, css<object>``)}
 `;
 
 const horizontalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
@@ -109,11 +139,14 @@ const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => cs
 `;
 
 const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
-  animationKeyframes(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
+  animationKeyframes<number>(horizontalAnimationKeyframe, [
+    { value: $animationStartWidth },
+    { value: $animationEndWidth },
+  ]);
 
-const verticalAnimation: Keyframes = animationKeyframes(verticalAnimationKeyframe, [
-  Numbers.ZERO,
-  Numbers.MINUS_ONE_HUNDRED,
+const verticalAnimation: Keyframes = animationKeyframes<number>(verticalAnimationKeyframe, [
+  { value: Numbers.ZERO },
+  { value: Numbers.MINUS_ONE_HUNDRED },
 ]);
 
 const animationType = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
@@ -166,34 +199,100 @@ const verticalAnimationAttrs: AnimationTypeProps<AnimationType.VERTICAL> = {
   $animationType: AnimationType.VERTICAL,
 };
 
+interface CssView<T extends object> {
+  $css?: CssRule<T> | CssRule<T>[];
+}
+
+interface KeyframeView<T extends object, U> {
+  $keyframeFunction?: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[];
+  $keyframes?: Keyframe<U>[] | Keyframe<U>[][];
+}
+
+interface StyleView<T extends object, U> extends CssView<T>, KeyframeView<T, U> {}
+
+const customCss: RuleSet<CssView<any>> = css<CssView<any>>`
+  ${({ $css }: CssView<any>): CssRule<object> | undefined => $css};
+`;
+
+const parseKeyframeFunctions = (
+  keyframeFunction: KeyframeFunctionFactory<any, any> | KeyframeFunctionFactory<any, any>[] = [],
+): KeyframeFunctionFactory<any, any>[] =>
+  [keyframeFunction].flat<(KeyframeFunctionFactory<any, any> | KeyframeFunctionFactory<any, any>[])[], Numbers.ONE>();
+
+const parseKeyframes = (keyframes: Keyframe<any>[] | Keyframe<any>[][] = []): Keyframe<any>[][] =>
+  <Keyframe<any>[][]>(
+    (Array.depth<Keyframe<any> | Keyframe<any>[]>(keyframes) === Numbers.ONE ? [keyframes] : keyframes)
+  );
+
+const customAnimationName = <T>(
+  keyframeFunction: KeyframeFunctionFactory<any, any>[],
+  keyframes: Keyframe<any>[][],
+  props: T,
+): RuleSet<object> | false =>
+  !!keyframeFunction.length &&
+  keyframeFunction
+    .map<KeyframeFunction<any, any>>(
+      (keyframeFunctionFactory: KeyframeFunctionFactory<any, any>): KeyframeFunction<any, any> =>
+        keyframeFunctionFactory(props),
+    )
+    .map<Keyframes | undefined>(
+      (keyframeFunction: KeyframeFunction<any, any>, index: number): Keyframes | undefined =>
+        keyframeFunction && animationKeyframes<any>(keyframeFunction, keyframes[index]),
+    )
+    .map<RuleSet<object>>(
+      (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
+        ${keyframes ?? `${keyframes}`}
+      `,
+    )
+    .reduce(
+      (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
+        ${accumulator}${Strings.COMMA}${currentValue}
+      `,
+    );
+
+const customAnimation = <T extends KeyframeView<any, any>>(keyframeProps: T): RuleSet<object> | false => {
+  const { $keyframeFunction, $keyframes, ...restProps }: T = keyframeProps;
+
+  const animationName: RuleSet<object> | false = customAnimationName<Omit<T, keyof KeyframeView<any, any>>>(
+    parseKeyframeFunctions($keyframeFunction),
+    parseKeyframes($keyframes),
+    restProps,
+  );
+
+  return (
+    animationName &&
+    css<object>`
+      animation-name: ${animationName};
+    `
+  );
+};
+
 interface VisibilityProps {
   $visible?: boolean;
 }
-interface DisplayProps {
-  $display?: Display;
-}
 
-interface CharacterProps extends VisibilityProps, DisplayProps {}
-
-const visible = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
+const visibility = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
   !$visible &&
   css<object>`
     opacity: ${Numbers.ZERO};
   `;
+
+interface DisplayProps {
+  $display?: Display;
+}
 
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ $display = Display.INLINE }: DisplayProps): string =>
     $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
 `;
 
-interface ContainerProps extends Record<string, unknown> {
-  $css?: RuleSet<never>;
-}
+interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<any, any> {}
 
 type ContainerStyledComponent = StyledComponent<HTMLDivElement, ContainerProps>;
 
 export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
-  ${({ $css = css<object>`` }: ContainerProps): RuleSet<object> => <RuleSet<object>>$css};
+  ${customCss};
+  ${customAnimation};
   position: relative;
   white-space: nowrap;
   max-width: ${Numbers.ONE_HUNDRED}%;
@@ -234,10 +333,12 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.at
   }
 `;
 
+interface CharacterProps extends VisibilityProps, DisplayProps {}
+
 type CharacterStyledComponent = StyledComponent<HTMLDivElement, CharacterProps>;
 
 export const Character: CharacterStyledComponent = styled.div<CharacterProps>`
-  ${visible};
+  ${visibility};
   ${display};
   overflow: hidden;
   text-align: end;

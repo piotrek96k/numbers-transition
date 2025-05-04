@@ -245,6 +245,7 @@ interface HorizontalAnimationElementProps {
   numberOfDigitsDifference: number;
   hasSignChanged: boolean;
   numberOfAnimations: NumberOfAnimations;
+  onAnimationEnd: () => void;
 }
 
 export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
@@ -268,6 +269,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     numberOfDigitsDifference,
     hasSignChanged,
     numberOfAnimations,
+    onAnimationEnd,
   }: HorizontalAnimationElementProps = props;
 
   const animationDirection: HorizontalAnimationDirection =
@@ -338,6 +340,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationTimingFunction={animationTimingFunction}
       $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits)}
       $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeCharacter)}
+      onAnimationEnd={onAnimationEnd}
     >
       <Character $display={Display.BLOCK}>
         {negativeElement}
@@ -359,6 +362,7 @@ interface VerticalAnimationElementProps {
   currentValue: bigint;
   maxNumberOfDigits: number;
   hasSignChanged: boolean;
+  onAnimationEnd: () => void;
 }
 
 export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
@@ -373,6 +377,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     currentValue,
     maxNumberOfDigits,
     hasSignChanged,
+    onAnimationEnd,
     ...restProps
   }: VerticalAnimationElementProps = props;
 
@@ -394,11 +399,14 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
 
   const digitElementMapper = (digit: number): JSX.Element => <Digit $display={Display.BLOCK}>{digit}</Digit>;
 
-  const verticalAnimationElementMapper = (digits: number[]): JSX.Element => (
+  const verticalAnimationElementMapper = (digits: number[], index: number, { length }: number[][]): JSX.Element => (
     <VerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
+      {...(index === length - Numbers.ONE && {
+        onAnimationEnd,
+      })}
     >
       {digits.map<JSX.Element>(digitElementMapper).map<JSX.Element>(fragmentElementMapper)}
     </VerticalAnimation>

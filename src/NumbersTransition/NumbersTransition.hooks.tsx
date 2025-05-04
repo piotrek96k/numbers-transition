@@ -8,6 +8,7 @@ import {
   EquationSolver,
   HorizontalAnimationDirection,
   NegativeCharacter,
+  NumberOfAnimations,
   NumberPrecision,
   Numbers,
   RegularExpressions,
@@ -15,6 +16,7 @@ import {
   Types,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
+import './NumbersTransition.extensions';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
 
 export type ReadOnly<T> = {
@@ -165,6 +167,31 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
   return [digits, bigInts, numbersOfDigits];
 };
 
+interface UseTotalAnimationDurationOptions {
+  numberOfAnimations: NumberOfAnimations;
+  horizontalAnimationDuration: number;
+  verticalAnimationDuration: number;
+}
+
+type UseTotalAnimationDuration = (options: UseTotalAnimationDurationOptions) => number;
+
+export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
+  numberOfAnimations,
+  horizontalAnimationDuration,
+  verticalAnimationDuration,
+}: UseTotalAnimationDurationOptions): number => {
+  switch (numberOfAnimations) {
+    case NumberOfAnimations.ZERO:
+      return Numbers.ZERO;
+    case NumberOfAnimations.ONE:
+      return verticalAnimationDuration;
+    case NumberOfAnimations.TWO:
+      return horizontalAnimationDuration + verticalAnimationDuration;
+    case NumberOfAnimations.THREE:
+      return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
+  }
+};
+
 interface UseAnimationTimingFunctionOptions {
   animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
   animationDirection: AnimationDirection;
@@ -177,21 +204,18 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
 ): AnimationTimingFunction => {
   const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionOptions = options;
 
-  const mutableAnimationTimingFunctionMapper = (
-    tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
-  ): AnimationTimingFunction[number] => [...tuple];
+  const reverse: boolean = [HorizontalAnimationDirection.LEFT, VerticalAnimationDirection.DOWN].includes(
+    animationDirection,
+  );
 
-  const reverseAnimationTimingFunctionMapper = (
+  const animationTimingFunctionMapper = (
     tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
-  ): AnimationTimingFunction[number] => tuple.map<number>((number: number): number => Numbers.ONE - number);
+  ): AnimationTimingFunction[number] =>
+    reverse ? tuple.map<number>((number: number): number => Numbers.ONE - number) : [...tuple];
 
-  return [HorizontalAnimationDirection.RIGHT, VerticalAnimationDirection.UP].includes(animationDirection)
-    ? animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(
-        mutableAnimationTimingFunctionMapper,
-      )
-    : animationTimingFunction
-        .map<AnimationTimingFunction[number], AnimationTimingFunction>(reverseAnimationTimingFunctionMapper)
-        .reverse();
+  return animationTimingFunction
+    .map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper)
+    .invert(reverse);
 };
 
 type Character = DecimalSeparator | DigitGroupSeparator | NegativeCharacter;
