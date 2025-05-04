@@ -1,4 +1,4 @@
-import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
 import {
   AnimationDirection,
   Canvas,
@@ -232,7 +232,7 @@ export const useCharacterWidth: UseCharacterWidth = (ref: RefObject<HTMLElement 
     Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
   ] = useState<CanvasRenderingContext2D | null>(null);
 
-  useEffect((): void => {
+  useLayoutEffect((): void => {
     const newCanvasContext: CanvasRenderingContext2D = document
       .createElement(Canvas.ELEMENT)
       .getContext(Canvas.CONTEXT_ID)!;
