@@ -44,7 +44,9 @@ type AttributesStyledComponent<
 >;
 
 export interface NumbersTransitionTheme {
-  $totalAnimationDuration: number;
+  $currentAnimation?: AnimationType;
+  $numberOfAnimations?: number;
+  $totalAnimationDuration?: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -222,7 +224,15 @@ const parseKeyframeFunctions = (
 const parseKeyframes = (keyframes: Keyframe<any>[] | Keyframe<any>[][] = []): Keyframe<any>[][] =>
   <Keyframe<any>[][]>(keyframes.depth() === Numbers.ONE ? [keyframes] : keyframes);
 
-const customAnimationName = <T>(
+const customAnimationKeyframesMapper = (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
+  ${keyframes ?? `${keyframes}`}
+`;
+
+const customAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
+  ${accumulator}${Strings.COMMA}${currentValue}
+`;
+
+const customAnimationKeyframes = <T>(
   keyframeFunction: KeyframeFunctionFactory<any, any>[],
   keyframes: Keyframe<any>[][],
   props: T,
@@ -237,39 +247,41 @@ const customAnimationName = <T>(
       (keyframeFunction: KeyframeFunction<any, any>, index: number): Keyframes | undefined =>
         keyframeFunction && animationKeyframes<any>(keyframeFunction, keyframes[index]),
     )
-    .map<RuleSet<object>>(
-      (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
-        ${keyframes ?? `${keyframes}`}
-      `,
-    )
-    .reduce(
-      (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
-        ${accumulator}${Strings.COMMA}${currentValue}
-      `,
-    );
+    .map<RuleSet<object>>(customAnimationKeyframesMapper)
+    .reduce(customAnimationKeyframesReducer);
 
-const customAnimation = <T extends KeyframeView<any, any>>(keyframeProps: T): RuleSet<object> | false => {
-  const { $keyframeFunction, $keyframes, ...restProps }: T = keyframeProps;
+const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
+  animationKeyframes &&
+  css<object>`
+    animation-name: ${animationKeyframes};
+  `;
 
-  const animationName: RuleSet<object> | false = customAnimationName<Omit<T, keyof KeyframeView<any, any>>>(
-    parseKeyframeFunctions($keyframeFunction),
-    parseKeyframes($keyframes),
-    restProps,
+const customAnimation = <T extends KeyframeView<any, any>>({
+  $keyframeFunction,
+  $keyframes,
+  ...restProps
+}: T): RuleSet<object> | false =>
+  customAnimationName(
+    customAnimationKeyframes<Omit<T, keyof KeyframeView<any, any>>>(
+      parseKeyframeFunctions($keyframeFunction),
+      parseKeyframes($keyframes),
+      restProps,
+    ),
   );
 
-  return (
-    animationName &&
-    css<object>`
-      animation-name: ${animationName};
-    `
-  );
-};
+const containerVariables = ({
+  theme: { $currentAnimation, $numberOfAnimations, $totalAnimationDuration },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  --current-animation: ${$currentAnimation};
+  --number-of-animations: ${$numberOfAnimations};
+  --total-animation-duration: ${$totalAnimationDuration};
+`;
 
 interface VisibilityProps {
   $visible?: boolean;
 }
 
-const visibility = ({ $visible = true }: VisibilityProps): RuleSet<VisibilityProps> | false =>
+const visibility = ({ $visible = true }: VisibilityProps): RuleSet<object> | false =>
   !$visible &&
   css<object>`
     opacity: ${Numbers.ZERO};
@@ -289,6 +301,7 @@ interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<an
 type ContainerStyledComponent = StyledComponent<HTMLDivElement, ContainerProps>;
 
 export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
+  ${containerVariables};
   ${customCss};
   ${customAnimation};
   position: relative;

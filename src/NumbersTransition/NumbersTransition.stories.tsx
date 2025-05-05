@@ -55,14 +55,15 @@ const opacityKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
 `;
 
 const opacityKeyframeFunction: KeyframeFunctionFactory<object, number> = ({
-  theme: { $totalAnimationDuration },
+  theme: { $numberOfAnimations },
 }: NumbersTransitionExecutionContext): ((keyframeValue: number) => RuleSet<object>) | undefined =>
-  $totalAnimationDuration ? opacityKeyframe : undefined;
+  $numberOfAnimations ? opacityKeyframe : undefined;
 
 const opacityKeyframes: Keyframe<number>[] = [{ value: Numbers.ONE }, { value: Numbers.ONE / Numbers.THREE }];
 
-const opacityAnimationDuration = ({ theme: { $totalAnimationDuration } }: NumbersTransitionExecutionContext): number =>
-  $totalAnimationDuration;
+const opacityAnimationDuration = ({
+  theme: { $totalAnimationDuration },
+}: NumbersTransitionExecutionContext): number | undefined => $totalAnimationDuration;
 
 const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionExecutionContext>`
   font-size: ${Numbers.FIVE}rem;

@@ -15,10 +15,12 @@ import {
   CssRule,
   Keyframe,
   KeyframeFunctionFactory,
+  NumbersTransitionTheme,
 } from './NumbersTransition.styles';
 import {
   AnimationTimingFunctions,
   AnimationTransition,
+  AnimationType,
   DecimalSeparator,
   DefaultAnimationDuration,
   DigitGroupSeparator,
@@ -158,6 +160,18 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     verticalAnimationDuration,
   });
 
+  const currentAnimation: AnimationType = renderAnimation
+    ? renderHorizontalAnimation
+      ? AnimationType.HORIZONTAL
+      : AnimationType.VERTICAL
+    : AnimationType.NONE;
+
+  const theme: NumbersTransitionTheme = {
+    $currentAnimation: currentAnimation,
+    $numberOfAnimations: numberOfAnimations,
+    $totalAnimationDuration: totalAnimationDuration,
+  };
+
   useEffect((): void => {
     if (omitAnimation) {
       setPreviousValueOnAnimationEnd(validValue);
@@ -246,7 +260,7 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
   );
 
   return (
-    <ThemeProvider theme={{ $totalAnimationDuration: totalAnimationDuration }}>
+    <ThemeProvider theme={theme}>
       <Container
         {...cssProps}
         $css={css}

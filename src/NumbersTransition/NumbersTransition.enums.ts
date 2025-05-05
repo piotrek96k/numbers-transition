@@ -12,6 +12,7 @@ export enum Display {
 }
 
 export enum AnimationType {
+  NONE = 'NONE',
   HORIZONTAL = 'HORIZONTAL',
   VERTICAL = 'VERTICAL',
 }
