@@ -32,10 +32,10 @@ export type ValidationTuple = [BigDecimal, boolean];
 type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
 
 export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
-  const isValid: boolean = typeof value !== Types.UNDEFINED && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
-  const validValue: BigDecimal = isValid ? (value as BigDecimal) : Numbers.ZERO;
+  const isValid = (value?: UncheckedBigDecimal): value is BigDecimal =>
+    typeof value !== Types.UNDEFINED && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
-  return [validValue, isValid];
+  return isValid(value) ? [value, true] : [Numbers.ZERO, false];
 };
 
 interface UseAnimationCharactersOptions {
