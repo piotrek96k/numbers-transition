@@ -55,16 +55,16 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
 
 export type CssRule<T extends object> = RuleSet<T> | string;
 
-export interface Keyframe<U> {
+export interface Keyframe<T> {
   percentage?: number;
-  value: U;
+  value: T;
 }
 
-export type KeyframeFunction<T extends object, U> = ((keyframeValue: U) => CssRule<T>) | undefined;
+export type KeyframeFunction<T extends object, U> = (keyframeValue: U) => CssRule<T>;
 
 export type KeyframeFunctionFactory<T extends object, U> = (
-  props: NumbersTransitionExecutionContext & T,
-) => KeyframeFunction<T, U>;
+  props: T & NumbersTransitionExecutionContext,
+) => KeyframeFunction<T, U> | undefined;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
@@ -110,43 +110,49 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 type OmitAnimationType<T extends AnimationProps> = Omit<T, keyof UnselectedAnimationTypeProps>;
 
 const animationKeyframesMapper =
-  <T>(mapper: (t: T) => CssRule<object>): ((val: Keyframe<T>, index: number, arr: Keyframe<T>[]) => RuleSet<object>) =>
-  ({ value, percentage }: Keyframe<T>, index: number, { length }: Keyframe<T>[]): RuleSet<object> => css<object>`
+  <T extends object, U>(
+    mapper: KeyframeFunction<T, U>,
+  ): ((value: Keyframe<U>, index: number, array: Keyframe<U>[]) => RuleSet<T>) =>
+  ({ value, percentage }: Keyframe<U>, index: number, { length }: Keyframe<U>[]): RuleSet<T> => css<T>`
     ${percentage ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
       ${mapper(value)};
     }
   `;
 
-const animationKeyframesReducer = (
-  previousValue: RuleSet<object>,
-  currentValue: RuleSet<object>,
-): RuleSet<object> => css<object>`
+const animationKeyframesReducer = <T extends object>(
+  previousValue: RuleSet<T>,
+  currentValue: RuleSet<T>,
+): RuleSet<T> => css<T>`
   ${previousValue}
   ${currentValue}
 `;
 
-const animationKeyframes = <T>(
-  keyframeMapper: (keyframeValue: T) => CssRule<object>,
-  keyframeValues: Keyframe<T>[],
-): Keyframes => keyframes`
-  ${keyframeValues.map<RuleSet<object>>(animationKeyframesMapper(keyframeMapper)).reduce<RuleSet<object>>(animationKeyframesReducer, css<object>``)}
+const animationKeyframes = <T extends object, U>(
+  keyframeMapper: KeyframeFunction<T, U>,
+  keyframeValues: Keyframe<U>[],
+): Keyframes => keyframes<T>`
+  ${keyframeValues.map<RuleSet<T>>(animationKeyframesMapper<T, U>(keyframeMapper)).reduce<RuleSet<T>>(animationKeyframesReducer<T>, css<T>``)}
 `;
 
-const horizontalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
+const horizontalAnimationKeyframe: KeyframeFunction<object, number> = (
+  keyframeValue: number,
+): RuleSet<object> => css<object>`
   width: calc(${Numbers.ONE}ch * ${keyframeValue});
 `;
 
-const verticalAnimationKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
+const verticalAnimationKeyframe: KeyframeFunction<object, number> = (
+  keyframeValue: number,
+): RuleSet<object> => css<object>`
   transform: translateY(${keyframeValue}%);
 `;
 
 const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
-  animationKeyframes<number>(horizontalAnimationKeyframe, [
+  animationKeyframes<object, number>(horizontalAnimationKeyframe, [
     { value: $animationStartWidth },
     { value: $animationEndWidth },
   ]);
 
-const verticalAnimation: Keyframes = animationKeyframes<number>(verticalAnimationKeyframe, [
+const verticalAnimation: Keyframes = animationKeyframes<object, number>(verticalAnimationKeyframe, [
   { value: Numbers.ZERO },
   { value: Numbers.MINUS_ONE_HUNDRED },
 ]);
@@ -212,17 +218,17 @@ interface KeyframeView<T extends object, U> {
 
 interface StyleView<T extends object, U> extends CssView<T>, KeyframeView<T, U> {}
 
-const customCss: RuleSet<CssView<any>> = css<CssView<any>>`
-  ${({ $css }: CssView<any>): CssRule<object> | undefined => $css};
+const customCss: RuleSet<CssView<object>> = css<CssView<object>>`
+  ${({ $css }: CssView<object>): CssRule<object> | undefined => $css};
 `;
 
-const parseKeyframeFunctions = (
-  keyframeFunction: KeyframeFunctionFactory<any, any> | KeyframeFunctionFactory<any, any>[] = [],
-): KeyframeFunctionFactory<any, any>[] =>
-  [keyframeFunction].flat<(KeyframeFunctionFactory<any, any> | KeyframeFunctionFactory<any, any>[])[], Numbers.ONE>();
+const parseKeyframeFunctions = <T extends object, U>(
+  keyframeFunction: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[] = [],
+): KeyframeFunctionFactory<T, U>[] =>
+  [keyframeFunction].flat<(KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[])[], Numbers.ONE>();
 
-const parseKeyframes = (keyframes: Keyframe<any>[] | Keyframe<any>[][] = []): Keyframe<any>[][] =>
-  <Keyframe<any>[][]>(keyframes.depth() === Numbers.ONE ? [keyframes] : keyframes);
+const parseKeyframes = <T>(keyframes: Keyframe<T>[] | Keyframe<T>[][] = []): Keyframe<T>[][] =>
+  <Keyframe<T>[][]>(keyframes.depth() === Numbers.ONE ? [keyframes] : keyframes);
 
 const customAnimationKeyframesMapper = (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
   ${keyframes ?? `${keyframes}`}
@@ -232,20 +238,20 @@ const customAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentVa
   ${accumulator}${Strings.COMMA}${currentValue}
 `;
 
-const customAnimationKeyframes = <T>(
-  keyframeFunction: KeyframeFunctionFactory<any, any>[],
-  keyframes: Keyframe<any>[][],
-  props: T,
+const customAnimationKeyframes = <T extends object, U>(
+  keyframeFunction: KeyframeFunctionFactory<T, U>[],
+  keyframes: Keyframe<U>[][],
+  props: T & NumbersTransitionExecutionContext,
 ): RuleSet<object> | false =>
   !!keyframeFunction.length &&
   keyframeFunction
-    .map<KeyframeFunction<any, any>>(
-      (keyframeFunctionFactory: KeyframeFunctionFactory<any, any>): KeyframeFunction<any, any> =>
+    .map<KeyframeFunction<T, U> | undefined>(
+      (keyframeFunctionFactory: KeyframeFunctionFactory<T, U>): KeyframeFunction<T, U> | undefined =>
         keyframeFunctionFactory(props),
     )
     .map<Keyframes | undefined>(
-      (keyframeFunction: KeyframeFunction<any, any>, index: number): Keyframes | undefined =>
-        keyframeFunction && animationKeyframes<any>(keyframeFunction, keyframes[index]),
+      (keyframeFunction: KeyframeFunction<T, U> | undefined, index: number): Keyframes | undefined =>
+        keyframeFunction && animationKeyframes<T, U>(keyframeFunction, keyframes[index]),
     )
     .map<RuleSet<object>>(customAnimationKeyframesMapper)
     .reduce(customAnimationKeyframesReducer);
@@ -256,16 +262,16 @@ const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleS
     animation-name: ${animationKeyframes};
   `;
 
-const customAnimation = <T extends KeyframeView<any, any>>({
+const customAnimation = <T extends object, U, V extends T & NumbersTransitionExecutionContext & KeyframeView<T, U>>({
   $keyframeFunction,
   $keyframes,
   ...restProps
-}: T): RuleSet<object> | false =>
+}: V): RuleSet<T> | false =>
   customAnimationName(
-    customAnimationKeyframes<Omit<T, keyof KeyframeView<any, any>>>(
-      parseKeyframeFunctions($keyframeFunction),
-      parseKeyframes($keyframes),
-      restProps,
+    customAnimationKeyframes<T, U>(
+      parseKeyframeFunctions<T, U>($keyframeFunction),
+      parseKeyframes<U>($keyframes),
+      <T & NumbersTransitionExecutionContext>restProps,
     ),
   );
 
