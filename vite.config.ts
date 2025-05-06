@@ -11,7 +11,8 @@ export default defineConfig({
       name: 'numbers-transition',
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'styled-components'],
+      output: [{ format: 'es' }],
     },
   },
 });

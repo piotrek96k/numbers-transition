@@ -1,9 +1,8 @@
 {
   "name": "numbers-transition",
-  "private": true,
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/numbers-transition.umd.js",
+  "main": "./dist/numbers-transition.js",
   "module": "./dist/numbers-transition.js",
   "types": "./dist/numbers-transition.d.ts",
   "scripts": {
@@ -13,12 +12,10 @@
     "build-storybook": "storybook build",
     "prepare": "husky"
   },
-  "dependencies": {
-    "styled-components": "^6.1.17"
-  },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "styled-components": "^6.1.17"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^3.2.3",

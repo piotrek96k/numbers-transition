@@ -301,9 +301,9 @@ interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<an
 type ContainerStyledComponent = StyledComponent<HTMLDivElement, ContainerProps>;
 
 export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
-  ${containerVariables};
   ${customCss};
   ${customAnimation};
+  ${containerVariables};
   position: relative;
   white-space: nowrap;
   max-width: ${Numbers.ONE_HUNDRED}%;
