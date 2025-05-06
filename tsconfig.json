@@ -21,6 +21,6 @@
     "noFallthroughCasesInSwitch": true,
     "noErrorTruncation": true
   },
-  "include": ["src", "global.d.ts"],
+  "include": ["src", "src/global.d.ts"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
