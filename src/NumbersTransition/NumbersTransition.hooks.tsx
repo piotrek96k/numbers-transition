@@ -346,6 +346,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 
     const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? Numbers.ZERO : Numbers.ONE;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+
     return accumulator;
   };
 

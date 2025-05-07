@@ -222,14 +222,6 @@ const customCss: RuleSet<CssView<object>> = css<CssView<object>>`
   ${({ $css }: CssView<object>): CssRule<object> | undefined => $css};
 `;
 
-const parseKeyframeFunctions = <T extends object, U>(
-  keyframeFunction: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[] = [],
-): KeyframeFunctionFactory<T, U>[] =>
-  [keyframeFunction].flat<(KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[])[], Numbers.ONE>();
-
-const parseKeyframes = <T>(keyframes: Keyframe<T>[] | Keyframe<T>[][] = []): Keyframe<T>[][] =>
-  <Keyframe<T>[][]>(keyframes.depth() === Numbers.ONE ? [keyframes] : keyframes);
-
 const customAnimationKeyframesMapper = (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
   ${keyframes ?? `${keyframes}`}
 `;
@@ -244,6 +236,7 @@ const customAnimationKeyframes = <T extends object, U>(
   props: T & NumbersTransitionExecutionContext,
 ): RuleSet<object> | false =>
   !!keyframeFunction.length &&
+  keyframeFunction.length === keyframes.length &&
   keyframeFunction
     .map<KeyframeFunction<T, U> | undefined>(
       (keyframeFunctionFactory: KeyframeFunctionFactory<T, U>): KeyframeFunction<T, U> | undefined =>
@@ -263,25 +256,17 @@ const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleS
   `;
 
 const customAnimation = <T extends object, U, V extends T & NumbersTransitionExecutionContext & KeyframeView<T, U>>({
-  $keyframeFunction,
-  $keyframes,
+  $keyframeFunction = [],
+  $keyframes = [],
   ...restProps
 }: V): RuleSet<T> | false =>
   customAnimationName(
     customAnimationKeyframes<T, U>(
-      parseKeyframeFunctions<T, U>($keyframeFunction),
-      parseKeyframes<U>($keyframes),
+      [$keyframeFunction].flat<(KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[])[], Numbers.ONE>(),
+      <Keyframe<U>[][]>($keyframes.depth() === Numbers.ONE ? [$keyframes] : $keyframes),
       <T & NumbersTransitionExecutionContext>restProps,
     ),
   );
-
-const containerVariables = ({
-  theme: { $currentAnimation, $numberOfAnimations, $totalAnimationDuration },
-}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  --current-animation: ${$currentAnimation};
-  --number-of-animations: ${$numberOfAnimations};
-  --total-animation-duration: ${$totalAnimationDuration};
-`;
 
 interface VisibilityProps {
   $visible?: boolean;
@@ -300,6 +285,14 @@ interface DisplayProps {
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ $display = Display.INLINE }: DisplayProps): string =>
     $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
+`;
+
+const containerVariables = ({
+  theme: { $currentAnimation, $numberOfAnimations, $totalAnimationDuration },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  --current-animation: ${$currentAnimation};
+  --number-of-animations: ${$numberOfAnimations};
+  --total-animation-duration: ${$totalAnimationDuration};
 `;
 
 interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<any, any> {}
