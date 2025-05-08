@@ -16,8 +16,8 @@ import {
   CubicBezierTuple,
   ElementKeyMapper,
   GetCharacterWidth,
-  ReadOnly,
-  useAnimationTimingFunction,
+  OptionalReadOnly,
+  useAnimationTimingFunctionDirection,
   useCharacterWidth,
   useCubicBezier,
   useElementKeyMapper,
@@ -233,7 +233,7 @@ interface HorizontalAnimationElementProps {
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
-  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
   animationTransition: AnimationTransition;
   containerRef: RefObject<HTMLDivElement | null>;
   previousValueDigits: number[];
@@ -290,7 +290,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     (numberOfAnimations === NumberOfAnimations.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
-  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction({
+  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunctionDirection({
     animationTimingFunction: animationTimingFunctionInput,
     animationDirection,
   });
@@ -357,7 +357,7 @@ interface VerticalAnimationElementProps {
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
-  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
@@ -384,7 +384,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
   const animationDirection: VerticalAnimationDirection =
     previousValue < currentValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
 
-  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction({
+  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunctionDirection({
     animationTimingFunction: animationTimingFunctionInput,
     animationDirection,
   });

@@ -1,6 +1,7 @@
 import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
 import {
   AnimationDirection,
+  AnimationTimingFunctions,
   Canvas,
   DecimalSeparator,
   DigitGroupSeparator,
@@ -19,9 +20,11 @@ import {
 import './NumbersTransition.extensions';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
 
-export type ReadOnly<T> = {
+type ReadOnly<T> = {
   +readonly [K in keyof T]: ReadOnly<T[K]>;
 };
+
+export type OptionalReadOnly<T> = ReadOnly<T> | T;
 
 export type UncheckedBigDecimal = number | bigint | string;
 
@@ -192,24 +195,57 @@ export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
   }
 };
 
-interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+export interface AnimationsTimingFunctions {
+  horizontalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
+  verticalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
+}
+
+export type AnimationTimingFunctionTuple = [
+  OptionalReadOnly<AnimationTimingFunction>,
+  OptionalReadOnly<AnimationTimingFunction>,
+];
+
+type UseAnimationTimingFunction = (
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+) => AnimationTimingFunctionTuple;
+
+export const useAnimationTimingFunction: UseAnimationTimingFunction = (
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+): AnimationTimingFunctionTuple => {
+  const isAnimationTimingFunction: (
+    animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+  ) => animationTimingFunction is OptionalReadOnly<AnimationTimingFunction> = Array.isArray;
+
+  const {
+    horizontalAnimation = AnimationTimingFunctions.EASE,
+    verticalAnimation = AnimationTimingFunctions.EASE,
+  }: AnimationsTimingFunctions = isAnimationTimingFunction(animationTimingFunction)
+    ? { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction }
+    : animationTimingFunction;
+
+  return [horizontalAnimation, verticalAnimation];
+};
+
+interface UseAnimationTimingFunctionDirectionOptions {
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
   animationDirection: AnimationDirection;
 }
 
-type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunction;
+type UseAnimationTimingFunctionDirection = (
+  options: UseAnimationTimingFunctionDirectionOptions,
+) => AnimationTimingFunction;
 
-export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  options: UseAnimationTimingFunctionOptions,
+export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDirection = (
+  options: UseAnimationTimingFunctionDirectionOptions,
 ): AnimationTimingFunction => {
-  const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionOptions = options;
+  const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionDirectionOptions = options;
 
   const reverse: boolean = [HorizontalAnimationDirection.LEFT, VerticalAnimationDirection.DOWN].includes(
     animationDirection,
   );
 
   const animationTimingFunctionMapper = (
-    tuple: ReadOnly<AnimationTimingFunction[number]> | AnimationTimingFunction[number],
+    tuple: OptionalReadOnly<AnimationTimingFunction[number]>,
   ): AnimationTimingFunction[number] =>
     reverse ? tuple.map<number>((number: number): number => Numbers.ONE - number) : [...tuple];
 

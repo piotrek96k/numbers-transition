@@ -1,4 +1,8 @@
 declare global {
+  interface ArrayConstructor {
+    isArray<T, U extends T[] = T[]>(arg: T): arg is U;
+  }
+
   interface Array<T> {
     depth(): number;
     invert(invert: boolean): [...this];

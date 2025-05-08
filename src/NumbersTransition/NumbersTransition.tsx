@@ -31,11 +31,14 @@ import {
   Strings,
 } from './NumbersTransition.enums';
 import {
+  AnimationTimingFunctionTuple,
   AnimationValuesTuple,
+  AnimationsTimingFunctions,
   BigDecimal,
-  ReadOnly,
+  OptionalReadOnly,
   UncheckedBigDecimal,
   ValidationTuple,
+  useAnimationTimingFunction,
   useAnimationValues,
   useTotalAnimationDuration,
   useValidation,
@@ -60,8 +63,7 @@ export interface NumbersTransitionProps<T extends object = object, U = unknown> 
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
-  horizontalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
-  verticalAnimationTimingFunction?: ReadOnly<AnimationTimingFunction> | AnimationTimingFunction;
+  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions;
   view?: View<T, U>;
 }
 
@@ -78,8 +80,7 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
       : DecimalSeparator.COMMA,
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
-    horizontalAnimationTimingFunction = AnimationTimingFunctions.EASE,
-    verticalAnimationTimingFunction = AnimationTimingFunctions.EASE,
+    animationTimingFunction = AnimationTimingFunctions.EASE,
     view: { css, cssProps, keyframeFunction, keyframes, className, style } = {},
   }: NumbersTransitionProps<T, U> = props;
 
@@ -159,6 +160,9 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     horizontalAnimationDuration,
     verticalAnimationDuration,
   });
+
+  const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
+    useAnimationTimingFunction(animationTimingFunction);
 
   const currentAnimation: AnimationType = renderAnimation
     ? renderHorizontalAnimation

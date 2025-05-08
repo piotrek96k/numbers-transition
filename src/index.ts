@@ -15,7 +15,11 @@ import {
   NumbersTransitionTheme,
 } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
-import { BigDecimal, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.hooks';
+import {
+  AnimationsTimingFunctions,
+  BigDecimal,
+  UncheckedBigDecimal,
+} from './NumbersTransition/NumbersTransition.hooks';
 
 export {
   AnimationTimingFunctions,
@@ -27,6 +31,7 @@ export {
 
 export type {
   AnimationTimingFunction,
+  AnimationsTimingFunctions,
   BigDecimal,
   CssRule,
   Keyframe,

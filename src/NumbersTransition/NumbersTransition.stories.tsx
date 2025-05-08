@@ -84,8 +84,7 @@ const args: ComponentProps<typeof NumbersTransition<NumbersTransitionExecutionCo
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
-  horizontalAnimationTimingFunction: AnimationTimingFunctions.EASE,
-  verticalAnimationTimingFunction: AnimationTimingFunctions.EASE,
+  animationTimingFunction: AnimationTimingFunctions.EASE,
   view: { css: style, keyframeFunction: opacityKeyframeFunction, keyframes: opacityKeyframes },
 };
 
