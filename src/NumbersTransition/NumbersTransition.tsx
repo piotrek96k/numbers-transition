@@ -266,7 +266,7 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
         $css={css}
         $keyframeFunction={keyframeFunction}
         $keyframes={keyframes}
-        className={[className].flat<(string | string[] | undefined)[], Numbers.ONE>().join(Strings.SPACE)}
+        className={[className].flat<(undefined | string | string[])[], Numbers.ONE>().join(Strings.SPACE)}
         style={style}
         ref={containerRef}
       >

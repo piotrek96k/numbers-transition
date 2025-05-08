@@ -32,10 +32,10 @@ export type ValidationTuple = [BigDecimal, boolean];
 type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
 
 export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
-  const isValid = (value?: UncheckedBigDecimal): value is BigDecimal =>
+  const isBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
     typeof value !== Types.UNDEFINED && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
-  return isValid(value) ? [value, true] : [Numbers.ZERO, false];
+  return isBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
 };
 
 interface UseAnimationCharactersOptions {
@@ -371,7 +371,9 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
         increasedValue / NumberPrecision.VALUE,
       ])
       .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
-        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + 1n,
+        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE
+          ? newValue
+          : newValue + BigInt(Numbers.ONE),
       )
       .map<number>(digitMapper);
 
