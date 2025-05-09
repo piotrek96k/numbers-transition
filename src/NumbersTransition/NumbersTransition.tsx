@@ -1,4 +1,14 @@
-import { CSSProperties, Dispatch, JSX, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  CSSProperties,
+  Dispatch,
+  ReactElement,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ThemeProvider } from 'styled-components';
 import {
   Conditional,
@@ -203,13 +213,13 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     }
   };
 
-  const numberElement: JSX.Element = (
+  const numberElement: ReactElement = (
     <NumberElement precision={precision} decimalSeparator={decimalSeparator} digitGroupSeparator={digitGroupSeparator}>
       {previousValueOnAnimationEndDigits}
     </NumberElement>
   );
 
-  const horizontalAnimationElement: JSX.Element = (
+  const horizontalAnimationElement: ReactElement = (
     <HorizontalAnimationElement
       precision={precision}
       animationDuration={horizontalAnimationDuration}
@@ -232,7 +242,7 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     />
   );
 
-  const verticalAnimationElement: JSX.Element = (
+  const verticalAnimationElement: ReactElement = (
     <VerticalAnimationElement
       precision={precision}
       animationDuration={verticalAnimationDuration}
@@ -249,14 +259,14 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     />
   );
 
-  const animationElement: JSX.Element = (
+  const animationElement: ReactElement = (
     <Conditional condition={renderHorizontalAnimation}>
       {horizontalAnimationElement}
       {verticalAnimationElement}
     </Conditional>
   );
 
-  const valueElement: JSX.Element = (
+  const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
       <EmptyElement />

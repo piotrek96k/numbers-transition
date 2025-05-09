@@ -1,4 +1,4 @@
-import { Dispatch, FC, JSX, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
+import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
 import {
   AnimationDirection,
   AnimationTimingFunctions,
@@ -437,13 +437,13 @@ type ComponentProps = KeyProps & ChildrenProps;
 
 type FunctionalComponent = FC<ComponentProps> | string;
 
-export type ElementKeyMapper = (child: ReactNode, index: number, children: ReactNode[]) => JSX.Element;
+export type ElementKeyMapper = (child: ReactNode, index: number, children: ReactNode[]) => ReactElement;
 
 type UseElementKeyMapper = (Component: FunctionalComponent) => ElementKeyMapper;
 
 export const useElementKeyMapper: UseElementKeyMapper =
   (Component: FunctionalComponent): ElementKeyMapper =>
-  (child: ReactNode, index: number, { length }: ReactNode[]): JSX.Element => (
+  (child: ReactNode, index: number, { length }: ReactNode[]): ReactElement => (
     <Component
       key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
     >

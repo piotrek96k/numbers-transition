@@ -1,4 +1,4 @@
-import { Dispatch, FC, Fragment, JSX, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, Fragment, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationTransition,
   DecimalSeparator,
@@ -162,11 +162,11 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : Numbers.ZERO;
 
-  const negativeCharacterElementMapper = (visible: boolean): JSX.Element => (
+  const negativeCharacterElementMapper = (visible: boolean): ReactElement => (
     <NegativeElement negativeCharacter={negativeCharacter} visible={visible} display={Display.BLOCK} />
   );
 
-  const verticalAnimationElement: JSX.Element = (
+  const verticalAnimationElement: ReactElement = (
     <Character>
       <VerticalAnimation
         $animationDirection={animationDirection}
@@ -177,8 +177,8 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
         })}
       >
         {negativeCharactersVisible
-          .map<JSX.Element>(negativeCharacterElementMapper)
-          .map<JSX.Element>(fragmentElementMapper)}
+          .map<ReactElement>(negativeCharacterElementMapper)
+          .map<ReactElement>(fragmentElementMapper)}
       </VerticalAnimation>
     </Character>
   );
@@ -212,11 +212,11 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
     );
 
   const digitsReducer = (
-    accumulator: JSX.Element,
-    currentValue: JSX.Element,
+    accumulator: ReactElement,
+    currentValue: ReactElement,
     index: number,
-    { length }: JSX.Element[],
-  ): JSX.Element => (
+    { length }: ReactElement[],
+  ): ReactElement => (
     <>
       {accumulator}
       {getSeparatorElement(index, length)}
@@ -224,7 +224,7 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
     </>
   );
 
-  return children.map<JSX.Element>(digitElementMapper).reduce(digitsReducer);
+  return children.map<ReactElement>(digitElementMapper).reduce(digitsReducer);
 };
 
 interface HorizontalAnimationElementProps {
@@ -321,13 +321,13 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       precision > Numbers.ZERO ? getCharacterWidth(decimalSeparator) : Numbers.ZERO,
     ].reduce(sum);
 
-  const negativeElement: JSX.Element = (
+  const negativeElement: ReactElement = (
     <Optional condition={renderNegativeCharacter}>
       <HorizontalAnimationNegativeElement negativeCharacter={negativeCharacter} />
     </Optional>
   );
 
-  const numberElement: JSX.Element = (
+  const numberElement: ReactElement = (
     <NumberElement precision={precision} decimalSeparator={decimalSeparator} digitGroupSeparator={digitGroupSeparator}>
       {animationDigits}
     </NumberElement>
@@ -397,9 +397,9 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
 
   const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
 
-  const digitElementMapper = (digit: number): JSX.Element => <Digit $display={Display.BLOCK}>{digit}</Digit>;
+  const digitElementMapper = (digit: number): ReactElement => <Digit $display={Display.BLOCK}>{digit}</Digit>;
 
-  const verticalAnimationElementMapper = (digits: number[], index: number, { length }: number[][]): JSX.Element => (
+  const verticalAnimationElementMapper = (digits: number[], index: number, { length }: number[][]): ReactElement => (
     <VerticalAnimation
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
@@ -408,7 +408,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
         onAnimationEnd,
       })}
     >
-      {digits.map<JSX.Element>(digitElementMapper).map<JSX.Element>(fragmentElementMapper)}
+      {digits.map<ReactElement>(digitElementMapper).map<ReactElement>(fragmentElementMapper)}
     </VerticalAnimation>
   );
 
@@ -425,7 +425,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
         />
       </Optional>
       <NumberElement {...restProps}>
-        {animationDigits.map<JSX.Element>(verticalAnimationElementMapper).map<JSX.Element>(fragmentElementMapper)}
+        {animationDigits.map<ReactElement>(verticalAnimationElementMapper).map<ReactElement>(fragmentElementMapper)}
       </NumberElement>
     </>
   );
