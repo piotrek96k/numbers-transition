@@ -11,7 +11,13 @@ import {
   Numbers,
   StorybookDefaultValue,
 } from './NumbersTransition.enums';
-import { Keyframe, KeyframeFunctionFactory, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
+import { AnimationDuration, OptionalReadOnly } from './NumbersTransition.hooks';
+import {
+  AnimationTimingFunction,
+  Keyframe,
+  KeyframeFunctionFactory,
+  NumbersTransitionExecutionContext,
+} from './NumbersTransition.styles';
 import NumbersTransition from './NumbersTransition';
 
 type SelectType =
@@ -22,7 +28,14 @@ type SelectType =
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
-type Story = StoryObj<typeof NumbersTransition<NumbersTransitionExecutionContext, number>>;
+type Story = StoryObj<
+  typeof NumbersTransition<
+    AnimationDuration,
+    OptionalReadOnly<AnimationTimingFunction>,
+    NumbersTransitionExecutionContext,
+    number
+  >
+>;
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
@@ -74,7 +87,14 @@ const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionE
   animation-fill-mode: forwards;
 `;
 
-const args: ComponentProps<typeof NumbersTransition<NumbersTransitionExecutionContext, number>> = {
+const args: ComponentProps<
+  typeof NumbersTransition<
+    AnimationDuration,
+    OptionalReadOnly<AnimationTimingFunction>,
+    NumbersTransitionExecutionContext,
+    number
+  >
+> = {
   initialValue: Numbers.ZERO,
   value: StorybookDefaultValue.VALUE,
   precision: Numbers.ZERO,

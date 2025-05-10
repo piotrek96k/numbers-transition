@@ -183,7 +183,7 @@ export interface TotalAnimationDuration {
 }
 
 interface UseAnimationDurationOptions {
-  animationDuration: AnimationDuration | TotalAnimationDuration;
+  animationDuration?: AnimationDuration | TotalAnimationDuration;
   numberOfAnimations: NumberOfAnimations;
 }
 
@@ -194,7 +194,13 @@ type UseAnimationDuration = (options: UseAnimationDurationOptions) => AnimationD
 export const useAnimationDuration: UseAnimationDuration = (
   options: UseAnimationDurationOptions,
 ): AnimationDurationTuple => {
-  const { animationDuration, numberOfAnimations }: UseAnimationDurationOptions = options;
+  const {
+    animationDuration = {
+      horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+      verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
+    },
+    numberOfAnimations,
+  }: UseAnimationDurationOptions = options;
   const keys: (keyof AnimationDuration)[] = ['horizontalAnimation', 'verticalAnimation'];
 
   const isAnimationDuration = (
@@ -273,11 +279,13 @@ export type AnimationTimingFunctionTuple = [
 ];
 
 type UseAnimationTimingFunction = (
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
+  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
 ) => AnimationTimingFunctionTuple;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
+  animationTimingFunction:
+    | OptionalReadOnly<AnimationTimingFunction>
+    | ExtendedAnimationTimingFunction = AnimationTimingFunctions.EASE,
 ): AnimationTimingFunctionTuple => {
   const isAnimationTimingFunction: (
     animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,

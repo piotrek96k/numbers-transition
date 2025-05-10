@@ -28,11 +28,9 @@ import {
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
 import {
-  AnimationTimingFunctions,
   AnimationTransition,
   AnimationType,
   DecimalSeparator,
-  DefaultAnimationDuration,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
@@ -67,37 +65,50 @@ export interface View<T extends object = object, U = unknown> {
   style?: CSSProperties;
 }
 
-export interface NumbersTransitionProps<T extends object = object, U = unknown> {
+export interface NumbersTransitionProps<
+  T extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
+  U extends
+    | OptionalReadOnly<AnimationTimingFunction>
+    | ExtendedAnimationTimingFunction = OptionalReadOnly<AnimationTimingFunction>,
+  V extends object = object,
+  W = unknown,
+> {
   initialValue?: UncheckedBigDecimal;
   value?: UncheckedBigDecimal;
   precision?: number;
-  animationDuration?: AnimationDuration | TotalAnimationDuration;
+  animationDuration?: T;
   decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
-  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction;
-  view?: View<T, U>;
+  animationTimingFunction?: U;
+  view?: View<V, W>;
 }
 
-const NumbersTransition = <T extends object = object, U = unknown>(props: NumbersTransitionProps<T, U>): ReactNode => {
+const NumbersTransition = <
+  T extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
+  U extends
+    | OptionalReadOnly<AnimationTimingFunction>
+    | ExtendedAnimationTimingFunction = OptionalReadOnly<AnimationTimingFunction>,
+  V extends object = object,
+  W = unknown,
+>(
+  props: NumbersTransitionProps<T, U, V, W>,
+): ReactNode => {
   const {
     initialValue,
     value,
     precision = Numbers.ZERO,
-    animationDuration = {
-      horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-      verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
-    },
+    animationDuration,
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
       : DecimalSeparator.COMMA,
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
-    animationTimingFunction = AnimationTimingFunctions.EASE,
+    animationTimingFunction,
     view: { css, cssProps, keyframeFunction, keyframes, className, style } = {},
-  }: NumbersTransitionProps<T, U> = props;
+  }: NumbersTransitionProps<T, U, V, W> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
