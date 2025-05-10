@@ -44,9 +44,11 @@ type AttributesStyledComponent<
 >;
 
 export interface NumbersTransitionTheme {
-  $currentAnimation?: AnimationType;
+  $animationType?: AnimationType;
   $numberOfAnimations?: number;
   $totalAnimationDuration?: number;
+  $horizontalAnimationDuration?: number;
+  $verticalAnimationDuration?: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -288,11 +290,19 @@ const display: RuleSet<DisplayProps> = css<DisplayProps>`
 `;
 
 const containerVariables = ({
-  theme: { $currentAnimation, $numberOfAnimations, $totalAnimationDuration },
+  theme: {
+    $animationType,
+    $numberOfAnimations,
+    $totalAnimationDuration,
+    $horizontalAnimationDuration,
+    $verticalAnimationDuration,
+  },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  --current-animation: ${$currentAnimation};
+  --animation-type: ${$animationType};
   --number-of-animations: ${$numberOfAnimations};
   --total-animation-duration: ${$totalAnimationDuration};
+  --horizontal-animation-duration: ${$horizontalAnimationDuration};
+  --vertical-animation-duration: ${$verticalAnimationDuration};
 `;
 
 interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<any, any> {}

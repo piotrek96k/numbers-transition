@@ -16,8 +16,10 @@ import {
 } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
 import {
-  AnimationsTimingFunctions,
+  AnimationDuration,
   BigDecimal,
+  ExtendedAnimationTimingFunction,
+  TotalAnimationDuration,
   UncheckedBigDecimal,
 } from './NumbersTransition/NumbersTransition.hooks';
 
@@ -31,15 +33,17 @@ export {
 
 export type {
   AnimationTimingFunction,
-  AnimationsTimingFunctions,
+  AnimationDuration,
   BigDecimal,
   CssRule,
+  ExtendedAnimationTimingFunction,
   Keyframe,
   KeyframeFunction,
   KeyframeFunctionFactory,
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  TotalAnimationDuration,
   UncheckedBigDecimal,
   View,
 };

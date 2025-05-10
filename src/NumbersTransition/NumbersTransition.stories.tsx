@@ -78,8 +78,10 @@ const args: ComponentProps<typeof NumbersTransition<NumbersTransitionExecutionCo
   initialValue: Numbers.ZERO,
   value: StorybookDefaultValue.VALUE,
   precision: Numbers.ZERO,
-  horizontalAnimationDuration: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-  verticalAnimationDuration: DefaultAnimationDuration.VERTICAL_ANIMATION,
+  animationDuration: {
+    horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+    verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
+  },
   decimalSeparator: DecimalSeparator.COMMA,
   digitGroupSeparator: DigitGroupSeparator.SPACE,
   negativeCharacter: NegativeCharacter.MINUS,

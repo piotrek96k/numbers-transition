@@ -4,6 +4,8 @@ import {
   AnimationTimingFunctions,
   Canvas,
   DecimalSeparator,
+  DefaultAnimationDuration,
+  DefaultTotalAnimationDuration,
   DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
@@ -86,7 +88,7 @@ const useAnimationCharacters: UseAnimationCharacters = (
     ].join(Strings.EMPTY);
   };
 
-  return values.map<string[]>((number: BigDecimal): string[] => [
+  return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
     ...`${number}`
       .split(RegularExpressions.DOT_OR_COMMA)
       .reduce<string[]>(floatingPointFill, [])
@@ -101,7 +103,7 @@ type AnimationDigitsTuple = [number[], number[]];
 type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigitsTuple;
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
-  options.map<number[]>((characters: string[]): number[] =>
+  options.map<number[], AnimationDigitsTuple>((characters: string[]): number[] =>
     characters
       .filter((character: string): boolean => !!character.match(RegularExpressions.SINGLE_DIGIT))
       .map<number>(Number),
@@ -114,7 +116,7 @@ type AnimationBigIntsTuple = [bigint, bigint, bigint];
 type UseAnimationBigInts = (options: UseAnimationBigIntsOptions) => AnimationBigIntsTuple;
 
 const useAnimationBigInts: UseAnimationBigInts = (options: UseAnimationBigIntsOptions): AnimationBigIntsTuple =>
-  options.map<bigint>((digits: string[]): bigint => BigInt(digits.join(Strings.EMPTY)));
+  options.map<bigint, AnimationBigIntsTuple>((digits: string[]): bigint => BigInt(digits.join(Strings.EMPTY)));
 
 type UseAnimationNumbersOfDigitsOptions = AnimationDigitsTuple;
 
@@ -134,7 +136,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   ];
 
   return options
-    .map<number>(({ length }: number[]): number => length)
+    .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(subtract)
     .reduce<number[], AnimationNumbersOfDigitsTuple>(digitsLengthReducer, []);
 };
@@ -170,6 +172,71 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
   return [digits, bigInts, numbersOfDigits];
 };
 
+export interface AnimationDuration {
+  horizontalAnimation?: number;
+  verticalAnimation?: number;
+}
+
+export interface TotalAnimationDuration {
+  animationDuration?: number;
+  ratio?: number;
+}
+
+interface UseAnimationDurationOptions {
+  animationDuration: AnimationDuration | TotalAnimationDuration;
+  numberOfAnimations: NumberOfAnimations;
+}
+
+export type AnimationDurationTuple = [number, number];
+
+type UseAnimationDuration = (options: UseAnimationDurationOptions) => AnimationDurationTuple;
+
+export const useAnimationDuration: UseAnimationDuration = (
+  options: UseAnimationDurationOptions,
+): AnimationDurationTuple => {
+  const { animationDuration, numberOfAnimations }: UseAnimationDurationOptions = options;
+  const keys: (keyof AnimationDuration)[] = ['horizontalAnimation', 'verticalAnimation'];
+
+  const isAnimationDuration = (
+    animationDuration: AnimationDuration | TotalAnimationDuration,
+  ): animationDuration is AnimationDuration =>
+    Object.keys(animationDuration).some((key: string): boolean => keys.includes<string>(key));
+
+  const fromAnimationDuration = ({
+    horizontalAnimation = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+    verticalAnimation = DefaultAnimationDuration.VERTICAL_ANIMATION,
+  }: AnimationDuration): AnimationDurationTuple => [
+    numberOfAnimations === NumberOfAnimations.ONE ? Numbers.ZERO : horizontalAnimation,
+    verticalAnimation,
+  ];
+
+  const fromTotalAnimationDuration = ({
+    animationDuration = DefaultTotalAnimationDuration.ANIMATION_DURATION,
+    ratio = DefaultTotalAnimationDuration.RATIO,
+  }: TotalAnimationDuration): AnimationDurationTuple => {
+    const horizontalAnimationDuration: number =
+      numberOfAnimations === NumberOfAnimations.ONE
+        ? Numbers.ZERO
+        : animationDuration / (ratio + numberOfAnimations - Numbers.ONE);
+    const verticalAnimationDuration: number =
+      ratio === Numbers.ZERO
+        ? Numbers.ZERO
+        : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Numbers.ONE);
+
+    return [horizontalAnimationDuration, verticalAnimationDuration];
+  };
+
+  const mapAnimationDuration:
+    | ((animationDuration: AnimationDuration) => AnimationDurationTuple)
+    | ((animationDuration: TotalAnimationDuration) => AnimationDurationTuple) = isAnimationDuration(animationDuration)
+    ? fromAnimationDuration
+    : fromTotalAnimationDuration;
+
+  return numberOfAnimations === NumberOfAnimations.ZERO
+    ? [Numbers.ZERO, Numbers.ZERO]
+    : mapAnimationDuration(animationDuration);
+};
+
 interface UseTotalAnimationDurationOptions {
   numberOfAnimations: NumberOfAnimations;
   horizontalAnimationDuration: number;
@@ -195,7 +262,7 @@ export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
   }
 };
 
-export interface AnimationsTimingFunctions {
+export interface ExtendedAnimationTimingFunction {
   horizontalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
   verticalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
 }
@@ -206,20 +273,20 @@ export type AnimationTimingFunctionTuple = [
 ];
 
 type UseAnimationTimingFunction = (
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
 ) => AnimationTimingFunctionTuple;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
 ): AnimationTimingFunctionTuple => {
   const isAnimationTimingFunction: (
-    animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions,
+    animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
   ) => animationTimingFunction is OptionalReadOnly<AnimationTimingFunction> = Array.isArray;
 
   const {
     horizontalAnimation = AnimationTimingFunctions.EASE,
     verticalAnimation = AnimationTimingFunctions.EASE,
-  }: AnimationsTimingFunctions = isAnimationTimingFunction(animationTimingFunction)
+  }: ExtendedAnimationTimingFunction = isAnimationTimingFunction(animationTimingFunction)
     ? { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction }
     : animationTimingFunction;
 
@@ -247,7 +314,9 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
   const animationTimingFunctionMapper = (
     tuple: OptionalReadOnly<AnimationTimingFunction[number]>,
   ): AnimationTimingFunction[number] =>
-    reverse ? tuple.map<number>((number: number): number => Numbers.ONE - number) : [...tuple];
+    reverse
+      ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number)
+      : [...tuple];
 
   return animationTimingFunction
     .map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper)
@@ -421,7 +490,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 
   return [...Array(maxNumberOfDigits)]
     .reduce<[DigitsGeneratorValues[], DigitsGeneratorValues[]]>(digitsGeneratorValuesArrayReducer, [[], []])
-    .map<number[][]>(digitsGeneratorMapper)
+    .map<number[][], [number[][], number[][]]>(digitsGeneratorMapper)
     .flat<[number[][], number[][]], Numbers.ONE>();
 };
 

@@ -41,13 +41,17 @@ import {
   Strings,
 } from './NumbersTransition.enums';
 import {
+  AnimationDuration,
+  AnimationDurationTuple,
   AnimationTimingFunctionTuple,
   AnimationValuesTuple,
-  AnimationsTimingFunctions,
   BigDecimal,
+  ExtendedAnimationTimingFunction,
   OptionalReadOnly,
+  TotalAnimationDuration,
   UncheckedBigDecimal,
   ValidationTuple,
+  useAnimationDuration,
   useAnimationTimingFunction,
   useAnimationValues,
   useTotalAnimationDuration,
@@ -67,13 +71,12 @@ export interface NumbersTransitionProps<T extends object = object, U = unknown> 
   initialValue?: UncheckedBigDecimal;
   value?: UncheckedBigDecimal;
   precision?: number;
-  horizontalAnimationDuration?: number;
-  verticalAnimationDuration?: number;
+  animationDuration?: AnimationDuration | TotalAnimationDuration;
   decimalSeparator?: DecimalSeparator;
   digitGroupSeparator?: DigitGroupSeparator;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
-  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | AnimationsTimingFunctions;
+  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction;
   view?: View<T, U>;
 }
 
@@ -82,8 +85,10 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     initialValue,
     value,
     precision = Numbers.ZERO,
-    horizontalAnimationDuration = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-    verticalAnimationDuration = DefaultAnimationDuration.VERTICAL_ANIMATION,
+    animationDuration = {
+      horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
+      verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
+    },
     digitGroupSeparator = DigitGroupSeparator.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparator.COMMA
       ? DecimalSeparator.DOT
@@ -165,6 +170,11 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
     (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
     (renderHorizontalAnimation && renderNegativeElementWhenNumberOfAnimationsIsThree);
 
+  const [horizontalAnimationDuration, verticalAnimationDuration]: AnimationDurationTuple = useAnimationDuration({
+    animationDuration,
+    numberOfAnimations,
+  });
+
   const totalAnimationDuration: number = useTotalAnimationDuration({
     numberOfAnimations,
     horizontalAnimationDuration,
@@ -174,16 +184,18 @@ const NumbersTransition = <T extends object = object, U = unknown>(props: Number
   const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
     useAnimationTimingFunction(animationTimingFunction);
 
-  const currentAnimation: AnimationType = renderAnimation
+  const animationType: AnimationType = renderAnimation
     ? renderHorizontalAnimation
       ? AnimationType.HORIZONTAL
       : AnimationType.VERTICAL
     : AnimationType.NONE;
 
   const theme: NumbersTransitionTheme = {
-    $currentAnimation: currentAnimation,
+    $animationType: animationType,
     $numberOfAnimations: numberOfAnimations,
     $totalAnimationDuration: totalAnimationDuration,
+    $horizontalAnimationDuration: horizontalAnimationDuration,
+    $verticalAnimationDuration: verticalAnimationDuration,
   };
 
   useEffect((): void => {

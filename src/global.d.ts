@@ -1,27 +1,22 @@
 declare global {
   interface ArrayConstructor {
-    isArray<T, U extends T[] = T[]>(arg: T): arg is U;
+    isArray<T>(arg: T): arg is T[];
+    isArray<T, U extends T[]>(arg: T): arg is U;
   }
 
   interface Array<T> {
     depth(): number;
+    includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     invert(invert: boolean): [...this];
-    map<U, V = { [K in keyof this]: U }>(
-      callbackfn: (value: T, index: number, array: [...this]) => U,
-      thisArg?: unknown,
-    ): V;
-    reduce<U, V = U>(
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: [...this]) => U, thisArg?: unknown): V;
+    reduce<U extends unknown[], V extends U>(
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: [...this]) => U,
       initialValue: U,
     ): V;
-    reverse(): [...this];
   }
 
   interface ReadonlyArray<T> {
-    map<U, V = { -readonly [K in keyof this]: U }>(
-      callbackfn: (value: T, index: number, array: [...this]) => U,
-      thisArg?: unknown,
-    ): V;
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: [...this]) => U, thisArg?: unknown): V;
   }
 }
 

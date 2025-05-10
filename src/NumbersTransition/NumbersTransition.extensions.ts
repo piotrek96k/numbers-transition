@@ -2,9 +2,7 @@ import { Numbers } from './NumbersTransition.enums';
 
 Array.prototype.depth = function (): number {
   const depth = <T>(array: T | T[]): number =>
-    Array.isArray<T | T[], T[] | T[][]>(array)
-      ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>))
-      : Numbers.ZERO;
+    Array.isArray<T | T[]>(array) ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>)) : Numbers.ZERO;
 
   return depth<unknown>(this);
 };
