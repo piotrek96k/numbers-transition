@@ -13,7 +13,6 @@ import {
   AnimationDirection,
   AnimationType,
   Display,
-  HTMLElements,
   HorizontalAnimationDirection,
   Numbers,
   Runtime,
@@ -26,13 +25,15 @@ type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
 type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 
-type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
+export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<
+  Substitute<HTMLDetailedElement<T>, U>
+>;
 
-type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
   Substitute<ComponentPropsWithRef<T> & BaseObject, U>
 >;
 
-type AttributesStyledComponent<
+export type AttributesStyledComponent<
   T extends KnownTarget,
   U extends object,
   V extends object = BaseObject,
@@ -70,9 +71,6 @@ export type KeyframeFunctionFactory<T extends object, U> = (
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
-interface AnimationTypeProps<T extends AnimationType> {
-  $animationType: T;
-}
 interface AnimationDirectionProps<T extends AnimationDirection> {
   $animationDirection: T;
 }
@@ -86,12 +84,11 @@ interface AnimationDelayProps {
   $animationDelay?: number;
 }
 
-type UnselectedAnimationTypeProps = AnimationTypeProps<AnimationType>;
 type UnselectedAnimationDirectionProps = AnimationDirectionProps<AnimationDirection>;
 
-interface AnimationCommonProps<T extends AnimationType, U extends AnimationDirection>
-  extends AnimationTypeProps<T>,
-    AnimationDirectionProps<U>,
+interface AnimationCommonProps<T extends AnimationDirection>
+  extends NumbersTransitionExecutionContext,
+    AnimationDirectionProps<T>,
     AnimationDurationProps,
     AnimationTimingFunctionProps,
     AnimationDelayProps {}
@@ -101,15 +98,11 @@ interface AnimationWidthProps {
   $animationEndWidth: number;
 }
 
-interface HorizontalAnimationProps
-  extends AnimationCommonProps<AnimationType.HORIZONTAL, HorizontalAnimationDirection>,
-    AnimationWidthProps {}
+interface HorizontalAnimationProps extends AnimationCommonProps<HorizontalAnimationDirection>, AnimationWidthProps {}
 
-type VerticalAnimationProps = AnimationCommonProps<AnimationType.VERTICAL, VerticalAnimationDirection>;
+type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirection>;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
-
-type OmitAnimationType<T extends AnimationProps> = Omit<T, keyof UnselectedAnimationTypeProps>;
 
 const animationKeyframesMapper =
   <T extends object, U>(
@@ -159,10 +152,10 @@ const verticalAnimation: Keyframes = animationKeyframes<object, number>(vertical
   { value: Numbers.MINUS_ONE_HUNDRED },
 ]);
 
-const animationType = ({ $animationType, ...restProps }: AnimationProps): Keyframes => {
+const animationType = ({ theme: { $animationType }, ...restProps }: AnimationProps): Keyframes | undefined => {
   switch ($animationType) {
     case AnimationType.HORIZONTAL:
-      return horizontalAnimation(<OmitAnimationType<HorizontalAnimationProps>>restProps);
+      return horizontalAnimation(<HorizontalAnimationProps>restProps);
     case AnimationType.VERTICAL:
       return verticalAnimation;
   }
@@ -200,14 +193,6 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-iteration-count: ${Numbers.ONE};
   animation-fill-mode: forwards;
 `;
-
-const horizontalAnimationAttrs: AnimationTypeProps<AnimationType.HORIZONTAL> = {
-  $animationType: AnimationType.HORIZONTAL,
-};
-
-const verticalAnimationAttrs: AnimationTypeProps<AnimationType.VERTICAL> = {
-  $animationType: AnimationType.VERTICAL,
-};
 
 interface CssView<T extends object> {
   $css?: CssRule<T> | CssRule<T>[];
@@ -320,17 +305,9 @@ export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
   height: ${Numbers.ONE}lh;
 `;
 
-type AnimationStyledComponent<T extends AnimationProps> = AttributesStyledComponent<
-  HTMLElements.DIV,
-  HTMLDetailedElement<HTMLDivElement>,
-  OmitAnimationType<T>
->;
+type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
 
-type HorizontalAnimationStyledComponent = AnimationStyledComponent<HorizontalAnimationProps>;
-
-export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div.attrs<HorizontalAnimationProps>(
-  horizontalAnimationAttrs,
-)`
+export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div<HorizontalAnimationProps>`
   ${animation};
   display: inline-block;
   overflow: hidden;
@@ -341,11 +318,9 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
   }
 `;
 
-type VerticalAnimationStyledComponent = AnimationStyledComponent<VerticalAnimationProps>;
+type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, VerticalAnimationProps>;
 
-export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div.attrs<VerticalAnimationProps>(
-  verticalAnimationAttrs,
-)`
+export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
   ${animation};
   :last-child {
     position: absolute;

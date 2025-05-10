@@ -2,10 +2,6 @@ export enum Runtime {
   WEB = 'web',
 }
 
-export enum HTMLElements {
-  'DIV' = 'div',
-}
-
 export enum Display {
   BLOCK = 'BLOCK',
   INLINE = 'INLINE_BLOCK',
