@@ -58,16 +58,17 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
 
 export type CssRule<T extends object> = RuleSet<T> | string;
 
-export interface Keyframe<T> {
-  percentage?: number;
-  value: T;
-}
-
 export type KeyframeFunction<T extends object, U> = (keyframeValue: U) => CssRule<T>;
 
-export type KeyframeFunctionFactory<T extends object, U> = (
+export interface Animation<T extends object, U> {
+  keyframeFunction: KeyframeFunction<T, U>;
+  keyframes: U[];
+  progress?: number[];
+}
+
+export type AnimationFactory<T extends object, U> = (
   props: T & NumbersTransitionExecutionContext,
-) => KeyframeFunction<T, U> | undefined;
+) => Animation<T, U> | undefined;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
@@ -107,9 +108,9 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 const animationKeyframesMapper =
   <T extends object, U>(
     mapper: KeyframeFunction<T, U>,
-  ): ((value: Keyframe<U>, index: number, array: Keyframe<U>[]) => RuleSet<T>) =>
-  ({ value, percentage }: Keyframe<U>, index: number, { length }: Keyframe<U>[]): RuleSet<T> => css<T>`
-    ${percentage ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
+  ): ((value: [U] | [U, number], index: number, array: ([U] | [U, number])[]) => RuleSet<T>) =>
+  ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
+    ${progress ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
       ${mapper(value)};
     }
   `;
@@ -124,9 +125,13 @@ const animationKeyframesReducer = <T extends object>(
 
 const animationKeyframes = <T extends object, U>(
   keyframeMapper: KeyframeFunction<T, U>,
-  keyframeValues: Keyframe<U>[],
+  keyframesValues: U[],
+  progress: number[] = [],
 ): Keyframes => keyframes<T>`
-  ${keyframeValues.map<RuleSet<T>>(animationKeyframesMapper<T, U>(keyframeMapper)).reduce<RuleSet<T>>(animationKeyframesReducer<T>, css<T>``)}
+  ${keyframesValues
+    .zip<number>(progress)
+    .map<RuleSet<T>>(animationKeyframesMapper<T, U>(keyframeMapper))
+    .reduce<RuleSet<T>>(animationKeyframesReducer<T>, css<T>``)}
 `;
 
 const horizontalAnimationKeyframe: KeyframeFunction<object, number> = (
@@ -142,14 +147,11 @@ const verticalAnimationKeyframe: KeyframeFunction<object, number> = (
 `;
 
 const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
-  animationKeyframes<object, number>(horizontalAnimationKeyframe, [
-    { value: $animationStartWidth },
-    { value: $animationEndWidth },
-  ]);
+  animationKeyframes<object, number>(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
 
 const verticalAnimation: Keyframes = animationKeyframes<object, number>(verticalAnimationKeyframe, [
-  { value: Numbers.ZERO },
-  { value: Numbers.MINUS_ONE_HUNDRED },
+  Numbers.ZERO,
+  Numbers.MINUS_ONE_HUNDRED,
 ]);
 
 const animationType = ({ theme: { $animationType }, ...restProps }: AnimationProps): Keyframes | undefined => {
@@ -198,16 +200,22 @@ interface CssView<T extends object> {
   $css?: CssRule<T> | CssRule<T>[];
 }
 
-interface KeyframeView<T extends object, U> {
-  $keyframeFunction?: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[];
-  $keyframes?: Keyframe<U>[] | Keyframe<U>[][];
+interface AnimationView<T extends object, U> {
+  $animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
 }
 
-interface StyleView<T extends object, U> extends CssView<T>, KeyframeView<T, U> {}
+interface StyleView<T extends object, U> extends CssView<T>, AnimationView<T, U> {}
 
 const customCss: RuleSet<CssView<object>> = css<CssView<object>>`
   ${({ $css }: CssView<object>): CssRule<object> | undefined => $css};
 `;
+
+const customAnimationMapper = <T extends object, U>({
+  keyframeFunction,
+  keyframes,
+  progress,
+}: Partial<Animation<T, U>> | undefined = {}): Keyframes | undefined =>
+  keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
 
 const customAnimationKeyframesMapper = (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
   ${keyframes ?? `${keyframes}`}
@@ -218,21 +226,21 @@ const customAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentVa
 `;
 
 const customAnimationKeyframes = <T extends object, U>(
-  keyframeFunction: KeyframeFunctionFactory<T, U>[],
-  keyframes: Keyframe<U>[][],
+  animation: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[] | undefined,
   props: T & NumbersTransitionExecutionContext,
 ): RuleSet<object> | false =>
-  !!keyframeFunction.length &&
-  keyframeFunction.length === keyframes.length &&
-  keyframeFunction
-    .map<KeyframeFunction<T, U> | undefined>(
-      (keyframeFunctionFactory: KeyframeFunctionFactory<T, U>): KeyframeFunction<T, U> | undefined =>
-        keyframeFunctionFactory(props),
+  (Array.isArray<undefined | Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[]>(
+    animation,
+  )
+    ? !!animation.length
+    : !!animation) &&
+  [animation!]
+    .flat<(Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[])[], Numbers.ONE>()
+    .map<Partial<Animation<T, U>> | undefined>(
+      (animation: Animation<T, U> | AnimationFactory<T, U>): Partial<Animation<T, U>> | undefined =>
+        typeof animation === 'function' ? animation(props) : animation,
     )
-    .map<Keyframes | undefined>(
-      (keyframeFunction: KeyframeFunction<T, U> | undefined, index: number): Keyframes | undefined =>
-        keyframeFunction && animationKeyframes<T, U>(keyframeFunction, keyframes[index]),
-    )
+    .map<Keyframes | undefined>(customAnimationMapper<T, U>)
     .map<RuleSet<object>>(customAnimationKeyframesMapper)
     .reduce(customAnimationKeyframesReducer);
 
@@ -242,18 +250,11 @@ const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleS
     animation-name: ${animationKeyframes};
   `;
 
-const customAnimation = <T extends object, U, V extends T & NumbersTransitionExecutionContext & KeyframeView<T, U>>({
-  $keyframeFunction = [],
-  $keyframes = [],
+const customAnimation = <T extends object, U, V extends T & NumbersTransitionExecutionContext & AnimationView<T, U>>({
+  $animation,
   ...restProps
 }: V): RuleSet<T> | false =>
-  customAnimationName(
-    customAnimationKeyframes<T, U>(
-      [$keyframeFunction].flat<(KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[])[], Numbers.ONE>(),
-      <Keyframe<U>[][]>($keyframes.depth() === Numbers.ONE ? [$keyframes] : $keyframes),
-      <T & NumbersTransitionExecutionContext>restProps,
-    ),
-  );
+  customAnimationName(customAnimationKeyframes<T, U>($animation, <T & NumbersTransitionExecutionContext>restProps));
 
 interface VisibilityProps {
   $visible?: boolean;

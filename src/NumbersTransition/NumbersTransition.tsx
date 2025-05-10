@@ -20,11 +20,11 @@ import {
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
+  Animation,
+  AnimationFactory,
   AnimationTimingFunction,
   Container,
   CssRule,
-  Keyframe,
-  KeyframeFunctionFactory,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
 import {
@@ -59,8 +59,7 @@ import {
 export interface View<T extends object = object, U = unknown> {
   css?: CssRule<T> | CssRule<T>[];
   cssProps?: T;
-  keyframeFunction?: KeyframeFunctionFactory<T, U> | KeyframeFunctionFactory<T, U>[];
-  keyframes?: Keyframe<U>[] | Keyframe<U>[][];
+  animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
   className?: string | string[];
   style?: CSSProperties;
 }
@@ -107,7 +106,7 @@ const NumbersTransition = <
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction,
-    view: { css, cssProps, keyframeFunction, keyframes, className, style } = {},
+    view: { css, cssProps, animation, className, style } = {},
   }: NumbersTransitionProps<T, U, V, W> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
@@ -301,8 +300,7 @@ const NumbersTransition = <
       <Container
         {...cssProps}
         $css={css}
-        $keyframeFunction={keyframeFunction}
-        $keyframes={keyframes}
+        $animation={animation}
         className={[className].flat<(undefined | string | string[])[], Numbers.ONE>().join(Strings.SPACE)}
         style={style}
         ref={containerRef}

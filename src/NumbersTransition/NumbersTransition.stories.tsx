@@ -13,12 +13,19 @@ import {
 } from './NumbersTransition.enums';
 import { AnimationDuration, OptionalReadOnly } from './NumbersTransition.hooks';
 import {
+  Animation,
+  AnimationFactory,
   AnimationTimingFunction,
-  Keyframe,
-  KeyframeFunctionFactory,
   NumbersTransitionExecutionContext,
 } from './NumbersTransition.styles';
 import NumbersTransition from './NumbersTransition';
+
+type NumbersTransitionProps = typeof NumbersTransition<
+  AnimationDuration,
+  OptionalReadOnly<AnimationTimingFunction>,
+  NumbersTransitionExecutionContext,
+  number
+>;
 
 type SelectType =
   | typeof DigitGroupSeparator
@@ -28,14 +35,7 @@ type SelectType =
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
-type Story = StoryObj<
-  typeof NumbersTransition<
-    AnimationDuration,
-    OptionalReadOnly<AnimationTimingFunction>,
-    NumbersTransitionExecutionContext,
-    number
-  >
->;
+type Story = StoryObj<NumbersTransitionProps>;
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
@@ -63,16 +63,19 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
 
-const opacityKeyframe = (keyframeValue: number): RuleSet<object> => css<object>`
+const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
   opacity: ${keyframeValue};
 `;
 
-const opacityKeyframeFunction: KeyframeFunctionFactory<object, number> = ({
-  theme: { $numberOfAnimations },
-}: NumbersTransitionExecutionContext): ((keyframeValue: number) => RuleSet<object>) | undefined =>
-  $numberOfAnimations ? opacityKeyframe : undefined;
+const opacityAnimation: Animation<object, number> = {
+  keyframeFunction: opacityKeyframeFunction,
+  keyframes: [Numbers.ONE, Numbers.ONE / Numbers.THREE],
+};
 
-const opacityKeyframes: Keyframe<number>[] = [{ value: Numbers.ONE }, { value: Numbers.ONE / Numbers.THREE }];
+const opacityAnimationFactory: AnimationFactory<object, number> = ({
+  theme: { $numberOfAnimations },
+}: NumbersTransitionExecutionContext): Animation<object, number> | undefined =>
+  $numberOfAnimations ? opacityAnimation : undefined;
 
 const opacityAnimationDuration = ({
   theme: { $totalAnimationDuration },
@@ -87,14 +90,7 @@ const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionE
   animation-fill-mode: forwards;
 `;
 
-const args: ComponentProps<
-  typeof NumbersTransition<
-    AnimationDuration,
-    OptionalReadOnly<AnimationTimingFunction>,
-    NumbersTransitionExecutionContext,
-    number
-  >
-> = {
+const args: ComponentProps<NumbersTransitionProps> = {
   initialValue: Numbers.ZERO,
   value: StorybookDefaultValue.VALUE,
   precision: Numbers.ZERO,
@@ -107,7 +103,7 @@ const args: ComponentProps<
   negativeCharacter: NegativeCharacter.MINUS,
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
   animationTimingFunction: AnimationTimingFunctions.EASE,
-  view: { css: style, keyframeFunction: opacityKeyframeFunction, keyframes: opacityKeyframes },
+  view: { css: style, animation: opacityAnimationFactory },
 };
 
 export const Primary: Story = {

@@ -13,6 +13,7 @@ declare global {
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: [...this]) => U,
       initialValue: U,
     ): V;
+    zip<U>(array: U[]): [T, U][];
   }
 
   interface ReadonlyArray<T> {

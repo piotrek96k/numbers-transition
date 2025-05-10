@@ -16,7 +16,6 @@ import {
   Numbers,
   RegularExpressions,
   Strings,
-  Types,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
@@ -38,7 +37,7 @@ type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
 
 export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
   const isBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
-    typeof value !== Types.UNDEFINED && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
+    typeof value !== 'undefined' && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
   return isBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
 };

@@ -6,11 +6,11 @@ import {
   NegativeCharacterAnimationMode,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
+  Animation,
+  AnimationFactory,
   AnimationTimingFunction,
   CssRule,
-  Keyframe,
   KeyframeFunction,
-  KeyframeFunctionFactory,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
 } from './NumbersTransition/NumbersTransition.styles';
@@ -32,14 +32,14 @@ export {
 };
 
 export type {
-  AnimationTimingFunction,
+  Animation,
   AnimationDuration,
+  AnimationFactory,
+  AnimationTimingFunction,
   BigDecimal,
   CssRule,
   ExtendedAnimationTimingFunction,
-  Keyframe,
   KeyframeFunction,
-  KeyframeFunctionFactory,
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
