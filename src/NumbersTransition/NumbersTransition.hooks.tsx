@@ -193,18 +193,13 @@ type UseAnimationDuration = (options: UseAnimationDurationOptions) => AnimationD
 export const useAnimationDuration: UseAnimationDuration = (
   options: UseAnimationDurationOptions,
 ): AnimationDurationTuple => {
-  const {
-    animationDuration = {
-      horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-      verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
-    },
-    numberOfAnimations,
-  }: UseAnimationDurationOptions = options;
+  const { animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
   const keys: (keyof AnimationDuration)[] = ['horizontalAnimation', 'verticalAnimation'];
 
   const isAnimationDuration = (
     animationDuration: AnimationDuration | TotalAnimationDuration,
   ): animationDuration is AnimationDuration =>
+    Object.isEmpty(animationDuration) ||
     Object.keys(animationDuration).some((key: string): boolean => keys.includes<string>(key));
 
   const fromAnimationDuration = ({

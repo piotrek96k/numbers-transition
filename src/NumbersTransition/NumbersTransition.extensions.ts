@@ -14,3 +14,7 @@ Array.prototype.invert = function <T>(reverse: boolean): T[] {
 Array.prototype.zip = function <T>(array: T[]): [unknown, T][] {
   return this.map<[unknown, T]>((value: unknown, index: number): [unknown, T] => [value, array[index]]);
 };
+
+Object.isEmpty = function <T extends object>(object: T): boolean {
+  return this.keys(object).length === Numbers.ZERO;
+};

@@ -19,6 +19,10 @@ declare global {
   interface ReadonlyArray<T> {
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: [...this]) => U, thisArg?: unknown): V;
   }
+
+  interface ObjectConstructor {
+    isEmpty<T extends object>(object: T): boolean;
+  }
 }
 
 export {};
