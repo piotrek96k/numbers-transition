@@ -1,8 +1,4 @@
-logs
-*.log
-npm-debug.log*
-node_modules
 dist
-dist-ssr
-*.local
-*storybook.log
+node_modules
+storybook-static
+_

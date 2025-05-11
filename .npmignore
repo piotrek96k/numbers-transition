@@ -3,12 +3,12 @@
 .vscode
 node_modules
 src
+storybook-static
 .gitignore
 .huskyrc.json
 .lintstagedrc.json
 .prettierrc.json
 eslint.config.js
-global.d.ts
 package-lock.json
 tsconfig.json
 tsconfig.node.json
