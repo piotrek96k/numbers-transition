@@ -4,10 +4,15 @@ runs:
   steps:
     - name: Setup Pages
       uses: actions/configure-pages@v5.0.0
-    - name: Upload artifact
+    - name: Download Storybook Artifact
+      uses: actions/download-artifact@v4.3.0
+      with:
+        name: storybook
+        path: artifact
+    - name: Upload Storybook Artifact to Github Pages
       uses: actions/upload-pages-artifact@v3.0.1
       with:
-        path: 'storybook-static'
+        path: artifact
+        retention-days: 1
     - name: Deploy to GitHub Pages
-      id: deployment
       uses: actions/deploy-pages@v4.0.5
