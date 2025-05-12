@@ -14,6 +14,7 @@ import {
   AnimationType,
   Display,
   HorizontalAnimationDirection,
+  NumberOfAnimations,
   Numbers,
   Runtime,
   Strings,
@@ -46,7 +47,7 @@ export type AttributesStyledComponent<
 
 export interface NumbersTransitionTheme {
   $animationType?: AnimationType;
-  $numberOfAnimations?: number;
+  $numberOfAnimations?: NumberOfAnimations;
   $totalAnimationDuration?: number;
   $horizontalAnimationDuration?: number;
   $verticalAnimationDuration?: number;
