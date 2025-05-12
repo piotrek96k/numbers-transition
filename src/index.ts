@@ -1,9 +1,11 @@
 import {
   AnimationTimingFunctions,
+  AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
+  NumberOfAnimations,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   Animation,
@@ -26,10 +28,12 @@ import {
 
 export {
   AnimationTimingFunctions,
+  AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
+  NumberOfAnimations,
 };
 
 export type {
