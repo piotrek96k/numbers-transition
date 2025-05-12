@@ -56,7 +56,11 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
   theme: NumbersTransitionTheme;
 }
 
+type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | undefined;
+
 export type CssRule<T extends object> = RuleSet<T> | string;
+
+export type CssRuleFactory<T extends object> = Factory<T, CssRule<T>>;
 
 export type KeyframeFunction<T extends object, U> = (keyframeValue: U) => CssRule<T>;
 
@@ -66,9 +70,7 @@ export interface Animation<T extends object, U> {
   progress?: number[];
 }
 
-export type AnimationFactory<T extends object, U> = (
-  props: T & NumbersTransitionExecutionContext,
-) => Animation<T, U> | undefined;
+export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
@@ -197,7 +199,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 interface CssView<T extends object> {
-  $css?: CssRule<T> | CssRule<T>[];
+  $css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
 }
 
 interface AnimationView<T extends object, U> {
@@ -206,9 +208,24 @@ interface AnimationView<T extends object, U> {
 
 interface StyleView<T extends object, U> extends CssView<T>, AnimationView<T, U> {}
 
-const customCss: RuleSet<CssView<object>> = css<CssView<object>>`
-  ${({ $css }: CssView<object>): CssRule<object> | undefined => $css};
-`;
+const toCustomCssArray = <T extends object>(
+  cssStyle: undefined | CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[],
+): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
+  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[]>(cssStyle) &&
+  cssStyle.depth() === Numbers.TWO
+    ? cssStyle
+    : [cssStyle];
+
+const customCss = <T extends object, U, V extends T & StyleView<T, U> & NumbersTransitionExecutionContext>({
+  $css,
+  ...restProps
+}: V): (undefined | CssRule<T>)[] =>
+  toCustomCssArray($css).map<undefined | CssRule<T>>(
+    (cssStyle: undefined | CssRule<T> | CssRuleFactory<T>): undefined | CssRule<T> =>
+      typeof cssStyle === 'function'
+        ? cssStyle(<T & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps)
+        : cssStyle,
+  );
 
 const customAnimationMapper = <T extends object, U>({
   keyframeFunction,
@@ -227,7 +244,7 @@ const customAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentVa
 
 const customAnimationKeyframes = <T extends object, U>(
   animation: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[] | undefined,
-  props: T & NumbersTransitionExecutionContext,
+  props: T & CssView<T> & NumbersTransitionExecutionContext,
 ): RuleSet<object> | false =>
   (Array.isArray<undefined | Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[]>(
     animation,
@@ -250,11 +267,13 @@ const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleS
     animation-name: ${animationKeyframes};
   `;
 
-const customAnimation = <T extends object, U, V extends T & NumbersTransitionExecutionContext & AnimationView<T, U>>({
+const customAnimation = <T extends object, U, V extends T & StyleView<T, U> & NumbersTransitionExecutionContext>({
   $animation,
   ...restProps
 }: V): RuleSet<T> | false =>
-  customAnimationName(customAnimationKeyframes<T, U>($animation, <T & NumbersTransitionExecutionContext>restProps));
+  customAnimationName(
+    customAnimationKeyframes<T, U>($animation, <T & CssView<T> & NumbersTransitionExecutionContext>restProps),
+  );
 
 interface VisibilityProps {
   $visible?: boolean;

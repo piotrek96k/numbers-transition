@@ -25,6 +25,7 @@ import {
   AnimationTimingFunction,
   Container,
   CssRule,
+  CssRuleFactory,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
 import {
@@ -57,7 +58,7 @@ import {
 } from './NumbersTransition.hooks';
 
 export interface View<T extends object = object, U = unknown> {
-  css?: CssRule<T> | CssRule<T>[];
+  css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
   cssProps?: T;
   animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
   className?: string | string[];
