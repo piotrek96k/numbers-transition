@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import {
   BaseObject,
@@ -8,7 +9,6 @@ import {
   KnownTarget,
   Substitute,
 } from 'styled-components/dist/types';
-import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import {
   AnimationDirection,
   AnimationType,

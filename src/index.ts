@@ -8,6 +8,13 @@ import {
   NumberOfAnimations,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
+  AnimationDuration,
+  BigDecimal,
+  ExtendedAnimationTimingFunction,
+  TotalAnimationDuration,
+  UncheckedBigDecimal,
+} from './NumbersTransition/NumbersTransition.hooks';
+import {
   Animation,
   AnimationFactory,
   AnimationTimingFunction,
@@ -18,13 +25,6 @@ import {
   NumbersTransitionTheme,
 } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
-import {
-  AnimationDuration,
-  BigDecimal,
-  ExtendedAnimationTimingFunction,
-  TotalAnimationDuration,
-  UncheckedBigDecimal,
-} from './NumbersTransition/NumbersTransition.hooks';
 
 export {
   AnimationTimingFunctions,

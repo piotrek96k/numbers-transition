@@ -20,15 +20,6 @@ import {
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
-  Animation,
-  AnimationFactory,
-  AnimationTimingFunction,
-  Container,
-  CssRule,
-  CssRuleFactory,
-  NumbersTransitionTheme,
-} from './NumbersTransition.styles';
-import {
   AnimationTransition,
   AnimationType,
   DecimalSeparator,
@@ -56,6 +47,15 @@ import {
   useTotalAnimationDuration,
   useValidation,
 } from './NumbersTransition.hooks';
+import {
+  Animation,
+  AnimationFactory,
+  AnimationTimingFunction,
+  Container,
+  CssRule,
+  CssRuleFactory,
+  NumbersTransitionTheme,
+} from './NumbersTransition.styles';
 
 export interface View<T extends object = object, U = unknown> {
   css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
