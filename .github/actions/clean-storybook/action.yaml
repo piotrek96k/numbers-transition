@@ -1,4 +1,4 @@
-name: Remove Storybook Artifacts
+name: Clean Storybook Artifacts
 runs:
   using: 'composite'
   steps:

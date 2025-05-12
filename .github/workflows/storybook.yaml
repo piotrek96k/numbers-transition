@@ -35,5 +35,5 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Remove Storybook Artifacts
-        uses: ./.github/actions/remove-storybook
+      - name: Clean Storybook Artifacts
+        uses: ./.github/actions/clean-storybook
