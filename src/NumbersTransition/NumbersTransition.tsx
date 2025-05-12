@@ -73,8 +73,8 @@ export interface NumbersTransitionProps<
   V extends object = object,
   W = unknown,
 > {
-  initialValue?: UncheckedBigDecimal;
-  value?: UncheckedBigDecimal;
+  initialValue?: UncheckedBigDecimal | BigDecimal;
+  value?: UncheckedBigDecimal | BigDecimal;
   precision?: number;
   animationDuration?: T;
   decimalSeparator?: DecimalSeparator;
