@@ -2,6 +2,10 @@ export enum Runtime {
   WEB = 'web',
 }
 
+export enum HTMLElements {
+  'DIV' = 'div',
+}
+
 export enum Display {
   BLOCK = 'BLOCK',
   INLINE = 'INLINE_BLOCK',
@@ -13,7 +17,7 @@ export enum AnimationType {
   VERTICAL = 'VERTICAL',
 }
 
-export enum NumberOfAnimations {
+export enum AnimationNumber {
   ZERO,
   ONE,
   TWO,

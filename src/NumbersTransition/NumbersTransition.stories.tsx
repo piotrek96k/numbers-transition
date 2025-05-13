@@ -74,12 +74,12 @@ const opacityAnimation: Animation<object, number> = {
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
   theme: { $numberOfAnimations },
-}: NumbersTransitionExecutionContext): Animation<object, number> | undefined =>
+}: NumbersTransitionExecutionContext): undefined | Animation<object, number> =>
   $numberOfAnimations ? opacityAnimation : undefined;
 
 const opacityAnimationDuration = ({
   theme: { $totalAnimationDuration },
-}: NumbersTransitionExecutionContext): number | undefined => $totalAnimationDuration;
+}: NumbersTransitionExecutionContext): undefined | number => $totalAnimationDuration;
 
 const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionExecutionContext>`
   font-size: ${Numbers.FIVE}rem;

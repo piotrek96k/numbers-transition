@@ -1,11 +1,11 @@
 import {
+  AnimationNumber,
   AnimationTimingFunctions,
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
-  NumberOfAnimations,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -18,22 +18,24 @@ import {
   Animation,
   AnimationFactory,
   AnimationTimingFunction,
+  ClassNameFactory,
   CssRule,
   CssRuleFactory,
   KeyframeFunction,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
+  StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
 import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
 
 export {
+  AnimationNumber,
   AnimationTimingFunctions,
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
-  NumberOfAnimations,
 };
 
 export type {
@@ -42,6 +44,7 @@ export type {
   AnimationFactory,
   AnimationTimingFunction,
   BigDecimal,
+  ClassNameFactory,
   CssRule,
   CssRuleFactory,
   ExtendedAnimationTimingFunction,
@@ -49,6 +52,7 @@ export type {
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  StyleFactory,
   TotalAnimationDuration,
   UncheckedBigDecimal,
   View,

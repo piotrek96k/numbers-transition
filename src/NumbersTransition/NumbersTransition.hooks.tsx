@@ -1,6 +1,7 @@
 import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
 import {
   AnimationDirection,
+  AnimationNumber,
   AnimationTimingFunctions,
   Canvas,
   DecimalSeparator,
@@ -11,7 +12,6 @@ import {
   EquationSolver,
   HorizontalAnimationDirection,
   NegativeCharacter,
-  NumberOfAnimations,
   NumberPrecision,
   Numbers,
   RegularExpressions,
@@ -183,7 +183,7 @@ export interface TotalAnimationDuration {
 
 interface UseAnimationDurationOptions {
   animationDuration?: AnimationDuration | TotalAnimationDuration;
-  numberOfAnimations: NumberOfAnimations;
+  numberOfAnimations: AnimationNumber;
 }
 
 export type AnimationDurationTuple = [number, number];
@@ -206,7 +206,7 @@ export const useAnimationDuration: UseAnimationDuration = (
     horizontalAnimation = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
     verticalAnimation = DefaultAnimationDuration.VERTICAL_ANIMATION,
   }: AnimationDuration): AnimationDurationTuple => [
-    numberOfAnimations === NumberOfAnimations.ONE ? Numbers.ZERO : horizontalAnimation,
+    numberOfAnimations === AnimationNumber.ONE ? Numbers.ZERO : horizontalAnimation,
     verticalAnimation,
   ];
 
@@ -215,7 +215,7 @@ export const useAnimationDuration: UseAnimationDuration = (
     ratio = DefaultTotalAnimationDuration.RATIO,
   }: TotalAnimationDuration): AnimationDurationTuple => {
     const horizontalAnimationDuration: number =
-      numberOfAnimations === NumberOfAnimations.ONE
+      numberOfAnimations === AnimationNumber.ONE
         ? Numbers.ZERO
         : animationDuration / (ratio + numberOfAnimations - Numbers.ONE);
     const verticalAnimationDuration: number =
@@ -232,13 +232,13 @@ export const useAnimationDuration: UseAnimationDuration = (
     ? fromAnimationDuration
     : fromTotalAnimationDuration;
 
-  return numberOfAnimations === NumberOfAnimations.ZERO
+  return numberOfAnimations === AnimationNumber.ZERO
     ? [Numbers.ZERO, Numbers.ZERO]
     : mapAnimationDuration(animationDuration);
 };
 
 interface UseTotalAnimationDurationOptions {
-  numberOfAnimations: NumberOfAnimations;
+  numberOfAnimations: AnimationNumber;
   horizontalAnimationDuration: number;
   verticalAnimationDuration: number;
 }
@@ -251,13 +251,13 @@ export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
   verticalAnimationDuration,
 }: UseTotalAnimationDurationOptions): number => {
   switch (numberOfAnimations) {
-    case NumberOfAnimations.ZERO:
+    case AnimationNumber.ZERO:
       return Numbers.ZERO;
-    case NumberOfAnimations.ONE:
+    case AnimationNumber.ONE:
       return verticalAnimationDuration;
-    case NumberOfAnimations.TWO:
+    case AnimationNumber.TWO:
       return horizontalAnimationDuration + verticalAnimationDuration;
-    case NumberOfAnimations.THREE:
+    case AnimationNumber.THREE:
       return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
   }
 };

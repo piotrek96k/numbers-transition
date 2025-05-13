@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
+import { CSSProperties, ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import {
   BaseObject,
@@ -11,10 +12,11 @@ import {
 } from 'styled-components/dist/types';
 import {
   AnimationDirection,
+  AnimationNumber,
   AnimationType,
   Display,
+  HTMLElements,
   HorizontalAnimationDirection,
-  NumberOfAnimations,
   Numbers,
   Runtime,
   Strings,
@@ -22,19 +24,19 @@ import {
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 
+type Not<T, U> = T extends U ? never : T;
+
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
 type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 
-export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<
-  Substitute<HTMLDetailedElement<T>, U>
->;
+type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
 
-export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
   Substitute<ComponentPropsWithRef<T> & BaseObject, U>
 >;
 
-export type AttributesStyledComponent<
+type AttributesStyledComponent<
   T extends KnownTarget,
   U extends object,
   V extends object = BaseObject,
@@ -47,7 +49,8 @@ export type AttributesStyledComponent<
 
 export interface NumbersTransitionTheme {
   $animationType?: AnimationType;
-  $numberOfAnimations?: NumberOfAnimations;
+  $numberOfAnimations?: AnimationNumber;
+  $currentAnimationNumber?: AnimationNumber;
   $totalAnimationDuration?: number;
   $horizontalAnimationDuration?: number;
   $verticalAnimationDuration?: number;
@@ -57,7 +60,11 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
   theme: NumbersTransitionTheme;
 }
 
-type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | undefined;
+type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => undefined | U;
+
+export type StyleFactory<T extends object> = Factory<T, CSSProperties>;
+
+export type ClassNameFactory<T extends object> = Factory<T, string>;
 
 export type CssRule<T extends object> = RuleSet<T> | string;
 
@@ -157,7 +164,7 @@ const verticalAnimation: Keyframes = animationKeyframes<object, number>(vertical
   Numbers.MINUS_ONE_HUNDRED,
 ]);
 
-const animationType = ({ theme: { $animationType }, ...restProps }: AnimationProps): Keyframes | undefined => {
+const animationType = ({ theme: { $animationType }, ...restProps }: AnimationProps): undefined | Keyframes => {
   switch ($animationType) {
     case AnimationType.HORIZONTAL:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
@@ -199,6 +206,14 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
+interface StyleView<T extends object> {
+  $style?: CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[];
+}
+
+interface ClassNameView<T extends object> {
+  $className?: string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[];
+}
+
 interface CssView<T extends object> {
   $css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
 }
@@ -207,45 +222,75 @@ interface AnimationView<T extends object, U> {
   $animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
 }
 
-interface StyleView<T extends object, U> extends CssView<T>, AnimationView<T, U> {}
+interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
 
-const toCustomCssArray = <T extends object>(
-  cssStyle: undefined | CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[],
+const factoryMapperFactory =
+  <T extends object, U>(
+    props: T & NumbersTransitionExecutionContext,
+  ): ((value?: Not<U, Function> | Factory<T, Not<U, Function>>) => undefined | Not<U, Function>) =>
+  (value?: Not<U, Function> | Factory<T, Not<U, Function>>): undefined | Not<U, Function> =>
+    typeof value === 'function' ? (<Function>value)(props) : value;
+
+const passedStyleReducer = (accumulator: CSSProperties, currentStyle: undefined | CSSProperties): CSSProperties => ({
+  ...accumulator,
+  ...currentStyle,
+});
+
+const passedStyle = <T extends object, U>(
+  style: undefined | CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[],
+  props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
+): CSSProperties =>
+  [style]
+    .flat<(undefined | CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[])[], Numbers.ONE>()
+    .map<undefined | CSSProperties>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, CSSProperties>(props))
+    .reduce<CSSProperties>(passedStyleReducer, {});
+
+const passedClassName = <T extends object, U>(
+  className: undefined | string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[],
+  props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
+): undefined | string =>
+  [className]
+    .flat<(undefined | string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[])[], Numbers.ONE>()
+    .map<undefined | string>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, string>(props))
+    .filter((className: undefined | string): boolean => !!className)
+    .join(Strings.SPACE);
+
+const toPassedCssArray = <T extends object>(
+  cssStyle?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[],
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
   Array.isArray<undefined | CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[]>(cssStyle) &&
   cssStyle.depth() === Numbers.TWO
     ? cssStyle
     : [cssStyle];
 
-const customCss = <T extends object, U, V extends T & StyleView<T, U> & NumbersTransitionExecutionContext>({
+const passedCss = <T extends object, U>({
   $css,
   ...restProps
-}: V): (undefined | CssRule<T>)[] =>
-  toCustomCssArray($css).map<undefined | CssRule<T>>(
-    (cssStyle: undefined | CssRule<T> | CssRuleFactory<T>): undefined | CssRule<T> =>
-      typeof cssStyle === 'function'
-        ? cssStyle(<T & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps)
-        : cssStyle,
+}: T & View<T, U> & NumbersTransitionExecutionContext): (undefined | CssRule<T>)[] =>
+  toPassedCssArray<T>($css).map<undefined | CssRule<T>>(
+    factoryMapperFactory<T & StyleView<T> & ClassNameView<T> & AnimationView<T, U>, CssRule<T>>(
+      <T & StyleView<T> & ClassNameView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps,
+    ),
   );
 
-const customAnimationMapper = <T extends object, U>({
+const passedAnimationMapper = <T extends object, U>({
   keyframeFunction,
   keyframes,
   progress,
-}: Partial<Animation<T, U>> | undefined = {}): Keyframes | undefined =>
+}: Partial<Animation<T, U>> = {}): undefined | Keyframes =>
   keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
 
-const customAnimationKeyframesMapper = (keyframes: Keyframes | undefined): RuleSet<object> => css<object>`
+const passedAnimationKeyframesMapper = (keyframes?: Keyframes): RuleSet<object> => css<object>`
   ${keyframes ?? `${keyframes}`}
 `;
 
-const customAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
+const passedAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
   ${accumulator}${Strings.COMMA}${currentValue}
 `;
 
-const customAnimationKeyframes = <T extends object, U>(
-  animation: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[] | undefined,
-  props: T & CssView<T> & NumbersTransitionExecutionContext,
+const passedAnimationKeyframes = <T extends object, U>(
+  props: T & StyleView<T> & ClassNameView<T> & CssView<T> & NumbersTransitionExecutionContext,
+  animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[],
 ): RuleSet<object> | false =>
   (Array.isArray<undefined | Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[]>(
     animation,
@@ -254,27 +299,41 @@ const customAnimationKeyframes = <T extends object, U>(
     : !!animation) &&
   [animation!]
     .flat<(Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[])[], Numbers.ONE>()
-    .map<Partial<Animation<T, U>> | undefined>(
-      (animation: Animation<T, U> | AnimationFactory<T, U>): Partial<Animation<T, U>> | undefined =>
-        typeof animation === 'function' ? animation(props) : animation,
+    .map<undefined | Partial<Animation<T, U>>>(
+      factoryMapperFactory<T & StyleView<T> & ClassNameView<T> & CssView<T>, Animation<T, U>>(props),
     )
-    .map<Keyframes | undefined>(customAnimationMapper<T, U>)
-    .map<RuleSet<object>>(customAnimationKeyframesMapper)
-    .reduce(customAnimationKeyframesReducer);
+    .map<undefined | Keyframes>(passedAnimationMapper<T, U>)
+    .map<RuleSet<object>>(passedAnimationKeyframesMapper)
+    .reduce(passedAnimationKeyframesReducer);
 
-const customAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
+const passedAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
   animationKeyframes &&
   css<object>`
     animation-name: ${animationKeyframes};
   `;
 
-const customAnimation = <T extends object, U, V extends T & StyleView<T, U> & NumbersTransitionExecutionContext>({
+const passedAnimation = <T extends object, U>({
   $animation,
   ...restProps
-}: V): RuleSet<T> | false =>
-  customAnimationName(
-    customAnimationKeyframes<T, U>($animation, <T & CssView<T> & NumbersTransitionExecutionContext>restProps),
+}: T & View<T, U> & NumbersTransitionExecutionContext): RuleSet<T> | false =>
+  passedAnimationName(
+    passedAnimationKeyframes<T, U>(
+      <T & StyleView<T> & ClassNameView<T> & CssView<T> & NumbersTransitionExecutionContext>restProps,
+      $animation,
+    ),
   );
+
+const attributes = <T extends object, U>({
+  $style,
+  $className,
+  ...restProps
+}: T & View<T, U> & NumbersTransitionExecutionContext): HTMLAttributes<HTMLDivElement> => ({
+  style: passedStyle($style, <T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps),
+  className: passedClassName(
+    $className,
+    <T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps,
+  ),
+});
 
 interface VisibilityProps {
   $visible?: boolean;
@@ -299,6 +358,7 @@ const containerVariables = ({
   theme: {
     $animationType,
     $numberOfAnimations,
+    $currentAnimationNumber,
     $totalAnimationDuration,
     $horizontalAnimationDuration,
     $verticalAnimationDuration,
@@ -306,18 +366,23 @@ const containerVariables = ({
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   --animation-type: ${$animationType};
   --number-of-animations: ${$numberOfAnimations};
+  --current-animation-number: ${$currentAnimationNumber};
   --total-animation-duration: ${$totalAnimationDuration};
   --horizontal-animation-duration: ${$horizontalAnimationDuration};
   --vertical-animation-duration: ${$verticalAnimationDuration};
 `;
 
-interface ContainerProps extends NumbersTransitionExecutionContext, StyleView<any, any> {}
+interface ContainerProps extends NumbersTransitionExecutionContext, View<any, any> {}
 
-type ContainerStyledComponent = StyledComponent<HTMLDivElement, ContainerProps>;
+type ContainerStyledComponent = AttributesStyledComponent<
+  HTMLElements.DIV,
+  HTMLDetailedElement<HTMLDivElement>,
+  ContainerProps
+>;
 
-export const Container: ContainerStyledComponent = styled.div<ContainerProps>`
-  ${customCss};
-  ${customAnimation};
+export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps>(attributes)`
+  ${passedCss};
+  ${passedAnimation};
   ${containerVariables};
   position: relative;
   white-space: nowrap;

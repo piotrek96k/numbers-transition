@@ -1,5 +1,6 @@
 import { Dispatch, FC, Fragment, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
+  AnimationNumber,
   AnimationTransition,
   DecimalSeparator,
   DigitGroupSeparator,
@@ -8,7 +9,6 @@ import {
   HorizontalAnimationDirection,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
-  NumberOfAnimations,
   Numbers,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
@@ -244,7 +244,7 @@ interface HorizontalAnimationElementProps {
   maxNumberOfDigits: number;
   numberOfDigitsDifference: number;
   hasSignChanged: boolean;
-  numberOfAnimations: NumberOfAnimations;
+  numberOfAnimations: AnimationNumber;
   onAnimationEnd: () => void;
 }
 
@@ -273,21 +273,21 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
   }: HorizontalAnimationElementProps = props;
 
   const animationDirection: HorizontalAnimationDirection =
-    (numberOfAnimations === NumberOfAnimations.TWO &&
+    (numberOfAnimations === AnimationNumber.TWO &&
       (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
-    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition === AnimationTransition.NONE)
+    (numberOfAnimations === AnimationNumber.THREE && animationTransition === AnimationTransition.NONE)
       ? HorizontalAnimationDirection.RIGHT
       : HorizontalAnimationDirection.LEFT;
 
   const renderNegativeCharacter: boolean =
     hasSignChanged &&
-    (numberOfAnimations === NumberOfAnimations.TWO ||
-      (numberOfAnimations === NumberOfAnimations.THREE &&
+    (numberOfAnimations === AnimationNumber.TWO ||
+      (numberOfAnimations === AnimationNumber.THREE &&
         previousValue < currentValue === (animationTransition === AnimationTransition.SECOND_TO_THIRD)));
 
   const renderZeros: boolean =
-    numberOfAnimations === NumberOfAnimations.TWO ||
-    (numberOfAnimations === NumberOfAnimations.THREE &&
+    numberOfAnimations === AnimationNumber.TWO ||
+    (numberOfAnimations === AnimationNumber.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
   const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunctionDirection({

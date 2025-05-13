@@ -20,15 +20,14 @@ import {
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
+  AnimationNumber,
   AnimationTransition,
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
-  NumberOfAnimations,
   Numbers,
-  Strings,
 } from './NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -51,18 +50,20 @@ import {
   Animation,
   AnimationFactory,
   AnimationTimingFunction,
+  ClassNameFactory,
   Container,
   CssRule,
   CssRuleFactory,
   NumbersTransitionTheme,
+  StyleFactory,
 } from './NumbersTransition.styles';
 
 export interface View<T extends object = object, U = unknown> {
+  style?: CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[];
+  className?: string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[];
   css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
-  cssProps?: T;
   animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
-  className?: string | string[];
-  style?: CSSProperties;
+  viewProps?: T;
 }
 
 export interface NumbersTransitionProps<
@@ -107,7 +108,7 @@ const NumbersTransition = <
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction,
-    view: { css, cssProps, animation, className, style } = {},
+    view: { style, className, css, animation, viewProps } = {},
   }: NumbersTransitionProps<T, U, V, W> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
@@ -151,15 +152,23 @@ const NumbersTransition = <
       previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
 
-  const numberOfAnimations: NumberOfAnimations = renderAnimation
+  const numberOfAnimations: AnimationNumber = renderAnimation
     ? hasSignChanged
       ? hasThreeAnimations
-        ? NumberOfAnimations.THREE
-        : NumberOfAnimations.TWO
+        ? AnimationNumber.THREE
+        : AnimationNumber.TWO
       : hasTheSameNumberOfDigits
-        ? NumberOfAnimations.ONE
-        : NumberOfAnimations.TWO
-    : NumberOfAnimations.ZERO;
+        ? AnimationNumber.ONE
+        : AnimationNumber.TWO
+    : AnimationNumber.ZERO;
+
+  const currentAnimationNumber: AnimationNumber = renderAnimation
+    ? animationTransition === AnimationTransition.SECOND_TO_THIRD
+      ? AnimationNumber.THREE
+      : animationTransition === AnimationTransition.FIRST_TO_SECOND
+        ? AnimationNumber.TWO
+        : AnimationNumber.ONE
+    : AnimationNumber.ZERO;
 
   const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
     ? animationTransition === AnimationTransition.NONE
@@ -170,16 +179,22 @@ const NumbersTransition = <
       : previousValueOnAnimationEndDigits.length > valueDigits.length;
 
   const renderHorizontalAnimation: boolean =
-    (numberOfAnimations === NumberOfAnimations.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
-    (numberOfAnimations === NumberOfAnimations.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
+    (numberOfAnimations === AnimationNumber.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
+    (numberOfAnimations === AnimationNumber.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
   const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
-    numberOfAnimations === NumberOfAnimations.THREE &&
+    numberOfAnimations === AnimationNumber.THREE &&
     previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransition.NONE);
 
   const renderNegativeElement: boolean =
     (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
     (renderHorizontalAnimation && renderNegativeElementWhenNumberOfAnimationsIsThree);
+
+  const animationType: AnimationType = renderAnimation
+    ? renderHorizontalAnimation
+      ? AnimationType.HORIZONTAL
+      : AnimationType.VERTICAL
+    : AnimationType.NONE;
 
   const [horizontalAnimationDuration, verticalAnimationDuration]: AnimationDurationTuple = useAnimationDuration({
     animationDuration,
@@ -195,15 +210,10 @@ const NumbersTransition = <
   const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
     useAnimationTimingFunction(animationTimingFunction);
 
-  const animationType: AnimationType = renderAnimation
-    ? renderHorizontalAnimation
-      ? AnimationType.HORIZONTAL
-      : AnimationType.VERTICAL
-    : AnimationType.NONE;
-
   const theme: NumbersTransitionTheme = {
     $animationType: animationType,
     $numberOfAnimations: numberOfAnimations,
+    $currentAnimationNumber: currentAnimationNumber,
     $totalAnimationDuration: totalAnimationDuration,
     $horizontalAnimationDuration: horizontalAnimationDuration,
     $verticalAnimationDuration: verticalAnimationDuration,
@@ -221,10 +231,10 @@ const NumbersTransition = <
   }, [validValue, omitAnimation, restartAnimation]);
 
   const onAnimationEnd = (): void => {
-    if (numberOfAnimations === NumberOfAnimations.ONE) {
+    if (numberOfAnimations === AnimationNumber.ONE) {
       setPreviousValueOnAnimationEnd(validValue);
     } else if (
-      numberOfAnimations === NumberOfAnimations.THREE &&
+      numberOfAnimations === AnimationNumber.THREE &&
       animationTransition === AnimationTransition.FIRST_TO_SECOND
     ) {
       setAnimationTransition(AnimationTransition.SECOND_TO_THIRD);
@@ -299,11 +309,11 @@ const NumbersTransition = <
   return (
     <ThemeProvider theme={theme}>
       <Container
-        {...cssProps}
+        {...viewProps}
+        $style={style}
+        $className={className}
         $css={css}
         $animation={animation}
-        className={[className].flat<(undefined | string | string[])[], Numbers.ONE>().join(Strings.SPACE)}
-        style={style}
         ref={containerRef}
       >
         <Optional condition={renderNegativeElement}>
