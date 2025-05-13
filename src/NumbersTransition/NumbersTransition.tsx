@@ -29,6 +29,7 @@ import {
   NegativeCharacterAnimationMode,
   Numbers,
 } from './NumbersTransition.enums';
+import { OrArray } from './NumbersTransition.extensions';
 import {
   AnimationDuration,
   AnimationDurationTuple,
@@ -55,7 +56,6 @@ import {
   CssRule,
   CssRuleFactory,
   NumbersTransitionTheme,
-  OrArray,
   StyleFactory,
 } from './NumbersTransition.styles';
 

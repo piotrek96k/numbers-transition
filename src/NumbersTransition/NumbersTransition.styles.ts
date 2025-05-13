@@ -22,9 +22,7 @@ import {
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import './NumbersTransition.extensions';
-
-export type OrArray<T> = T | T[];
+import { OrArray } from './NumbersTransition.extensions';
 
 type Not<T, U> = T extends U ? never : T;
 

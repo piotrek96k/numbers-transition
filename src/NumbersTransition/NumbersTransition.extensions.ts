@@ -1,8 +1,12 @@
 import { Numbers } from './NumbersTransition.enums';
 
+export type OrArray<T> = T | T[];
+
 Array.prototype.depth = function (): number {
-  const depth = <T>(array: T | T[]): number =>
-    Array.isArray<T | T[]>(array) ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>)) : Numbers.ZERO;
+  const depth = <T>(array: OrArray<T>): number =>
+    Array.isArray<OrArray<T>>(array)
+      ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>))
+      : Numbers.ZERO;
 
   return depth<unknown>(this);
 };
