@@ -55,14 +55,15 @@ import {
   CssRule,
   CssRuleFactory,
   NumbersTransitionTheme,
+  OrArray,
   StyleFactory,
 } from './NumbersTransition.styles';
 
 export interface View<T extends object = object, U = unknown> {
-  style?: CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[];
-  className?: string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[];
-  css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
-  animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
+  style?: OrArray<CSSProperties | StyleFactory<T>>;
+  className?: OrArray<string | ClassNameFactory<T>>;
+  css?: OrArray<CssRule<T> | CssRuleFactory<T>>;
+  animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
   viewProps?: T;
 }
 

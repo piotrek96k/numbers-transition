@@ -24,6 +24,8 @@ import {
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 
+export type OrArray<T> = T | T[];
+
 type Not<T, U> = T extends U ? never : T;
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
@@ -207,19 +209,19 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 interface StyleView<T extends object> {
-  $style?: CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[];
+  $style?: OrArray<CSSProperties | StyleFactory<T>>;
 }
 
 interface ClassNameView<T extends object> {
-  $className?: string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[];
+  $className?: OrArray<string | ClassNameFactory<T>>;
 }
 
 interface CssView<T extends object> {
-  $css?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[];
+  $css?: OrArray<CssRule<T> | CssRuleFactory<T>>;
 }
 
 interface AnimationView<T extends object, U> {
-  $animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[];
+  $animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
 }
 
 interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
@@ -237,29 +239,28 @@ const passedStyleReducer = (accumulator: CSSProperties, currentStyle: undefined 
 });
 
 const passedStyle = <T extends object, U>(
-  style: undefined | CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[],
+  style: undefined | OrArray<CSSProperties | StyleFactory<T>>,
   props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
 ): CSSProperties =>
   [style]
-    .flat<(undefined | CSSProperties | StyleFactory<T> | (CSSProperties | StyleFactory<T>)[])[], Numbers.ONE>()
+    .flat<(undefined | OrArray<CSSProperties | StyleFactory<T>>)[], Numbers.ONE>()
     .map<undefined | CSSProperties>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, CSSProperties>(props))
     .reduce<CSSProperties>(passedStyleReducer, {});
 
 const passedClassName = <T extends object, U>(
-  className: undefined | string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[],
+  className: undefined | OrArray<string | ClassNameFactory<T>>,
   props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
 ): undefined | string =>
   [className]
-    .flat<(undefined | string | ClassNameFactory<T> | (string | ClassNameFactory<T>)[])[], Numbers.ONE>()
+    .flat<(undefined | OrArray<string | ClassNameFactory<T>>)[], Numbers.ONE>()
     .map<undefined | string>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, string>(props))
     .filter((className: undefined | string): boolean => !!className)
     .join(Strings.SPACE);
 
 const toPassedCssArray = <T extends object>(
-  cssStyle?: CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[],
+  cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
-  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T> | (CssRule<T> | CssRuleFactory<T>)[]>(cssStyle) &&
-  cssStyle.depth() === Numbers.TWO
+  Array.isArray<undefined | OrArray<CssRule<T> | CssRuleFactory<T>>>(cssStyle) && cssStyle.depth() === Numbers.TWO
     ? cssStyle
     : [cssStyle];
 
@@ -290,15 +291,13 @@ const passedAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentVa
 
 const passedAnimationKeyframes = <T extends object, U>(
   props: T & StyleView<T> & ClassNameView<T> & CssView<T> & NumbersTransitionExecutionContext,
-  animation?: Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[],
+  animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>,
 ): RuleSet<object> | false =>
-  (Array.isArray<undefined | Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[]>(
-    animation,
-  )
+  (Array.isArray<undefined | OrArray<Animation<T, U> | AnimationFactory<T, U>>>(animation)
     ? !!animation.length
     : !!animation) &&
   [animation!]
-    .flat<(Animation<T, U> | AnimationFactory<T, U> | (Animation<T, U> | AnimationFactory<T, U>)[])[], Numbers.ONE>()
+    .flat<OrArray<Animation<T, U> | AnimationFactory<T, U>>[], Numbers.ONE>()
     .map<undefined | Partial<Animation<T, U>>>(
       factoryMapperFactory<T & StyleView<T> & ClassNameView<T> & CssView<T>, Animation<T, U>>(props),
     )
