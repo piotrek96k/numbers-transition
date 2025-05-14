@@ -16,7 +16,6 @@ import {
   CubicBezierTuple,
   ElementKeyMapper,
   GetCharacterWidth,
-  OptionalReadOnly,
   useAnimationTimingFunctionDirection,
   useCharacterWidth,
   useCubicBezier,
@@ -31,6 +30,7 @@ import {
   HorizontalAnimation,
   VerticalAnimation,
 } from './NumbersTransition.styles';
+import { OrReadOnly } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -233,7 +233,7 @@ interface HorizontalAnimationElementProps {
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
+  animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
   animationTransition: AnimationTransition;
   containerRef: RefObject<HTMLDivElement | null>;
   previousValueDigits: number[];
@@ -357,7 +357,7 @@ interface VerticalAnimationElementProps {
   digitGroupSeparator: DigitGroupSeparator;
   negativeCharacter: NegativeCharacter;
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
+  animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;

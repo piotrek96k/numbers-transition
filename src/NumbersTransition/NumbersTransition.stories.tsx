@@ -1,6 +1,7 @@
 import { ComponentProps } from 'react';
 import { RuleSet, css } from 'styled-components';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
+import NumbersTransition from './NumbersTransition';
 import {
   AnimationTimingFunctions,
   DecimalSeparator,
@@ -11,18 +12,18 @@ import {
   Numbers,
   StorybookDefaultValue,
 } from './NumbersTransition.enums';
-import { AnimationDuration, OptionalReadOnly } from './NumbersTransition.hooks';
+import { AnimationDuration } from './NumbersTransition.hooks';
 import {
   Animation,
   AnimationFactory,
   AnimationTimingFunction,
   NumbersTransitionExecutionContext,
 } from './NumbersTransition.styles';
-import NumbersTransition from './NumbersTransition';
+import { OrReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
-  OptionalReadOnly<AnimationTimingFunction>,
+  OrReadOnly<AnimationTimingFunction>,
   NumbersTransitionExecutionContext,
   number
 >;

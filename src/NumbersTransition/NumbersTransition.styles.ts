@@ -22,9 +22,7 @@ import {
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import { OrArray } from './NumbersTransition.extensions';
-
-type Not<T, U> = T extends U ? never : T;
+import { Not, OrArray } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 

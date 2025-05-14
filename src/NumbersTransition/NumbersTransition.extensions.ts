@@ -1,6 +1,5 @@
 import { Numbers } from './NumbersTransition.enums';
-
-export type OrArray<T> = T | T[];
+import { OrArray } from './NumbersTransition.types';
 
 Array.prototype.depth = function (): number {
   const depth = <T>(array: OrArray<T>): number =>

@@ -29,7 +29,6 @@ import {
   NegativeCharacterAnimationMode,
   Numbers,
 } from './NumbersTransition.enums';
-import { OrArray } from './NumbersTransition.extensions';
 import {
   AnimationDuration,
   AnimationDurationTuple,
@@ -37,7 +36,6 @@ import {
   AnimationValuesTuple,
   BigDecimal,
   ExtendedAnimationTimingFunction,
-  OptionalReadOnly,
   TotalAnimationDuration,
   UncheckedBigDecimal,
   ValidationTuple,
@@ -58,6 +56,7 @@ import {
   NumbersTransitionTheme,
   StyleFactory,
 } from './NumbersTransition.styles';
+import { OrArray, OrReadOnly } from './NumbersTransition.types';
 
 export interface View<T extends object = object, U = unknown> {
   style?: OrArray<CSSProperties | StyleFactory<T>>;
@@ -69,9 +68,7 @@ export interface View<T extends object = object, U = unknown> {
 
 export interface NumbersTransitionProps<
   T extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  U extends
-    | OptionalReadOnly<AnimationTimingFunction>
-    | ExtendedAnimationTimingFunction = OptionalReadOnly<AnimationTimingFunction>,
+  U extends OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction = OrReadOnly<AnimationTimingFunction>,
   V extends object = object,
   W = unknown,
 > {
@@ -89,9 +86,7 @@ export interface NumbersTransitionProps<
 
 const NumbersTransition = <
   T extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  U extends
-    | OptionalReadOnly<AnimationTimingFunction>
-    | ExtendedAnimationTimingFunction = OptionalReadOnly<AnimationTimingFunction>,
+  U extends OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction = OrReadOnly<AnimationTimingFunction>,
   V extends object = object,
   W = unknown,
 >(

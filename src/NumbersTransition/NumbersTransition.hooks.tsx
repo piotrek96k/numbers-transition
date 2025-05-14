@@ -20,12 +20,7 @@ import {
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
-
-type ReadOnly<T> = {
-  +readonly [K in keyof T]: ReadOnly<T[K]>;
-};
-
-export type OptionalReadOnly<T> = ReadOnly<T> | T;
+import { OrReadOnly } from './NumbersTransition.types';
 
 export type UncheckedBigDecimal = number | bigint | string;
 
@@ -263,27 +258,24 @@ export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
 };
 
 export interface ExtendedAnimationTimingFunction {
-  horizontalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
-  verticalAnimation?: OptionalReadOnly<AnimationTimingFunction>;
+  horizontalAnimation?: OrReadOnly<AnimationTimingFunction>;
+  verticalAnimation?: OrReadOnly<AnimationTimingFunction>;
 }
 
-export type AnimationTimingFunctionTuple = [
-  OptionalReadOnly<AnimationTimingFunction>,
-  OptionalReadOnly<AnimationTimingFunction>,
-];
+export type AnimationTimingFunctionTuple = [OrReadOnly<AnimationTimingFunction>, OrReadOnly<AnimationTimingFunction>];
 
 type UseAnimationTimingFunction = (
-  animationTimingFunction?: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
+  animationTimingFunction?: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
 ) => AnimationTimingFunctionTuple;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
   animationTimingFunction:
-    | OptionalReadOnly<AnimationTimingFunction>
+    | OrReadOnly<AnimationTimingFunction>
     | ExtendedAnimationTimingFunction = AnimationTimingFunctions.EASE,
 ): AnimationTimingFunctionTuple => {
   const isAnimationTimingFunction: (
-    animationTimingFunction: OptionalReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
-  ) => animationTimingFunction is OptionalReadOnly<AnimationTimingFunction> = Array.isArray;
+    animationTimingFunction: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
+  ) => animationTimingFunction is OrReadOnly<AnimationTimingFunction> = Array.isArray;
 
   const {
     horizontalAnimation = AnimationTimingFunctions.EASE,
@@ -296,7 +288,7 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
 };
 
 interface UseAnimationTimingFunctionDirectionOptions {
-  animationTimingFunction: OptionalReadOnly<AnimationTimingFunction>;
+  animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
   animationDirection: AnimationDirection;
 }
 
@@ -314,7 +306,7 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
   );
 
   const animationTimingFunctionMapper = (
-    tuple: OptionalReadOnly<AnimationTimingFunction[number]>,
+    tuple: OrReadOnly<AnimationTimingFunction[number]>,
   ): AnimationTimingFunction[number] =>
     reverse
       ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number)
