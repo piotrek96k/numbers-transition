@@ -73,6 +73,7 @@ export default [
       'prefer-template': 'error',
       'prefer-spread': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
       'no-console': 'warn',
     },
   },
