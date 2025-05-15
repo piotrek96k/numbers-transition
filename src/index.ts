@@ -1,3 +1,4 @@
+import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
 import {
   AnimationNumber,
   AnimationTimingFunctions,
@@ -26,7 +27,7 @@ import {
   NumbersTransitionTheme,
   StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
-import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
+import { Falsy } from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationNumber,
@@ -48,6 +49,7 @@ export type {
   CssRule,
   CssRuleFactory,
   ExtendedAnimationTimingFunction,
+  Falsy,
   KeyframeFunction,
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
