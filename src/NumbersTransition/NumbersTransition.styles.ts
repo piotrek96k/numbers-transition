@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties, ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
@@ -22,7 +21,7 @@ import {
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
-import { Not, OrArray } from './NumbersTransition.types';
+import { OrArray } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
@@ -223,11 +222,9 @@ interface AnimationView<T extends object, U> {
 interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
 
 const factoryMapperFactory =
-  <T extends object, U>(
-    props: T & NumbersTransitionExecutionContext,
-  ): ((value?: Not<U, Function> | Factory<T, Not<U, Function>>) => undefined | Not<U, Function>) =>
-  (value?: Not<U, Function> | Factory<T, Not<U, Function>>): undefined | Not<U, Function> =>
-    typeof value === 'function' ? (<Function>value)(props) : value;
+  <T extends object, U>(props: T & NumbersTransitionExecutionContext): ((value?: U | Factory<T, U>) => undefined | U) =>
+  (value?: U | Factory<T, U>): undefined | U =>
+    typeof value === 'function' ? (<Factory<T, U>>value)(props) : value;
 
 const passedStyleReducer = (accumulator: CSSProperties, currentStyle: undefined | CSSProperties): CSSProperties => ({
   ...accumulator,
