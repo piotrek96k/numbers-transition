@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties, ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import {
@@ -364,6 +363,7 @@ const containerVariables = ({
   --vertical-animation-duration: ${$verticalAnimationDuration};
 `;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 interface ContainerProps extends NumbersTransitionExecutionContext, View<any, any> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<
