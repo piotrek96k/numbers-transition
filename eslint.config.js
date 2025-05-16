@@ -16,7 +16,7 @@ const compat = new FlatCompat({
 
 export default [
   {
-    ignores: ['**/dist', '**/.eslintrc.config.js'],
+    ignores: ['**/dist', '**/storybook-static'],
   },
   ...fixupConfigRules(
     compat.extends(
