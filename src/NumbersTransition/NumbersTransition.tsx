@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { StyleSheetManager, ThemeProvider } from 'styled-components';
+import { ShouldForwardProp, StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
   EmptyElement,
@@ -25,24 +25,23 @@ import {
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
-  ForwardProps,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   Numbers,
+  Runtime,
 } from './NumbersTransition.enums';
 import {
   AnimationDuration,
   AnimationDurationTuple,
   AnimationTimingFunctionTuple,
   AnimationValuesTuple,
-  BigDecimal,
   ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
-  UncheckedBigDecimal,
   ValidationTuple,
   useAnimationDuration,
   useAnimationTimingFunction,
   useAnimationValues,
+  useForwardProp,
   useTotalAnimationDuration,
   useValidation,
 } from './NumbersTransition.hooks';
@@ -57,7 +56,7 @@ import {
   NumbersTransitionTheme,
   StyleFactory,
 } from './NumbersTransition.styles';
-import { OrArray, OrReadOnly } from './NumbersTransition.types';
+import { BigDecimal, OrArray, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface View<T extends object = object, U = unknown> {
   style?: OrArray<CSSProperties | StyleFactory<T>>;
@@ -108,6 +107,8 @@ const NumbersTransition = <
     view: { style, className, css, animation, viewProps } = {},
   }: NumbersTransitionProps<T, U, V, W> = props;
 
+  const shouldForwardProp: ShouldForwardProp<Runtime.WEB> = useForwardProp();
+
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
 
@@ -134,8 +135,6 @@ const NumbersTransition = <
     previousValueOnAnimationEnd,
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
-
-  const shouldForwardProp = (prop: string): boolean => Object.values<ForwardProps>(ForwardProps).includes<string>(prop);
 
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;

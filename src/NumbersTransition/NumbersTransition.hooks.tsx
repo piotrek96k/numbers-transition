@@ -1,4 +1,5 @@
 import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
+import { ShouldForwardProp } from 'styled-components';
 import {
   AnimationDirection,
   AnimationNumber,
@@ -10,21 +11,26 @@ import {
   DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
+  ForwardProps,
   HorizontalAnimationDirection,
   NegativeCharacter,
   NumberPrecision,
   Numbers,
   RegularExpressions,
+  Runtime,
   Strings,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { AnimationTimingFunction } from './NumbersTransition.styles';
-import { OrReadOnly } from './NumbersTransition.types';
+import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
-export type UncheckedBigDecimal = number | bigint | string;
+type UseForwardProp = () => ShouldForwardProp<Runtime.WEB>;
 
-export type BigDecimal = number | bigint | `${number}`;
+export const useForwardProp: UseForwardProp =
+  (): ShouldForwardProp<Runtime.WEB> =>
+  (prop: string): boolean =>
+    Object.values<ForwardProps>(ForwardProps).includes<string>(prop);
 
 export type ValidationTuple = [BigDecimal, boolean];
 

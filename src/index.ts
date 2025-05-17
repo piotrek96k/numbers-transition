@@ -10,10 +10,8 @@ import {
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   AnimationDuration,
-  BigDecimal,
   ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
-  UncheckedBigDecimal,
 } from './NumbersTransition/NumbersTransition.hooks';
 import {
   Animation,
@@ -27,7 +25,7 @@ import {
   NumbersTransitionTheme,
   StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
-import { Falsy } from './NumbersTransition/NumbersTransition.types';
+import { BigDecimal, Falsy, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationNumber,
