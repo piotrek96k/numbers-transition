@@ -1,14 +1,4 @@
-import {
-  CSSProperties,
-  Dispatch,
-  ReactElement,
-  ReactNode,
-  RefObject,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { Dispatch, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
 import { ShouldForwardProp, StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
@@ -46,23 +36,18 @@ import {
   useValidation,
 } from './NumbersTransition.hooks';
 import {
-  Animation,
-  AnimationFactory,
   AnimationTimingFunction,
-  ClassNameFactory,
   Container,
-  CssRule,
-  CssRuleFactory,
   NumbersTransitionTheme,
-  StyleFactory,
+  View as StyledComponentView,
 } from './NumbersTransition.styles';
-import { BigDecimal, OrArray, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
+import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
-export interface View<T extends object = object, U = unknown> {
-  style?: OrArray<CSSProperties | StyleFactory<T>>;
-  className?: OrArray<string | ClassNameFactory<T>>;
-  css?: OrArray<CssRule<T> | CssRuleFactory<T>>;
-  animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
+type MappedView<T extends object = object, U = unknown> = {
+  [K in keyof StyledComponentView<T, U> as K extends `$${infer L}` ? L : never]: StyledComponentView<T, U>[K];
+};
+
+export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
   viewProps?: T;
 }
 

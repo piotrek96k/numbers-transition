@@ -218,7 +218,7 @@ interface AnimationView<T extends object, U> {
   $animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
 }
 
-interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
+export interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
 
 const factoryMapperFactory =
   <T extends object, U>(props: T & NumbersTransitionExecutionContext): ((value?: U | Factory<T, U>) => U | Falsy) =>
