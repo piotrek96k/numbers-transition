@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ThemeProvider } from 'styled-components';
+import { StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
   EmptyElement,
@@ -25,6 +25,7 @@ import {
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
+  ForwardProps,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   Numbers,
@@ -133,6 +134,8 @@ const NumbersTransition = <
     previousValueOnAnimationEnd,
     previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
   });
+
+  const shouldForwardProp = (prop: string): boolean => Object.values<ForwardProps>(ForwardProps).includes<string>(prop);
 
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
@@ -303,24 +306,26 @@ const NumbersTransition = <
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <Container
-        {...viewProps}
-        $style={style}
-        $className={className}
-        $css={css}
-        $animation={animation}
-        ref={containerRef}
-      >
-        <Optional condition={renderNegativeElement}>
-          <NegativeElement negativeCharacter={negativeCharacter} />
-        </Optional>
-        <Conditional condition={renderAnimation}>
-          {animationElement}
-          {valueElement}
-        </Conditional>
-      </Container>
-    </ThemeProvider>
+    <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+      <ThemeProvider theme={theme}>
+        <Container
+          {...viewProps}
+          $style={style}
+          $className={className}
+          $css={css}
+          $animation={animation}
+          ref={containerRef}
+        >
+          <Optional condition={renderNegativeElement}>
+            <NegativeElement negativeCharacter={negativeCharacter} />
+          </Optional>
+          <Conditional condition={renderAnimation}>
+            {animationElement}
+            {valueElement}
+          </Conditional>
+        </Container>
+      </ThemeProvider>
+    </StyleSheetManager>
   );
 };
 

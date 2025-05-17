@@ -6,6 +6,13 @@ export enum HTMLElements {
   'DIV' = 'div',
 }
 
+export enum ForwardProps {
+  STYLE = 'style',
+  CLASS = 'class',
+  CHILDREN = 'children',
+  ON_ANIMATION_END = 'onAnimationEnd',
+}
+
 export enum Display {
   BLOCK = 'BLOCK',
   INLINE = 'INLINE_BLOCK',
