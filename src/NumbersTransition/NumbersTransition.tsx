@@ -19,6 +19,7 @@ import {
   NegativeCharacterAnimationMode,
   Numbers,
   Runtime,
+  Strings,
 } from './NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -44,7 +45,10 @@ import {
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledComponentView<T, U> as K extends `$${infer L}` ? L : never]: StyledComponentView<T, U>[K];
+  [K in keyof StyledComponentView<T, U> as K extends `${Strings.DOLLAR}${infer L}` ? L : never]: StyledComponentView<
+    T,
+    U
+  >[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {

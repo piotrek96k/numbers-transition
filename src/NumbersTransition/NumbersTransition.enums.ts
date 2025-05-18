@@ -114,6 +114,7 @@ export enum Strings {
   MINUS = '-',
   SPACE = ' ',
   UNDERSCORE = '_',
+  DOLLAR = '$',
 }
 
 export enum Numbers {
