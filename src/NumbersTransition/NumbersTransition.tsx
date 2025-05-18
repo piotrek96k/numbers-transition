@@ -45,7 +45,7 @@ import {
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledComponentView<T, U> as K extends `${Strings.DOLLAR}${infer L}` ? L : never]: StyledComponentView<
+  [K in keyof StyledComponentView<T, U> as K extends `${Strings.DOLLAR}${infer L}` ? L : K]: StyledComponentView<
     T,
     U
   >[K];
