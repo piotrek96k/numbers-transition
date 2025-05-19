@@ -18,9 +18,11 @@ import {
   Numbers,
   Runtime,
   Strings,
+  StyledComponents,
   VerticalAnimationDirection,
+  ViewKeys,
 } from './NumbersTransition.enums';
-import { Falsy, OrArray } from './NumbersTransition.types';
+import { CamelCase, Falsy, OrArray } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
@@ -75,6 +77,29 @@ export interface Animation<T extends object, U> {
 }
 
 export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
+
+type StyleView<E extends StyledComponents, T extends object> = {
+  [K in `${Strings.DOLLAR}${CamelCase<E, ViewKeys.STYLE>}`]?: OrArray<CSSProperties | StyleFactory<T>>;
+};
+
+type ClassNameView<E extends StyledComponents, T extends object> = {
+  [K in `${Strings.DOLLAR}${CamelCase<E, ViewKeys.CLASS_NAME>}`]?: OrArray<string | ClassNameFactory<T>>;
+};
+
+type CssView<E extends StyledComponents, T extends object> = {
+  [K in `${Strings.DOLLAR}${CamelCase<E, ViewKeys.CSS>}`]?: OrArray<CssRule<T> | CssRuleFactory<T>>;
+};
+
+type AnimationView<E extends StyledComponents, T extends object, U> = {
+  [K in `${Strings.DOLLAR}${CamelCase<E, ViewKeys.ANIMATION>}`]?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
+};
+
+export type View<E extends StyledComponents, T extends object, U> = StyleView<E, T> &
+  ClassNameView<E, T> &
+  CssView<E, T> &
+  AnimationView<E, T, U>;
+
+type Props<E extends StyledComponents, T extends object, U> = T & NumbersTransitionExecutionContext & View<E, T, U>;
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
@@ -202,93 +227,86 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-interface StyleView<T extends object> {
-  $style?: OrArray<CSSProperties | StyleFactory<T>>;
-}
+const viewKey = <T extends object>(
+  _: TemplateStringsArray,
+  styledComponent: StyledComponents,
+  viewKey: ViewKeys,
+): keyof T =>
+  <keyof T>`${Strings.DOLLAR}${styledComponent.isEmpty() ? viewKey : `${styledComponent}${viewKey.capitalize()}`}`;
 
-interface ClassNameView<T extends object> {
-  $className?: OrArray<string | ClassNameFactory<T>>;
-}
-
-interface CssView<T extends object> {
-  $css?: OrArray<CssRule<T> | CssRuleFactory<T>>;
-}
-
-interface AnimationView<T extends object, U> {
-  $animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>;
-}
-
-export interface View<T extends object, U> extends StyleView<T>, ClassNameView<T>, CssView<T>, AnimationView<T, U> {}
-
-const factoryMapperFactory =
-  <T extends object, U>(props: T & NumbersTransitionExecutionContext): ((value?: U | Factory<T, U>) => U | Falsy) =>
+const viewFactoryMapperFactory =
+  <E extends StyledComponents, T extends object, U, V extends string>(
+    props: Omit<Props<E, T, U>, V>,
+  ): ((value?: U | Factory<T, U>) => U | Falsy) =>
   (value?: U | Factory<T, U>): U | Falsy =>
-    typeof value === 'function' ? (<Factory<T, U>>value)(props) : value;
+    typeof value === 'function' ? (<Factory<T, U>>value)(<T & NumbersTransitionExecutionContext>props) : value;
 
-const passedStyleReducer = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
+const styleReducer = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
   ...accumulator,
   ...currentStyle,
 });
 
-const passedStyle = <T extends object, U>(
+const styleFactory = <E extends StyledComponents, T extends object, U>(
   style: undefined | OrArray<CSSProperties | StyleFactory<T>>,
-  props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
+  props: Omit<Props<E, T, U>, keyof StyleView<E, T> | keyof ClassNameView<E, T>>,
 ): CSSProperties =>
   [style]
     .flat<(undefined | OrArray<CSSProperties | StyleFactory<T>>)[], Numbers.ONE>()
-    .map<CSSProperties | Falsy>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, CSSProperties>(props))
-    .reduce<CSSProperties>(passedStyleReducer, {});
+    .map<
+      CSSProperties | Falsy
+    >(viewFactoryMapperFactory<E, T, CSSProperties, keyof StyleView<E, T> | keyof ClassNameView<E, T>>(props))
+    .reduce<CSSProperties>(styleReducer, {});
 
-const passedClassName = <T extends object, U>(
+const classNameFactory = <E extends StyledComponents, T extends object, U>(
   className: undefined | OrArray<string | ClassNameFactory<T>>,
-  props: T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext,
+  props: Omit<Props<E, T, U>, keyof StyleView<E, T> | keyof ClassNameView<E, T>>,
 ): undefined | string =>
   [className]
     .flat<(undefined | OrArray<string | ClassNameFactory<T>>)[], Numbers.ONE>()
-    .map<string | Falsy>(factoryMapperFactory<T & CssView<T> & AnimationView<T, U>, string>(props))
+    .map<string | Falsy>(
+      viewFactoryMapperFactory<E, T, string, keyof StyleView<E, T> | keyof ClassNameView<E, T>>(props),
+    )
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Strings.SPACE);
 
-const toPassedCssArray = <T extends object>(
+const toCssArray = <T extends object>(
   cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
   Array.isArray<undefined | OrArray<CssRule<T> | CssRuleFactory<T>>>(cssStyle) && cssStyle.depth() === Numbers.TWO
     ? cssStyle
     : <(undefined | CssRule<T> | CssRuleFactory<T>)[]>[cssStyle];
 
-const passedCss = <T extends object, U>({
-  $css,
-  ...restProps
-}: T & View<T, U> & NumbersTransitionExecutionContext): CssRule<T>[] =>
-  toPassedCssArray<T>($css)
-    .map<CssRule<T> | Falsy>(
-      factoryMapperFactory<T & StyleView<T> & ClassNameView<T> & AnimationView<T, U>, CssRule<T>>(
-        <T & StyleView<T> & ClassNameView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps,
-      ),
-    )
-    .filter<CssRule<T>>((value: CssRule<T> | Falsy): value is CssRule<T> => !!value);
+const cssFactory =
+  <E extends StyledComponents>(styledComponent: E): (<T extends object, U>(props: Props<E, T, U>) => CssRule<T>[]) =>
+  <T extends object, U>({
+    [viewKey<CssView<E, T>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle,
+    ...restProps
+  }: Props<E, T, U>): CssRule<T>[] =>
+    toCssArray<T>(cssStyle)
+      .map<CssRule<T> | Falsy>(viewFactoryMapperFactory<E, T, CssRule<T>, keyof CssView<E, T>>(restProps))
+      .filter<CssRule<T>>((value: CssRule<T> | Falsy): value is CssRule<T> => !!value);
 
-const passedAnimationFalsyMapper = <T extends object, U>(
+const animationFalsyMapper = <T extends object, U>(
   animation: Partial<Animation<T, U>> | Falsy,
 ): undefined | Partial<Animation<T, U>> => animation || undefined;
 
-const passedAnimationMapper = <T extends object, U>({
+const animationMapper = <T extends object, U>({
   keyframeFunction,
   keyframes,
   progress,
 }: Partial<Animation<T, U>> = {}): undefined | Keyframes =>
   keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
 
-const passedAnimationKeyframesMapper = (keyframes?: Keyframes): RuleSet<object> => css<object>`
-  ${keyframes ?? `${keyframes}`}
+const animationsKeyframesReducer = (
+  accumulator: RuleSet<object>,
+  currentValue: undefined | Keyframes,
+  index: number,
+) => css<object>`
+  ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? `${currentValue}`}
 `;
 
-const passedAnimationKeyframesReducer = (accumulator: RuleSet<object>, currentValue: RuleSet<object>) => css<object>`
-  ${accumulator}${Strings.COMMA}${currentValue}
-`;
-
-const passedAnimationKeyframes = <T extends object, U>(
-  props: T & StyleView<T> & ClassNameView<T> & CssView<T> & NumbersTransitionExecutionContext,
+const animationsKeyframes = <E extends StyledComponents, T extends object, U>(
+  props: Omit<Props<E, T, U>, keyof AnimationView<E, T, U>>,
   animation?: OrArray<Animation<T, U> | AnimationFactory<T, U>>,
 ): RuleSet<object> | false =>
   (Array.isArray<undefined | OrArray<Animation<T, U> | AnimationFactory<T, U>>>(animation)
@@ -297,41 +315,40 @@ const passedAnimationKeyframes = <T extends object, U>(
   [animation!]
     .flat<OrArray<Animation<T, U> | AnimationFactory<T, U>>[], Numbers.ONE>()
     .map<Partial<Animation<T, U>> | Falsy>(
-      factoryMapperFactory<T & StyleView<T> & ClassNameView<T> & CssView<T>, Animation<T, U>>(props),
+      viewFactoryMapperFactory<E, T, Animation<T, U>, keyof AnimationView<E, T, U>>(props),
     )
-    .map<undefined | Partial<Animation<T, U>>>(passedAnimationFalsyMapper<T, U>)
-    .map<undefined | Keyframes>(passedAnimationMapper<T, U>)
-    .map<RuleSet<object>>(passedAnimationKeyframesMapper)
-    .reduce(passedAnimationKeyframesReducer);
+    .map<undefined | Partial<Animation<T, U>>>(animationFalsyMapper<T, U>)
+    .map<undefined | Keyframes>(animationMapper<T, U>)
+    .reduce<RuleSet<object>>(animationsKeyframesReducer, css<object>``);
 
-const passedAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
+const optionalAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
   animationKeyframes &&
   css<object>`
     animation-name: ${animationKeyframes};
   `;
 
-const passedAnimation = <T extends object, U>({
-  $animation,
-  ...restProps
-}: T & View<T, U> & NumbersTransitionExecutionContext): RuleSet<T> | false =>
-  passedAnimationName(
-    passedAnimationKeyframes<T, U>(
-      <T & StyleView<T> & ClassNameView<T> & CssView<T> & NumbersTransitionExecutionContext>restProps,
-      $animation,
-    ),
-  );
+const animationFactory =
+  <E extends StyledComponents>(
+    styledComponent: E,
+  ): (<T extends object, U>(props: Props<E, T, U>) => RuleSet<T> | false) =>
+  <T extends object, U>({
+    [viewKey<AnimationView<E, T, U>>`${styledComponent}${ViewKeys.ANIMATION}`]: animation,
+    ...restProps
+  }: Props<E, T, U>): RuleSet<T> | false =>
+    optionalAnimationName(animationsKeyframes<E, T, U>(restProps, animation));
 
-const attributes = <T extends object, U>({
-  $style,
-  $className,
-  ...restProps
-}: T & View<T, U> & NumbersTransitionExecutionContext): HTMLAttributes<HTMLDivElement> => ({
-  style: passedStyle($style, <T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps),
-  className: passedClassName(
-    $className,
-    <T & CssView<T> & AnimationView<T, U> & NumbersTransitionExecutionContext>restProps,
-  ),
-});
+const attributesFactory =
+  <E extends StyledComponents>(
+    styledComponent: E,
+  ): (<T extends object, U>(props: Props<E, T, U>) => HTMLAttributes<HTMLDivElement>) =>
+  <T extends object, U>({
+    [viewKey<StyleView<E, T>>`${styledComponent}${ViewKeys.STYLE}`]: style,
+    [viewKey<ClassNameView<E, T>>`${styledComponent}${ViewKeys.CLASS_NAME}`]: className,
+    ...restProps
+  }: Props<E, T, U>): HTMLAttributes<HTMLDivElement> => ({
+    style: styleFactory(style, restProps),
+    className: classNameFactory(className, restProps),
+  });
 
 interface VisibilityProps {
   $visible?: boolean;
@@ -371,7 +388,7 @@ const containerVariables = ({
 `;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-interface ContainerProps extends NumbersTransitionExecutionContext, View<any, any> {}
+interface ContainerProps extends NumbersTransitionExecutionContext, View<StyledComponents.CONTAINER, any, any> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<
   HTMLElements.DIV,
@@ -379,9 +396,11 @@ type ContainerStyledComponent = AttributesStyledComponent<
   ContainerProps
 >;
 
-export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps>(attributes)`
-  ${passedCss};
-  ${passedAnimation};
+export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps>(
+  attributesFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER),
+)`
+  ${cssFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
+  ${animationFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
   ${containerVariables};
   position: relative;
   white-space: nowrap;

@@ -1,4 +1,12 @@
 declare global {
+  interface ObjectConstructor {
+    isEmpty<T extends object>(object: T): boolean;
+  }
+
+  interface String {
+    capitalize(): string;
+    isEmpty(): this is '';
+  }
   interface ArrayConstructor {
     isArray<T>(arg: T): arg is T[];
     isArray<T, U extends T[]>(arg: T): arg is U;
@@ -18,10 +26,6 @@ declare global {
 
   interface ReadonlyArray<T> {
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: [...this]) => U, thisArg?: unknown): V;
-  }
-
-  interface ObjectConstructor {
-    isEmpty<T extends object>(object: T): boolean;
   }
 }
 

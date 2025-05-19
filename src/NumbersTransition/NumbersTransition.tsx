@@ -20,6 +20,7 @@ import {
   Numbers,
   Runtime,
   Strings,
+  StyledComponents,
 } from './NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -42,10 +43,11 @@ import {
   NumbersTransitionTheme,
   View as StyledComponentView,
 } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
+import { BigDecimal, OrReadOnly, Slice, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledComponentView<T, U> as K extends `${Strings.DOLLAR}${infer L}` ? L : K]: StyledComponentView<
+  [K in keyof StyledComponentView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledComponentView<
+    StyledComponents.CONTAINER,
     T,
     U
   >[K];

@@ -18,6 +18,23 @@ export enum Display {
   INLINE = 'INLINE_BLOCK',
 }
 
+export enum StyledComponents {
+  CONTAINER = '',
+  CHARACTER = 'character',
+  DIGIT = 'digit',
+  NEGATIVE_CHARACTER = 'negativeCharacter',
+  SEPARATOR = 'separator',
+  DIGIT_GROUP_SEPARATOR = 'digitGroupSeparator',
+  DECIMAL_SEPARATOR = 'decimalSeparator',
+}
+
+export enum ViewKeys {
+  STYLE = 'style',
+  CLASS_NAME = 'className',
+  CSS = 'css',
+  ANIMATION = 'animation',
+}
+
 export enum AnimationType {
   NONE = 'NONE',
   HORIZONTAL = 'HORIZONTAL',
