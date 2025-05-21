@@ -365,7 +365,7 @@ interface DisplayProps {
 }
 
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
-  display: ${({ $display = Display.INLINE }: DisplayProps): string =>
+  display: ${({ $display = Display.INLINE_BLOCK }: DisplayProps): string =>
     $display.replaceAll(Strings.UNDERSCORE, Strings.MINUS).toLocaleLowerCase()};
 `;
 
@@ -402,11 +402,10 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   ${cssFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
   ${animationFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
   ${containerVariables};
-  position: relative;
-  white-space: nowrap;
   max-width: ${Numbers.ONE_HUNDRED}%;
   width: fit-content;
   height: ${Numbers.ONE}lh;
+  white-space: nowrap;
 `;
 
 type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
@@ -426,6 +425,11 @@ type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, Vertical
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
   ${animation};
+  :has(> &) {
+    display: inline-block;
+    overflow: hidden;
+    height: inherit;
+  }
   :last-child {
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
@@ -440,8 +444,6 @@ export const Character: CharacterStyledComponent = styled.div<CharacterProps>`
   ${visibility};
   ${display};
   overflow: hidden;
-  text-align: end;
-  height: inherit;
   white-space: pre;
 `;
 

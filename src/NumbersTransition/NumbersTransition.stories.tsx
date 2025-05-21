@@ -3,14 +3,14 @@ import { RuleSet, css } from 'styled-components';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import NumbersTransition from './NumbersTransition';
 import {
+  AnimationDurationValues,
   AnimationTimingFunctions,
   DecimalSeparator,
-  DefaultAnimationDuration,
   DigitGroupSeparator,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   Numbers,
-  StorybookDefaultValue,
+  StorybookValue,
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
 import {
@@ -93,11 +93,11 @@ const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionE
 
 const args: ComponentProps<NumbersTransitionProps> = {
   initialValue: Numbers.ZERO,
-  value: StorybookDefaultValue.VALUE,
+  value: StorybookValue.VALUE,
   precision: Numbers.ZERO,
   animationDuration: {
-    horizontalAnimation: DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-    verticalAnimation: DefaultAnimationDuration.VERTICAL_ANIMATION,
+    horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
+    verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
   },
   decimalSeparator: DecimalSeparator.COMMA,
   digitGroupSeparator: DigitGroupSeparator.SPACE,

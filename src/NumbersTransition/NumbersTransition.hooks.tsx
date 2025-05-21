@@ -2,12 +2,11 @@ import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useLa
 import { ShouldForwardProp } from 'styled-components';
 import {
   AnimationDirection,
+  AnimationDurationValues,
   AnimationNumber,
   AnimationTimingFunctions,
   Canvas,
   DecimalSeparator,
-  DefaultAnimationDuration,
-  DefaultTotalAnimationDuration,
   DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
@@ -19,6 +18,7 @@ import {
   RegularExpressions,
   Runtime,
   Strings,
+  TotalAnimationDurationValues,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
@@ -204,16 +204,16 @@ export const useAnimationDuration: UseAnimationDuration = (
     Object.keys(animationDuration).some((key: string): boolean => keys.includes<string>(key));
 
   const fromAnimationDuration = ({
-    horizontalAnimation = DefaultAnimationDuration.HORIZONTAL_ANIMATION,
-    verticalAnimation = DefaultAnimationDuration.VERTICAL_ANIMATION,
+    horizontalAnimation = AnimationDurationValues.HORIZONTAL_ANIMATION,
+    verticalAnimation = AnimationDurationValues.VERTICAL_ANIMATION,
   }: AnimationDuration): AnimationDurationTuple => [
     numberOfAnimations === AnimationNumber.ONE ? Numbers.ZERO : horizontalAnimation,
     verticalAnimation,
   ];
 
   const fromTotalAnimationDuration = ({
-    animationDuration = DefaultTotalAnimationDuration.ANIMATION_DURATION,
-    ratio = DefaultTotalAnimationDuration.RATIO,
+    animationDuration = TotalAnimationDurationValues.ANIMATION_DURATION,
+    ratio = TotalAnimationDurationValues.RATIO,
   }: TotalAnimationDuration): AnimationDurationTuple => {
     const horizontalAnimationDuration: number =
       numberOfAnimations === AnimationNumber.ONE
@@ -504,7 +504,7 @@ interface ChildrenProps {
 
 type ComponentProps = KeyProps & ChildrenProps;
 
-type FunctionalComponent = FC<ComponentProps> | string;
+export type FunctionalComponent = FC<ComponentProps> | string;
 
 export type ElementKeyMapper = (child: ReactNode, index: number, children: ReactNode[]) => ReactElement;
 

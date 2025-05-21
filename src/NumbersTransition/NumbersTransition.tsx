@@ -2,8 +2,8 @@ import { Dispatch, ReactElement, ReactNode, RefObject, SetStateAction, useEffect
 import { ShouldForwardProp, StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
-  EmptyElement,
   HorizontalAnimationElement,
+  InvalidElement,
   NegativeElement,
   NumberElement,
   Optional,
@@ -15,6 +15,7 @@ import {
   AnimationType,
   DecimalSeparator,
   DigitGroupSeparator,
+  InvalidValue,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   Numbers,
@@ -72,6 +73,7 @@ export interface NumbersTransitionProps<
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   animationTimingFunction?: U;
+  invalidValue?: string;
   view?: View<V, W>;
 }
 
@@ -95,6 +97,7 @@ const NumbersTransition = <
     negativeCharacter = NegativeCharacter.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction,
+    invalidValue = InvalidValue.VALUE,
     view: { style, className, css, animation, viewProps } = {},
   }: NumbersTransitionProps<T, U, V, W> = props;
 
@@ -172,12 +175,21 @@ const NumbersTransition = <
     (numberOfAnimations === AnimationNumber.THREE && animationTransition !== AnimationTransition.FIRST_TO_SECOND);
 
   const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
+    renderHorizontalAnimation &&
     numberOfAnimations === AnimationNumber.THREE &&
     previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransition.NONE);
 
+  const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
+    renderAnimation &&
+    !renderHorizontalAnimation &&
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.MULTI
+  );
+
   const renderNegativeElement: boolean =
-    (!hasSignChanged && valueBigInt < Numbers.ZERO) ||
-    (renderHorizontalAnimation && renderNegativeElementWhenNumberOfAnimationsIsThree);
+    (!hasSignChanged &&
+      valueBigInt < Numbers.ZERO &&
+      renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   const animationType: AnimationType = renderAnimation
     ? renderHorizontalAnimation
@@ -291,7 +303,7 @@ const NumbersTransition = <
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
-      <EmptyElement />
+      <InvalidElement invalidValue={invalidValue} />
     </Conditional>
   );
 
@@ -299,12 +311,12 @@ const NumbersTransition = <
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>
       <ThemeProvider theme={theme}>
         <Container
-          {...viewProps}
           $style={style}
           $className={className}
           $css={css}
           $animation={animation}
           ref={containerRef}
+          {...viewProps}
         >
           <Optional condition={renderNegativeElement}>
             <NegativeElement negativeCharacter={negativeCharacter} />

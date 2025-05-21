@@ -15,7 +15,7 @@ export enum ForwardProps {
 
 export enum Display {
   BLOCK = 'BLOCK',
-  INLINE = 'INLINE_BLOCK',
+  INLINE_BLOCK = 'INLINE_BLOCK',
 }
 
 export enum StyledComponents {
@@ -93,10 +93,6 @@ export enum NegativeCharacter {
   DASH = '–',
 }
 
-export enum EmptyCharacter {
-  VALUE = '-',
-}
-
 export enum Canvas {
   ELEMENT = 'canvas',
   CONTEXT_ID = '2d',
@@ -169,16 +165,20 @@ export const AnimationTimingFunctions = {
   ],
 } as const;
 
-export enum DefaultAnimationDuration {
+export enum AnimationDurationValues {
   HORIZONTAL_ANIMATION = 2_000,
   VERTICAL_ANIMATION = 5_000,
 }
 
-export enum DefaultTotalAnimationDuration {
+export enum TotalAnimationDurationValues {
   ANIMATION_DURATION = 6_000,
   RATIO = 2.5,
 }
 
-export enum StorybookDefaultValue {
+export enum InvalidValue {
+  VALUE = '',
+}
+
+export enum StorybookValue {
   VALUE = 123_456_789,
 }

@@ -5,7 +5,6 @@ import {
   DecimalSeparator,
   DigitGroupSeparator,
   Display,
-  EmptyCharacter,
   HorizontalAnimationDirection,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
@@ -15,6 +14,7 @@ import {
 import {
   CubicBezierTuple,
   ElementKeyMapper,
+  FunctionalComponent,
   GetCharacterWidth,
   useAnimationTimingFunctionDirection,
   useCharacterWidth,
@@ -77,7 +77,13 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   return switched === reverse ? before : after;
 };
 
-export const EmptyElement: FC = (): ReactNode => <Character>{EmptyCharacter.VALUE}</Character>;
+interface InvalidElementProps {
+  invalidValue: string;
+}
+
+export const InvalidElement: FC<InvalidElementProps> = ({ invalidValue }: InvalidElementProps): ReactNode => (
+  <Character>{invalidValue}</Character>
+);
 
 interface NegativeElementProps {
   negativeCharacter: NegativeCharacter;
@@ -112,6 +118,7 @@ interface VerticalAnimationNegativeElementProps {
   animationTimingFunction: AnimationTimingFunction;
   animationDirection: VerticalAnimationDirection;
   animationDigits: number[];
+  hasSignChanged: boolean;
 }
 
 const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps> = (
@@ -124,6 +131,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
     animationTimingFunction,
     animationDirection,
     animationDigits,
+    hasSignChanged,
   }: VerticalAnimationNegativeElementProps = props;
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
@@ -144,7 +152,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
     .map<(time: number) => number>(cubicBezier);
 
   const visibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
-    !index || (!!digit && digits[index - Numbers.ONE] > digit);
+    !index || (!!digit && digits[index - Numbers.ONE] > digit) || !hasSignChanged;
 
   const negativeCharactersVisible: boolean[] = animationDigits.map<boolean>(visibilityMapper);
 
@@ -167,7 +175,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
   );
 
   const verticalAnimationElement: ReactElement = (
-    <Character>
+    <div>
       <VerticalAnimation
         $animationDirection={animationDirection}
         $animationDuration={animationDuration}
@@ -180,7 +188,7 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
           .map<ReactElement>(negativeCharacterElementMapper)
           .map<ReactElement>(fragmentElementMapper)}
       </VerticalAnimation>
-    </Character>
+    </div>
   );
 
   return (
@@ -198,13 +206,14 @@ interface NumberElementProps {
   precision: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
+  component?: FunctionalComponent;
   children: ReactNode[];
 }
 
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
-  const { precision, decimalSeparator, digitGroupSeparator, children }: NumberElementProps = props;
+  const { precision, decimalSeparator, digitGroupSeparator, component = Digit, children }: NumberElementProps = props;
 
-  const digitElementMapper: ElementKeyMapper = useElementKeyMapper(Digit);
+  const elementMapper: ElementKeyMapper = useElementKeyMapper(component);
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) && (
@@ -224,7 +233,7 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
     </>
   );
 
-  return children.map<ReactElement>(digitElementMapper).reduce(digitsReducer);
+  return children.map<ReactElement>(elementMapper).reduce(digitsReducer);
 };
 
 interface HorizontalAnimationElementProps {
@@ -279,7 +288,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       ? HorizontalAnimationDirection.RIGHT
       : HorizontalAnimationDirection.LEFT;
 
-  const renderNegativeCharacter: boolean =
+  const renderNegativeElement: boolean =
     hasSignChanged &&
     (numberOfAnimations === AnimationNumber.TWO ||
       (numberOfAnimations === AnimationNumber.THREE &&
@@ -322,7 +331,7 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     ].reduce(sum);
 
   const negativeElement: ReactElement = (
-    <Optional condition={renderNegativeCharacter}>
+    <Optional condition={renderNegativeElement}>
       <HorizontalAnimationNegativeElement negativeCharacter={negativeCharacter} />
     </Optional>
   );
@@ -339,13 +348,13 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
       $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits)}
-      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeCharacter)}
+      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeElement)}
       onAnimationEnd={onAnimationEnd}
     >
-      <Character $display={Display.BLOCK}>
+      <div>
         {negativeElement}
         {numberElement}
-      </Character>
+      </div>
     </HorizontalAnimation>
   );
 };
@@ -381,6 +390,10 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     ...restProps
   }: VerticalAnimationElementProps = props;
 
+  const renderNegativeElement: boolean =
+    hasSignChanged ||
+    (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.MULTI);
+
   const animationDirection: VerticalAnimationDirection =
     previousValue < currentValue ? VerticalAnimationDirection.UP : VerticalAnimationDirection.DOWN;
 
@@ -414,7 +427,7 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
 
   return (
     <>
-      <Optional condition={hasSignChanged}>
+      <Optional condition={renderNegativeElement}>
         <VerticalAnimationNegativeElement
           animationDuration={animationDuration}
           negativeCharacter={negativeCharacter}
@@ -422,9 +435,10 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
           animationTimingFunction={animationTimingFunction}
           animationDirection={animationDirection}
           animationDigits={animationDigits.find(({ length }: number[]): boolean => length > Numbers.ONE)!}
+          hasSignChanged={hasSignChanged}
         />
       </Optional>
-      <NumberElement {...restProps}>
+      <NumberElement component="div" {...restProps}>
         {animationDigits.map<ReactElement>(verticalAnimationElementMapper).map<ReactElement>(fragmentElementMapper)}
       </NumberElement>
     </>
