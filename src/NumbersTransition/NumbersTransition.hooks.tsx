@@ -495,26 +495,35 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (
 };
 
 interface KeyProps {
-  key: string;
+  key?: string;
 }
 
 interface ChildrenProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
-type ComponentProps = KeyProps & ChildrenProps;
+interface IterableProps extends KeyProps, ChildrenProps {}
+type ComponentProps<T extends object> = T & IterableProps;
+type FunctionalComponent<T extends object> = FC<ComponentProps<T>> | string;
 
-export type FunctionalComponent = FC<ComponentProps> | string;
+type PropsFactory<T extends object, U extends ReactNode> = (value: U, index: number, length: number) => T;
 
-export type ElementKeyMapper = (child: ReactNode, index: number, children: ReactNode[]) => ReactElement;
+export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
 
-type UseElementKeyMapper = (Component: FunctionalComponent) => ElementKeyMapper;
+type UseElementKeyMapper = <T extends object, U extends ReactNode>(
+  Component: FunctionalComponent<T>,
+  props: T | PropsFactory<T, U>,
+) => ElementKeyMapper<U>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  (Component: FunctionalComponent): ElementKeyMapper =>
-  (child: ReactNode, index: number, { length }: ReactNode[]): ReactElement => (
+  <T extends object, U extends ReactNode>(
+    Component: FunctionalComponent<T>,
+    props: T | PropsFactory<T, U>,
+  ): ElementKeyMapper<U> =>
+  (child: U, index: number, { length }: U[]): ReactElement => (
     <Component
       key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
+      {...(typeof props === 'function' ? props(child, index, length) : props)}
     >
       {child}
     </Component>

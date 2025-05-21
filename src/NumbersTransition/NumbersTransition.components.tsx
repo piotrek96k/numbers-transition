@@ -1,4 +1,4 @@
-import { Dispatch, FC, Fragment, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
 import {
   AnimationNumber,
   AnimationTransition,
@@ -14,7 +14,6 @@ import {
 import {
   CubicBezierTuple,
   ElementKeyMapper,
-  FunctionalComponent,
   GetCharacterWidth,
   useAnimationTimingFunctionDirection,
   useCharacterWidth,
@@ -26,9 +25,12 @@ import {
 import {
   AnimationTimingFunction,
   Character,
+  CharacterProps,
   Digit,
   HorizontalAnimation,
+  NumbersTransitionExecutionContext,
   VerticalAnimation,
+  VerticalAnimationProps,
 } from './NumbersTransition.styles';
 import { OrReadOnly } from './NumbersTransition.types';
 
@@ -136,7 +138,10 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
-  const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
+  const negativeCharacterElementMapper: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeElementProps, boolean>(
+    NegativeElement,
+    (visible: boolean): NegativeElementProps => ({ negativeCharacter, visible, display: Display.BLOCK }),
+  );
 
   const animationTimingFunctionReducer = (
     accumulator: [number[], number[]],
@@ -170,25 +175,17 @@ const VerticalAnimationNegativeElement: FC<VerticalAnimationNegativeElementProps
 
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : Numbers.ZERO;
 
-  const negativeCharacterElementMapper = (visible: boolean): ReactElement => (
-    <NegativeElement negativeCharacter={negativeCharacter} visible={visible} display={Display.BLOCK} />
-  );
-
   const verticalAnimationElement: ReactElement = (
-    <div>
-      <VerticalAnimation
-        $animationDirection={animationDirection}
-        $animationDuration={animationDuration}
-        $animationTimingFunction={animationTimingFunction}
-        {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
-          $animationDelay: animationDelay,
-        })}
-      >
-        {negativeCharactersVisible
-          .map<ReactElement>(negativeCharacterElementMapper)
-          .map<ReactElement>(fragmentElementMapper)}
-      </VerticalAnimation>
-    </div>
+    <VerticalAnimation
+      $animationDirection={animationDirection}
+      $animationDuration={animationDuration}
+      $animationTimingFunction={animationTimingFunction}
+      {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.SINGLE && {
+        $animationDelay: animationDelay,
+      })}
+    >
+      <div>{negativeCharactersVisible.map<ReactElement>(negativeCharacterElementMapper)}</div>
+    </VerticalAnimation>
   );
 
   return (
@@ -206,14 +203,14 @@ interface NumberElementProps {
   precision: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
-  component?: FunctionalComponent;
+  elementMapper?: ElementKeyMapper<ReactNode>;
   children: ReactNode[];
 }
 
 export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps): ReactNode => {
-  const { precision, decimalSeparator, digitGroupSeparator, component = Digit, children }: NumberElementProps = props;
+  const { precision, decimalSeparator, digitGroupSeparator, elementMapper, children }: NumberElementProps = props;
 
-  const elementMapper: ElementKeyMapper = useElementKeyMapper(component);
+  const digitsElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<CharacterProps, ReactNode>(Digit, {});
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) && (
@@ -233,7 +230,7 @@ export const NumberElement: FC<NumberElementProps> = (props: NumberElementProps)
     </>
   );
 
-  return children.map<ReactElement>(elementMapper).reduce(digitsReducer);
+  return children.map<ReactElement>(elementMapper ?? digitsElementMapper).reduce(digitsReducer);
 };
 
 interface HorizontalAnimationElementProps {
@@ -408,22 +405,29 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
     currentValue,
   });
 
-  const fragmentElementMapper: ElementKeyMapper = useElementKeyMapper(Fragment);
+  const verticalAnimationPropsFactory = (
+    _: ReactNode,
+    index: number,
+    length: number,
+  ): Omit<VerticalAnimationProps, keyof NumbersTransitionExecutionContext> => ({
+    $animationDirection: animationDirection,
+    $animationDuration: animationDuration,
+    $animationTimingFunction: animationTimingFunction,
+    ...(index === length - Numbers.ONE && {
+      onAnimationEnd,
+    }),
+  });
 
-  const digitElementMapper = (digit: number): ReactElement => <Digit $display={Display.BLOCK}>{digit}</Digit>;
+  const verticalAnimationElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<
+    Omit<VerticalAnimationProps, keyof NumbersTransitionExecutionContext>,
+    ReactNode
+  >(VerticalAnimation, verticalAnimationPropsFactory);
 
-  const verticalAnimationElementMapper = (digits: number[], index: number, { length }: number[][]): ReactElement => (
-    <VerticalAnimation
-      $animationDirection={animationDirection}
-      $animationDuration={animationDuration}
-      $animationTimingFunction={animationTimingFunction}
-      {...(index === length - Numbers.ONE && {
-        onAnimationEnd,
-      })}
-    >
-      {digits.map<ReactElement>(digitElementMapper).map<ReactElement>(fragmentElementMapper)}
-    </VerticalAnimation>
-  );
+  const digitElementMapper: ElementKeyMapper<number> = useElementKeyMapper<CharacterProps, number>(Digit, {
+    $display: Display.BLOCK,
+  });
+
+  const divisionMapper = (digits: number[]): ReactElement => <div>{digits.map<ReactElement>(digitElementMapper)}</div>;
 
   return (
     <>
@@ -438,8 +442,8 @@ export const VerticalAnimationElement: FC<VerticalAnimationElementProps> = (
           hasSignChanged={hasSignChanged}
         />
       </Optional>
-      <NumberElement component="div" {...restProps}>
-        {animationDigits.map<ReactElement>(verticalAnimationElementMapper).map<ReactElement>(fragmentElementMapper)}
+      <NumberElement elementMapper={verticalAnimationElementMapper} {...restProps}>
+        {animationDigits.map<ReactElement>(divisionMapper)}
       </NumberElement>
     </>
   );

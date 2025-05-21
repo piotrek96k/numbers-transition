@@ -132,7 +132,7 @@ interface AnimationWidthProps {
 
 interface HorizontalAnimationProps extends AnimationCommonProps<HorizontalAnimationDirection>, AnimationWidthProps {}
 
-type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirection>;
+export type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirection>;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
@@ -408,35 +408,37 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   white-space: nowrap;
 `;
 
-type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
+type AnimationStyledComponent = StyledComponent<HTMLDivElement>;
 
-export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div<HorizontalAnimationProps>`
-  ${animation};
+const Animation: AnimationStyledComponent = styled.div`
   display: inline-block;
   overflow: hidden;
   height: inherit;
+`;
+
+type HorizontalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, HorizontalAnimationProps>;
+
+export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(Animation)<HorizontalAnimationProps>`
+  ${animation};
   :only-child {
     float: right;
     height: inherit;
   }
 `;
 
-type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, VerticalAnimationProps>;
+type VerticalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, VerticalAnimationProps>;
 
-export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
-  ${animation};
-  :has(> &) {
-    display: inline-block;
-    overflow: hidden;
-    height: inherit;
+export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animation)<VerticalAnimationProps>`
+  :only-child {
+    ${animation};
   }
-  :last-child {
+  :only-child :last-child {
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
   }
 `;
 
-interface CharacterProps extends VisibilityProps, DisplayProps {}
+export interface CharacterProps extends VisibilityProps, DisplayProps {}
 
 type CharacterStyledComponent = StyledComponent<HTMLDivElement, CharacterProps>;
 
