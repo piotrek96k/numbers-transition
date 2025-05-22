@@ -1,18 +1,14 @@
-import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useLayoutEffect, useState } from 'react';
+import { FC, ReactElement, ReactNode } from 'react';
 import { ShouldForwardProp } from 'styled-components';
 import {
   AnimationDirection,
   AnimationDurationValues,
   AnimationNumber,
   AnimationTimingFunctions,
-  Canvas,
-  DecimalSeparator,
-  DigitGroupSeparator,
   DigitsGenerator,
   EquationSolver,
   ForwardProps,
   HorizontalAnimationDirection,
-  NegativeCharacter,
   NumberPrecision,
   Numbers,
   RegularExpressions,
@@ -321,41 +317,6 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
   return animationTimingFunction
     .map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper)
     .invert(reverse);
-};
-
-type Character = DecimalSeparator | DigitGroupSeparator | NegativeCharacter;
-
-export type GetCharacterWidth = (character: Character) => number;
-
-type UseCharacterWidth = (ref: RefObject<HTMLElement | null>) => GetCharacterWidth;
-
-export const useCharacterWidth: UseCharacterWidth = (ref: RefObject<HTMLElement | null>): GetCharacterWidth => {
-  const { current }: RefObject<HTMLElement | null> = ref;
-
-  const [canvasContext, setCanvasContext]: [
-    CanvasRenderingContext2D | null,
-    Dispatch<SetStateAction<CanvasRenderingContext2D | null>>,
-  ] = useState<CanvasRenderingContext2D | null>(null);
-
-  useLayoutEffect((): void => {
-    const newCanvasContext: CanvasRenderingContext2D = document
-      .createElement(Canvas.ELEMENT)
-      .getContext(Canvas.CONTEXT_ID)!;
-
-    newCanvasContext.font =
-      [...(current?.classList ?? [])]
-        .map<string>((className: string): string => window.getComputedStyle(current!, className).font)
-        .find((font: string): string => font) ?? Strings.EMPTY;
-
-    setCanvasContext(newCanvasContext);
-  }, [current]);
-
-  const divide = (first: number, second: number): number => first / second;
-
-  const characterWidthMapper = (text: string): number => canvasContext?.measureText?.(text)?.width ?? Numbers.ZERO;
-
-  return (character: Character): number =>
-    [character, `${Numbers.ZERO}`].map<number>(characterWidthMapper).reduce(divide);
 };
 
 type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;

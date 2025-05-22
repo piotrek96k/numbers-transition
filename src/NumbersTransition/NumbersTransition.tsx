@@ -117,7 +117,6 @@ const NumbersTransition = <
   ] = useState<BigDecimal>(validInitialValue);
 
   const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-  const containerRef: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
 
   const [
     [previousValueOnAnimationEndDigits, valueDigits],
@@ -262,7 +261,6 @@ const NumbersTransition = <
       negativeCharacter={negativeCharacter}
       animationTimingFunction={horizontalAnimationTimingFunction}
       animationTransition={animationTransition}
-      containerRef={containerRef}
       previousValueDigits={previousValueOnAnimationEndDigits}
       currentValueDigits={valueDigits}
       previousValue={previousValueOnAnimationEndBigInt}
@@ -310,14 +308,7 @@ const NumbersTransition = <
   return (
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>
       <ThemeProvider theme={theme}>
-        <Container
-          $style={style}
-          $className={className}
-          $css={css}
-          $animation={animation}
-          ref={containerRef}
-          {...viewProps}
-        >
+        <Container $style={style} $className={className} $css={css} $animation={animation} {...viewProps}>
           <Optional condition={renderNegativeElement}>
             <NegativeElement negativeCharacter={negativeCharacter} />
           </Optional>

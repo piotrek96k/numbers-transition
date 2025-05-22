@@ -168,7 +168,7 @@ const animationKeyframes = <T extends object, U>(
 const horizontalAnimationKeyframe: KeyframeFunction<object, number> = (
   keyframeValue: number,
 ): RuleSet<object> => css<object>`
-  width: calc(${Numbers.ONE}ch * ${keyframeValue});
+  width: ${keyframeValue}px;
 `;
 
 const verticalAnimationKeyframe: KeyframeFunction<object, number> = (

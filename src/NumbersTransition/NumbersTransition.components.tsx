@@ -1,4 +1,15 @@
-import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useState } from 'react';
+import {
+  Dispatch,
+  FC,
+  ReactElement,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   AnimationNumber,
   AnimationTransition,
@@ -14,9 +25,7 @@ import {
 import {
   CubicBezierTuple,
   ElementKeyMapper,
-  GetCharacterWidth,
   useAnimationTimingFunctionDirection,
-  useCharacterWidth,
   useCubicBezier,
   useElementKeyMapper,
   useHorizontalAnimationDigits,
@@ -241,7 +250,6 @@ interface HorizontalAnimationElementProps {
   negativeCharacter: NegativeCharacter;
   animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
   animationTransition: AnimationTransition;
-  containerRef: RefObject<HTMLDivElement | null>;
   previousValueDigits: number[];
   currentValueDigits: number[];
   previousValue: bigint;
@@ -265,7 +273,6 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     negativeCharacter,
     animationTimingFunction: animationTimingFunctionInput,
     animationTransition,
-    containerRef,
     previousValueDigits,
     currentValueDigits,
     previousValue,
@@ -277,6 +284,15 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     numberOfAnimations,
     onAnimationEnd,
   }: HorizontalAnimationElementProps = props;
+
+  const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(
+    Numbers.ZERO,
+  );
+  const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
+  const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Numbers.ZERO;
+
+  const sum = (first: number, second: number): number => first + second;
+  const subtract = (first: number, second: number): number => first - second;
 
   const animationDirection: HorizontalAnimationDirection =
     (numberOfAnimations === AnimationNumber.TWO &&
@@ -296,6 +312,20 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     (numberOfAnimations === AnimationNumber.THREE &&
       previousValue < currentValue === (animationTransition === AnimationTransition.NONE));
 
+  const numberOfDigits: number = renderZeros ? minNumberOfDigits : maxNumberOfDigits;
+
+  const numberOfDigitGroupSeparators: number = [
+    numberOfDigits - Math.max(precision, Numbers.ZERO),
+    Math.max(precision, Numbers.ZERO),
+  ]
+    .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
+    .reduce(sum);
+
+  const animationStartIndex: number = [
+    ref.current?.children.length ?? Numbers.ZERO,
+    [numberOfDigits, numberOfDigitGroupSeparators, precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO].reduce(sum),
+  ].reduce(subtract);
+
   const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunctionDirection({
     animationTimingFunction: animationTimingFunctionInput,
     animationDirection,
@@ -309,23 +339,12 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
     renderZeros,
   });
 
-  const getCharacterWidth: GetCharacterWidth = useCharacterWidth(containerRef);
+  useLayoutEffect((): void => {
+    const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
+      index >= animationStartIndex ? sum + child.getBoundingClientRect().width : Numbers.ZERO;
 
-  const sum = (first: number, second: number): number => first + second;
-
-  const getDigitsSeparatorsWidth = (numberOfDigits: number): number =>
-    getCharacterWidth(digitGroupSeparator) *
-    [numberOfDigits - Math.max(precision, Numbers.ZERO), Math.max(precision, Numbers.ZERO)]
-      .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
-      .reduce(sum);
-
-  const getAnimationWidth = (numberOfDigits: number, renderNegativeCharacter: boolean = false): number =>
-    [
-      renderNegativeCharacter ? getCharacterWidth(negativeCharacter) : Numbers.ZERO,
-      numberOfDigits,
-      getDigitsSeparatorsWidth(numberOfDigits),
-      precision > Numbers.ZERO ? getCharacterWidth(decimalSeparator) : Numbers.ZERO,
-    ].reduce(sum);
+    setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Numbers.ZERO));
+  }, [animationStartIndex]);
 
   const negativeElement: ReactElement = (
     <Optional condition={renderNegativeElement}>
@@ -344,11 +363,11 @@ export const HorizontalAnimationElement: FC<HorizontalAnimationElementProps> = (
       $animationDirection={animationDirection}
       $animationDuration={animationDuration}
       $animationTimingFunction={animationTimingFunction}
-      $animationStartWidth={getAnimationWidth(renderZeros ? minNumberOfDigits : maxNumberOfDigits)}
-      $animationEndWidth={getAnimationWidth(maxNumberOfDigits, renderNegativeElement)}
+      $animationStartWidth={animationStartWidth}
+      $animationEndWidth={animationEndWidth}
       onAnimationEnd={onAnimationEnd}
     >
-      <div>
+      <div ref={ref}>
         {negativeElement}
         {numberElement}
       </div>
