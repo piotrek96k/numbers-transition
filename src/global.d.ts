@@ -7,6 +7,7 @@ declare global {
   interface String {
     capitalize(): string;
   }
+
   interface ArrayConstructor {
     isArray<T>(arg: T): arg is T[];
     isArray<T, U extends T[]>(arg: T): arg is U;

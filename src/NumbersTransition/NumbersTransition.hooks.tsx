@@ -52,14 +52,14 @@ export interface View<T extends object = object, U = unknown> extends MappedView
   viewProps?: T;
 }
 
-type UseStyledViewOptions<T extends object, U, V extends object, W> = [View<T, U>, View<V, W>];
+export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
 type StyledViewTuple<T extends object, U, V extends object, W> = [
   StyledView<StyledComponents.CONTAINER, T, U>,
   StyledView<StyledComponents.CHARACTER, V, W>,
 ];
 
-export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
+type UseStyledViewOptions<T extends object, U, V extends object, W> = [View<T, U>, View<V, W>];
 
 export type StyledViewWithPropsTuple<T extends object, U, V extends object, W> = [
   StyledViewWithProps<StyledComponents.CONTAINER, T, U>,
@@ -73,11 +73,11 @@ type UseStyledView = <T extends object, U, V extends object, W>(
 export const useStyledView: UseStyledView = <T extends object, U, V extends object, W>(
   options: UseStyledViewOptions<T, U, V, W>,
 ): StyledViewWithPropsTuple<T, U, V, W> => {
-  const viewMapper = ([{ viewProps, ...restView }, styledComponent]: [
-    UseStyledViewOptions<T, U, V, W>[number],
-    StyledComponents,
-  ]): StyledViewWithPropsTuple<T, U, V, W>[number] => {
-    const props: Partial<U | V> = viewProps ?? {};
+  const viewMapper = (
+    viewWithStyledComponent: [UseStyledViewOptions<T, U, V, W>[number], StyledComponents],
+  ): StyledViewWithPropsTuple<T, U, V, W>[number] => {
+    const [{ viewProps, ...restView }, styledComponent]: [UseStyledViewOptions<T, U, V, W>[number], StyledComponents] =
+      viewWithStyledComponent;
 
     const entryMapper = ([key, value]: [string, TypeOf<UseStyledViewOptions<T, U, V, W>[number]>]): [
       string,
@@ -97,7 +97,7 @@ export const useStyledView: UseStyledView = <T extends object, U, V extends obje
       Partial<U | V>,
       UseStyledViewOptions<T, U, V, W>[number],
       StyledViewWithPropsTuple<T, U, V, W>[number]
-    >(props, styledView);
+    >(viewProps ?? {}, styledView);
   };
 
   return options
