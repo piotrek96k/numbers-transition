@@ -14,12 +14,13 @@ import {
   RegularExpressions,
   Runtime,
   Strings,
+  StyledComponents,
   TotalAnimationDurationValues,
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { AnimationTimingFunction } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
+import { AnimationTimingFunction, StyledView } from './NumbersTransition.styles';
+import { BigDecimal, OrReadOnly, Slice, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type UseForwardProp = () => ShouldForwardProp<Runtime.WEB>;
 
@@ -37,6 +38,71 @@ export const useValidation: UseValidation = (value?: UncheckedBigDecimal): Valid
     typeof value !== 'undefined' && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
   return isBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
+};
+
+type MappedView<T extends object = object, U = unknown> = {
+  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledView<
+    StyledComponents.CONTAINER,
+    T,
+    U
+  >[K];
+};
+
+export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
+  viewProps?: T;
+}
+
+type UseStyledViewOptions<T extends object, U, V extends object, W> = [View<T, U>, View<V, W>];
+
+type StyledViewTuple<T extends object, U, V extends object, W> = [
+  StyledView<StyledComponents.CONTAINER, T, U>,
+  StyledView<StyledComponents.CHARACTER, V, W>,
+];
+
+export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
+
+export type StyledViewWithPropsTuple<T extends object, U, V extends object, W> = [
+  StyledViewWithProps<StyledComponents.CONTAINER, T, U>,
+  StyledViewWithProps<StyledComponents.CHARACTER, V, W>,
+];
+
+type UseStyledView = <T extends object, U, V extends object, W>(
+  options: UseStyledViewOptions<T, U, V, W>,
+) => StyledViewWithPropsTuple<T, U, V, W>;
+
+export const useStyledView: UseStyledView = <T extends object, U, V extends object, W>(
+  options: UseStyledViewOptions<T, U, V, W>,
+): StyledViewWithPropsTuple<T, U, V, W> => {
+  const viewMapper = ([{ viewProps, ...restView }, styledComponent]: [
+    UseStyledViewOptions<T, U, V, W>[number],
+    StyledComponents,
+  ]): StyledViewWithPropsTuple<T, U, V, W>[number] => {
+    const props: Partial<U | V> = viewProps ?? {};
+
+    const entryMapper = ([key, value]: [string, TypeOf<UseStyledViewOptions<T, U, V, W>[number]>]): [
+      string,
+      TypeOf<UseStyledViewOptions<T, U, V, W>[number]>,
+    ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
+
+    const styledView: UseStyledViewOptions<T, U, V, W>[number] = Object.fromEntries<
+      keyof StyledViewTuple<T, U, V, W>[number],
+      TypeOf<UseStyledViewOptions<T, U, V, W>[number]>
+    >(
+      Object.entries<TypeOf<UseStyledViewOptions<T, U, V, W>[number]>>(restView).map<
+        [string, TypeOf<UseStyledViewOptions<T, U, V, W>[number]>]
+      >(entryMapper),
+    );
+
+    return Object.assign<
+      Partial<U | V>,
+      UseStyledViewOptions<T, U, V, W>[number],
+      StyledViewWithPropsTuple<T, U, V, W>[number]
+    >(props, styledView);
+  };
+
+  return options
+    .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
+    .map<StyledViewWithPropsTuple<T, U, V, W>[number], StyledViewWithPropsTuple<T, U, V, W>>(viewMapper);
 };
 
 interface UseAnimationCharactersOptions {
@@ -196,7 +262,7 @@ export const useAnimationDuration: UseAnimationDuration = (
   const isAnimationDuration = (
     animationDuration: AnimationDuration | TotalAnimationDuration,
   ): animationDuration is AnimationDuration =>
-    Object.isEmpty(animationDuration) ||
+    !Object.keys(animationDuration).length ||
     Object.keys(animationDuration).some((key: string): boolean => keys.includes<string>(key));
 
   const fromAnimationDuration = ({

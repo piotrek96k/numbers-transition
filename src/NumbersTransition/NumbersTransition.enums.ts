@@ -7,6 +7,7 @@ export enum HTMLElements {
 }
 
 export enum ForwardProps {
+  ID = 'id',
   STYLE = 'style',
   CLASS = 'class',
   CHILDREN = 'children',
@@ -14,18 +15,13 @@ export enum ForwardProps {
 }
 
 export enum Display {
-  BLOCK = 'BLOCK',
-  INLINE_BLOCK = 'INLINE_BLOCK',
+  BLOCK = 'block',
+  INLINE_BLOCK = 'inline-block',
 }
 
 export enum StyledComponents {
   CONTAINER = '',
   CHARACTER = 'character',
-  DIGIT = 'digit',
-  NEGATIVE_CHARACTER = 'negativeCharacter',
-  SEPARATOR = 'separator',
-  DIGIT_GROUP_SEPARATOR = 'digitGroupSeparator',
-  DECIMAL_SEPARATOR = 'decimalSeparator',
 }
 
 export enum ViewKeys {
@@ -35,10 +31,15 @@ export enum ViewKeys {
   ANIMATION = 'animation',
 }
 
+export enum AnimationId {
+  HORIZONTAL_ANIMATION = 'horizontal-animation',
+  VERTICAL_ANIMATION = 'vertical-animation',
+}
+
 export enum AnimationType {
-  NONE = 'NONE',
-  HORIZONTAL = 'HORIZONTAL',
-  VERTICAL = 'VERTICAL',
+  NONE = 'none',
+  HORIZONTAL = 'horizontal',
+  VERTICAL = 'vertical',
 }
 
 export enum AnimationNumber {
@@ -49,26 +50,26 @@ export enum AnimationNumber {
 }
 
 export enum AnimationTransition {
-  NONE = 'NONE',
-  FIRST_TO_SECOND = 'FIRST_TO_SECOND',
-  SECOND_TO_THIRD = 'SECOND_TO_THIRD',
+  NONE = 'none',
+  FIRST_TO_SECOND = 'first-to-second',
+  SECOND_TO_THIRD = 'second-to-third',
 }
 
 export enum HorizontalAnimationDirection {
-  RIGHT = 'NORMAL',
-  LEFT = 'REVERSE',
+  RIGHT = 'normal',
+  LEFT = 'reverse',
 }
 
 export enum VerticalAnimationDirection {
-  UP = 'NORMAL',
-  DOWN = 'REVERSE',
+  UP = 'normal',
+  DOWN = 'reverse',
 }
 
 export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
 export enum NegativeCharacterAnimationMode {
-  SINGLE = 'SINGLE',
-  MULTI = 'MULTI',
+  SINGLE = 'single',
+  MULTI = 'multi',
 }
 
 export enum DecimalSeparator {
@@ -91,11 +92,6 @@ export enum NegativeCharacter {
   HYPHEN_MINUS = '﹣',
   MINUS = '−',
   DASH = '–',
-}
-
-export enum Canvas {
-  ELEMENT = 'canvas',
-  CONTEXT_ID = '2d',
 }
 
 export enum DigitsGenerator {

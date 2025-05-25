@@ -1,11 +1,11 @@
 declare global {
   interface ObjectConstructor {
-    isEmpty<T extends object>(object: T): boolean;
+    assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
+    fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [k: T]: U };
   }
 
   interface String {
     capitalize(): string;
-    isEmpty(): this is '';
   }
   interface ArrayConstructor {
     isArray<T>(arg: T): arg is T[];

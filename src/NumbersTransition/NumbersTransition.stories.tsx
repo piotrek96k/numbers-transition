@@ -24,8 +24,10 @@ import { OrReadOnly } from './NumbersTransition.types';
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
   OrReadOnly<AnimationTimingFunction>,
-  NumbersTransitionExecutionContext,
-  number
+  object,
+  number,
+  object,
+  unknown
 >;
 
 type SelectType =
@@ -82,7 +84,7 @@ const opacityAnimationDuration = ({
   theme: { $totalAnimationDuration },
 }: NumbersTransitionExecutionContext): undefined | number => $totalAnimationDuration;
 
-const style: RuleSet<NumbersTransitionExecutionContext> = css<NumbersTransitionExecutionContext>`
+const style: RuleSet<object> = css<object>`
   font-size: ${Numbers.FIVE}rem;
   color: #f0ff95;
   animation-duration: calc(${opacityAnimationDuration}ms / ${Numbers.TWO});

@@ -1,16 +1,8 @@
-import { Numbers, Strings } from './NumbersTransition.enums';
+import { Numbers } from './NumbersTransition.enums';
 import { OrArray } from './NumbersTransition.types';
-
-Object.isEmpty = function <T extends object>(object: T): boolean {
-  return this.keys(object).length === Numbers.ZERO;
-};
 
 String.prototype.capitalize = function (): string {
   return `${this[Numbers.ZERO].toUpperCase()}${this.slice(Numbers.ONE)}`;
-};
-
-String.prototype.isEmpty = function (): this is Strings.EMPTY {
-  return this === Strings.EMPTY;
 };
 
 Array.prototype.depth = function (): number {

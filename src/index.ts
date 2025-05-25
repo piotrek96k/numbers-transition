@@ -1,4 +1,4 @@
-import NumbersTransition, { NumbersTransitionProps, View } from './NumbersTransition/NumbersTransition';
+import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
   AnimationNumber,
   AnimationTimingFunctions,
@@ -12,6 +12,7 @@ import {
   AnimationDuration,
   ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
+  View,
 } from './NumbersTransition/NumbersTransition.hooks';
 import {
   Animation,

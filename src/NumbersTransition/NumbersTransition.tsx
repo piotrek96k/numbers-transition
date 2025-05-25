@@ -1,4 +1,16 @@
-import { Dispatch, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  AnimationEvent,
+  AnimationEventHandler,
+  Dispatch,
+  ReactElement,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  SyntheticEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ShouldForwardProp, StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
@@ -10,6 +22,7 @@ import {
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
+  AnimationId,
   AnimationNumber,
   AnimationTransition,
   AnimationType,
@@ -20,8 +33,6 @@ import {
   NegativeCharacterAnimationMode,
   Numbers,
   Runtime,
-  Strings,
-  StyledComponents,
 } from './NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -29,40 +40,32 @@ import {
   AnimationTimingFunctionTuple,
   AnimationValuesTuple,
   ExtendedAnimationTimingFunction,
+  StyledViewWithPropsTuple,
   TotalAnimationDuration,
   ValidationTuple,
+  View,
   useAnimationDuration,
   useAnimationTimingFunction,
   useAnimationValues,
   useForwardProp,
+  useStyledView,
   useTotalAnimationDuration,
   useValidation,
 } from './NumbersTransition.hooks';
-import {
-  AnimationTimingFunction,
-  Container,
-  NumbersTransitionTheme,
-  View as StyledComponentView,
-} from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, Slice, UncheckedBigDecimal } from './NumbersTransition.types';
+import { AnimationTimingFunction, Container, NumbersTransitionTheme } from './NumbersTransition.styles';
+import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
-type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledComponentView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledComponentView<
-    StyledComponents.CONTAINER,
-    T,
-    U
-  >[K];
+type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & {
+  target: HTMLElement;
 };
-
-export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
-  viewProps?: T;
-}
 
 export interface NumbersTransitionProps<
   T extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
   U extends OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction = OrReadOnly<AnimationTimingFunction>,
   V extends object = object,
   W = unknown,
+  X extends object = object,
+  Y = unknown,
 > {
   initialValue?: UncheckedBigDecimal | BigDecimal;
   value?: UncheckedBigDecimal | BigDecimal;
@@ -75,6 +78,7 @@ export interface NumbersTransitionProps<
   animationTimingFunction?: U;
   invalidValue?: string;
   view?: View<V, W>;
+  characterView?: View<X, Y>;
 }
 
 const NumbersTransition = <
@@ -82,8 +86,10 @@ const NumbersTransition = <
   U extends OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction = OrReadOnly<AnimationTimingFunction>,
   V extends object = object,
   W = unknown,
+  X extends object = object,
+  Y = unknown,
 >(
-  props: NumbersTransitionProps<T, U, V, W>,
+  props: NumbersTransitionProps<T, U, V, W, X, Y>,
 ): ReactNode => {
   const {
     initialValue,
@@ -98,13 +104,19 @@ const NumbersTransition = <
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction,
     invalidValue = InvalidValue.VALUE,
-    view: { style, className, css, animation, viewProps } = {},
-  }: NumbersTransitionProps<T, U, V, W> = props;
+    view = {},
+    characterView = {},
+  }: NumbersTransitionProps<T, U, V, W, X, Y> = props;
 
   const shouldForwardProp: ShouldForwardProp<Runtime.WEB> = useForwardProp();
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
+
+  const [styledView, characterStyledView]: StyledViewWithPropsTuple<V, W, X, Y> = useStyledView<V, W, X, Y>([
+    view,
+    characterView,
+  ]);
 
   const [animationTransition, setAnimationTransition]: [
     AnimationTransition,
@@ -230,7 +242,13 @@ const NumbersTransition = <
     previousValueOnAnimationStartRef.current = validValue;
   }, [validValue, omitAnimation, restartAnimation]);
 
-  const onAnimationEnd = (): void => {
+  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({
+    target: { id },
+  }: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
+    if (!Object.values(AnimationId).includes<string>(id)) {
+      return;
+    }
+
     if (numberOfAnimations === AnimationNumber.ONE) {
       setPreviousValueOnAnimationEnd(validValue);
     } else if (
@@ -246,14 +264,25 @@ const NumbersTransition = <
     }
   };
 
+  const negativeElement: ReactElement = (
+    <Optional condition={renderNegativeElement}>
+      <NegativeElement<X, Y> negativeCharacter={negativeCharacter} characterStyledView={characterStyledView} />
+    </Optional>
+  );
+
   const numberElement: ReactElement = (
-    <NumberElement precision={precision} decimalSeparator={decimalSeparator} digitGroupSeparator={digitGroupSeparator}>
+    <NumberElement<X, Y>
+      precision={precision}
+      decimalSeparator={decimalSeparator}
+      digitGroupSeparator={digitGroupSeparator}
+      characterStyledView={characterStyledView}
+    >
       {previousValueOnAnimationEndDigits}
     </NumberElement>
   );
 
   const horizontalAnimationElement: ReactElement = (
-    <HorizontalAnimationElement
+    <HorizontalAnimationElement<X, Y>
       precision={precision}
       animationDuration={horizontalAnimationDuration}
       decimalSeparator={decimalSeparator}
@@ -270,12 +299,12 @@ const NumbersTransition = <
       numberOfDigitsDifference={numberOfDigitsDifference}
       hasSignChanged={hasSignChanged}
       numberOfAnimations={numberOfAnimations}
-      onAnimationEnd={onAnimationEnd}
+      characterStyledView={characterStyledView}
     />
   );
 
   const verticalAnimationElement: ReactElement = (
-    <VerticalAnimationElement
+    <VerticalAnimationElement<X, Y>
       precision={precision}
       animationDuration={verticalAnimationDuration}
       decimalSeparator={decimalSeparator}
@@ -287,7 +316,7 @@ const NumbersTransition = <
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
-      onAnimationEnd={onAnimationEnd}
+      characterStyledView={characterStyledView}
     />
   );
 
@@ -301,23 +330,23 @@ const NumbersTransition = <
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
-      <InvalidElement invalidValue={invalidValue} />
+      <InvalidElement invalidValue={invalidValue} characterStyledView={characterStyledView} />
     </Conditional>
+  );
+
+  const containerElement: ReactElement = (
+    <Container {...styledView} onAnimationEnd={onAnimationEnd}>
+      {negativeElement}
+      <Conditional condition={renderAnimation}>
+        {animationElement}
+        {valueElement}
+      </Conditional>
+    </Container>
   );
 
   return (
     <StyleSheetManager shouldForwardProp={shouldForwardProp}>
-      <ThemeProvider theme={theme}>
-        <Container $style={style} $className={className} $css={css} $animation={animation} {...viewProps}>
-          <Optional condition={renderNegativeElement}>
-            <NegativeElement negativeCharacter={negativeCharacter} />
-          </Optional>
-          <Conditional condition={renderAnimation}>
-            {animationElement}
-            {valueElement}
-          </Conditional>
-        </Container>
-      </ThemeProvider>
+      <ThemeProvider theme={theme}>{containerElement}</ThemeProvider>
     </StyleSheetManager>
   );
 };
