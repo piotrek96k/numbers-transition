@@ -20,7 +20,15 @@ import {
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { AnimationTimingFunction, StyledView } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, Slice, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
+import {
+  BigDecimal,
+  MappedTuple,
+  OrReadOnly,
+  Slice,
+  TupleIndex,
+  TypeOf,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 
 type UseForwardProp = () => ShouldForwardProp<Runtime.WEB>;
 
@@ -54,17 +62,33 @@ export interface View<T extends object = object, U = unknown> extends MappedView
 
 export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
-type StyledViewTuple<T extends object, U, V extends object, W> = [
-  StyledView<StyledComponents.CONTAINER, T, U>,
-  StyledView<StyledComponents.CHARACTER, V, W>,
+type UseStyledViewTypes<T extends object, U, V extends object, W> = [
+  [StyledComponents.CONTAINER, T, U],
+  [StyledComponents.CHARACTER, V, W],
 ];
 
-type UseStyledViewOptions<T extends object, U, V extends object, W> = [View<T, U>, View<V, W>];
+type StyledViewTuple<T extends object, U, V extends object, W> = MappedTuple<{
+  [I in TupleIndex<UseStyledViewTypes<T, U, V, W>>]: StyledView<
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.ZERO],
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.ONE],
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.TWO]
+  >;
+}>;
 
-export type StyledViewWithPropsTuple<T extends object, U, V extends object, W> = [
-  StyledViewWithProps<StyledComponents.CONTAINER, T, U>,
-  StyledViewWithProps<StyledComponents.CHARACTER, V, W>,
-];
+type UseStyledViewOptions<T extends object, U, V extends object, W> = MappedTuple<{
+  [I in TupleIndex<UseStyledViewTypes<T, U, V, W>>]: View<
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.ONE],
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.TWO]
+  >;
+}>;
+
+export type StyledViewWithPropsTuple<T extends object, U, V extends object, W> = MappedTuple<{
+  [I in TupleIndex<UseStyledViewTypes<T, U, V, W>>]: StyledViewWithProps<
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.ZERO],
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.ONE],
+    UseStyledViewTypes<T, U, V, W>[I][Numbers.TWO]
+  >;
+}>;
 
 type UseStyledView = <T extends object, U, V extends object, W>(
   options: UseStyledViewOptions<T, U, V, W>,

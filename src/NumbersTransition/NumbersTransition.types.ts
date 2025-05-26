@@ -2,6 +2,15 @@ import { Numbers, Strings } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
 
+export type TupleIndex<T extends unknown[]> = Exclude<keyof T, keyof unknown[]>;
+
+type TupleLength<
+  T extends { [i: `${number}`]: unknown },
+  U extends unknown[] = [],
+> = `${U[Strings.LENGTH]}` extends keyof T ? TupleLength<T, [unknown, ...U]> : U[Strings.LENGTH];
+
+export type MappedTuple<T extends { [i: `${number}`]: unknown }> = T & TypeOf<T>[] & { length: TupleLength<T> };
+
 type ReadOnly<T> = {
   +readonly [K in keyof T]: ReadOnly<T[K]>;
 };
