@@ -104,8 +104,8 @@ const NumbersTransition = <
     negativeCharacterAnimationMode = NegativeCharacterAnimationMode.SINGLE,
     animationTimingFunction,
     invalidValue = InvalidValue.VALUE,
-    view = {},
-    characterView = {},
+    view,
+    characterView,
   }: NumbersTransitionProps<T, U, V, W, X, Y> = props;
 
   const shouldForwardProp: ShouldForwardProp<Runtime.WEB> = useForwardProp();
