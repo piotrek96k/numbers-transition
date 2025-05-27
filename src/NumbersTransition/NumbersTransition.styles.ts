@@ -431,7 +431,7 @@ type HorizontalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyl
 
 export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(Animation)<HorizontalAnimationProps>`
   ${animation};
-  > * {
+  :only-child {
     float: right;
     height: inherit;
   }
@@ -440,19 +440,13 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(An
 type VerticalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, VerticalAnimationProps>;
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animation)<VerticalAnimationProps>`
-  > * {
+  :only-child:has(:not(:only-child)) {
     ${animation};
     position: relative;
   }
-  > * :last-child {
+  :last-child:not(:only-child) {
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
-  }
-  > * :only-child {
-    position: static;
-  }
-  :has(:only-child) {
-    height: ${Numbers.ZERO};
   }
 `;
 
