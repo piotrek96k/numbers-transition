@@ -3,6 +3,7 @@ import { ShouldForwardProp } from 'styled-components';
 import {
   AnimationDirection,
   AnimationDurationValues,
+  AnimationKeys,
   AnimationNumber,
   AnimationTimingFunctions,
   DigitsGenerator,
@@ -286,13 +287,12 @@ export const useAnimationDuration: UseAnimationDuration = (
   options: UseAnimationDurationOptions,
 ): AnimationDurationTuple => {
   const { animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
-  const keys: (keyof AnimationDuration)[] = ['horizontalAnimation', 'verticalAnimation'];
 
   const isAnimationDuration = (
     animationDuration: AnimationDuration | TotalAnimationDuration,
   ): animationDuration is AnimationDuration =>
     !Object.keys(animationDuration).length ||
-    Object.keys(animationDuration).some((key: string): boolean => keys.includes<string>(key));
+    Object.keys(animationDuration).some((key: string): boolean => Object.values(AnimationKeys).includes<string>(key));
 
   const fromAnimationDuration = ({
     horizontalAnimation = AnimationDurationValues.HORIZONTAL_ANIMATION,

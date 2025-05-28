@@ -36,6 +36,11 @@ export enum AnimationId {
   VERTICAL_ANIMATION = 'vertical-animation',
 }
 
+export enum AnimationKeys {
+  HORIZONTAL_ANIMATION = 'horizontalAnimation',
+  VERTICAL_ANIMATION = 'verticalAnimation',
+}
+
 export enum AnimationType {
   NONE = 'none',
   HORIZONTAL = 'horizontal',
