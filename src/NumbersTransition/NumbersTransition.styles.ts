@@ -448,6 +448,9 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
   }
+  :has(~ &):not(:has(:first-child)) {
+    overflow: hidden;
+  }
 `;
 
 export interface CharacterProps<T extends object, U>
@@ -469,7 +472,6 @@ export const Character: CharacterStyledComponent = styled.div.attrs<CharacterPro
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${visibility};
   ${display};
-  overflow: hidden;
   white-space: pre;
 `;
 
