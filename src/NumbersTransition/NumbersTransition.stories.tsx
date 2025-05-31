@@ -19,13 +19,15 @@ import {
   AnimationTimingFunction,
   NumbersTransitionExecutionContext,
 } from './NumbersTransition.styles';
-import { OrReadOnly } from './NumbersTransition.types';
+import { ReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
-  OrReadOnly<AnimationTimingFunction>,
+  ReadOnly<AnimationTimingFunction>,
   object,
   number,
+  object,
+  unknown,
   object,
   unknown
 >;

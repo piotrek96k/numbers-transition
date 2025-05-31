@@ -474,8 +474,20 @@ export const Character: CharacterStyledComponent = styled.div.attrs<CharacterPro
   white-space: pre;
 `;
 
-type DigitStyledComponent = ExtensionStyledComponent<CharacterStyledComponent>;
+export interface DigitProps<T extends object, U, V extends object, W>
+  extends CharacterProps<T, U>,
+    StyledView<StyledComponents.DIGIT, V, W> {}
 
-export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character)`
+type DigitStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  DigitProps<any, any, any, any>
+>;
+
+export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
+  DigitProps<any, any, any, any>
+>(attributesFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT))`
+  ${cssFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
+  ${animationFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
   min-width: ${Numbers.ONE}ch;
 `;

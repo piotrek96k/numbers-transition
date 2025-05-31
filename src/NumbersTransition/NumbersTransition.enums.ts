@@ -22,6 +22,7 @@ export enum Display {
 export enum StyledComponents {
   CONTAINER = '',
   CHARACTER = 'character',
+  DIGIT = 'digit',
 }
 
 export enum ViewKeys {

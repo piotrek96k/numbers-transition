@@ -1,7 +1,7 @@
 declare global {
   interface ObjectConstructor {
     assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
-    fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [k: T]: U };
+    fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [key: T]: U };
   }
 
   interface String {
