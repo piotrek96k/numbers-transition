@@ -489,7 +489,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
   }
 `;
 
-export interface CharacterProps<T extends object, U>
+interface CharacterProps<T extends object, U>
   extends VisibilityProps,
     DisplayProps,
     Partial<NumbersTransitionExecutionContext>,
@@ -508,7 +508,6 @@ export const Character: CharacterStyledComponent = styled.div.attrs<CharacterPro
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${visibility};
   ${display};
-  white-space: pre;
 `;
 
 export interface DigitProps<T extends object, U, V extends object, W>
@@ -527,4 +526,22 @@ export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Char
   ${cssFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
   ${animationFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
   min-width: ${Numbers.ONE}ch;
+`;
+
+export interface SeparatorProps<T extends object, U, V extends object, W>
+  extends CharacterProps<T, U>,
+    StyledView<StyledComponents.SEPARATOR, V, W> {}
+
+type SeparatorStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  SeparatorProps<any, any, any, any>
+>;
+
+export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
+  SeparatorProps<any, any, any, any>
+>(attributesFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR))`
+  ${cssFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
+  ${animationFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
+  white-space: pre;
 `;

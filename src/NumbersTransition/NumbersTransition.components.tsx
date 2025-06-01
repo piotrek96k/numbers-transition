@@ -40,6 +40,7 @@ import {
   Digit,
   DigitProps,
   HorizontalAnimation,
+  Separator,
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
@@ -223,30 +224,41 @@ const VerticalAnimationNegativeElement = <T extends object, U>(
   );
 };
 
-interface NumberElementProps<T extends object, U> {
+interface NumberElementProps<T extends object, U, V extends object, W, X extends object, Y> {
   precision: number;
   decimalSeparator: DecimalSeparator;
   digitGroupSeparator: DigitGroupSeparator;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
-  elementMapper: ElementKeyMapper<ReactNode>;
+  digitStyledView: StyledViewWithProps<StyledComponents.DIGIT, V, W>;
+  separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, X, Y>;
+  elementMapper?: ElementKeyMapper<ReactNode>;
   children: ReactNode[];
 }
 
-export const NumberElement = <T extends object, U>(props: NumberElementProps<T, U>): ReactNode => {
+export const NumberElement = <T extends object, U, V extends object, W, X extends object, Y>(
+  props: NumberElementProps<T, U, V, W, X, Y>,
+): ReactNode => {
   const {
     precision,
     decimalSeparator,
     digitGroupSeparator,
     characterStyledView,
+    digitStyledView,
+    separatorStyledView,
     elementMapper,
     children,
-  }: NumberElementProps<T, U> = props;
+  }: NumberElementProps<T, U, V, W, X, Y> = props;
+
+  const digitElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<DigitProps<T, U, V, W>, ReactNode>(
+    Digit,
+    { ...characterStyledView, ...digitStyledView },
+  );
 
   const getSeparatorElement = (index: number, length: number): ReactNode =>
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) && (
-      <Character {...characterStyledView}>
+      <Separator {...characterStyledView} {...separatorStyledView}>
         {length - index === precision ? decimalSeparator : digitGroupSeparator}
-      </Character>
+      </Separator>
     );
 
   const digitsReducer = (
@@ -262,10 +274,10 @@ export const NumberElement = <T extends object, U>(props: NumberElementProps<T, 
     </>
   );
 
-  return children.map<ReactElement>(elementMapper).reduce(digitsReducer);
+  return children.map<ReactElement>(elementMapper ?? digitElementMapper).reduce(digitsReducer);
 };
 
-interface HorizontalAnimationElementProps<T extends object, U, V extends object, W> {
+interface HorizontalAnimationElementProps<T extends object, U, V extends object, W, X extends object, Y> {
   precision: number;
   animationDuration: number;
   decimalSeparator: DecimalSeparator;
@@ -284,10 +296,11 @@ interface HorizontalAnimationElementProps<T extends object, U, V extends object,
   numberOfAnimations: AnimationNumber;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
   digitStyledView: StyledViewWithProps<StyledComponents.DIGIT, V, W>;
+  separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, X, Y>;
 }
 
-export const HorizontalAnimationElement = <T extends object, U, V extends object, W>(
-  props: HorizontalAnimationElementProps<T, U, V, W>,
+export const HorizontalAnimationElement = <T extends object, U, V extends object, W, X extends object, Y>(
+  props: HorizontalAnimationElementProps<T, U, V, W, X, Y>,
 ): ReactNode => {
   const {
     precision,
@@ -308,7 +321,8 @@ export const HorizontalAnimationElement = <T extends object, U, V extends object
     numberOfAnimations,
     characterStyledView,
     digitStyledView,
-  }: HorizontalAnimationElementProps<T, U, V, W> = props;
+    separatorStyledView,
+  }: HorizontalAnimationElementProps<T, U, V, W, X, Y> = props;
 
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(
     Numbers.ZERO,
@@ -364,11 +378,6 @@ export const HorizontalAnimationElement = <T extends object, U, V extends object
     renderZeros,
   });
 
-  const digitElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<DigitProps<T, U, V, W>, ReactNode>(
-    Digit,
-    { ...characterStyledView, ...digitStyledView },
-  );
-
   useLayoutEffect((): void => {
     const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
       index >= animationStartIndex ? sum + child.getBoundingClientRect().width : Numbers.ZERO;
@@ -386,12 +395,13 @@ export const HorizontalAnimationElement = <T extends object, U, V extends object
   );
 
   const numberElement: ReactElement = (
-    <NumberElement<T, U>
+    <NumberElement<T, U, V, W, X, Y>
       precision={precision}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       characterStyledView={characterStyledView}
-      elementMapper={digitElementMapper}
+      digitStyledView={digitStyledView}
+      separatorStyledView={separatorStyledView}
     >
       {animationDigits}
     </NumberElement>
@@ -414,7 +424,7 @@ export const HorizontalAnimationElement = <T extends object, U, V extends object
   );
 };
 
-interface VerticalAnimationElementProps<T extends object, U, V extends object, W> {
+interface VerticalAnimationElementProps<T extends object, U, V extends object, W, X extends object, Y> {
   precision: number;
   animationDuration: number;
   decimalSeparator: DecimalSeparator;
@@ -428,10 +438,11 @@ interface VerticalAnimationElementProps<T extends object, U, V extends object, W
   hasSignChanged: boolean;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
   digitStyledView: StyledViewWithProps<StyledComponents.DIGIT, V, W>;
+  separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, X, Y>;
 }
 
-export const VerticalAnimationElement = <T extends object, U, V extends object, W>(
-  props: VerticalAnimationElementProps<T, U, V, W>,
+export const VerticalAnimationElement = <T extends object, U, V extends object, W, X extends object, Y>(
+  props: VerticalAnimationElementProps<T, U, V, W, X, Y>,
 ): ReactNode => {
   const {
     animationDuration,
@@ -444,8 +455,9 @@ export const VerticalAnimationElement = <T extends object, U, V extends object, 
     hasSignChanged,
     characterStyledView,
     digitStyledView,
+    separatorStyledView,
     ...restProps
-  }: VerticalAnimationElementProps<T, U, V, W> = props;
+  }: VerticalAnimationElementProps<T, U, V, W, X, Y> = props;
 
   const renderNegativeElement: boolean =
     hasSignChanged ||
@@ -500,9 +512,11 @@ export const VerticalAnimationElement = <T extends object, U, V extends object, 
           characterStyledView={characterStyledView}
         />
       </Optional>
-      <NumberElement<T, U>
+      <NumberElement<T, U, V, W, X, Y>
         {...restProps}
         characterStyledView={characterStyledView}
+        digitStyledView={digitStyledView}
+        separatorStyledView={separatorStyledView}
         elementMapper={verticalAnimationElementMapper}
       >
         {animationDigits.map<ReactElement>(divisionMapper)}

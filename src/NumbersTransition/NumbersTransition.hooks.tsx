@@ -63,78 +63,109 @@ export interface View<T extends object = object, U = unknown> extends MappedView
 
 export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
-type StyledViewTypes<T extends object, U, V extends object, W, X extends object, Y> = [
-  [StyledComponents.CONTAINER, T, U],
-  [StyledComponents.CHARACTER, V, W],
-  [StyledComponents.DIGIT, X, Y],
+type StyledViewTypes<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = [
+  [StyledComponents.CONTAINER, S, T],
+  [StyledComponents.CHARACTER, U, V],
+  [StyledComponents.DIGIT, W, X],
+  [StyledComponents.SEPARATOR, Y, Z],
 ];
 
-type StyledViewTuple<T extends object, U, V extends object, W, X extends object, Y> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<T, U, V, W, X, Y>>]: StyledView<
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.ZERO],
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.ONE],
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.TWO]
+type StyledViewTuple<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: StyledView<
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
-type ViewTuple<T extends object, U, V extends object, W, X extends object, Y> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<T, U, V, W, X, Y>>]: View<
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.ONE],
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.TWO]
+type ViewTuple<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: View<
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
-type UseStyledViewOptions<T extends object, U, V extends object, W, X extends object, Y> = MappedTuple<{
-  [I in TupleIndex<ViewTuple<T, U, V, W, X, Y>>]?: ViewTuple<T, U, V, W, X, Y>[I];
+type UseStyledViewOptions<
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> = MappedTuple<{
+  [I in TupleIndex<ViewTuple<S, T, U, V, W, X, Y, Z>>]?: ViewTuple<S, T, U, V, W, X, Y, Z>[I];
 }>;
 
-export type StyledViewWithPropsTuple<T extends object, U, V extends object, W, X extends object, Y> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<T, U, V, W, X, Y>>]: StyledViewWithProps<
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.ZERO],
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.ONE],
-    StyledViewTypes<T, U, V, W, X, Y>[I][Numbers.TWO]
+export type StyledViewWithPropsTuple<
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
-type UseStyledView = <T extends object, U, V extends object, W, X extends object, Y>(
-  options: UseStyledViewOptions<T, U, V, W, X, Y>,
-) => StyledViewWithPropsTuple<T, U, V, W, X, Y>;
+type UseStyledView = <S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
+  options: UseStyledViewOptions<S, T, U, V, W, X, Y, Z>,
+) => StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>;
 
-export const useStyledView: UseStyledView = <T extends object, U, V extends object, W, X extends object, Y>(
-  options: UseStyledViewOptions<T, U, V, W, X, Y>,
-): StyledViewWithPropsTuple<T, U, V, W, X, Y> => {
+export const useStyledView: UseStyledView = <
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+>(
+  options: UseStyledViewOptions<S, T, U, V, W, X, Y, Z>,
+): StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z> => {
   const viewMapper = (
-    viewWithStyledComponent: [UseStyledViewOptions<T, U, V, W, X, Y>[number], StyledComponents],
-  ): StyledViewWithPropsTuple<T, U, V, W, X, Y>[number] => {
+    viewWithStyledComponent: [UseStyledViewOptions<S, T, U, V, W, X, Y, Z>[number], StyledComponents],
+  ): StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number] => {
     const [{ viewProps, ...restView } = {}, styledComponent]: [
-      UseStyledViewOptions<T, U, V, W, X, Y>[number],
+      UseStyledViewOptions<S, T, U, V, W, X, Y, Z>[number],
       StyledComponents,
     ] = viewWithStyledComponent;
 
-    const entryMapper = ([key, value]: [string, TypeOf<ViewTuple<T, U, V, W, X, Y>[number]>]): [
+    const entryMapper = ([key, value]: [string, TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
-      TypeOf<ViewTuple<T, U, V, W, X, Y>[number]>,
+      TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>,
     ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
 
-    const styledView: ViewTuple<T, U, V, W, X, Y>[number] = Object.fromEntries<
-      keyof StyledViewTuple<T, U, V, W, X, Y>[number],
-      TypeOf<ViewTuple<T, U, V, W, X, Y>[number]>
+    const styledView: ViewTuple<S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
+      keyof StyledViewTuple<S, T, U, V, W, X, Y, Z>[number],
+      TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>
     >(
-      Object.entries<TypeOf<ViewTuple<T, U, V, W, X, Y>[number]>>(restView).map<
-        [string, TypeOf<ViewTuple<T, U, V, W, X, Y>[number]>]
+      Object.entries<TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
+        [string, TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>]
       >(entryMapper),
     );
 
     return Object.assign<
       Partial<U | V>,
-      ViewTuple<T, U, V, W, X, Y>[number],
-      StyledViewWithPropsTuple<T, U, V, W, X, Y>[number]
+      ViewTuple<S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number]
     >(viewProps ?? {}, styledView);
   };
 
   return options
     .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
-    .map<StyledViewWithPropsTuple<T, U, V, W, X, Y>[number], StyledViewWithPropsTuple<T, U, V, W, X, Y>>(viewMapper);
+    .map<
+      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>
+    >(viewMapper);
 };
 
 interface UseAnimationCharactersOptions {

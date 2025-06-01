@@ -23,6 +23,7 @@ export enum StyledComponents {
   CONTAINER = '',
   CHARACTER = 'character',
   DIGIT = 'digit',
+  SEPARATOR = 'separator',
 }
 
 export enum ViewKeys {
