@@ -19,6 +19,7 @@ import {
   Runtime,
   Strings,
   StyledComponents,
+  VariableName,
   VerticalAnimationDirection,
   ViewKeys,
 } from './NumbersTransition.enums';
@@ -57,6 +58,59 @@ export interface NumbersTransitionTheme {
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
   theme: NumbersTransitionTheme;
 }
+
+interface Property {
+  name: VariableName;
+  syntax: string;
+  initialValue: string | number;
+}
+
+const properties: Property[] = [
+  {
+    name: VariableName.ANIMATION_TYPE,
+    syntax: Object.values<AnimationType>(AnimationType).join(
+      `${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`,
+    ),
+    initialValue: AnimationType.NONE,
+  },
+  {
+    name: VariableName.NUMBER_OF_ANIMATIONS,
+    syntax: '<integer>',
+    initialValue: AnimationNumber.ZERO,
+  },
+  { name: VariableName.CURRENT_ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumber.ZERO },
+  { name: VariableName.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableName.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableName.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+];
+
+const propertiesMapper = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
+  @property ${name} {
+    syntax: '${syntax}';
+    inherits: true;
+    initial-value: ${initialValue};
+  }
+`;
+
+const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(propertiesMapper);
+
+const containerVariables = ({
+  theme: {
+    $animationType,
+    $numberOfAnimations,
+    $currentAnimationNumber,
+    $totalAnimationDuration,
+    $horizontalAnimationDuration,
+    $verticalAnimationDuration,
+  },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableName.ANIMATION_TYPE}: ${$animationType};
+  ${VariableName.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
+  ${VariableName.CURRENT_ANIMATION_NUMBER}: ${$currentAnimationNumber};
+  ${VariableName.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
+  ${VariableName.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
+  ${VariableName.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
+`;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
 
@@ -308,7 +362,7 @@ const animationsKeyframesReducer = (
   currentValue: undefined | Keyframes,
   index: number,
 ) => css<object>`
-  ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? `${currentValue}`}
+  ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? AnimationType.NONE}
 `;
 
 const animationsKeyframes = <T extends StyledComponents, U extends object, V>(
@@ -378,24 +432,6 @@ const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ $display = Display.INLINE_BLOCK }: DisplayProps): string => $display};
 `;
 
-const containerVariables = ({
-  theme: {
-    $animationType,
-    $numberOfAnimations,
-    $currentAnimationNumber,
-    $totalAnimationDuration,
-    $horizontalAnimationDuration,
-    $verticalAnimationDuration,
-  },
-}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  --animation-type: ${$animationType};
-  --number-of-animations: ${$numberOfAnimations};
-  --current-animation-number: ${$currentAnimationNumber};
-  --total-animation-duration: ${$totalAnimationDuration};
-  --horizontal-animation-duration: ${$horizontalAnimationDuration};
-  --vertical-animation-duration: ${$verticalAnimationDuration};
-`;
-
 interface ContainerProps<T extends object, U>
   extends Partial<NumbersTransitionExecutionContext>,
     StyledView<StyledComponents.CONTAINER, T, U> {}
@@ -411,6 +447,7 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
 )`
   ${cssFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
   ${animationFactory<StyledComponents.CONTAINER>(StyledComponents.CONTAINER)};
+  ${cssProperties};
   ${containerVariables};
   max-width: ${Numbers.ONE_HUNDRED}%;
   width: fit-content;

@@ -6,17 +6,17 @@ export enum HTMLElements {
   'DIV' = 'div',
 }
 
+export enum Display {
+  BLOCK = 'block',
+  INLINE_BLOCK = 'inline-block',
+}
+
 export enum ForwardProps {
   ID = 'id',
   STYLE = 'style',
   CLASS = 'class',
   CHILDREN = 'children',
   ON_ANIMATION_END = 'onAnimationEnd',
-}
-
-export enum Display {
-  BLOCK = 'block',
-  INLINE_BLOCK = 'inline-block',
 }
 
 export enum StyledComponents {
@@ -30,6 +30,15 @@ export enum ViewKeys {
   CLASS_NAME = 'className',
   CSS = 'css',
   ANIMATION = 'animation',
+}
+
+export enum VariableName {
+  ANIMATION_TYPE = '--animation-type',
+  NUMBER_OF_ANIMATIONS = '--number-of-animations',
+  CURRENT_ANIMATION_NUMBER = '--current-animation-number',
+  TOTAL_ANIMATION_DURATION = '--total-animation-duration',
+  HORIZONTAL_ANIMATION_DURATION = '--horizontal-animation-duration',
+  VERTICAL_ANIMATION_DURATION = '--vertical-animation-duration',
 }
 
 export enum AnimationId {
@@ -130,7 +139,7 @@ export enum Strings {
   SPACE = ' ',
   UNDERSCORE = '_',
   DOLLAR = '$',
-  LENGTH = 'length',
+  VERTICAL_LINE = '|',
 }
 
 export enum Numbers {
