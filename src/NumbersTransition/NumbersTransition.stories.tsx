@@ -31,6 +31,10 @@ type NumbersTransitionProps = typeof NumbersTransition<
   object,
   unknown,
   object,
+  unknown,
+  object,
+  unknown,
+  object,
   unknown
 >;
 
