@@ -4,7 +4,7 @@ import {
   AnimationDirection,
   AnimationDurationValues,
   AnimationKeys,
-  AnimationNumber,
+  AnimationNumbers,
   AnimationTimingFunctions,
   DigitsGenerator,
   EquationSolver,
@@ -63,29 +63,74 @@ export interface View<T extends object = object, U = unknown> extends MappedView
 
 export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
-type StyledViewTypes<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = [
-  [StyledComponents.CONTAINER, S, T],
-  [StyledComponents.CHARACTER, U, V],
-  [StyledComponents.DIGIT, W, X],
-  [StyledComponents.SEPARATOR, Y, Z],
+type StyledViewTypes<
+  O extends object,
+  P,
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> = [
+  [StyledComponents.CONTAINER, O, P],
+  [StyledComponents.CHARACTER, Q, R],
+  [StyledComponents.DIGIT, S, T],
+  [StyledComponents.SEPARATOR, U, V],
+  [StyledComponents.DECIMAL_SEPARATOR, W, X],
+  [StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z],
 ];
 
-type StyledViewTuple<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: StyledView<
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+type StyledViewTuple<
+  O extends object,
+  P,
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
-type ViewTuple<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: View<
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+type ViewTuple<
+  O extends object,
+  P,
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
 type UseStyledViewOptions<
+  O extends object,
+  P,
+  Q extends object,
+  R,
   S extends object,
   T,
   U extends object,
@@ -95,10 +140,14 @@ type UseStyledViewOptions<
   Y extends object,
   Z,
 > = MappedTuple<{
-  [I in TupleIndex<ViewTuple<S, T, U, V, W, X, Y, Z>>]?: ViewTuple<S, T, U, V, W, X, Y, Z>[I];
+  [I in TupleIndex<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>>]?: ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I];
 }>;
 
 export type StyledViewWithPropsTuple<
+  O extends object,
+  P,
+  Q extends object,
+  R,
   S extends object,
   T,
   U extends object,
@@ -108,18 +157,18 @@ export type StyledViewWithPropsTuple<
   Y extends object,
   Z,
 > = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+  [I in TupleIndex<StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
   >;
 }>;
 
-type UseStyledView = <S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
-  options: UseStyledViewOptions<S, T, U, V, W, X, Y, Z>,
-) => StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>;
-
-export const useStyledView: UseStyledView = <
+type UseStyledView = <
+  O extends object,
+  P,
+  Q extends object,
+  R,
   S extends object,
   T,
   U extends object,
@@ -129,42 +178,59 @@ export const useStyledView: UseStyledView = <
   Y extends object,
   Z,
 >(
-  options: UseStyledViewOptions<S, T, U, V, W, X, Y, Z>,
-): StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z> => {
+  options: UseStyledViewOptions<O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+) => StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>;
+
+export const useStyledView: UseStyledView = <
+  O extends object,
+  P,
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+>(
+  options: UseStyledViewOptions<O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+): StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
   const viewMapper = (
-    viewWithStyledComponent: [UseStyledViewOptions<S, T, U, V, W, X, Y, Z>[number], StyledComponents],
-  ): StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number] => {
+    viewWithStyledComponent: [UseStyledViewOptions<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents],
+  ): StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
     const [{ viewProps, ...restView } = {}, styledComponent]: [
-      UseStyledViewOptions<S, T, U, V, W, X, Y, Z>[number],
+      UseStyledViewOptions<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledComponents,
     ] = viewWithStyledComponent;
 
-    const entryMapper = ([key, value]: [string, TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>]): [
+    const entryMapper = ([key, value]: [string, TypeOf<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
-      TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>,
+      TypeOf<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
     ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
 
-    const styledView: ViewTuple<S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
-      keyof StyledViewTuple<S, T, U, V, W, X, Y, Z>[number],
-      TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>
+    const styledView: ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
+      keyof StyledViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      TypeOf<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
     >(
-      Object.entries<TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
-        [string, TypeOf<ViewTuple<S, T, U, V, W, X, Y, Z>[number]>]
+      Object.entries<TypeOf<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
+        [string, TypeOf<ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
       >(entryMapper),
     );
 
     return Object.assign<
       Partial<U | V>,
-      ViewTuple<S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number]
+      ViewTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]
     >(viewProps ?? {}, styledView);
   };
 
   return options
     .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
     .map<
-      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<S, T, U, V, W, X, Y, Z>
+      StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<O, P, Q, R, S, T, U, V, W, X, Y, Z>
     >(viewMapper);
 };
 
@@ -309,7 +375,7 @@ export interface TotalAnimationDuration {
 
 interface UseAnimationDurationOptions {
   animationDuration?: AnimationDuration | TotalAnimationDuration;
-  numberOfAnimations: AnimationNumber;
+  numberOfAnimations: AnimationNumbers;
 }
 
 export type AnimationDurationTuple = [number, number];
@@ -331,7 +397,7 @@ export const useAnimationDuration: UseAnimationDuration = (
     horizontalAnimation = AnimationDurationValues.HORIZONTAL_ANIMATION,
     verticalAnimation = AnimationDurationValues.VERTICAL_ANIMATION,
   }: AnimationDuration): AnimationDurationTuple => [
-    numberOfAnimations === AnimationNumber.ONE ? Numbers.ZERO : horizontalAnimation,
+    numberOfAnimations === AnimationNumbers.ONE ? Numbers.ZERO : horizontalAnimation,
     verticalAnimation,
   ];
 
@@ -340,7 +406,7 @@ export const useAnimationDuration: UseAnimationDuration = (
     ratio = TotalAnimationDurationValues.RATIO,
   }: TotalAnimationDuration): AnimationDurationTuple => {
     const horizontalAnimationDuration: number =
-      numberOfAnimations === AnimationNumber.ONE
+      numberOfAnimations === AnimationNumbers.ONE
         ? Numbers.ZERO
         : animationDuration / (ratio + numberOfAnimations - Numbers.ONE);
     const verticalAnimationDuration: number =
@@ -357,13 +423,13 @@ export const useAnimationDuration: UseAnimationDuration = (
     ? fromAnimationDuration
     : fromTotalAnimationDuration;
 
-  return numberOfAnimations === AnimationNumber.ZERO
+  return numberOfAnimations === AnimationNumbers.ZERO
     ? [Numbers.ZERO, Numbers.ZERO]
     : mapAnimationDuration(animationDuration);
 };
 
 interface UseTotalAnimationDurationOptions {
-  numberOfAnimations: AnimationNumber;
+  numberOfAnimations: AnimationNumbers;
   horizontalAnimationDuration: number;
   verticalAnimationDuration: number;
 }
@@ -376,13 +442,13 @@ export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
   verticalAnimationDuration,
 }: UseTotalAnimationDurationOptions): number => {
   switch (numberOfAnimations) {
-    case AnimationNumber.ZERO:
+    case AnimationNumbers.ZERO:
       return Numbers.ZERO;
-    case AnimationNumber.ONE:
+    case AnimationNumbers.ONE:
       return verticalAnimationDuration;
-    case AnimationNumber.TWO:
+    case AnimationNumbers.TWO:
       return horizontalAnimationDuration + verticalAnimationDuration;
-    case AnimationNumber.THREE:
+    case AnimationNumbers.THREE:
       return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
   }
 };

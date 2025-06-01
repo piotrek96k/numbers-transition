@@ -24,6 +24,8 @@ export enum StyledComponents {
   CHARACTER = 'character',
   DIGIT = 'digit',
   SEPARATOR = 'separator',
+  DECIMAL_SEPARATOR = 'decimalSeparator',
+  DIGIT_GROUP_SEPARATOR = 'digitGroupSeparator',
 }
 
 export enum ViewKeys {
@@ -33,7 +35,7 @@ export enum ViewKeys {
   ANIMATION = 'animation',
 }
 
-export enum VariableName {
+export enum VariableNames {
   ANIMATION_TYPE = '--animation-type',
   NUMBER_OF_ANIMATIONS = '--number-of-animations',
   CURRENT_ANIMATION_NUMBER = '--current-animation-number',
@@ -42,7 +44,7 @@ export enum VariableName {
   VERTICAL_ANIMATION_DURATION = '--vertical-animation-duration',
 }
 
-export enum AnimationId {
+export enum AnimationIds {
   HORIZONTAL_ANIMATION = 'horizontal-animation',
   VERTICAL_ANIMATION = 'vertical-animation',
 }
@@ -52,20 +54,20 @@ export enum AnimationKeys {
   VERTICAL_ANIMATION = 'verticalAnimation',
 }
 
-export enum AnimationType {
+export enum AnimationTypes {
   NONE = 'none',
   HORIZONTAL = 'horizontal',
   VERTICAL = 'vertical',
 }
 
-export enum AnimationNumber {
+export enum AnimationNumbers {
   ZERO,
   ONE,
   TWO,
   THREE,
 }
 
-export enum AnimationTransition {
+export enum AnimationTransitions {
   NONE = 'none',
   FIRST_TO_SECOND = 'first-to-second',
   SECOND_TO_THIRD = 'second-to-third',
@@ -83,17 +85,17 @@ export enum VerticalAnimationDirection {
 
 export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
-export enum NegativeCharacterAnimationMode {
+export enum NegativeCharacterAnimationModes {
   SINGLE = 'single',
   MULTI = 'multi',
 }
 
-export enum DecimalSeparator {
+export enum DecimalSeparators {
   COMMA = ',',
   DOT = '.',
 }
 
-export enum DigitGroupSeparator {
+export enum DigitGroupSeparators {
   NONE = '',
   COMMA = ',',
   DOT = '.',
@@ -103,7 +105,7 @@ export enum DigitGroupSeparator {
   APOSTROPHE = "'",
 }
 
-export enum NegativeCharacter {
+export enum NegativeCharacters {
   HYPHEN = '-',
   HYPHEN_MINUS = '﹣',
   MINUS = '−',

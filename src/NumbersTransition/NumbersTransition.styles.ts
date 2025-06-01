@@ -10,8 +10,8 @@ import {
 } from 'styled-components/dist/types';
 import {
   AnimationDirection,
-  AnimationNumber,
-  AnimationType,
+  AnimationNumbers,
+  AnimationTypes,
   Display,
   HTMLElements,
   HorizontalAnimationDirection,
@@ -19,7 +19,7 @@ import {
   Runtime,
   Strings,
   StyledComponents,
-  VariableName,
+  VariableNames,
   VerticalAnimationDirection,
   ViewKeys,
 } from './NumbersTransition.enums';
@@ -47,9 +47,9 @@ type AttributesStyledComponent<
 >;
 
 export interface NumbersTransitionTheme {
-  $animationType?: AnimationType;
-  $numberOfAnimations?: AnimationNumber;
-  $currentAnimationNumber?: AnimationNumber;
+  $animationType?: AnimationTypes;
+  $numberOfAnimations?: AnimationNumbers;
+  $currentAnimationNumber?: AnimationNumbers;
   $totalAnimationDuration?: number;
   $horizontalAnimationDuration?: number;
   $verticalAnimationDuration?: number;
@@ -60,28 +60,28 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
 }
 
 interface Property {
-  name: VariableName;
+  name: VariableNames;
   syntax: string;
   initialValue: string | number;
 }
 
 const properties: Property[] = [
   {
-    name: VariableName.ANIMATION_TYPE,
-    syntax: Object.values<AnimationType>(AnimationType).join(
+    name: VariableNames.ANIMATION_TYPE,
+    syntax: Object.values<AnimationTypes>(AnimationTypes).join(
       `${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`,
     ),
-    initialValue: AnimationType.NONE,
+    initialValue: AnimationTypes.NONE,
   },
   {
-    name: VariableName.NUMBER_OF_ANIMATIONS,
+    name: VariableNames.NUMBER_OF_ANIMATIONS,
     syntax: '<integer>',
-    initialValue: AnimationNumber.ZERO,
+    initialValue: AnimationNumbers.ZERO,
   },
-  { name: VariableName.CURRENT_ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumber.ZERO },
-  { name: VariableName.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
-  { name: VariableName.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
-  { name: VariableName.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableNames.CURRENT_ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
+  { name: VariableNames.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableNames.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableNames.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
 ];
 
 const propertiesMapper = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
@@ -104,12 +104,12 @@ const containerVariables = ({
     $verticalAnimationDuration,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableName.ANIMATION_TYPE}: ${$animationType};
-  ${VariableName.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
-  ${VariableName.CURRENT_ANIMATION_NUMBER}: ${$currentAnimationNumber};
-  ${VariableName.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
-  ${VariableName.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
-  ${VariableName.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
+  ${VariableNames.ANIMATION_TYPE}: ${$animationType};
+  ${VariableNames.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
+  ${VariableNames.CURRENT_ANIMATION_NUMBER}: ${$currentAnimationNumber};
+  ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
+  ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
+  ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -253,9 +253,9 @@ const verticalAnimation: Keyframes = animationKeyframes<object, number>(vertical
 
 const animationType = ({ theme: { $animationType } = {}, ...restProps }: AnimationProps): undefined | Keyframes => {
   switch ($animationType) {
-    case AnimationType.HORIZONTAL:
+    case AnimationTypes.HORIZONTAL:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
-    case AnimationType.VERTICAL:
+    case AnimationTypes.VERTICAL:
       return verticalAnimation;
   }
 };
@@ -362,7 +362,7 @@ const animationsKeyframesReducer = (
   currentValue: undefined | Keyframes,
   index: number,
 ) => css<object>`
-  ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? AnimationType.NONE}
+  ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? AnimationTypes.NONE}
 `;
 
 const animationsKeyframes = <T extends StyledComponents, U extends object, V>(
@@ -528,7 +528,7 @@ export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Char
   min-width: ${Numbers.ONE}ch;
 `;
 
-export interface SeparatorProps<T extends object, U, V extends object, W>
+interface SeparatorProps<T extends object, U, V extends object, W>
   extends CharacterProps<T, U>,
     StyledView<StyledComponents.SEPARATOR, V, W> {}
 
@@ -538,10 +538,46 @@ type SeparatorStyledComponent = AttributesStyledComponent<
   SeparatorProps<any, any, any, any>
 >;
 
-export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
+const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
   SeparatorProps<any, any, any, any>
 >(attributesFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR))`
   ${cssFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
   ${animationFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
   white-space: pre;
+`;
+
+interface DecimalSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
+  extends SeparatorProps<T, U, V, W>,
+    StyledView<StyledComponents.DECIMAL_SEPARATOR, X, Y> {}
+
+type DecimalSeparatorStyledComponent = AttributesStyledComponent<
+  SeparatorStyledComponent,
+  SeparatorStyledComponent,
+  DecimalSeparatorProps<any, any, any, any, any, any>
+>;
+
+export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<
+  DecimalSeparatorProps<any, any, any, any, any, any>
+>(attributesFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR))`
+  ${cssFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
+  ${animationFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
+`;
+
+interface DigitGroupSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
+  extends SeparatorProps<T, U, V, W>,
+    StyledView<StyledComponents.DIGIT_GROUP_SEPARATOR, X, Y> {}
+
+type DigitGroupSeparatorStyledComponent = AttributesStyledComponent<
+  SeparatorStyledComponent,
+  SeparatorStyledComponent,
+  DigitGroupSeparatorProps<any, any, any, any, any, any>
+>;
+
+export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<SeparatorStyledComponent>(
+  Separator,
+).attrs<DigitGroupSeparatorProps<any, any, any, any, any, any>>(
+  attributesFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR),
+)`
+  ${cssFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
+  ${animationFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
 `;

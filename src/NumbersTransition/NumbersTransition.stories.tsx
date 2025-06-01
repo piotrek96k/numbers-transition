@@ -5,10 +5,10 @@ import NumbersTransition from './NumbersTransition';
 import {
   AnimationDurationValues,
   AnimationTimingFunctions,
-  DecimalSeparator,
-  DigitGroupSeparator,
-  NegativeCharacter,
-  NegativeCharacterAnimationMode,
+  DecimalSeparators,
+  DigitGroupSeparators,
+  NegativeCharacterAnimationModes,
+  NegativeCharacters,
   Numbers,
   StorybookValue,
 } from './NumbersTransition.enums';
@@ -29,14 +29,16 @@ type NumbersTransitionProps = typeof NumbersTransition<
   object,
   unknown,
   object,
+  unknown,
+  object,
   unknown
 >;
 
 type SelectType =
-  | typeof DigitGroupSeparator
-  | typeof DecimalSeparator
-  | typeof NegativeCharacter
-  | typeof NegativeCharacterAnimationMode;
+  | typeof DigitGroupSeparators
+  | typeof DecimalSeparators
+  | typeof NegativeCharacters
+  | typeof NegativeCharacterAnimationModes;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -60,10 +62,10 @@ const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: Component
 });
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
-  ['digitGroupSeparator', DigitGroupSeparator],
-  ['decimalSeparator', DecimalSeparator],
-  ['negativeCharacter', NegativeCharacter],
-  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
+  ['digitGroupSeparator', DigitGroupSeparators],
+  ['decimalSeparator', DecimalSeparators],
+  ['negativeCharacter', NegativeCharacters],
+  ['negativeCharacterAnimationMode', NegativeCharacterAnimationModes],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
@@ -103,10 +105,10 @@ const args: ComponentProps<NumbersTransitionProps> = {
     horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
     verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
   },
-  decimalSeparator: DecimalSeparator.COMMA,
-  digitGroupSeparator: DigitGroupSeparator.SPACE,
-  negativeCharacter: NegativeCharacter.MINUS,
-  negativeCharacterAnimationMode: NegativeCharacterAnimationMode.SINGLE,
+  decimalSeparator: DecimalSeparators.COMMA,
+  digitGroupSeparator: DigitGroupSeparators.SPACE,
+  negativeCharacter: NegativeCharacters.MINUS,
+  negativeCharacterAnimationMode: NegativeCharacterAnimationModes.SINGLE,
   animationTimingFunction: AnimationTimingFunctions.EASE,
   view: { css: style, animation: opacityAnimationFactory },
 };

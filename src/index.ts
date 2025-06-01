@@ -1,12 +1,12 @@
 import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
-  AnimationNumber,
+  AnimationNumbers,
   AnimationTimingFunctions,
-  AnimationType,
-  DecimalSeparator,
-  DigitGroupSeparator,
-  NegativeCharacter,
-  NegativeCharacterAnimationMode,
+  AnimationTypes,
+  DecimalSeparators,
+  DigitGroupSeparators,
+  NegativeCharacterAnimationModes,
+  NegativeCharacters,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   AnimationDuration,
@@ -29,13 +29,13 @@ import {
 import { BigDecimal, Falsy, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
-  AnimationNumber,
+  AnimationNumbers,
   AnimationTimingFunctions,
-  AnimationType,
-  DecimalSeparator,
-  DigitGroupSeparator,
-  NegativeCharacter,
-  NegativeCharacterAnimationMode,
+  AnimationTypes,
+  DecimalSeparators,
+  DigitGroupSeparators,
+  NegativeCharacters,
+  NegativeCharacterAnimationModes,
 };
 
 export type {
