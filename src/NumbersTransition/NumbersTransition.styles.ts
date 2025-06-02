@@ -490,8 +490,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
 `;
 
 interface CharacterProps<T extends object, U>
-  extends VisibilityProps,
-    DisplayProps,
+  extends DisplayProps,
     Partial<NumbersTransitionExecutionContext>,
     StyledView<StyledComponents.CHARACTER, T, U> {}
 
@@ -506,7 +505,6 @@ export const Character: CharacterStyledComponent = styled.div.attrs<CharacterPro
 )`
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
-  ${visibility};
   ${display};
 `;
 
@@ -580,4 +578,23 @@ export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<Se
 )`
   ${cssFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
   ${animationFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
+`;
+
+interface NegativeCharacterProps<T extends object, U, V extends object, W>
+  extends VisibilityProps,
+    CharacterProps<T, U>,
+    StyledView<StyledComponents.NEGATIVE_CHARACTER, V, W> {}
+
+type NegativeCharacterStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  NegativeCharacterProps<any, any, any, any>
+>;
+
+export const NegativeCharacter: NegativeCharacterStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
+  NegativeCharacterProps<any, any, any, any>
+>(attributesFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER))`
+  ${cssFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
+  ${animationFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
+  ${visibility};
 `;
