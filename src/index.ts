@@ -8,12 +8,7 @@ import {
   NegativeCharacterAnimationModes,
   NegativeCharacters,
 } from './NumbersTransition/NumbersTransition.enums';
-import {
-  AnimationDuration,
-  ExtendedAnimationTimingFunction,
-  TotalAnimationDuration,
-  View,
-} from './NumbersTransition/NumbersTransition.hooks';
+import { AnimationDuration, ExtendedAnimationTimingFunction, TotalAnimationDuration, View } from './NumbersTransition/NumbersTransition.hooks';
 import {
   Animation,
   AnimationFactory,

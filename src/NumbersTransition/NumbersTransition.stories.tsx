@@ -13,12 +13,7 @@ import {
   StorybookValue,
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
-import {
-  Animation,
-  AnimationFactory,
-  AnimationTimingFunction,
-  NumbersTransitionExecutionContext,
-} from './NumbersTransition.styles';
+import { Animation, AnimationFactory, AnimationTimingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
 import { ReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
@@ -42,11 +37,7 @@ type NumbersTransitionProps = typeof NumbersTransition<
   unknown
 >;
 
-type SelectType =
-  | typeof DigitGroupSeparators
-  | typeof DecimalSeparators
-  | typeof NegativeCharacters
-  | typeof NegativeCharacterAnimationModes;
+type SelectType = typeof DigitGroupSeparators | typeof DecimalSeparators | typeof NegativeCharacters | typeof NegativeCharacterAnimationModes;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -55,19 +46,10 @@ type Story = StoryObj<NumbersTransitionProps>;
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
 const inputTypeMapper = ([fieldName, enumObject]: [keyof ComponentArgTypes, SelectType]): ComponentArgTypes => ({
-  [fieldName]: {
-    options: Object.keys(enumObject),
-    mapping: enumObject,
-    control: {
-      type: 'select',
-    },
-  },
+  [fieldName]: { options: Object.keys(enumObject), mapping: enumObject, control: { type: 'select' } },
 });
 
-const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({
-  ...accumulator,
-  ...currentValue,
-});
+const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({ ...accumulator, ...currentValue });
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['digitGroupSeparator', DigitGroupSeparators],
@@ -89,12 +71,10 @@ const opacityAnimation: Animation<object, number> = {
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
   theme: { $numberOfAnimations },
-}: NumbersTransitionExecutionContext): undefined | Animation<object, number> =>
-  $numberOfAnimations ? opacityAnimation : undefined;
+}: NumbersTransitionExecutionContext): undefined | Animation<object, number> => ($numberOfAnimations ? opacityAnimation : undefined);
 
-const opacityAnimationDuration = ({
-  theme: { $totalAnimationDuration },
-}: NumbersTransitionExecutionContext): undefined | number => $totalAnimationDuration;
+const opacityAnimationDuration = ({ theme: { $totalAnimationDuration } }: NumbersTransitionExecutionContext): undefined | number =>
+  $totalAnimationDuration;
 
 const style: RuleSet<object> = css<object>`
   font-size: ${Numbers.FIVE}rem;
@@ -121,9 +101,6 @@ const args: ComponentProps<NumbersTransitionProps> = {
   view: { css: style, animation: opacityAnimationFactory },
 };
 
-export const Primary: Story = {
-  argTypes,
-  args,
-};
+export const Primary: Story = { argTypes, args };
 
 export default meta;

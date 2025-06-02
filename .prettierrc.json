@@ -1,8 +1,11 @@
 {
   "semi": true,
   "tabWidth": 2,
-  "printWidth": 120,
+  "printWidth": 150,
   "singleQuote": true,
   "jsxSingleQuote": false,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "objectWrap": "collapse",
+  "endOfLine": "lf",
+  "overrides": [{ "files": "**/*.enums.ts", "options": { "objectWrap": "preserve" } }]
 }

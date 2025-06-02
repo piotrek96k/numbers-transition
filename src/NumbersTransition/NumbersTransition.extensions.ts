@@ -7,9 +7,7 @@ String.prototype.capitalize = function (): string {
 
 Array.prototype.depth = function (): number {
   const depth = <T>(array: OrArray<T>): number =>
-    Array.isArray<OrArray<T>>(array)
-      ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>))
-      : Numbers.ZERO;
+    Array.isArray<OrArray<T>>(array) ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>)) : Numbers.ZERO;
 
   return depth<unknown>(this);
 };

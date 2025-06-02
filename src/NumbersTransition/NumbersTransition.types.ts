@@ -6,14 +6,11 @@ type Length = TypeOf<{ [K in keyof unknown[]]: unknown[][K] extends number ? K :
 
 export type TupleIndex<T extends unknown[]> = Exclude<keyof T, keyof unknown[]>;
 
-export type MappedTuple<
-  T extends { [index: `${number}`]: unknown },
-  U extends unknown[] = [],
-> = `${U[Length]}` extends keyof T ? MappedTuple<T, [...U, T[`${U[Length]}`]]> : U;
+export type MappedTuple<T extends { [index: `${number}`]: unknown }, U extends unknown[] = []> = `${U[Length]}` extends keyof T
+  ? MappedTuple<T, [...U, T[`${U[Length]}`]]>
+  : U;
 
-export type ReadOnly<T> = {
-  +readonly [K in keyof T]: ReadOnly<T[K]>;
-};
+export type ReadOnly<T> = { +readonly [K in keyof T]: ReadOnly<T[K]> };
 
 export type OrReadOnly<T> = T | ReadOnly<T>;
 

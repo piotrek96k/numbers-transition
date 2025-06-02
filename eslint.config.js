@@ -15,9 +15,7 @@ const compat = new FlatCompat({
 });
 
 export default [
-  {
-    ignores: ['**/dist', '**/storybook-static'],
-  },
+  { ignores: ['**/dist', '**/storybook-static'] },
   ...fixupConfigRules(
     compat.extends(
       'eslint:recommended',
@@ -29,37 +27,12 @@ export default [
     ),
   ),
   {
-    plugins: {
-      import: fixupPluginRules(_import),
-      'react-refresh': reactRefresh,
-    },
-    languageOptions: {
-      globals: {
-        ...globals.browser,
-      },
-      parser: tsParser,
-    },
+    plugins: { import: fixupPluginRules(_import), 'react-refresh': reactRefresh },
+    languageOptions: { globals: { ...globals.browser }, parser: tsParser },
     rules: {
-      'react-refresh/only-export-components': [
-        'warn',
-        {
-          allowConstantExport: true,
-        },
-      ],
-      quotes: [
-        'error',
-        'single',
-        {
-          avoidEscape: true,
-        },
-      ],
-      'prettier/prettier': [
-        'error',
-        {
-          jsxSingleQuote: false,
-          endOfLine: 'auto',
-        },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      quotes: ['error', 'single', { avoidEscape: true }],
+      'prettier/prettier': ['error', {}, { usePrettierrc: true }],
       'no-duplicate-imports': 'error',
       'import/order': 'error',
       'import/no-duplicates': 'error',

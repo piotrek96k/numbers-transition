@@ -55,9 +55,7 @@ import {
 import { AnimationTimingFunction, Container, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
-type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & {
-  target: HTMLElement;
-};
+type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
@@ -127,9 +125,7 @@ const NumbersTransition = <
     precision = Numbers.ZERO,
     animationDuration,
     digitGroupSeparator = DigitGroupSeparators.SPACE,
-    decimalSeparator = digitGroupSeparator === DigitGroupSeparators.COMMA
-      ? DecimalSeparators.DOT
-      : DecimalSeparators.COMMA,
+    decimalSeparator = digitGroupSeparator === DigitGroupSeparators.COMMA ? DecimalSeparators.DOT : DecimalSeparators.COMMA,
     negativeCharacter = NegativeCharacters.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationModes.SINGLE,
     animationTimingFunction,
@@ -158,24 +154,7 @@ const NumbersTransition = <
     digitGroupSeparatorStyledView,
     negativeCharacterStyledView,
     invalidStyledView,
-  ]: StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = useStyledView<
-    K,
-    L,
-    M,
-    N,
-    O,
-    P,
-    Q,
-    R,
-    S,
-    T,
-    U,
-    V,
-    W,
-    X,
-    Y,
-    Z
-  >([
+  ]: StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = useStyledView<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>([
     view,
     characterView,
     digitView,
@@ -186,15 +165,11 @@ const NumbersTransition = <
     invalidView,
   ]);
 
-  const [animationTransition, setAnimationTransition]: [
-    AnimationTransitions,
-    Dispatch<SetStateAction<AnimationTransitions>>,
-  ] = useState<AnimationTransitions>(AnimationTransitions.NONE);
+  const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
+    useState<AnimationTransitions>(AnimationTransitions.NONE);
 
-  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [
-    BigDecimal,
-    Dispatch<SetStateAction<BigDecimal>>,
-  ] = useState<BigDecimal>(validInitialValue);
+  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
+    useState<BigDecimal>(validInitialValue);
 
   const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
 
@@ -214,13 +189,11 @@ const NumbersTransition = <
   const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
   const omitAnimation: boolean = isValueValid && value !== previousValueOnAnimationEnd && !hasValueChanged;
   const restartAnimation: boolean =
-    valueBigInt !== previousValueOnAnimationStartBigInt &&
-    previousValueOnAnimationEndBigInt !== previousValueOnAnimationStartBigInt;
+    valueBigInt !== previousValueOnAnimationStartBigInt && previousValueOnAnimationEndBigInt !== previousValueOnAnimationStartBigInt;
   const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
 
   const hasThreeAnimations: boolean =
-    (previousValueOnAnimationEndDigits.length < valueDigits.length &&
-      previousValueOnAnimationEndBigInt < valueBigInt) ||
+    (previousValueOnAnimationEndDigits.length < valueDigits.length && previousValueOnAnimationEndBigInt < valueBigInt) ||
     (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
 
   const numberOfAnimations: AnimationNumbers = renderAnimation
@@ -265,9 +238,7 @@ const NumbersTransition = <
   );
 
   const renderNegativeCharacter: boolean =
-    (!hasSignChanged &&
-      valueBigInt < Numbers.ZERO &&
-      renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    (!hasSignChanged && valueBigInt < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
     renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   const animationType: AnimationTypes = renderAnimation
@@ -281,11 +252,7 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  const totalAnimationDuration: number = useTotalAnimationDuration({
-    numberOfAnimations,
-    horizontalAnimationDuration,
-    verticalAnimationDuration,
-  });
+  const totalAnimationDuration: number = useTotalAnimationDuration({ numberOfAnimations, horizontalAnimationDuration, verticalAnimationDuration });
 
   const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
     useAnimationTimingFunction(animationTimingFunction);
@@ -310,19 +277,14 @@ const NumbersTransition = <
     previousValueOnAnimationStartRef.current = validValue;
   }, [validValue, omitAnimation, restartAnimation]);
 
-  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (
-    event: ReactEvent<AnimationEvent<HTMLDivElement>>,
-  ): void => {
+  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
     if (!Object.values(AnimationIds).includes<string>(event.target.id)) {
       return;
     }
 
     if (numberOfAnimations === AnimationNumbers.ONE) {
       setPreviousValueOnAnimationEnd(validValue);
-    } else if (
-      numberOfAnimations === AnimationNumbers.THREE &&
-      animationTransition === AnimationTransitions.FIRST_TO_SECOND
-    ) {
+    } else if (numberOfAnimations === AnimationNumbers.THREE && animationTransition === AnimationTransitions.FIRST_TO_SECOND) {
       setAnimationTransition(AnimationTransitions.SECOND_TO_THIRD);
     } else if (animationTransition !== AnimationTransitions.NONE) {
       setPreviousValueOnAnimationEnd(validValue);
@@ -416,11 +378,7 @@ const NumbersTransition = <
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
-      <InvalidElement<M, N, Y, Z>
-        invalidValue={invalidValue}
-        characterStyledView={characterStyledView}
-        invalidStyledView={invalidStyledView}
-      />
+      <InvalidElement<M, N, Y, Z> invalidValue={invalidValue} characterStyledView={characterStyledView} invalidStyledView={invalidStyledView} />
     </Conditional>
   );
 
