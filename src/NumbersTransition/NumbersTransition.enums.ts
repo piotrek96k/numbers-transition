@@ -27,6 +27,7 @@ export enum StyledComponents {
   DECIMAL_SEPARATOR = 'decimalSeparator',
   DIGIT_GROUP_SEPARATOR = 'digitGroupSeparator',
   NEGATIVE_CHARACTER = 'negativeCharacter',
+  INVALID = 'invalid',
 }
 
 export enum ViewKeys {

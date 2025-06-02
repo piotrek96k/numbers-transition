@@ -500,7 +500,7 @@ type CharacterStyledComponent = AttributesStyledComponent<
   CharacterProps<any, any>
 >;
 
-export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
+const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
   attributesFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER),
 )`
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
@@ -597,4 +597,21 @@ export const NegativeCharacter: NegativeCharacterStyledComponent = styled<Charac
   ${cssFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
   ${animationFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
   ${visibility};
+`;
+
+interface InvalidProps<T extends object, U, V extends object, W>
+  extends CharacterProps<T, U>,
+    StyledView<StyledComponents.INVALID, V, W> {}
+
+type InvalidStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  InvalidProps<any, any, any, any>
+>;
+
+export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<
+  InvalidProps<any, any, any, any>
+>(attributesFactory<StyledComponents.INVALID>(StyledComponents.INVALID))`
+  ${cssFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
+  ${animationFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
 `;

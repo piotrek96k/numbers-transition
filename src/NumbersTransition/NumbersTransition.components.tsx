@@ -36,12 +36,12 @@ import {
 } from './NumbersTransition.hooks';
 import {
   AnimationTimingFunction,
-  Character,
   DecimalSeparator,
   Digit,
   DigitGroupSeparator,
   DigitProps,
   HorizontalAnimation,
+  Invalid,
   NegativeCharacter,
   VerticalAnimation,
   VerticalAnimationProps,
@@ -93,15 +93,21 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   return switched === reverse ? before : after;
 };
 
-interface InvalidElementProps<T extends object, U> {
+interface InvalidElementProps<T extends object, U, V extends object, W> {
   invalidValue: string;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
+  invalidStyledView: StyledViewWithProps<StyledComponents.INVALID, V, W>;
 }
 
-export const InvalidElement = <T extends object, U>({
+export const InvalidElement = <T extends object, U, V extends object, W>({
   invalidValue,
   characterStyledView,
-}: InvalidElementProps<T, U>): ReactNode => <Character {...characterStyledView}>{invalidValue}</Character>;
+  invalidStyledView,
+}: InvalidElementProps<T, U, V, W>): ReactNode => (
+  <Invalid {...characterStyledView} {...invalidStyledView}>
+    {invalidValue}
+  </Invalid>
+);
 
 interface NegativeCharacterElementProps<T extends object, U, V extends object, W> {
   negativeCharacter: NegativeCharacters;
