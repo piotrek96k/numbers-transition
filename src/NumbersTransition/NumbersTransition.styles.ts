@@ -64,7 +64,7 @@ const properties: Property[] = [
   { name: VariableNames.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
 ];
 
-const propertiesMapper = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
+const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
   @property ${name} {
     syntax: '${syntax}';
     inherits: true;
@@ -72,7 +72,7 @@ const propertiesMapper = ({ name, syntax, initialValue }: Property): RuleSet<obj
   }
 `;
 
-const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(propertiesMapper);
+const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProperty);
 
 const containerVariables = ({
   theme: {
@@ -182,7 +182,7 @@ export type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirec
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
-const animationKeyframesMapper =
+const createAnimationKeyframeMapper =
   <T extends object, U>(map: KeyframeFunction<T, U>): ((val: [U] | [U, number], index: number, arr: ([U] | [U, number])[]) => RuleSet<T>) =>
   ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
     ${progress ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
@@ -190,20 +190,20 @@ const animationKeyframesMapper =
     }
   `;
 
-const animationKeyframesReducer = <T extends object>(previousValue: RuleSet<T>, currentValue: RuleSet<T>): RuleSet<T> => css<T>`
+const reduceAnimationKeyframes = <T extends object>(previousValue: RuleSet<T>, currentValue: RuleSet<T>): RuleSet<T> => css<T>`
   ${previousValue}
   ${currentValue}
 `;
 
-const animationKeyframes = <T extends object, U>(
-  keyframeMapper: KeyframeFunction<T, U>,
+const createAnimationKeyframes = <T extends object, U>(
+  mapKeyframe: KeyframeFunction<T, U>,
   keyframesValues: U[],
   progress: number[] = [],
 ): Keyframes => keyframes<T>`
   ${keyframesValues
     .zip<number>(progress)
-    .map<RuleSet<T>>(animationKeyframesMapper<T, U>(keyframeMapper))
-    .reduce<RuleSet<T>>(animationKeyframesReducer<T>, css<T>``)}
+    .map<RuleSet<T>>(createAnimationKeyframeMapper<T, U>(mapKeyframe))
+    .reduce<RuleSet<T>>(reduceAnimationKeyframes<T>, css<T>``)}
 `;
 
 const horizontalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeValue: number): RuleSet<object> => css<object>`
@@ -215,9 +215,9 @@ const verticalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeVal
 `;
 
 const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
-  animationKeyframes<object, number>(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
+  createAnimationKeyframes<object, number>(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
 
-const verticalAnimation: Keyframes = animationKeyframes<object, number>(verticalAnimationKeyframe, [
+const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(verticalAnimationKeyframe, [
   Numbers.ZERO,
   Numbers.MINUS_ONE_HUNDRED,
 ]);
@@ -263,17 +263,17 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-fill-mode: forwards;
 `;
 
-const viewKey = <T extends object>(_: TemplateStringsArray, styledComponent: StyledComponents, viewKey: ViewKeys): keyof T =>
+const getViewKey = <T extends object>(_: TemplateStringsArray, styledComponent: StyledComponents, viewKey: ViewKeys): keyof T =>
   <keyof T>`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${viewKey.capitalize()}` : viewKey}`;
 
-const viewFactoryMapperFactory =
+const createViewFactoryMapper =
   <T extends StyledComponents, U extends object, V, W extends string>(
     props: Omit<Props<T, U, V>, W>,
   ): ((value?: V | Factory<U, V>) => V | Falsy) =>
   (value?: V | Factory<U, V>): V | Falsy =>
     typeof value === 'function' ? (<Factory<U, V>>value)(<U & NumbersTransitionExecutionContext>props) : value;
 
-const styleReducer = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
+const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
   ...accumulator,
   ...currentStyle,
 });
@@ -284,8 +284,8 @@ const styleFactory = <T extends StyledComponents, U extends object, V>(
 ): CSSProperties =>
   [style]
     .flat<(undefined | OrArray<CSSProperties | StyleFactory<U>>)[], Numbers.ONE>()
-    .map<CSSProperties | Falsy>(viewFactoryMapperFactory<T, U, CSSProperties, AttributesOmittedKeys<T, U>>(props))
-    .reduce<CSSProperties>(styleReducer, {});
+    .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties, AttributesOmittedKeys<T, U>>(props))
+    .reduce<CSSProperties>(reduceStyles, {});
 
 const classNameFactory = <T extends StyledComponents, U extends object, V>(
   className: undefined | OrArray<string | ClassNameFactory<U>>,
@@ -293,7 +293,7 @@ const classNameFactory = <T extends StyledComponents, U extends object, V>(
 ): undefined | string =>
   [className]
     .flat<(undefined | OrArray<string | ClassNameFactory<U>>)[], Numbers.ONE>()
-    .map<string | Falsy>(viewFactoryMapperFactory<T, U, string, AttributesOmittedKeys<T, U>>(props))
+    .map<string | Falsy>(createViewFactoryMapper<T, U, string, AttributesOmittedKeys<T, U>>(props))
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Strings.SPACE);
 
@@ -307,57 +307,57 @@ const toCssArray = <T extends object>(
 const cssFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
   <U extends object, V>({
-    [viewKey<CssView<T, U>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle,
+    [getViewKey<CssView<T, U>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle,
     ...restProps
   }: Props<T, U, V>): CssRule<U>[] =>
     toCssArray<U>(cssStyle)
-      .map<CssRule<U> | Falsy>(viewFactoryMapperFactory<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
+      .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
 
-const animationFalsyMapper = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): undefined | Partial<Animation<T, U>> =>
+const mapAnimationFalsyValue = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): undefined | Partial<Animation<T, U>> =>
   animation || undefined;
 
-const animationMapper = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}):
+const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}):
   | undefined
-  | Keyframes => keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
+  | Keyframes => keyframeFunction && keyframes && createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
-const animationsKeyframesReducer = (accumulator: RuleSet<object>, currentValue: undefined | Keyframes, index: number) => css<object>`
+const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: undefined | Keyframes, index: number) => css<object>`
   ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? AnimationTypes.NONE}
 `;
 
-const animationsKeyframes = <T extends StyledComponents, U extends object, V>(
+const createAnimationsKeyframes = <T extends StyledComponents, U extends object, V>(
   props: Omit<Props<T, U, V>, keyof AnimationView<T, U, V>>,
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): RuleSet<object> | false =>
   !!(Array.isArray<undefined | OrArray<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation) &&
   [animation!]
     .flat<OrArray<Animation<U, V> | AnimationFactory<U, V>>[], Numbers.ONE>()
-    .map<Partial<Animation<U, V>> | Falsy>(viewFactoryMapperFactory<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))
-    .map<undefined | Partial<Animation<U, V>>>(animationFalsyMapper<U, V>)
-    .map<undefined | Keyframes>(animationMapper<U, V>)
-    .reduce<RuleSet<object>>(animationsKeyframesReducer, css<object>``);
+    .map<Partial<Animation<U, V>> | Falsy>(createViewFactoryMapper<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))
+    .map<undefined | Partial<Animation<U, V>>>(mapAnimationFalsyValue<U, V>)
+    .map<undefined | Keyframes>(mapAnimation<U, V>)
+    .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
-const optionalAnimationName = (animationKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
-  animationKeyframes &&
+const createOptionalAnimation = (animationsKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
+  animationsKeyframes &&
   css<object>`
-    animation-name: ${animationKeyframes};
+    animation-name: ${animationsKeyframes};
   `;
 
 const animationFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => RuleSet<U> | false) =>
   <U extends object, V>({
-    [viewKey<AnimationView<T, U, V>>`${styledComponent}${ViewKeys.ANIMATION}`]: animation,
+    [getViewKey<AnimationView<T, U, V>>`${styledComponent}${ViewKeys.ANIMATION}`]: animation,
     ...restProps
   }: Props<T, U, V>): RuleSet<U> | false =>
-    optionalAnimationName(animationsKeyframes<T, U, V>(restProps, animation));
+    createOptionalAnimation(createAnimationsKeyframes<T, U, V>(restProps, animation));
 
 const attributesFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => HTMLAttributes<HTMLDivElement>) =>
   <U extends object, V>({
     style,
     className,
-    [viewKey<StyleView<T, U>>`${styledComponent}${ViewKeys.STYLE}`]: styleView,
-    [viewKey<ClassNameView<T, U>>`${styledComponent}${ViewKeys.CLASS_NAME}`]: classNameView,
+    [getViewKey<StyleView<T, U>>`${styledComponent}${ViewKeys.STYLE}`]: styleView,
+    [getViewKey<ClassNameView<T, U>>`${styledComponent}${ViewKeys.CLASS_NAME}`]: classNameView,
     ...restProps
   }: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
     style: { ...style, ...styleFactory(styleView, restProps) },

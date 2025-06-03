@@ -6,7 +6,6 @@ import {
   AnimationKeys,
   AnimationNumbers,
   AnimationTimingFunctions,
-  DigitsGenerator,
   EquationSolver,
   ForwardProps,
   HorizontalAnimationDirection,
@@ -35,10 +34,10 @@ export type ValidationTuple = [BigDecimal, boolean];
 type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
 
 export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
-  const isBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
+  const matchesBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
     typeof value !== 'undefined' && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
-  return isBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
+  return matchesBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
 };
 
 type MappedView<T extends object = object, U = unknown> = {
@@ -131,7 +130,7 @@ export const useStyledView: UseStyledView = <
 >(
   options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
-  const viewMapper = (
+  const mapView = (
     viewWithStyledComponent: [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents],
   ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
     const [{ viewProps, ...restView } = {}, styledComponent]: [
@@ -139,7 +138,7 @@ export const useStyledView: UseStyledView = <
       StyledComponents,
     ] = viewWithStyledComponent;
 
-    const entryMapper = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
+    const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
       TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
     ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
@@ -150,7 +149,7 @@ export const useStyledView: UseStyledView = <
     >(
       Object.entries<TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
         [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
-      >(entryMapper),
+      >(mapEntry),
     );
 
     return Object.assign<
@@ -165,7 +164,7 @@ export const useStyledView: UseStyledView = <
     .map<
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
-    >(viewMapper);
+    >(mapView);
 };
 
 interface UseAnimationCharactersOptions {
@@ -180,13 +179,13 @@ type UseAnimationCharacters = (options: UseAnimationCharactersOptions) => Animat
 const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCharactersOptions): AnimationCharactersTuple => {
   const { precision, values }: UseAnimationCharactersOptions = options;
 
-  const floatingPointFill = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
+  const fillFloatingPoint = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
     currentValue,
     ...(length === Numbers.ONE ? [Strings.EMPTY] : []),
   ];
 
-  const floatingPointReducer = (integer: string, fraction: string): string => {
+  const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
       precision > Numbers.ZERO
         ? [integer.replace(Strings.MINUS, Strings.EMPTY), fraction, Strings.EMPTY, Math.max(precision - fraction.length, Numbers.ZERO)]
@@ -205,7 +204,7 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
   };
 
   return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
-    ...`${number}`.split(RegularExpressions.DOT_OR_COMMA).reduce<string[]>(floatingPointFill, []).reduce(floatingPointReducer),
+    ...`${number}`.split(RegularExpressions.DOT_OR_COMMA).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
   ]);
 };
 
@@ -240,7 +239,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
 ): AnimationNumbersOfDigitsTuple => {
   const subtract = (first: number, second: number): number => first - second;
 
-  const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
+  const fillNumberOfDigitsDifference = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
     currentValue,
     ...(index ? [currentValue - accumulator[accumulator.length - Numbers.ONE]] : []),
@@ -249,7 +248,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   return options
     .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(subtract)
-    .reduce<number[], AnimationNumbersOfDigitsTuple>(digitsLengthReducer, []);
+    .reduce<number[], AnimationNumbersOfDigitsTuple>(fillNumberOfDigitsDifference, []);
 };
 
 interface UseAnimationValuesOptions {
@@ -400,12 +399,10 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
 
   const reverse: boolean = [HorizontalAnimationDirection.LEFT, VerticalAnimationDirection.DOWN].includes(animationDirection);
 
-  const animationTimingFunctionMapper = (tuple: OrReadOnly<AnimationTimingFunction[number]>): AnimationTimingFunction[number] =>
+  const mapAnimationTimingFunction = (tuple: OrReadOnly<AnimationTimingFunction[number]>): AnimationTimingFunction[number] =>
     reverse ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number) : [...tuple];
 
-  return animationTimingFunction
-    .map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper)
-    .invert(reverse);
+  return animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(mapAnimationTimingFunction).invert(reverse);
 };
 
 type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
@@ -466,12 +463,18 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
   ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
 ];
 
-interface DigitsGeneratorValues {
+export interface AnimationAlgorithm {
+  incrementMaxLength?: number;
+  numberOfDigitsIncrease?: number;
+}
+
+interface DigitValues {
   start: bigint;
   end: bigint;
 }
 
 interface UseVerticalAnimationDigitsOptions {
+  animationAlgorithm?: AnimationAlgorithm;
   maxNumberOfDigits: number;
   previousValue: bigint;
   currentValue: bigint;
@@ -480,33 +483,32 @@ interface UseVerticalAnimationDigitsOptions {
 type UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions) => number[][];
 
 export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
-  const { maxNumberOfDigits, previousValue, currentValue }: UseVerticalAnimationDigitsOptions = options;
+  const {
+    animationAlgorithm: { incrementMaxLength = Numbers.FOURTEEN, numberOfDigitsIncrease = Numbers.SEVEN } = {},
+    maxNumberOfDigits,
+    previousValue,
+    currentValue,
+  }: UseVerticalAnimationDigitsOptions = options;
 
-  const digitsGeneratorValuesArrayReducer = (
-    accumulator: [DigitsGeneratorValues[], DigitsGeneratorValues[]],
-    _: undefined,
-    index: number,
-  ): [DigitsGeneratorValues[], DigitsGeneratorValues[]] => {
+  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: undefined, index: number): [DigitValues[], DigitValues[]] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
       .map<bigint>((number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
       .sort((first: bigint, second: bigint): number => (first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO));
 
-    const accumulatorIndex: number = end - start < DigitsGenerator.SWITCH_VALUE ? Numbers.ZERO : Numbers.ONE;
+    const accumulatorIndex: number = end - start < incrementMaxLength ? Numbers.ZERO : Numbers.ONE;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
 
     return accumulator;
   };
 
-  const digitMapper = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
+  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
 
-  const linearDigitsGeneratorMapper = ({ start, end }: DigitsGeneratorValues): number[] =>
-    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number => digitMapper(start + BigInt(index)));
+  const incrementValues = ({ start, end }: DigitValues): number[] =>
+    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
 
-  const nonLinearDigitsGeneratorMapper = (values: DigitsGeneratorValues, index: number): number[] => {
-    const { start, end }: DigitsGeneratorValues = values;
-    const numbers: number[] = [
-      ...Array(DigitsGenerator.SWITCH_VALUE * (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * index)),
-    ]
+  const generateValues = (values: DigitValues, index: number): number[] => {
+    const { start, end }: DigitValues = values;
+    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
       .map<bigint>(
         (_: undefined, index: number, { length }: number[]): bigint =>
           (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
@@ -515,17 +517,17 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
       .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
         increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + BigInt(Numbers.ONE),
       )
-      .map<number>(digitMapper);
+      .map<number>(getDigit);
 
-    return numbers[numbers.length - Numbers.ONE] === digitMapper(end) ? numbers : [...numbers, digitMapper(end)];
+    return numbers[numbers.length - Numbers.ONE] === getDigit(end) ? numbers : [...numbers, getDigit(end)];
   };
 
-  const digitsGeneratorMapper = (algorithmValuesArray: DigitsGeneratorValues[], index: number): number[][] =>
-    algorithmValuesArray.map<number[]>(index ? nonLinearDigitsGeneratorMapper : linearDigitsGeneratorMapper);
+  const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
+    algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
   return [...Array(maxNumberOfDigits)]
-    .reduce<[DigitsGeneratorValues[], DigitsGeneratorValues[]]>(digitsGeneratorValuesArrayReducer, [[], []])
-    .map<number[][], [number[][], number[][]]>(digitsGeneratorMapper)
+    .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
+    .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Numbers.ONE>();
 };
 

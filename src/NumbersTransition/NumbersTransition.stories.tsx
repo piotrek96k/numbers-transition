@@ -49,11 +49,11 @@ type Story = StoryObj<NumbersTransitionProps>;
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
 
-const inputTypeMapper = ([fieldName, enumObject]: [keyof ComponentArgTypes, SelectType]): ComponentArgTypes => ({
+const mapInputType = ([fieldName, enumObject]: [keyof ComponentArgTypes, SelectType]): ComponentArgTypes => ({
   [fieldName]: { options: Object.keys(enumObject), mapping: enumObject, control: { type: 'select' } },
 });
 
-const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({
+const reduceArgTypes = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({
   ...accumulator,
   ...currentValue,
 });
@@ -65,7 +65,7 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['negativeCharacterAnimationMode', NegativeCharacterAnimationModes],
 ];
 
-const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(inputTypeMapper).reduce(argTypesReducer);
+const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
 
 const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
   opacity: ${keyframeValue};

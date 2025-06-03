@@ -9,6 +9,7 @@ import {
   NegativeCharacters,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
+  AnimationAlgorithm,
   AnimationDuration,
   ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
@@ -40,6 +41,7 @@ export {
 
 export type {
   Animation,
+  AnimationAlgorithm,
   AnimationDuration,
   AnimationFactory,
   AnimationTimingFunction,

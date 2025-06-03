@@ -14,6 +14,7 @@ import {
   VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import {
+  AnimationAlgorithm,
   CubicBezierTuple,
   ElementKeyMapper,
   StyledViewWithProps,
@@ -127,9 +128,9 @@ const HorizontalAnimationNegativeCharacterElement = <T extends object, U, V exte
 ): ReactNode => <NegativeCharacterElement<T, U, V, W> {...props} visible={false} />;
 
 interface VerticalAnimationNegativeCharacterElementProps<T extends object, U, V extends object, W> {
-  animationDuration: number;
   negativeCharacter: NegativeCharacters;
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
+  animationDuration: number;
   animationTimingFunction: AnimationTimingFunction;
   animationDirection: VerticalAnimationDirection;
   animationDigits: number[];
@@ -142,9 +143,9 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   props: VerticalAnimationNegativeCharacterElementProps<T, U, V, W>,
 ): ReactNode => {
   const {
-    animationDuration,
     negativeCharacter,
     negativeCharacterAnimationMode,
+    animationDuration,
     animationTimingFunction,
     animationDirection,
     animationDigits,
@@ -155,7 +156,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
-  const negativeCharacterElementPropsFactory = (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
+  const createNegativeCharacterElementProps = (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
     negativeCharacter,
     visible,
     display: Display.BLOCK,
@@ -163,12 +164,12 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     negativeCharacterStyledView,
   });
 
-  const negativeCharacterElementMapper: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
+  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
     NegativeCharacterElement<T, U, V, W>,
-    negativeCharacterElementPropsFactory,
+    createNegativeCharacterElementProps,
   );
 
-  const animationTimingFunctionReducer = (
+  const mapAnimationTimingFunction = (
     accumulator: [number[], number[]],
     currentValue: AnimationTimingFunction[number],
   ): AnimationTimingFunction =>
@@ -178,13 +179,13 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     ]);
 
   const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
-    .reduce<[number[], number[]], AnimationTimingFunction>(animationTimingFunctionReducer, [[], []])
+    .reduce<[number[], number[]], AnimationTimingFunction>(mapAnimationTimingFunction, [[], []])
     .map<(time: number) => number>(cubicBezier);
 
-  const visibilityMapper = (digit: number, index: number, digits: number[]): boolean =>
+  const mapVisibility = (digit: number, index: number, digits: number[]): boolean =>
     !index || (!!digit && digits[index - Numbers.ONE] > digit) || !hasSignChanged;
 
-  const negativeCharactersVisible: boolean[] = animationDigits.map<boolean>(visibilityMapper);
+  const negativeCharactersVisible: boolean[] = animationDigits.map<boolean>(mapVisibility);
 
   const outputAnimationProgress: number = negativeCharactersVisible.lastIndexOf(true) / (negativeCharactersVisible.length - Numbers.ONE);
 
@@ -207,7 +208,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
       $animationTimingFunction={animationTimingFunction}
       {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { $animationDelay: animationDelay })}
     >
-      <div>{negativeCharactersVisible.map<ReactElement>(negativeCharacterElementMapper)}</div>
+      <div>{negativeCharactersVisible.map<ReactElement>(mapToNegativeCharacterElement)}</div>
     </VerticalAnimation>
   );
 
@@ -235,7 +236,7 @@ interface NumberElementProps<Q extends object, R, S extends object, T, U extends
   separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, U, V>;
   decimalSeparatorStyledView: StyledViewWithProps<StyledComponents.DECIMAL_SEPARATOR, W, X>;
   digitGroupSeparatorStyledView: StyledViewWithProps<StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z>;
-  elementMapper?: ElementKeyMapper<ReactNode>;
+  mapToElement?: ElementKeyMapper<ReactNode>;
   children: ReactNode[];
 }
 
@@ -251,11 +252,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     separatorStyledView,
     decimalSeparatorStyledView,
     digitGroupSeparatorStyledView,
-    elementMapper,
+    mapToElement,
     children,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const digitElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<DigitProps<Q, R, S, T>, ReactNode>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<DigitProps<Q, R, S, T>, ReactNode>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
   });
@@ -276,12 +277,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) &&
     (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement);
 
-  const digitsReducer = (
-    accumulator: ReactElement,
-    currentValue: ReactElement,
-    index: number,
-    { length }: ReactElement[],
-  ): ReactElement => (
+  const reduceDigits = (accumulator: ReactElement, currentValue: ReactElement, index: number, { length }: ReactElement[]): ReactElement => (
     <>
       {accumulator}
       {getSeparatorElement(index, length)}
@@ -289,7 +285,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </>
   );
 
-  return children.map<ReactElement>(elementMapper ?? digitElementMapper).reduce(digitsReducer);
+  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceDigits);
 };
 
 interface HorizontalAnimationElementProps<
@@ -307,10 +303,10 @@ interface HorizontalAnimationElementProps<
   Z,
 > {
   precision: number;
-  animationDuration: number;
   decimalSeparator: DecimalSeparators;
   digitGroupSeparator: DigitGroupSeparators;
   negativeCharacter: NegativeCharacters;
+  animationDuration: number;
   animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
   animationTransition: AnimationTransitions;
   previousValueDigits: number[];
@@ -348,10 +344,10 @@ export const HorizontalAnimationElement = <
 ): ReactNode => {
   const {
     precision,
-    animationDuration,
     decimalSeparator,
     digitGroupSeparator,
     negativeCharacter,
+    animationDuration,
     animationTimingFunction: animationTimingFunctionInput,
     animationTransition,
     previousValueDigits,
@@ -483,12 +479,13 @@ interface VerticalAnimationElementProps<
   Z,
 > {
   precision: number;
-  animationDuration: number;
   decimalSeparator: DecimalSeparators;
   digitGroupSeparator: DigitGroupSeparators;
   negativeCharacter: NegativeCharacters;
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
+  animationDuration: number;
   animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
+  animationAlgorithm?: AnimationAlgorithm;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
@@ -518,10 +515,11 @@ export const VerticalAnimationElement = <
   props: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ReactNode => {
   const {
-    animationDuration,
     negativeCharacter,
     negativeCharacterAnimationMode,
+    animationDuration,
     animationTimingFunction: animationTimingFunctionInput,
+    animationAlgorithm,
     previousValue,
     currentValue,
     maxNumberOfDigits,
@@ -546,22 +544,22 @@ export const VerticalAnimationElement = <
     animationDirection,
   });
 
-  const animationDigits: number[][] = useVerticalAnimationDigits({ maxNumberOfDigits, previousValue, currentValue });
+  const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const verticalAnimationElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<VerticalAnimationProps, ReactNode>(
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<VerticalAnimationProps, ReactNode>(
     VerticalAnimation,
     { $animationDirection: animationDirection, $animationDuration: animationDuration, $animationTimingFunction: animationTimingFunction },
   );
 
-  const digitElementMapper: ElementKeyMapper<number> = useElementKeyMapper<DigitProps<O, P, Q, R>, number>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<DigitProps<O, P, Q, R>, number>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
     $display: Display.BLOCK,
   });
 
-  const divisionMapper = (digits: number[], index: number, { length }: number[][]): ReactElement => (
+  const mapDigits = (digits: number[], index: number, { length }: number[][]): ReactElement => (
     <div {...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION })}>
-      {digits.map<ReactElement>(digitElementMapper)}
+      {digits.map<ReactElement>(mapToDigitElement)}
     </div>
   );
 
@@ -569,9 +567,9 @@ export const VerticalAnimationElement = <
     <>
       <Optional condition={renderNegativeCharacter}>
         <VerticalAnimationNegativeCharacterElement<O, P, Y, Z>
-          animationDuration={animationDuration}
           negativeCharacter={negativeCharacter}
           negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+          animationDuration={animationDuration}
           animationTimingFunction={animationTimingFunction}
           animationDirection={animationDirection}
           animationDigits={animationDigits[Numbers.ZERO]}
@@ -587,9 +585,9 @@ export const VerticalAnimationElement = <
         separatorStyledView={separatorStyledView}
         decimalSeparatorStyledView={decimalSeparatorStyledView}
         digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-        elementMapper={verticalAnimationElementMapper}
+        mapToElement={mapToVerticalAnimationElement}
       >
-        {animationDigits.map<ReactElement>(divisionMapper)}
+        {animationDigits.map<ReactElement>(mapDigits)}
       </NumberElement>
     </>
   );

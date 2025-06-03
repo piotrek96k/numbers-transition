@@ -114,12 +114,6 @@ export enum NegativeCharacters {
   DASH = '–',
 }
 
-export enum DigitsGenerator {
-  SWITCH_VALUE = 14,
-  INITIAL_VALUE = 1,
-  MULTIPLY_VALUE = 0.5,
-}
-
 export enum EquationSolver {
   DERIVATIVE_DELTA = 1e-6,
   INITIAL_VALUE = 0.5,
@@ -155,7 +149,9 @@ export enum Numbers {
   TWO,
   THREE,
   FIVE = 5,
+  SEVEN = 7,
   TEN = 10,
+  FOURTEEN = 14,
   ONE_HUNDRED = 100,
 }
 

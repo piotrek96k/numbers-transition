@@ -35,6 +35,7 @@ import {
   Runtime,
 } from './NumbersTransition.enums';
 import {
+  AnimationAlgorithm,
   AnimationDuration,
   AnimationDurationTuple,
   AnimationTimingFunctionTuple,
@@ -80,12 +81,13 @@ export interface NumbersTransitionProps<
   initialValue?: UncheckedBigDecimal | BigDecimal;
   value?: UncheckedBigDecimal | BigDecimal;
   precision?: number;
-  animationDuration?: I;
   decimalSeparator?: DecimalSeparators;
   digitGroupSeparator?: DigitGroupSeparators;
   negativeCharacter?: NegativeCharacters;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationModes;
+  animationDuration?: I;
   animationTimingFunction?: J;
+  animationAlgorithm?: AnimationAlgorithm;
   invalidValue?: string;
   view?: View<K, L>;
   characterView?: View<M, N>;
@@ -123,12 +125,13 @@ const NumbersTransition = <
     initialValue,
     value,
     precision = Numbers.ZERO,
-    animationDuration,
     digitGroupSeparator = DigitGroupSeparators.SPACE,
     decimalSeparator = digitGroupSeparator === DigitGroupSeparators.COMMA ? DecimalSeparators.DOT : DecimalSeparators.COMMA,
     negativeCharacter = NegativeCharacters.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationModes.SINGLE,
+    animationDuration,
     animationTimingFunction,
+    animationAlgorithm,
     invalidValue = InvalidValue.VALUE,
     view,
     characterView,
@@ -327,10 +330,10 @@ const NumbersTransition = <
   const horizontalAnimationElement: ReactElement = (
     <HorizontalAnimationElement<M, N, O, P, Q, R, S, T, U, V, W, X>
       precision={precision}
-      animationDuration={horizontalAnimationDuration}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
+      animationDuration={horizontalAnimationDuration}
       animationTimingFunction={horizontalAnimationTimingFunction}
       animationTransition={animationTransition}
       previousValueDigits={previousValueOnAnimationEndDigits}
@@ -354,12 +357,13 @@ const NumbersTransition = <
   const verticalAnimationElement: ReactElement = (
     <VerticalAnimationElement<M, N, O, P, Q, R, S, T, U, V, W, X>
       precision={precision}
-      animationDuration={verticalAnimationDuration}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+      animationDuration={verticalAnimationDuration}
       animationTimingFunction={verticalAnimationTimingFunction}
+      animationAlgorithm={animationAlgorithm}
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
