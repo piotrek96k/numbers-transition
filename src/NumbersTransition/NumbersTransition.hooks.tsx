@@ -554,7 +554,7 @@ export const useElementKeyMapper: UseElementKeyMapper =
   <T extends object, U extends ReactNode>(Component: FunctionalComponent<T>, props: T | PropsFactory<T, U>): ElementKeyMapper<U> =>
   (child: U, index: number, { length }: U[]): ReactElement => (
     <Component
-      key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
+      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
       {...(typeof props === 'function' ? props(child, index, length) : props)}
     >
       {child}
