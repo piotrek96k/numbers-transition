@@ -5,6 +5,7 @@
 node_modules
 src
 storybook-static
+.gitattributes
 .gitignore
 .huskyrc.json
 .lintstagedrc.json

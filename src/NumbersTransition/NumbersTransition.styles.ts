@@ -183,12 +183,10 @@ export type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirec
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
 const animationKeyframesMapper =
-  <T extends object, U>(
-    mapper: KeyframeFunction<T, U>,
-  ): ((value: [U] | [U, number], index: number, array: ([U] | [U, number])[]) => RuleSet<T>) =>
+  <T extends object, U>(map: KeyframeFunction<T, U>): ((val: [U] | [U, number], index: number, arr: ([U] | [U, number])[]) => RuleSet<T>) =>
   ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
     ${progress ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
-      ${mapper(value)};
+      ${map(value)};
     }
   `;
 
