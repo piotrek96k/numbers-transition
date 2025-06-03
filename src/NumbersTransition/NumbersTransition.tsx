@@ -145,6 +145,7 @@ const NumbersTransition = <
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
   const [validValue, isValueValid]: ValidationTuple = useValidation(value);
 
+  // prettier-ignore
   const [
     styledView,
     characterStyledView,
@@ -252,7 +253,11 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  const totalAnimationDuration: number = useTotalAnimationDuration({ numberOfAnimations, horizontalAnimationDuration, verticalAnimationDuration });
+  const totalAnimationDuration: number = useTotalAnimationDuration({
+    numberOfAnimations,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+  });
 
   const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
     useAnimationTimingFunction(animationTimingFunction);
@@ -378,7 +383,11 @@ const NumbersTransition = <
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
-      <InvalidElement<M, N, Y, Z> invalidValue={invalidValue} characterStyledView={characterStyledView} invalidStyledView={invalidStyledView} />
+      <InvalidElement<M, N, Y, Z>
+        invalidValue={invalidValue}
+        characterStyledView={characterStyledView}
+        invalidStyledView={invalidStyledView}
+      />
     </Conditional>
   );
 

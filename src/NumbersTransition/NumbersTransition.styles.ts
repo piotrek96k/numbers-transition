@@ -183,7 +183,9 @@ export type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirec
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
 const animationKeyframesMapper =
-  <T extends object, U>(mapper: KeyframeFunction<T, U>): ((value: [U] | [U, number], index: number, array: ([U] | [U, number])[]) => RuleSet<T>) =>
+  <T extends object, U>(
+    mapper: KeyframeFunction<T, U>,
+  ): ((value: [U] | [U, number], index: number, array: ([U] | [U, number])[]) => RuleSet<T>) =>
   ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
     ${progress ?? (index * Numbers.ONE_HUNDRED) / (length - Numbers.ONE)}% {
       ${mapper(value)};
@@ -217,7 +219,10 @@ const verticalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeVal
 const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
   animationKeyframes<object, number>(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
 
-const verticalAnimation: Keyframes = animationKeyframes<object, number>(verticalAnimationKeyframe, [Numbers.ZERO, Numbers.MINUS_ONE_HUNDRED]);
+const verticalAnimation: Keyframes = animationKeyframes<object, number>(verticalAnimationKeyframe, [
+  Numbers.ZERO,
+  Numbers.MINUS_ONE_HUNDRED,
+]);
 
 const animationType = ({ theme: { $animationType } = {}, ...restProps }: AnimationProps): undefined | Keyframes => {
   switch ($animationType) {
@@ -241,7 +246,9 @@ const animationDirection: RuleSet<UnselectedAnimationDirectionProps> = css<Unsel
 `;
 
 const animationTimingFunction: RuleSet<AnimationTimingFunctionProps> = css<AnimationTimingFunctionProps>`
-  animation-timing-function: cubic-bezier(${({ $animationTimingFunction }: AnimationTimingFunctionProps): string => $animationTimingFunction.join()});
+  animation-timing-function: cubic-bezier(
+    ${({ $animationTimingFunction }: AnimationTimingFunctionProps): string => $animationTimingFunction.join()}
+  );
 `;
 
 const animationDelay: RuleSet<AnimationDelayProps> = css<AnimationDelayProps>`
@@ -262,11 +269,16 @@ const viewKey = <T extends object>(_: TemplateStringsArray, styledComponent: Sty
   <keyof T>`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${viewKey.capitalize()}` : viewKey}`;
 
 const viewFactoryMapperFactory =
-  <T extends StyledComponents, U extends object, V, W extends string>(props: Omit<Props<T, U, V>, W>): ((value?: V | Factory<U, V>) => V | Falsy) =>
+  <T extends StyledComponents, U extends object, V, W extends string>(
+    props: Omit<Props<T, U, V>, W>,
+  ): ((value?: V | Factory<U, V>) => V | Falsy) =>
   (value?: V | Factory<U, V>): V | Falsy =>
     typeof value === 'function' ? (<Factory<U, V>>value)(<U & NumbersTransitionExecutionContext>props) : value;
 
-const styleReducer = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({ ...accumulator, ...currentStyle });
+const styleReducer = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
+  ...accumulator,
+  ...currentStyle,
+});
 
 const styleFactory = <T extends StyledComponents, U extends object, V>(
   style: undefined | OrArray<CSSProperties | StyleFactory<U>>,
@@ -287,14 +299,19 @@ const classNameFactory = <T extends StyledComponents, U extends object, V>(
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Strings.SPACE);
 
-const toCssArray = <T extends object>(cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
+const toCssArray = <T extends object>(
+  cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
+): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
   Array.isArray<undefined | OrArray<CssRule<T> | CssRuleFactory<T>>>(cssStyle) && cssStyle.depth() === Numbers.TWO
     ? cssStyle
     : <(undefined | CssRule<T> | CssRuleFactory<T>)[]>[cssStyle];
 
 const cssFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
-  <U extends object, V>({ [viewKey<CssView<T, U>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle, ...restProps }: Props<T, U, V>): CssRule<U>[] =>
+  <U extends object, V>({
+    [viewKey<CssView<T, U>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle,
+    ...restProps
+  }: Props<T, U, V>): CssRule<U>[] =>
     toCssArray<U>(cssStyle)
       .map<CssRule<U> | Falsy>(viewFactoryMapperFactory<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
@@ -302,8 +319,9 @@ const cssFactory =
 const animationFalsyMapper = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): undefined | Partial<Animation<T, U>> =>
   animation || undefined;
 
-const animationMapper = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}): undefined | Keyframes =>
-  keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
+const animationMapper = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}):
+  | undefined
+  | Keyframes => keyframeFunction && keyframes && animationKeyframes(keyframeFunction, keyframes, progress);
 
 const animationsKeyframesReducer = (accumulator: RuleSet<object>, currentValue: undefined | Keyframes, index: number) => css<object>`
   ${accumulator}${index ? Strings.COMMA : Strings.EMPTY}${currentValue ?? AnimationTypes.NONE}
@@ -313,7 +331,7 @@ const animationsKeyframes = <T extends StyledComponents, U extends object, V>(
   props: Omit<Props<T, U, V>, keyof AnimationView<T, U, V>>,
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): RuleSet<object> | false =>
-  (Array.isArray<undefined | OrArray<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? !!animation.length : !!animation) &&
+  !!(Array.isArray<undefined | OrArray<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation) &&
   [animation!]
     .flat<OrArray<Animation<U, V> | AnimationFactory<U, V>>[], Numbers.ONE>()
     .map<Partial<Animation<U, V>> | Falsy>(viewFactoryMapperFactory<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))
@@ -368,7 +386,9 @@ const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ $display = Display.INLINE_BLOCK }: DisplayProps): string => $display};
 `;
 
-interface ContainerProps<T extends object, U> extends Partial<NumbersTransitionExecutionContext>, StyledView<StyledComponents.CONTAINER, T, U> {}
+interface ContainerProps<T extends object, U>
+  extends Partial<NumbersTransitionExecutionContext>,
+    StyledView<StyledComponents.CONTAINER, T, U> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
 
@@ -434,7 +454,9 @@ const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any,
   ${display};
 `;
 
-export interface DigitProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<StyledComponents.DIGIT, V, W> {}
+export interface DigitProps<T extends object, U, V extends object, W>
+  extends CharacterProps<T, U>,
+    StyledView<StyledComponents.DIGIT, V, W> {}
 
 type DigitStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, DigitProps<any, any, any, any>>;
 
@@ -446,9 +468,15 @@ export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Char
   min-width: ${Numbers.ONE}ch;
 `;
 
-interface SeparatorProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<StyledComponents.SEPARATOR, V, W> {}
+interface SeparatorProps<T extends object, U, V extends object, W>
+  extends CharacterProps<T, U>,
+    StyledView<StyledComponents.SEPARATOR, V, W> {}
 
-type SeparatorStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, SeparatorProps<any, any, any, any>>;
+type SeparatorStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  SeparatorProps<any, any, any, any>
+>;
 
 const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
   attributesFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR),
@@ -513,7 +541,11 @@ export const NegativeCharacter: NegativeCharacterStyledComponent = styled<Charac
 
 interface InvalidProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<StyledComponents.INVALID, V, W> {}
 
-type InvalidStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, InvalidProps<any, any, any, any>>;
+type InvalidStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  InvalidProps<any, any, any, any>
+>;
 
 export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(
   attributesFactory<StyledComponents.INVALID>(StyledComponents.INVALID),

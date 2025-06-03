@@ -37,7 +37,11 @@ type NumbersTransitionProps = typeof NumbersTransition<
   unknown
 >;
 
-type SelectType = typeof DigitGroupSeparators | typeof DecimalSeparators | typeof NegativeCharacters | typeof NegativeCharacterAnimationModes;
+type SelectType =
+  | typeof DigitGroupSeparators
+  | typeof DecimalSeparators
+  | typeof NegativeCharacters
+  | typeof NegativeCharacterAnimationModes;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -49,7 +53,10 @@ const inputTypeMapper = ([fieldName, enumObject]: [keyof ComponentArgTypes, Sele
   [fieldName]: { options: Object.keys(enumObject), mapping: enumObject, control: { type: 'select' } },
 });
 
-const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({ ...accumulator, ...currentValue });
+const argTypesReducer = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({
+  ...accumulator,
+  ...currentValue,
+});
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['digitGroupSeparator', DigitGroupSeparators],

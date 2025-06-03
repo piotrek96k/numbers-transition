@@ -51,23 +51,9 @@ export interface View<T extends object = object, U = unknown> extends MappedView
 
 export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
+// prettier-ignore
 type StyledViewTypes<
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = [
   [StyledComponents.CONTAINER, K, L],
   [StyledComponents.CHARACTER, M, N],
@@ -79,23 +65,9 @@ type StyledViewTypes<
   [StyledComponents.INVALID, Y, Z],
 ];
 
+// prettier-ignore
 type StyledViewTuple<
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
     StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
@@ -104,23 +76,9 @@ type StyledViewTuple<
   >;
 }>;
 
+// prettier-ignore
 type ViewTuple<
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
     StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
@@ -128,44 +86,16 @@ type ViewTuple<
   >;
 }>;
 
+// prettier-ignore
 type UseStyledViewOptions<
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]?: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I];
 }>;
 
+// prettier-ignore
 export type StyledViewWithPropsTuple<
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
     StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
@@ -174,23 +104,9 @@ export type StyledViewWithPropsTuple<
   >;
 }>;
 
+// prettier-ignore
 type UseStyledView = <
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 >(
   options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ) => StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>;
@@ -278,7 +194,8 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
 
     const digits: string = `${start}${mid.slice(Numbers.ZERO, precision || mid.length) ?? Numbers.ZERO}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
-    const increase: number = BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(restDigits.length, `${Numbers.ZERO}`)) ? Numbers.ZERO : Numbers.ONE;
+    const increase: number =
+      BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(restDigits.length, `${Numbers.ZERO}`)) ? Numbers.ZERO : Numbers.ONE;
 
     return [
       integer.replace(RegularExpressions.DIGITS, Strings.EMPTY),
@@ -318,7 +235,9 @@ type AnimationNumbersOfDigitsTuple = [number, number, number];
 
 type UseAnimationNumbersOfDigits = (options: UseAnimationNumbersOfDigitsOptions) => AnimationNumbersOfDigitsTuple;
 
-const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (options: UseAnimationNumbersOfDigitsOptions): AnimationNumbersOfDigitsTuple => {
+const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
+  options: UseAnimationNumbersOfDigitsOptions,
+): AnimationNumbersOfDigitsTuple => {
   const subtract = (first: number, second: number): number => first - second;
 
   const digitsLengthReducer = (accumulator: number[], currentValue: number, index: number): number[] => [
@@ -457,10 +376,12 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
     animationTimingFunction: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
   ) => animationTimingFunction is OrReadOnly<AnimationTimingFunction> = Array.isArray;
 
-  const { horizontalAnimation = AnimationTimingFunctions.EASE, verticalAnimation = AnimationTimingFunctions.EASE }: ExtendedAnimationTimingFunction =
-    isAnimationTimingFunction(animationTimingFunction)
-      ? { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction }
-      : animationTimingFunction;
+  const {
+    horizontalAnimation = AnimationTimingFunctions.EASE,
+    verticalAnimation = AnimationTimingFunctions.EASE,
+  }: ExtendedAnimationTimingFunction = isAnimationTimingFunction(animationTimingFunction)
+    ? { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction }
+    : animationTimingFunction;
 
   return [horizontalAnimation, verticalAnimation];
 };
@@ -482,7 +403,9 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
   const animationTimingFunctionMapper = (tuple: OrReadOnly<AnimationTimingFunction[number]>): AnimationTimingFunction[number] =>
     reverse ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number) : [...tuple];
 
-  return animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper).invert(reverse);
+  return animationTimingFunction
+    .map<AnimationTimingFunction[number], AnimationTimingFunction>(animationTimingFunctionMapper)
+    .invert(reverse);
 };
 
 type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
@@ -495,7 +418,8 @@ type UseCubicBezier = () => CubicBezierTuple;
 
 export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   const derivative = (func: (value: number) => number, value: number) =>
-    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) / (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
+    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
+    (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
 
   const solve = (
     func: (value: number) => number,
@@ -580,7 +504,9 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
 
   const nonLinearDigitsGeneratorMapper = (values: DigitsGeneratorValues, index: number): number[] => {
     const { start, end }: DigitsGeneratorValues = values;
-    const numbers: number[] = [...Array(DigitsGenerator.SWITCH_VALUE * (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * index))]
+    const numbers: number[] = [
+      ...Array(DigitsGenerator.SWITCH_VALUE * (DigitsGenerator.INITIAL_VALUE + DigitsGenerator.MULTIPLY_VALUE * index)),
+    ]
       .map<bigint>(
         (_: undefined, index: number, { length }: number[]): bigint =>
           (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),

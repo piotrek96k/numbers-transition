@@ -172,7 +172,10 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     accumulator: [number[], number[]],
     currentValue: AnimationTimingFunction[number],
   ): AnimationTimingFunction =>
-    accumulator.map<number[], AnimationTimingFunction>((coordinates: number[], index: number): number[] => [...coordinates, currentValue[index]]);
+    accumulator.map<number[], AnimationTimingFunction>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
 
   const [xAxisCubicBezier, yAxisCubicBezier] = animationTimingFunction
     .reduce<[number[], number[]], AnimationTimingFunction>(animationTimingFunctionReducer, [[], []])
@@ -192,7 +195,8 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const animationTime: number = animationDuration * inputAnimationProgress;
 
-  const animationSwitchTime: number = animationDirection === VerticalAnimationDirection.UP ? animationTime : animationDuration - animationTime;
+  const animationSwitchTime: number =
+    animationDirection === VerticalAnimationDirection.UP ? animationTime : animationDuration - animationTime;
 
   const animationDelay: number = animationDirection === VerticalAnimationDirection.UP ? -animationTime : Numbers.ZERO;
 
@@ -272,7 +276,12 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) &&
     (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement);
 
-  const digitsReducer = (accumulator: ReactElement, currentValue: ReactElement, index: number, { length }: ReactElement[]): ReactElement => (
+  const digitsReducer = (
+    accumulator: ReactElement,
+    currentValue: ReactElement,
+    index: number,
+    { length }: ReactElement[],
+  ): ReactElement => (
     <>
       {accumulator}
       {getSeparatorElement(index, length)}
@@ -539,11 +548,10 @@ export const VerticalAnimationElement = <
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ maxNumberOfDigits, previousValue, currentValue });
 
-  const verticalAnimationElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<VerticalAnimationProps, ReactNode>(VerticalAnimation, {
-    $animationDirection: animationDirection,
-    $animationDuration: animationDuration,
-    $animationTimingFunction: animationTimingFunction,
-  });
+  const verticalAnimationElementMapper: ElementKeyMapper<ReactNode> = useElementKeyMapper<VerticalAnimationProps, ReactNode>(
+    VerticalAnimation,
+    { $animationDirection: animationDirection, $animationDuration: animationDuration, $animationTimingFunction: animationTimingFunction },
+  );
 
   const digitElementMapper: ElementKeyMapper<number> = useElementKeyMapper<DigitProps<O, P, Q, R>, number>(Digit, {
     ...characterStyledView,
@@ -552,7 +560,9 @@ export const VerticalAnimationElement = <
   });
 
   const divisionMapper = (digits: number[], index: number, { length }: number[][]): ReactElement => (
-    <div {...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION })}>{digits.map<ReactElement>(digitElementMapper)}</div>
+    <div {...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION })}>
+      {digits.map<ReactElement>(digitElementMapper)}
+    </div>
   );
 
   return (
