@@ -409,6 +409,9 @@ const Animation: AnimationStyledComponent = styled.div`
   display: inline-block;
   overflow: hidden;
   height: inherit;
+  :has(~ &):not(:has(:first-child)) {
+    overflow: hidden;
+  }
 `;
 
 type HorizontalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, HorizontalAnimationProps>;
@@ -431,9 +434,6 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
   :last-child:not(:only-child) {
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
-  }
-  :has(~ &):not(:has(:first-child)) {
-    overflow: hidden;
   }
 `;
 
