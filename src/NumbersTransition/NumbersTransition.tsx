@@ -11,7 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ShouldForwardProp, StyleSheetManager, ThemeProvider } from 'styled-components';
+import { StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   Conditional,
   HorizontalAnimationElement,
@@ -23,17 +23,19 @@ import {
 } from './NumbersTransition.components';
 import {
   AnimationIds,
+  AnimationInterruptionModes,
   AnimationNumbers,
   AnimationTransitions,
   AnimationTypes,
   DecimalSeparators,
   DigitGroupSeparators,
+  ForwardProps,
   InvalidValue,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
   Numbers,
-  Runtime,
 } from './NumbersTransition.enums';
+import './NumbersTransition.extensions.ts';
 import {
   AnimationAlgorithm,
   AnimationDuration,
@@ -48,10 +50,10 @@ import {
   useAnimationDuration,
   useAnimationTimingFunction,
   useAnimationValues,
-  useForwardProp,
   useStyledView,
   useTotalAnimationDuration,
   useValidation,
+  useValues,
 } from './NumbersTransition.hooks';
 import { AnimationTimingFunction, Container, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
@@ -87,6 +89,7 @@ export interface NumbersTransitionProps<
   negativeCharacterAnimationMode?: NegativeCharacterAnimationModes;
   animationDuration?: I;
   animationTimingFunction?: J;
+  animationInterruptionMode?: AnimationInterruptionModes;
   animationAlgorithm?: AnimationAlgorithm;
   invalidValue?: string;
   view?: View<K, L>;
@@ -131,6 +134,7 @@ const NumbersTransition = <
     negativeCharacterAnimationMode = NegativeCharacterAnimationModes.SINGLE,
     animationDuration,
     animationTimingFunction,
+    animationInterruptionMode,
     animationAlgorithm,
     invalidValue = InvalidValue.VALUE,
     view,
@@ -143,10 +147,25 @@ const NumbersTransition = <
     invalidView,
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const shouldForwardProp: ShouldForwardProp<Runtime.WEB> = useForwardProp();
-
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
-  const [validValue, isValueValid]: ValidationTuple = useValidation(value);
+  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
+    useState<BigDecimal>(validInitialValue);
+  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
+  const [validValue, isValueValid]: ValidationTuple = useValues(value, previousValueOnAnimationEnd, animationInterruptionMode);
+
+  const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
+    useState<AnimationTransitions>(AnimationTransitions.NONE);
+
+  const [
+    [previousValueOnAnimationEndDigits, valueDigits],
+    [previousValueOnAnimationEndBigInt, previousValueOnAnimationStartBigInt, valueBigInt],
+    [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
+  ]: AnimationValuesTuple = useAnimationValues({
+    precision,
+    currentValue: validValue,
+    previousValueOnAnimationEnd,
+    previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
+  });
 
   // prettier-ignore
   const [
@@ -168,25 +187,6 @@ const NumbersTransition = <
     negativeCharacterView,
     invalidView,
   ]);
-
-  const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
-    useState<AnimationTransitions>(AnimationTransitions.NONE);
-
-  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
-    useState<BigDecimal>(validInitialValue);
-
-  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-
-  const [
-    [previousValueOnAnimationEndDigits, valueDigits],
-    [previousValueOnAnimationEndBigInt, previousValueOnAnimationStartBigInt, valueBigInt],
-    [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
-  ]: AnimationValuesTuple = useAnimationValues({
-    precision,
-    currentValue: validValue,
-    previousValueOnAnimationEnd,
-    previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
-  });
 
   const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
   const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
@@ -230,19 +230,19 @@ const NumbersTransition = <
     (numberOfAnimations === AnimationNumbers.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
     (numberOfAnimations === AnimationNumbers.THREE && animationTransition !== AnimationTransitions.FIRST_TO_SECOND);
 
-  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
-    renderHorizontalAnimation &&
-    numberOfAnimations === AnimationNumbers.THREE &&
-    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransitions.NONE);
-
   const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
     renderAnimation &&
     !renderHorizontalAnimation &&
     negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI
   );
 
+  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
+    renderHorizontalAnimation &&
+    numberOfAnimations === AnimationNumbers.THREE &&
+    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransitions.NONE);
+
   const renderNegativeCharacter: boolean =
-    (!hasSignChanged && valueBigInt < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    (isValueValid && !hasSignChanged && valueBigInt < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
     renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   const animationType: AnimationTypes = renderAnimation
@@ -278,12 +278,15 @@ const NumbersTransition = <
     if (omitAnimation) {
       setPreviousValueOnAnimationEnd(validValue);
     }
+  }, [validValue, omitAnimation]);
+
+  useEffect((): void => {
     if (restartAnimation) {
       setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
       setAnimationTransition(AnimationTransitions.NONE);
     }
     previousValueOnAnimationStartRef.current = validValue;
-  }, [validValue, omitAnimation, restartAnimation]);
+  }, [validValue, restartAnimation]);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
     if (!Object.values(AnimationIds).includes<string>(event.target.id)) {
@@ -406,7 +409,7 @@ const NumbersTransition = <
   );
 
   return (
-    <StyleSheetManager shouldForwardProp={shouldForwardProp}>
+    <StyleSheetManager shouldForwardProp={(prop: string): boolean => Object.values<ForwardProps>(ForwardProps).includes<string>(prop)}>
       <ThemeProvider theme={theme}>{containerElement}</ThemeProvider>
     </StyleSheetManager>
   );

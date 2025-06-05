@@ -1,5 +1,6 @@
 import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
+  AnimationInterruptionModes,
   AnimationNumbers,
   AnimationTimingFunctions,
   AnimationTypes,
@@ -27,9 +28,10 @@ import {
   NumbersTransitionTheme,
   StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
-import { BigDecimal, Falsy, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
+import { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
+  AnimationInterruptionModes,
   AnimationNumbers,
   AnimationTimingFunctions,
   AnimationTypes,
@@ -55,6 +57,8 @@ export type {
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  OrReadOnly,
+  ReadOnly,
   StyleFactory,
   TotalAnimationDuration,
   UncheckedBigDecimal,

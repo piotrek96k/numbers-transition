@@ -87,6 +87,11 @@ export enum VerticalAnimationDirection {
 
 export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
+export enum AnimationInterruptionModes {
+  INTERRUPT = 'interrupt',
+  FINISH = 'finish',
+}
+
 export enum NegativeCharacterAnimationModes {
   SINGLE = 'single',
   MULTI = 'multi',

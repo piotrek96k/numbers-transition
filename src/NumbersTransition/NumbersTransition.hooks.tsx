@@ -1,18 +1,16 @@
-import { FC, ReactElement, ReactNode } from 'react';
-import { ShouldForwardProp } from 'styled-components';
+import { ActionDispatch, FC, ReactElement, ReactNode, RefObject, useEffect, useReducer, useRef } from 'react';
 import {
   AnimationDirection,
   AnimationDurationValues,
+  AnimationInterruptionModes,
   AnimationKeys,
   AnimationNumbers,
   AnimationTimingFunctions,
   EquationSolver,
-  ForwardProps,
   HorizontalAnimationDirection,
   NumberPrecision,
   Numbers,
   RegularExpressions,
-  Runtime,
   Strings,
   StyledComponents,
   TotalAnimationDurationValues,
@@ -22,149 +20,65 @@ import './NumbersTransition.extensions';
 import { AnimationTimingFunction, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
-type UseForwardProp = () => ShouldForwardProp<Runtime.WEB>;
+type RerenderFunction = (condition?: boolean) => void;
 
-export const useForwardProp: UseForwardProp =
-  (): ShouldForwardProp<Runtime.WEB> =>
-  (prop: string): boolean =>
-    Object.values<ForwardProps>(ForwardProps).includes<string>(prop);
+type UseRerender = () => RerenderFunction;
+
+const useRerender: UseRerender = (): RerenderFunction => {
+  const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
+
+  return (condition: boolean = true): void => (condition ? rerender() : (() => {})());
+};
 
 export type ValidationTuple = [BigDecimal, boolean];
 
-type UseValidation = (value?: UncheckedBigDecimal) => ValidationTuple;
+type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => ValidationTuple;
 
-export const useValidation: UseValidation = (value?: UncheckedBigDecimal): ValidationTuple => {
+export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Numbers.ZERO): ValidationTuple => {
   const matchesBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
     typeof value !== 'undefined' && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
-  return matchesBigDecimal(value) ? [value, true] : [Numbers.ZERO, false];
+  return matchesBigDecimal(value) ? [value, true] : [validValue, false];
 };
 
-type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledView<StyledComponents.CONTAINER, T, U>[K];
-};
+type UseValues = (
+  value: UncheckedBigDecimal | undefined,
+  previousValue: BigDecimal,
+  animationInterruptionMode?: AnimationInterruptionModes,
+) => ValidationTuple;
 
-export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
-  viewProps?: T;
-}
+export const useValues: UseValues = (
+  value: UncheckedBigDecimal | undefined,
+  previousValue: BigDecimal,
+  animationInterruptionMode: AnimationInterruptionModes = AnimationInterruptionModes.INTERRUPT,
+): ValidationTuple => {
+  const rerender: RerenderFunction = useRerender();
+  const values: RefObject<ValidationTuple[]> = useRef<ValidationTuple[]>([]);
+  const validationTuple: ValidationTuple = useValidation(value, values.current.at(Numbers.MINUS_ONE)?.[Numbers.ZERO] ?? previousValue);
 
-export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
+  values.current =
+    animationInterruptionMode === AnimationInterruptionModes.FINISH
+      ? values.current.length && values.current.at(Numbers.MINUS_ONE)?.equals(validationTuple)
+        ? values.current
+        : [...values.current, validationTuple]
+      : [validationTuple];
 
-// prettier-ignore
-type StyledViewTypes<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = [
-  [StyledComponents.CONTAINER, K, L],
-  [StyledComponents.CHARACTER, M, N],
-  [StyledComponents.DIGIT, O, P],
-  [StyledComponents.SEPARATOR, Q, R],
-  [StyledComponents.DECIMAL_SEPARATOR, S, T],
-  [StyledComponents.DIGIT_GROUP_SEPARATOR, U, V],
-  [StyledComponents.NEGATIVE_CHARACTER, W, X],
-  [StyledComponents.INVALID, Y, Z],
-];
+  const [validValue, isValueValid]: ValidationTuple = values.current[Numbers.ZERO];
 
-// prettier-ignore
-type StyledViewTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
-  >;
-}>;
+  const filterInvalidValues = ([, isValid]: ValidationTuple, index: number, { length }: ValidationTuple[]): boolean =>
+    isValid || index === length - Numbers.ONE;
 
-// prettier-ignore
-type ViewTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
-  >;
-}>;
+  const filterDuplicates = ([val]: ValidationTuple, index: number, array: ValidationTuple[]): boolean =>
+    !index || val !== array[index - Numbers.ONE][Numbers.ZERO];
 
-// prettier-ignore
-type UseStyledViewOptions<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]?: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I];
-}>;
+  useEffect((): void => {
+    if (validValue === previousValue || !isValueValid) {
+      values.current = values.current.slice(Numbers.ONE).filter(filterInvalidValues).filter(filterDuplicates);
+      rerender(!!values.current.length);
+    }
+  }, [rerender, previousValue, validValue, isValueValid]);
 
-// prettier-ignore
-export type StyledViewWithPropsTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
-  >;
-}>;
-
-// prettier-ignore
-type UseStyledView = <
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
->(
-  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
-) => StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>;
-
-export const useStyledView: UseStyledView = <
-  K extends object,
-  L,
-  M extends object,
-  N,
-  O extends object,
-  P,
-  Q extends object,
-  R,
-  S extends object,
-  T,
-  U extends object,
-  V,
-  W extends object,
-  X,
-  Y extends object,
-  Z,
->(
-  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
-): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
-  const mapView = (
-    viewWithStyledComponent: [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents],
-  ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
-    const [{ viewProps, ...restView } = {}, styledComponent]: [
-      UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      StyledComponents,
-    ] = viewWithStyledComponent;
-
-    const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
-      string,
-      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
-    ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
-
-    const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
-      keyof StyledViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
-    >(
-      Object.entries<TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
-        [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
-      >(mapEntry),
-    );
-
-    return Object.assign<
-      Partial<U | V>,
-      ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]
-    >(viewProps ?? {}, styledView);
-  };
-
-  return options
-    .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
-    .map<
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
-    >(mapView);
+  return [validValue, isValueValid];
 };
 
 interface UseAnimationCharactersOptions {
@@ -242,7 +156,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   const fillNumberOfDigitsDifference = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
     currentValue,
-    ...(index ? [currentValue - accumulator[accumulator.length - Numbers.ONE]] : []),
+    ...(index ? [currentValue - accumulator.at(Numbers.MINUS_ONE)!] : []),
   ];
 
   return options
@@ -519,7 +433,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
       )
       .map<number>(getDigit);
 
-    return numbers[numbers.length - Numbers.ONE] === getDigit(end) ? numbers : [...numbers, getDigit(end)];
+    return numbers.at(Numbers.MINUS_ONE) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
   };
 
   const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
@@ -529,6 +443,133 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
     .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Numbers.ONE>();
+};
+
+type MappedView<T extends object = object, U = unknown> = {
+  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledView<StyledComponents.CONTAINER, T, U>[K];
+};
+
+export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
+  viewProps?: T;
+}
+
+export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
+
+// prettier-ignore
+type StyledViewTypes<
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+> = [
+  [StyledComponents.CONTAINER, K, L],
+  [StyledComponents.CHARACTER, M, N],
+  [StyledComponents.DIGIT, O, P],
+  [StyledComponents.SEPARATOR, Q, R],
+  [StyledComponents.DECIMAL_SEPARATOR, S, T],
+  [StyledComponents.DIGIT_GROUP_SEPARATOR, U, V],
+  [StyledComponents.NEGATIVE_CHARACTER, W, X],
+  [StyledComponents.INVALID, Y, Z],
+];
+
+// prettier-ignore
+type StyledViewTuple<
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+  >;
+}>;
+
+// prettier-ignore
+type ViewTuple<
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+  >;
+}>;
+
+// prettier-ignore
+type UseStyledViewOptions<
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+> = MappedTuple<{
+  [I in TupleIndex<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]?: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I];
+}>;
+
+// prettier-ignore
+export type StyledViewWithPropsTuple<
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+> = MappedTuple<{
+  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+  >;
+}>;
+
+// prettier-ignore
+type UseStyledView = <
+  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
+>(
+  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+) => StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>;
+
+export const useStyledView: UseStyledView = <
+  K extends object,
+  L,
+  M extends object,
+  N,
+  O extends object,
+  P,
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+>(
+  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
+  const mapView = (
+    viewWithStyledComponent: [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents],
+  ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
+    const [{ viewProps, ...restView } = {}, styledComponent]: [
+      UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      StyledComponents,
+    ] = viewWithStyledComponent;
+
+    const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
+      string,
+      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
+    ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
+
+    const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
+      keyof StyledViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
+    >(
+      Object.entries<TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
+        [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
+      >(mapEntry),
+    );
+
+    return Object.assign<
+      Partial<U | V>,
+      ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]
+    >(viewProps ?? {}, styledView);
+  };
+
+  return options
+    .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
+    .map<
+      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
+    >(mapView);
 };
 
 interface KeyProps {

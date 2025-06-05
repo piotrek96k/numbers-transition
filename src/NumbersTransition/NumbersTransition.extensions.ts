@@ -12,6 +12,10 @@ Array.prototype.depth = function (): number {
   return depth<unknown>(this);
 };
 
+Array.prototype.equals = function <T>(array: T[]): boolean {
+  return this.length === array.length && this.every((value: unknown, index: number): boolean => value === array[index]);
+};
+
 Array.prototype.invert = function <T>(reverse: boolean): T[] {
   return reverse ? this.reverse() : this;
 };

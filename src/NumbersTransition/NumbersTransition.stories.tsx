@@ -4,6 +4,7 @@ import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDurationValues,
+  AnimationInterruptionModes,
   AnimationTimingFunctions,
   DecimalSeparators,
   DigitGroupSeparators,
@@ -41,7 +42,8 @@ type SelectType =
   | typeof DigitGroupSeparators
   | typeof DecimalSeparators
   | typeof NegativeCharacters
-  | typeof NegativeCharacterAnimationModes;
+  | typeof NegativeCharacterAnimationModes
+  | typeof AnimationInterruptionModes;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -63,6 +65,7 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['decimalSeparator', DecimalSeparators],
   ['negativeCharacter', NegativeCharacters],
   ['negativeCharacterAnimationMode', NegativeCharacterAnimationModes],
+  ['animationInterruptionMode', AnimationInterruptionModes],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
@@ -96,14 +99,15 @@ const args: ComponentProps<NumbersTransitionProps> = {
   initialValue: Numbers.ZERO,
   value: StorybookValue.VALUE,
   precision: Numbers.ZERO,
-  animationDuration: {
-    horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
-    verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
-  },
   decimalSeparator: DecimalSeparators.COMMA,
   digitGroupSeparator: DigitGroupSeparators.SPACE,
   negativeCharacter: NegativeCharacters.MINUS,
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes.SINGLE,
+  animationDuration: {
+    horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
+    verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
+  },
+  animationInterruptionMode: AnimationInterruptionModes.INTERRUPT,
   animationTimingFunction: AnimationTimingFunctions.EASE,
   view: { css: style, animation: opacityAnimationFactory },
 };

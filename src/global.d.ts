@@ -15,6 +15,7 @@ declare global {
 
   interface Array<T> {
     depth(): number;
+    equals<U>(array: U[]): boolean;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     invert(invert: boolean): [...this];
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: [...this]) => U, thisArg?: unknown): V;
