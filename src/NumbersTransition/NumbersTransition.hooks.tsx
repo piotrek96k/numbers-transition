@@ -41,13 +41,13 @@ export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validV
   return matchesBigDecimal(value) ? [value, true] : [validValue, false];
 };
 
-type UseValues = (
+type UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
   animationInterruptionMode?: AnimationInterruptionModes,
 ) => ValidationTuple;
 
-export const useValues: UseValues = (
+export const useValue: UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionModes = AnimationInterruptionModes.INTERRUPT,
@@ -57,7 +57,7 @@ export const useValues: UseValues = (
   const validationTuple: ValidationTuple = useValidation(value, values.current.at(Numbers.MINUS_ONE)?.[Numbers.ZERO] ?? previousValue);
 
   values.current =
-    animationInterruptionMode === AnimationInterruptionModes.FINISH
+    animationInterruptionMode === AnimationInterruptionModes.CONTINUE
       ? values.current.length && values.current.at(Numbers.MINUS_ONE)?.equals(validationTuple)
         ? values.current
         : [...values.current, validationTuple]

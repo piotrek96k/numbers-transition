@@ -53,7 +53,7 @@ import {
   useStyledView,
   useTotalAnimationDuration,
   useValidation,
-  useValues,
+  useValue,
 } from './NumbersTransition.hooks';
 import { AnimationTimingFunction, Container, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
@@ -148,10 +148,10 @@ const NumbersTransition = <
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
+  const previousValueOnAnimationStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
   const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
     useState<BigDecimal>(validInitialValue);
-  const previousValueOnAnimationStartRef: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-  const [validValue, isValueValid]: ValidationTuple = useValues(value, previousValueOnAnimationEnd, animationInterruptionMode);
+  const [validValue, isValueValid]: ValidationTuple = useValue(value, previousValueOnAnimationEnd, animationInterruptionMode);
 
   const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
     useState<AnimationTransitions>(AnimationTransitions.NONE);
@@ -164,7 +164,7 @@ const NumbersTransition = <
     precision,
     currentValue: validValue,
     previousValueOnAnimationEnd,
-    previousValueOnAnimationStart: previousValueOnAnimationStartRef.current,
+    previousValueOnAnimationStart: previousValueOnAnimationStart.current,
   });
 
   // prettier-ignore
@@ -282,10 +282,10 @@ const NumbersTransition = <
 
   useEffect((): void => {
     if (restartAnimation) {
-      setPreviousValueOnAnimationEnd(previousValueOnAnimationStartRef.current);
+      setPreviousValueOnAnimationEnd(previousValueOnAnimationStart.current);
       setAnimationTransition(AnimationTransitions.NONE);
     }
-    previousValueOnAnimationStartRef.current = validValue;
+    previousValueOnAnimationStart.current = validValue;
   }, [validValue, restartAnimation]);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
