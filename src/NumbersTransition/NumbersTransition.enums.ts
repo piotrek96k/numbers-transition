@@ -39,8 +39,11 @@ export enum ViewKeys {
 
 export enum VariableNames {
   ANIMATION_TYPE = '--animation-type',
+  ANIMATION_DIRECTION = '--animation-direction',
   NUMBER_OF_ANIMATIONS = '--number-of-animations',
-  CURRENT_ANIMATION_NUMBER = '--current-animation-number',
+  ANIMATION_NUMBER = '--animation-number',
+  ANIMATION_DURATION = '--animation-duration',
+  ANIMATION_TIMING_FUNCTION = '--animation-timing-function',
   TOTAL_ANIMATION_DURATION = '--total-animation-duration',
   HORIZONTAL_ANIMATION_DURATION = '--horizontal-animation-duration',
   VERTICAL_ANIMATION_DURATION = '--vertical-animation-duration',
@@ -75,17 +78,11 @@ export enum AnimationTransitions {
   SECOND_TO_THIRD = 'second-to-third',
 }
 
-export enum HorizontalAnimationDirection {
-  RIGHT = 'normal',
-  LEFT = 'reverse',
+export enum AnimationDirections {
+  NORMAL = 'normal',
+  REVERSE = 'reverse',
+  NONE = 'none',
 }
-
-export enum VerticalAnimationDirection {
-  UP = 'normal',
-  DOWN = 'reverse',
-}
-
-export type AnimationDirection = HorizontalAnimationDirection | VerticalAnimationDirection;
 
 export enum AnimationInterruptionModes {
   INTERRUPT = 'interrupt',

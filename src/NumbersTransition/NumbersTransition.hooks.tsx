@@ -1,20 +1,21 @@
 import { ActionDispatch, FC, ReactElement, ReactNode, RefObject, useEffect, useReducer, useRef } from 'react';
 import {
-  AnimationDirection,
+  AnimationDirections,
   AnimationDurationValues,
   AnimationInterruptionModes,
   AnimationKeys,
   AnimationNumbers,
   AnimationTimingFunctions,
+  AnimationTransitions,
+  AnimationTypes,
   EquationSolver,
-  HorizontalAnimationDirection,
+  NegativeCharacterAnimationModes,
   NumberPrecision,
   Numbers,
   RegularExpressions,
   Strings,
   StyledComponents,
   TotalAnimationDurationValues,
-  VerticalAnimationDirection,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { AnimationTimingFunction, StyledView } from './NumbersTransition.styles';
@@ -191,6 +192,172 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
   return [digits, bigInts, numbersOfDigits];
 };
 
+interface UseAnimationLogicOptions {
+  previousValue: BigDecimal;
+  value: UncheckedBigDecimal | undefined;
+  isValueValid: boolean;
+  previousValueOnStart: bigint;
+  previousValueOnEnd: bigint;
+  currentValue: bigint;
+}
+
+export interface AnimationLogic {
+  hasSignChanged: boolean;
+  omitAnimation: boolean;
+  restartAnimation: boolean;
+  renderAnimation: boolean;
+}
+
+type UseAnimationLogic = (options: UseAnimationLogicOptions) => AnimationLogic;
+
+export const useAnimationLogic: UseAnimationLogic = (options: UseAnimationLogicOptions): AnimationLogic => {
+  const { previousValue, value, isValueValid, previousValueOnStart, previousValueOnEnd, currentValue }: UseAnimationLogicOptions = options;
+
+  const hasValueChanged: boolean = currentValue !== previousValueOnEnd;
+  const hasSignChanged: boolean = (currentValue ^ previousValueOnEnd) < Numbers.ZERO;
+  const omitAnimation: boolean = isValueValid && value !== previousValue && !hasValueChanged;
+  const restartAnimation: boolean = currentValue !== previousValueOnStart && previousValueOnEnd !== previousValueOnStart;
+  const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
+
+  return { hasSignChanged, omitAnimation, restartAnimation, renderAnimation };
+};
+
+interface UseAnimationNumbersOptions {
+  animationTransition: AnimationTransitions;
+  previousValueDigits: number[];
+  currentValueDigits: number[];
+  previousValue: bigint;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+  renderAnimation: boolean;
+}
+
+export type AnimationNumbersTuple = [AnimationNumbers, AnimationNumbers];
+
+type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => AnimationNumbersTuple;
+
+export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNumbersOptions): AnimationNumbersTuple => {
+  const {
+    animationTransition,
+    previousValueDigits,
+    currentValueDigits,
+    previousValue,
+    currentValue,
+    hasSignChanged,
+    renderAnimation,
+  }: UseAnimationNumbersOptions = options;
+
+  const hasNumberOfDigitsChanged: boolean = previousValueDigits.length !== currentValueDigits.length;
+  const hasThreeAnimations: boolean =
+    (previousValueDigits.length < currentValueDigits.length && previousValue < currentValue) ||
+    (previousValueDigits.length > currentValueDigits.length && previousValue > currentValue);
+
+  const animationNumber: AnimationNumbers = renderAnimation
+    ? animationTransition === AnimationTransitions.SECOND_TO_THIRD
+      ? AnimationNumbers.THREE
+      : animationTransition === AnimationTransitions.FIRST_TO_SECOND
+        ? AnimationNumbers.TWO
+        : AnimationNumbers.ONE
+    : AnimationNumbers.ZERO;
+
+  const numberOfAnimations: AnimationNumbers = renderAnimation
+    ? hasSignChanged
+      ? hasThreeAnimations
+        ? AnimationNumbers.THREE
+        : AnimationNumbers.TWO
+      : hasNumberOfDigitsChanged
+        ? AnimationNumbers.TWO
+        : AnimationNumbers.ONE
+    : AnimationNumbers.ZERO;
+
+  return [animationNumber, numberOfAnimations];
+};
+
+interface UseAnimationTypeOptions {
+  animationTransition: AnimationTransitions;
+  previousValueDigits: number[];
+  currentValueDigits: number[];
+  previousValue: bigint;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+  renderAnimation: boolean;
+  numberOfAnimations: AnimationNumbers;
+}
+
+type UseAnimationType = (options: UseAnimationTypeOptions) => AnimationTypes;
+
+export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOptions): AnimationTypes => {
+  const {
+    animationTransition,
+    previousValueDigits,
+    currentValueDigits,
+    previousValue,
+    currentValue,
+    hasSignChanged,
+    renderAnimation,
+    numberOfAnimations,
+  }: UseAnimationTypeOptions = options;
+
+  const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
+    ? animationTransition === AnimationTransitions.NONE
+      ? previousValue > currentValue
+      : previousValue < currentValue
+    : animationTransition === AnimationTransitions.NONE
+      ? previousValueDigits.length < currentValueDigits.length
+      : previousValueDigits.length > currentValueDigits.length;
+
+  const renderHorizontalAnimation: boolean =
+    (numberOfAnimations === AnimationNumbers.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
+    (numberOfAnimations === AnimationNumbers.THREE && animationTransition !== AnimationTransitions.FIRST_TO_SECOND);
+
+  return renderAnimation ? (renderHorizontalAnimation ? AnimationTypes.HORIZONTAL : AnimationTypes.VERTICAL) : AnimationTypes.NONE;
+};
+
+interface UseAnimationDirectionOptions {
+  animationType: AnimationTypes;
+  animationTransition: AnimationTransitions;
+  previousValueDigits: number[];
+  currentValueDigits: number[];
+  previousValue: bigint;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+  numberOfAnimations: AnimationNumbers;
+}
+
+type UseAnimationDirection = (options: UseAnimationDirectionOptions) => AnimationDirections;
+
+export const useAnimationDirection: UseAnimationDirection = (options: UseAnimationDirectionOptions): AnimationDirections => {
+  const {
+    animationType,
+    animationTransition,
+    previousValueDigits,
+    currentValueDigits,
+    previousValue,
+    currentValue,
+    hasSignChanged,
+    numberOfAnimations,
+  }: UseAnimationDirectionOptions = options;
+
+  const horizontalAnimationDirection: AnimationDirections =
+    (numberOfAnimations === AnimationNumbers.TWO &&
+      (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
+    (numberOfAnimations === AnimationNumbers.THREE && animationTransition === AnimationTransitions.NONE)
+      ? AnimationDirections.NORMAL
+      : AnimationDirections.REVERSE;
+
+  const verticalAnimationDirection: AnimationDirections =
+    previousValue < currentValue ? AnimationDirections.NORMAL : AnimationDirections.REVERSE;
+
+  switch (animationType) {
+    case AnimationTypes.HORIZONTAL:
+      return horizontalAnimationDirection;
+    case AnimationTypes.VERTICAL:
+      return verticalAnimationDirection;
+    case AnimationTypes.NONE:
+      return AnimationDirections.NONE;
+  }
+};
+
 export interface AnimationDuration {
   horizontalAnimation?: number;
   verticalAnimation?: number;
@@ -202,16 +369,17 @@ export interface TotalAnimationDuration {
 }
 
 interface UseAnimationDurationOptions {
+  animationType: AnimationTypes;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
   numberOfAnimations: AnimationNumbers;
 }
 
-export type AnimationDurationTuple = [number, number];
+export type AnimationDurationTuple = [number, number, number, number];
 
 type UseAnimationDuration = (options: UseAnimationDurationOptions) => AnimationDurationTuple;
 
 export const useAnimationDuration: UseAnimationDuration = (options: UseAnimationDurationOptions): AnimationDurationTuple => {
-  const { animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
+  const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
     !Object.keys(animationDuration).length ||
@@ -220,7 +388,7 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
   const fromAnimationDuration = ({
     horizontalAnimation = AnimationDurationValues.HORIZONTAL_ANIMATION,
     verticalAnimation = AnimationDurationValues.VERTICAL_ANIMATION,
-  }: AnimationDuration): AnimationDurationTuple => [
+  }: AnimationDuration): [number, number] => [
     numberOfAnimations === AnimationNumbers.ONE ? Numbers.ZERO : horizontalAnimation,
     verticalAnimation,
   ];
@@ -228,7 +396,7 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
   const fromTotalAnimationDuration = ({
     animationDuration = TotalAnimationDurationValues.ANIMATION_DURATION,
     ratio = TotalAnimationDurationValues.RATIO,
-  }: TotalAnimationDuration): AnimationDurationTuple => {
+  }: TotalAnimationDuration): [number, number] => {
     const horizontalAnimationDuration: number =
       numberOfAnimations === AnimationNumbers.ONE ? Numbers.ZERO : animationDuration / (ratio + numberOfAnimations - Numbers.ONE);
     const verticalAnimationDuration: number =
@@ -238,37 +406,40 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
   };
 
   const mapAnimationDuration:
-    | ((animationDuration: AnimationDuration) => AnimationDurationTuple)
-    | ((animationDuration: TotalAnimationDuration) => AnimationDurationTuple) = isAnimationDuration(animationDuration)
+    | ((animationDuration: AnimationDuration) => [number, number])
+    | ((animationDuration: TotalAnimationDuration) => [number, number]) = isAnimationDuration(animationDuration)
     ? fromAnimationDuration
     : fromTotalAnimationDuration;
 
-  return numberOfAnimations === AnimationNumbers.ZERO ? [Numbers.ZERO, Numbers.ZERO] : mapAnimationDuration(animationDuration);
-};
+  const calculateTotalAnimationDuration = (horizontalAnimationDuration: number, verticalAnimationDuration: number): number => {
+    switch (numberOfAnimations) {
+      case AnimationNumbers.ZERO:
+        return Numbers.ZERO;
+      case AnimationNumbers.ONE:
+        return verticalAnimationDuration;
+      case AnimationNumbers.TWO:
+        return horizontalAnimationDuration + verticalAnimationDuration;
+      case AnimationNumbers.THREE:
+        return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
+    }
+  };
 
-interface UseTotalAnimationDurationOptions {
-  numberOfAnimations: AnimationNumbers;
-  horizontalAnimationDuration: number;
-  verticalAnimationDuration: number;
-}
+  const [horizontalAnimationDuration, verticalAnimationDuration] =
+    numberOfAnimations === AnimationNumbers.ZERO ? [Numbers.ZERO, Numbers.ZERO] : mapAnimationDuration(animationDuration);
 
-type UseTotalAnimationDuration = (options: UseTotalAnimationDurationOptions) => number;
+  const currentAnimationDuration: number =
+    animationType === AnimationTypes.HORIZONTAL
+      ? horizontalAnimationDuration
+      : animationType === AnimationTypes.VERTICAL
+        ? verticalAnimationDuration
+        : Numbers.ZERO;
 
-export const useTotalAnimationDuration: UseTotalAnimationDuration = ({
-  numberOfAnimations,
-  horizontalAnimationDuration,
-  verticalAnimationDuration,
-}: UseTotalAnimationDurationOptions): number => {
-  switch (numberOfAnimations) {
-    case AnimationNumbers.ZERO:
-      return Numbers.ZERO;
-    case AnimationNumbers.ONE:
-      return verticalAnimationDuration;
-    case AnimationNumbers.TWO:
-      return horizontalAnimationDuration + verticalAnimationDuration;
-    case AnimationNumbers.THREE:
-      return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
-  }
+  return [
+    currentAnimationDuration,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+    calculateTotalAnimationDuration(horizontalAnimationDuration, verticalAnimationDuration),
+  ];
 };
 
 export interface ExtendedAnimationTimingFunction {
@@ -276,15 +447,23 @@ export interface ExtendedAnimationTimingFunction {
   verticalAnimation?: OrReadOnly<AnimationTimingFunction>;
 }
 
-export type AnimationTimingFunctionTuple = [OrReadOnly<AnimationTimingFunction>, OrReadOnly<AnimationTimingFunction>];
+interface UseAnimationTimingFunctionOptions {
+  animationTimingFunction?: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction;
+  animationType: AnimationTypes;
+  animationDirection: AnimationDirections;
+}
 
-type UseAnimationTimingFunction = (
-  animationTimingFunction?: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
-) => AnimationTimingFunctionTuple;
+type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunction;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  animationTimingFunction: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction = AnimationTimingFunctions.EASE,
-): AnimationTimingFunctionTuple => {
+  options: UseAnimationTimingFunctionOptions,
+): AnimationTimingFunction => {
+  const {
+    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunctions.EASE,
+    animationType,
+    animationDirection,
+  }: UseAnimationTimingFunctionOptions = options;
+
   const isAnimationTimingFunction: (
     animationTimingFunction: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
   ) => animationTimingFunction is OrReadOnly<AnimationTimingFunction> = Array.isArray;
@@ -292,26 +471,14 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
   const {
     horizontalAnimation = AnimationTimingFunctions.EASE,
     verticalAnimation = AnimationTimingFunctions.EASE,
-  }: ExtendedAnimationTimingFunction = isAnimationTimingFunction(animationTimingFunction)
-    ? { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction }
-    : animationTimingFunction;
+  }: ExtendedAnimationTimingFunction = isAnimationTimingFunction(animationTimingFunctionInput)
+    ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
+    : animationTimingFunctionInput;
 
-  return [horizontalAnimation, verticalAnimation];
-};
+  const reverse: boolean = animationDirection === AnimationDirections.REVERSE;
 
-interface UseAnimationTimingFunctionDirectionOptions {
-  animationTimingFunction: OrReadOnly<AnimationTimingFunction>;
-  animationDirection: AnimationDirection;
-}
-
-type UseAnimationTimingFunctionDirection = (options: UseAnimationTimingFunctionDirectionOptions) => AnimationTimingFunction;
-
-export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDirection = (
-  options: UseAnimationTimingFunctionDirectionOptions,
-): AnimationTimingFunction => {
-  const { animationTimingFunction, animationDirection }: UseAnimationTimingFunctionDirectionOptions = options;
-
-  const reverse: boolean = [HorizontalAnimationDirection.LEFT, VerticalAnimationDirection.DOWN].includes(animationDirection);
+  const animationTimingFunction: OrReadOnly<AnimationTimingFunction> =
+    animationType === AnimationTypes.HORIZONTAL ? horizontalAnimation : verticalAnimation;
 
   const mapAnimationTimingFunction = (tuple: OrReadOnly<AnimationTimingFunction[number]>): AnimationTimingFunction[number] =>
     reverse ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number) : [...tuple];
@@ -319,130 +486,49 @@ export const useAnimationTimingFunctionDirection: UseAnimationTimingFunctionDire
   return animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(mapAnimationTimingFunction).invert(reverse);
 };
 
-type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
-
-type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
-
-export type CubicBezierTuple = [CubicBezier, Solve];
-
-type UseCubicBezier = () => CubicBezierTuple;
-
-export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
-  const derivative = (func: (value: number) => number, value: number) =>
-    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
-    (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
-
-  const solve = (
-    func: (value: number) => number,
-    previousValue: number = EquationSolver.INITIAL_VALUE,
-    previousFuncResult: number = func(previousValue),
-  ): number => {
-    const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
-    const newFuncResult: number = func(newValue);
-
-    const isConvergent: boolean = [newValue - previousValue, newFuncResult]
-      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DERIVATIVE_DELTA)
-      .reduce((accumulator: boolean, currentValue: boolean): boolean => accumulator && currentValue);
-
-    return isConvergent ? newValue : solve(func, newValue, newFuncResult);
-  };
-
-  const cubicBezier =
-    ([firstPoint, secondPoint]: AnimationTimingFunction[number]): ((time: number) => number) =>
-    (time: number): number =>
-      Numbers.THREE * (firstPoint * time * (Numbers.ONE - time) ** Numbers.TWO + secondPoint * (Numbers.ONE - time) * time ** Numbers.TWO) +
-      time ** Numbers.THREE;
-
-  return [cubicBezier, (func: (value: number) => number): number => solve(func)];
-};
-
-interface UseHorizontalAnimationDigitsOptions {
-  previousValueDigits: number[];
-  currentValueDigits: number[];
-  numberOfDigitsDifference: number;
-  animationDirection: HorizontalAnimationDirection;
-  renderZeros: boolean;
-}
-
-type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
-
-export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
-  numberOfDigitsDifference,
-  previousValueDigits,
-  currentValueDigits,
-  animationDirection,
-  renderZeros,
-}: UseHorizontalAnimationDigitsOptions): number[] => [
-  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
-  ...(animationDirection === HorizontalAnimationDirection.RIGHT ? previousValueDigits : currentValueDigits),
-];
-
-export interface AnimationAlgorithm {
-  incrementMaxLength?: number;
-  numberOfDigitsIncrease?: number;
-}
-
-interface DigitValues {
-  start: bigint;
-  end: bigint;
-}
-
-interface UseVerticalAnimationDigitsOptions {
-  animationAlgorithm?: AnimationAlgorithm;
-  maxNumberOfDigits: number;
+interface UseRenderNegativeCharacterOptions {
+  negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
+  animationTransition: AnimationTransitions;
   previousValue: bigint;
   currentValue: bigint;
+  isValueValid: boolean;
+  hasSignChanged: boolean;
+  renderAnimation: boolean;
+  numberOfAnimations: AnimationNumbers;
+  animationType: AnimationTypes;
 }
 
-type UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions) => number[][];
+type UseRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions) => boolean;
 
-export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
+export const useRenderNegativeCharacter: UseRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions): boolean => {
   const {
-    animationAlgorithm: { incrementMaxLength = Numbers.FOURTEEN, numberOfDigitsIncrease = Numbers.SEVEN } = {},
-    maxNumberOfDigits,
+    negativeCharacterAnimationMode,
+    animationTransition,
     previousValue,
     currentValue,
-  }: UseVerticalAnimationDigitsOptions = options;
+    isValueValid,
+    hasSignChanged,
+    renderAnimation,
+    numberOfAnimations,
+    animationType,
+  }: UseRenderNegativeCharacterOptions = options;
 
-  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: undefined, index: number): [DigitValues[], DigitValues[]] => {
-    const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
-      .sort((first: bigint, second: bigint): number => (first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO));
+  const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
+    renderAnimation &&
+    animationType !== AnimationTypes.HORIZONTAL &&
+    negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI
+  );
 
-    const accumulatorIndex: number = end - start < incrementMaxLength ? Numbers.ZERO : Numbers.ONE;
-    accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
+    animationType === AnimationTypes.HORIZONTAL &&
+    numberOfAnimations === AnimationNumbers.THREE &&
+    previousValue < currentValue === (animationTransition === AnimationTransitions.NONE);
 
-    return accumulator;
-  };
+  const renderNegativeCharacter: boolean =
+    (isValueValid && !hasSignChanged && currentValue < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    renderNegativeElementWhenNumberOfAnimationsIsThree;
 
-  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
-
-  const incrementValues = ({ start, end }: DigitValues): number[] =>
-    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
-
-  const generateValues = (values: DigitValues, index: number): number[] => {
-    const { start, end }: DigitValues = values;
-    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
-      .map<bigint>(
-        (_: undefined, index: number, { length }: number[]): bigint =>
-          (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
-      )
-      .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [increasedValue, increasedValue / NumberPrecision.VALUE])
-      .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
-        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + BigInt(Numbers.ONE),
-      )
-      .map<number>(getDigit);
-
-    return numbers.at(Numbers.MINUS_ONE) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
-  };
-
-  const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
-    algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
-
-  return [...Array(maxNumberOfDigits)]
-    .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
-    .map<number[][], [number[][], number[][]]>(mapDigitValues)
-    .flat<[number[][], number[][]], Numbers.ONE>();
+  return renderNegativeCharacter;
 };
 
 type MappedView<T extends object = object, U = unknown> = {
@@ -570,6 +656,132 @@ export const useStyledView: UseStyledView = <
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
     >(mapView);
+};
+
+type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
+
+type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
+
+export type CubicBezierTuple = [CubicBezier, Solve];
+
+type UseCubicBezier = () => CubicBezierTuple;
+
+export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
+  const derivative = (func: (value: number) => number, value: number) =>
+    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
+    (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
+
+  const solve = (
+    func: (value: number) => number,
+    previousValue: number = EquationSolver.INITIAL_VALUE,
+    previousFuncResult: number = func(previousValue),
+  ): number => {
+    const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
+    const newFuncResult: number = func(newValue);
+
+    const isConvergent: boolean = [newValue - previousValue, newFuncResult]
+      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DERIVATIVE_DELTA)
+      .reduce((accumulator: boolean, currentValue: boolean): boolean => accumulator && currentValue);
+
+    return isConvergent ? newValue : solve(func, newValue, newFuncResult);
+  };
+
+  const cubicBezier =
+    ([firstPoint, secondPoint]: AnimationTimingFunction[number]): ((time: number) => number) =>
+    (time: number): number =>
+      Numbers.THREE * (firstPoint * time * (Numbers.ONE - time) ** Numbers.TWO + secondPoint * (Numbers.ONE - time) * time ** Numbers.TWO) +
+      time ** Numbers.THREE;
+
+  return [cubicBezier, (func: (value: number) => number): number => solve(func)];
+};
+
+interface UseHorizontalAnimationDigitsOptions {
+  previousValueDigits: number[];
+  currentValueDigits: number[];
+  numberOfDigitsDifference: number;
+  animationDirection: AnimationDirections;
+  renderZeros: boolean;
+}
+
+type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
+
+export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
+  numberOfDigitsDifference,
+  previousValueDigits,
+  currentValueDigits,
+  animationDirection,
+  renderZeros,
+}: UseHorizontalAnimationDigitsOptions): number[] => [
+  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
+  ...(animationDirection === AnimationDirections.NORMAL ? previousValueDigits : currentValueDigits),
+];
+
+export interface AnimationAlgorithm {
+  incrementMaxLength?: number;
+  numberOfDigitsIncrease?: number;
+}
+
+interface DigitValues {
+  start: bigint;
+  end: bigint;
+}
+
+interface UseVerticalAnimationDigitsOptions {
+  animationAlgorithm?: AnimationAlgorithm;
+  maxNumberOfDigits: number;
+  previousValue: bigint;
+  currentValue: bigint;
+}
+
+type UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions) => number[][];
+
+export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
+  const {
+    animationAlgorithm: { incrementMaxLength = Numbers.FOURTEEN, numberOfDigitsIncrease = Numbers.SEVEN } = {},
+    maxNumberOfDigits,
+    previousValue,
+    currentValue,
+  }: UseVerticalAnimationDigitsOptions = options;
+
+  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: undefined, index: number): [DigitValues[], DigitValues[]] => {
+    const [start, end]: bigint[] = [previousValue, currentValue]
+      .map<bigint>((number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
+      .sort((first: bigint, second: bigint): number => (first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO));
+
+    const accumulatorIndex: number = end - start < incrementMaxLength ? Numbers.ZERO : Numbers.ONE;
+    accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+
+    return accumulator;
+  };
+
+  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
+
+  const incrementValues = ({ start, end }: DigitValues): number[] =>
+    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
+
+  const generateValues = (values: DigitValues, index: number): number[] => {
+    const { start, end }: DigitValues = values;
+    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
+      .map<bigint>(
+        (_: undefined, index: number, { length }: number[]): bigint =>
+          (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length),
+      )
+      .map<[bigint, bigint]>((increasedValue: bigint): [bigint, bigint] => [increasedValue, increasedValue / NumberPrecision.VALUE])
+      .map<bigint>(([increasedValue, newValue]: [bigint, bigint]): bigint =>
+        increasedValue - newValue * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? newValue : newValue + BigInt(Numbers.ONE),
+      )
+      .map<number>(getDigit);
+
+    return numbers.at(Numbers.MINUS_ONE) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
+  };
+
+  const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
+    algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
+
+  return [...Array(maxNumberOfDigits)]
+    .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
+    .map<number[][], [number[][], number[][]]>(mapDigitValues)
+    .flat<[number[][], number[][]], Numbers.ONE>();
 };
 
 interface KeyProps {

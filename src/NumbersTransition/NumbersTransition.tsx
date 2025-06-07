@@ -22,6 +22,7 @@ import {
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
+  AnimationDirections,
   AnimationIds,
   AnimationInterruptionModes,
   AnimationNumbers,
@@ -40,18 +41,23 @@ import {
   AnimationAlgorithm,
   AnimationDuration,
   AnimationDurationTuple,
-  AnimationTimingFunctionTuple,
+  AnimationLogic,
+  AnimationNumbersTuple,
   AnimationValuesTuple,
   ExtendedAnimationTimingFunction,
   StyledViewWithPropsTuple,
   TotalAnimationDuration,
   ValidationTuple,
   View,
+  useAnimationDirection,
   useAnimationDuration,
+  useAnimationLogic,
+  useAnimationNumbers,
   useAnimationTimingFunction,
+  useAnimationType,
   useAnimationValues,
+  useRenderNegativeCharacter,
   useStyledView,
-  useTotalAnimationDuration,
   useValidation,
   useValue,
 } from './NumbersTransition.hooks';
@@ -132,8 +138,8 @@ const NumbersTransition = <
     decimalSeparator = digitGroupSeparator === DigitGroupSeparators.COMMA ? DecimalSeparators.DOT : DecimalSeparators.COMMA,
     negativeCharacter = NegativeCharacters.MINUS,
     negativeCharacterAnimationMode = NegativeCharacterAnimationModes.SINGLE,
-    animationDuration,
-    animationTimingFunction,
+    animationDuration: animationDurationInput,
+    animationTimingFunction: animationTimingFunctionInput,
     animationInterruptionMode,
     animationAlgorithm,
     invalidValue = InvalidValue.VALUE,
@@ -167,6 +173,68 @@ const NumbersTransition = <
     previousValueOnAnimationStart: previousValueOnAnimationStart.current,
   });
 
+  const { hasSignChanged, omitAnimation, restartAnimation, renderAnimation }: AnimationLogic = useAnimationLogic({
+    previousValue: previousValueOnAnimationEnd,
+    value,
+    isValueValid,
+    previousValueOnStart: previousValueOnAnimationStartBigInt,
+    previousValueOnEnd: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+  });
+
+  const [animationNumber, numberOfAnimations]: AnimationNumbersTuple = useAnimationNumbers({
+    animationTransition,
+    previousValueDigits: previousValueOnAnimationEndDigits,
+    currentValueDigits: valueDigits,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    hasSignChanged,
+    renderAnimation,
+  });
+
+  const animationType: AnimationTypes = useAnimationType({
+    animationTransition,
+    previousValueDigits: previousValueOnAnimationEndDigits,
+    currentValueDigits: valueDigits,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    hasSignChanged,
+    renderAnimation,
+    numberOfAnimations,
+  });
+
+  const animationDirection: AnimationDirections = useAnimationDirection({
+    animationType,
+    animationTransition,
+    previousValueDigits: previousValueOnAnimationEndDigits,
+    currentValueDigits: valueDigits,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    hasSignChanged,
+    numberOfAnimations,
+  });
+
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: AnimationDurationTuple =
+    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
+
+  const animationTimingFunction: AnimationTimingFunction = useAnimationTimingFunction({
+    animationTimingFunction: animationTimingFunctionInput,
+    animationType,
+    animationDirection,
+  });
+
+  const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
+    negativeCharacterAnimationMode,
+    animationTransition,
+    previousValue: previousValueOnAnimationEndBigInt,
+    currentValue: valueBigInt,
+    isValueValid,
+    hasSignChanged,
+    renderAnimation,
+    numberOfAnimations,
+    animationType,
+  });
+
   // prettier-ignore
   const [
     styledView,
@@ -187,92 +255,6 @@ const NumbersTransition = <
     negativeCharacterView,
     invalidView,
   ]);
-
-  const hasValueChanged: boolean = valueBigInt !== previousValueOnAnimationEndBigInt;
-  const hasSignChanged: boolean = (valueBigInt ^ previousValueOnAnimationEndBigInt) < Numbers.ZERO;
-  const hasTheSameNumberOfDigits: boolean = previousValueOnAnimationEndDigits.length === valueDigits.length;
-  const omitAnimation: boolean = isValueValid && value !== previousValueOnAnimationEnd && !hasValueChanged;
-  const restartAnimation: boolean =
-    valueBigInt !== previousValueOnAnimationStartBigInt && previousValueOnAnimationEndBigInt !== previousValueOnAnimationStartBigInt;
-  const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
-
-  const hasThreeAnimations: boolean =
-    (previousValueOnAnimationEndDigits.length < valueDigits.length && previousValueOnAnimationEndBigInt < valueBigInt) ||
-    (previousValueOnAnimationEndDigits.length > valueDigits.length && previousValueOnAnimationEndBigInt > valueBigInt);
-
-  const numberOfAnimations: AnimationNumbers = renderAnimation
-    ? hasSignChanged
-      ? hasThreeAnimations
-        ? AnimationNumbers.THREE
-        : AnimationNumbers.TWO
-      : hasTheSameNumberOfDigits
-        ? AnimationNumbers.ONE
-        : AnimationNumbers.TWO
-    : AnimationNumbers.ZERO;
-
-  const currentAnimationNumber: AnimationNumbers = renderAnimation
-    ? animationTransition === AnimationTransitions.SECOND_TO_THIRD
-      ? AnimationNumbers.THREE
-      : animationTransition === AnimationTransitions.FIRST_TO_SECOND
-        ? AnimationNumbers.TWO
-        : AnimationNumbers.ONE
-    : AnimationNumbers.ZERO;
-
-  const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
-    ? animationTransition === AnimationTransitions.NONE
-      ? previousValueOnAnimationEndBigInt > valueBigInt
-      : previousValueOnAnimationEndBigInt < valueBigInt
-    : animationTransition === AnimationTransitions.NONE
-      ? previousValueOnAnimationEndDigits.length < valueDigits.length
-      : previousValueOnAnimationEndDigits.length > valueDigits.length;
-
-  const renderHorizontalAnimation: boolean =
-    (numberOfAnimations === AnimationNumbers.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
-    (numberOfAnimations === AnimationNumbers.THREE && animationTransition !== AnimationTransitions.FIRST_TO_SECOND);
-
-  const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
-    renderAnimation &&
-    !renderHorizontalAnimation &&
-    negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI
-  );
-
-  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
-    renderHorizontalAnimation &&
-    numberOfAnimations === AnimationNumbers.THREE &&
-    previousValueOnAnimationEndBigInt < valueBigInt === (animationTransition === AnimationTransitions.NONE);
-
-  const renderNegativeCharacter: boolean =
-    (isValueValid && !hasSignChanged && valueBigInt < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
-    renderNegativeElementWhenNumberOfAnimationsIsThree;
-
-  const animationType: AnimationTypes = renderAnimation
-    ? renderHorizontalAnimation
-      ? AnimationTypes.HORIZONTAL
-      : AnimationTypes.VERTICAL
-    : AnimationTypes.NONE;
-
-  const [horizontalAnimationDuration, verticalAnimationDuration]: AnimationDurationTuple = useAnimationDuration({
-    animationDuration,
-    numberOfAnimations,
-  });
-
-  const totalAnimationDuration: number = useTotalAnimationDuration({
-    numberOfAnimations,
-    horizontalAnimationDuration,
-    verticalAnimationDuration,
-  });
-
-  const [horizontalAnimationTimingFunction, verticalAnimationTimingFunction]: AnimationTimingFunctionTuple =
-    useAnimationTimingFunction(animationTimingFunction);
-
-  const theme: NumbersTransitionTheme = {
-    $animationType: animationType,
-    $numberOfAnimations: numberOfAnimations,
-    $currentAnimationNumber: currentAnimationNumber,
-    $totalAnimationDuration: totalAnimationDuration,
-    $horizontalAnimationDuration: horizontalAnimationDuration,
-    $verticalAnimationDuration: verticalAnimationDuration,
-  };
 
   useEffect((): void => {
     if (omitAnimation) {
@@ -303,6 +285,18 @@ const NumbersTransition = <
     } else {
       setAnimationTransition(AnimationTransitions.FIRST_TO_SECOND);
     }
+  };
+
+  const theme: NumbersTransitionTheme = {
+    $numberOfAnimations: numberOfAnimations,
+    $animationNumber: animationNumber,
+    $animationType: animationType,
+    $animationDirection: animationDirection,
+    $animationDuration: animationDuration,
+    $animationTimingFunction: animationTimingFunction,
+    $totalAnimationDuration: totalAnimationDuration,
+    $horizontalAnimationDuration: horizontalAnimationDuration,
+    $verticalAnimationDuration: verticalAnimationDuration,
   };
 
   const negativeCharacterElement: ReactElement = (
@@ -336,8 +330,7 @@ const NumbersTransition = <
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
-      animationDuration={horizontalAnimationDuration}
-      animationTimingFunction={horizontalAnimationTimingFunction}
+      animationDirection={animationDirection}
       animationTransition={animationTransition}
       previousValueDigits={previousValueOnAnimationEndDigits}
       currentValueDigits={valueDigits}
@@ -364,8 +357,7 @@ const NumbersTransition = <
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-      animationDuration={verticalAnimationDuration}
-      animationTimingFunction={verticalAnimationTimingFunction}
+      animationDirection={animationDirection}
       animationAlgorithm={animationAlgorithm}
       previousValue={previousValueOnAnimationEndBigInt}
       currentValue={valueBigInt}
@@ -381,7 +373,7 @@ const NumbersTransition = <
   );
 
   const animationElement: ReactElement = (
-    <Conditional condition={renderHorizontalAnimation}>
+    <Conditional condition={animationType === AnimationTypes.HORIZONTAL}>
       {horizontalAnimationElement}
       {verticalAnimationElement}
     </Conditional>

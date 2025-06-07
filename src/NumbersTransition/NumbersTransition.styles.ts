@@ -2,18 +2,17 @@ import { CSSProperties, ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes
 import styled, { RuleSet, css, keyframes } from 'styled-components';
 import { BaseObject, ExecutionProps, IStyledComponent, Keyframes, KnownTarget, Substitute } from 'styled-components/dist/types';
 import {
-  AnimationDirection,
+  AnimationDirections,
   AnimationNumbers,
+  AnimationTimingFunctions,
   AnimationTypes,
   Display,
   HTMLElements,
-  HorizontalAnimationDirection,
   Numbers,
   Runtime,
   Strings,
   StyledComponents,
   VariableNames,
-  VerticalAnimationDirection,
   ViewKeys,
 } from './NumbersTransition.enums';
 import { CamelCase, Falsy, OrArray } from './NumbersTransition.types';
@@ -32,10 +31,15 @@ type AttributesStyledComponent<T extends KnownTarget, U extends object, V extend
   Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
 >;
 
+export type AnimationTimingFunction = [[number, number], [number, number]];
+
 export interface NumbersTransitionTheme {
-  $animationType?: AnimationTypes;
   $numberOfAnimations?: AnimationNumbers;
-  $currentAnimationNumber?: AnimationNumbers;
+  $animationNumber?: AnimationNumbers;
+  $animationType?: AnimationTypes;
+  $animationDirection?: AnimationDirections;
+  $animationDuration?: number;
+  $animationTimingFunction?: AnimationTimingFunction;
   $totalAnimationDuration?: number;
   $horizontalAnimationDuration?: number;
   $verticalAnimationDuration?: number;
@@ -52,13 +56,21 @@ interface Property {
 }
 
 const properties: Property[] = [
+  { name: VariableNames.NUMBER_OF_ANIMATIONS, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
+  { name: VariableNames.ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
+
   {
     name: VariableNames.ANIMATION_TYPE,
     syntax: Object.values<AnimationTypes>(AnimationTypes).join(`${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`),
     initialValue: AnimationTypes.NONE,
   },
-  { name: VariableNames.NUMBER_OF_ANIMATIONS, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
-  { name: VariableNames.CURRENT_ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
+  {
+    name: VariableNames.ANIMATION_DIRECTION,
+    syntax: Object.values<AnimationDirections>(AnimationDirections).join(`${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`),
+    initialValue: AnimationDirections.NONE,
+  },
+  { name: VariableNames.ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableNames.ANIMATION_TIMING_FUNCTION, syntax: '*', initialValue: `cubic-bezier(${AnimationTimingFunctions.EASE.join()})` },
   { name: VariableNames.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
   { name: VariableNames.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
   { name: VariableNames.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
@@ -76,17 +88,23 @@ const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProp
 
 const containerVariables = ({
   theme: {
-    $animationType,
     $numberOfAnimations,
-    $currentAnimationNumber,
+    $animationNumber,
+    $animationType,
+    $animationDirection,
+    $animationDuration,
+    $animationTimingFunction,
     $totalAnimationDuration,
     $horizontalAnimationDuration,
     $verticalAnimationDuration,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.ANIMATION_TYPE}: ${$animationType};
   ${VariableNames.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
-  ${VariableNames.CURRENT_ANIMATION_NUMBER}: ${$currentAnimationNumber};
+  ${VariableNames.ANIMATION_NUMBER}: ${$animationNumber};
+  ${VariableNames.ANIMATION_TYPE}: ${$animationType};
+  ${VariableNames.ANIMATION_DIRECTION}: ${$animationDirection};
+  ${VariableNames.ANIMATION_TIMING_FUNCTION}: cubic-bezier(${$animationTimingFunction?.join()});
+  ${VariableNames.ANIMATION_DURATION}: ${$animationDuration}ms;
   ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
   ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
   ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
@@ -144,41 +162,20 @@ type AttributesOmittedKeys<T extends StyledComponents, U extends object> =
   | `${ViewKeys.STYLE}`
   | `${ViewKeys.CLASS_NAME}`;
 
-export type AnimationTimingFunction = [[number, number], [number, number]];
-
-interface AnimationDirectionProps<T extends AnimationDirection> {
-  $animationDirection: T;
-}
-
-interface AnimationDurationProps {
-  $animationDuration: number;
-}
-
-interface AnimationTimingFunctionProps {
-  $animationTimingFunction: AnimationTimingFunction;
-}
-
 interface AnimationDelayProps {
   $animationDelay?: number;
 }
 
-type UnselectedAnimationDirectionProps = AnimationDirectionProps<AnimationDirection>;
-
-interface AnimationCommonProps<T extends AnimationDirection>
-  extends Partial<NumbersTransitionExecutionContext>,
-    AnimationDirectionProps<T>,
-    AnimationDurationProps,
-    AnimationTimingFunctionProps,
-    AnimationDelayProps {}
+interface AnimationCommonProps extends Partial<NumbersTransitionExecutionContext>, AnimationDelayProps {}
 
 interface AnimationWidthProps {
   $animationStartWidth: number;
   $animationEndWidth: number;
 }
 
-interface HorizontalAnimationProps extends AnimationCommonProps<HorizontalAnimationDirection>, AnimationWidthProps {}
+interface HorizontalAnimationProps extends AnimationCommonProps, AnimationWidthProps {}
 
-export type VerticalAnimationProps = AnimationCommonProps<VerticalAnimationDirection>;
+export type VerticalAnimationProps = AnimationCommonProps;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
@@ -222,7 +219,10 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Numbers.MINUS_ONE_HUNDRED,
 ]);
 
-const animationType = ({ theme: { $animationType } = {}, ...restProps }: AnimationProps): undefined | Keyframes => {
+const animationName = ({
+  theme: { $animationType } = {},
+  ...restProps
+}: Partial<NumbersTransitionExecutionContext>): undefined | Keyframes => {
   switch ($animationType) {
     case AnimationTypes.HORIZONTAL:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
@@ -231,34 +231,12 @@ const animationType = ({ theme: { $animationType } = {}, ...restProps }: Animati
   }
 };
 
-const animationName: RuleSet<AnimationProps> = css<AnimationProps>`
-  animation-name: ${animationType};
-`;
-
-const animationDuration: RuleSet<AnimationDurationProps> = css<AnimationDurationProps>`
-  animation-duration: ${({ $animationDuration }: AnimationDurationProps): number => $animationDuration}ms;
-`;
-
-const animationDirection: RuleSet<UnselectedAnimationDirectionProps> = css<UnselectedAnimationDirectionProps>`
-  animation-direction: ${({ $animationDirection }: UnselectedAnimationDirectionProps): string => $animationDirection};
-`;
-
-const animationTimingFunction: RuleSet<AnimationTimingFunctionProps> = css<AnimationTimingFunctionProps>`
-  animation-timing-function: cubic-bezier(
-    ${({ $animationTimingFunction }: AnimationTimingFunctionProps): string => $animationTimingFunction.join()}
-  );
-`;
-
-const animationDelay: RuleSet<AnimationDelayProps> = css<AnimationDelayProps>`
-  animation-delay: ${({ $animationDelay = Numbers.ZERO }: AnimationDelayProps): number => $animationDelay}ms;
-`;
-
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
-  ${animationName};
-  ${animationDuration};
-  ${animationDirection};
-  ${animationTimingFunction};
-  ${animationDelay};
+  animation-name: ${animationName};
+  animation-direction: var(${VariableNames.ANIMATION_DIRECTION});
+  animation-duration: var(${VariableNames.ANIMATION_DURATION});
+  animation-timing-function: var(${VariableNames.ANIMATION_TIMING_FUNCTION});
+  animation-delay: ${({ $animationDelay = Numbers.ZERO }: AnimationDelayProps): number => $animationDelay}ms;
   animation-iteration-count: ${Numbers.ONE};
   animation-fill-mode: forwards;
 `;
