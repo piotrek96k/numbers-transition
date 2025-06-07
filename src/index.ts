@@ -9,6 +9,7 @@ import {
   DigitGroupSeparators,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
+  VariableNames,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   AnimationAlgorithm,
@@ -39,8 +40,9 @@ export {
   AnimationTypes,
   DecimalSeparators,
   DigitGroupSeparators,
-  NegativeCharacters,
   NegativeCharacterAnimationModes,
+  NegativeCharacters,
+  VariableNames,
 };
 
 export type {

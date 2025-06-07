@@ -12,6 +12,7 @@ import {
   NegativeCharacters,
   Numbers,
   StorybookValue,
+  VariableNames,
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
 import { Animation, AnimationFactory, AnimationTimingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
@@ -83,13 +84,10 @@ const opacityAnimationFactory: AnimationFactory<object, number> = ({
   theme: { $numberOfAnimations },
 }: NumbersTransitionExecutionContext): undefined | Animation<object, number> => ($numberOfAnimations ? opacityAnimation : undefined);
 
-const opacityAnimationDuration = ({ theme: { $totalAnimationDuration } }: NumbersTransitionExecutionContext): undefined | number =>
-  $totalAnimationDuration;
-
 const style: RuleSet<object> = css<object>`
   font-size: ${Numbers.FIVE}rem;
   color: #f0ff95;
-  animation-duration: calc(${opacityAnimationDuration}ms / ${Numbers.TWO});
+  animation-duration: calc(var(${VariableNames.TOTAL_ANIMATION_DURATION}) / ${Numbers.TWO});
   animation-direction: alternate;
   animation-iteration-count: ${Numbers.TWO};
   animation-fill-mode: forwards;
