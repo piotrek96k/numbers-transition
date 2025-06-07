@@ -1,4 +1,4 @@
-import { Numbers, Strings } from './NumbersTransition.enums';
+import { Strings } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
 
@@ -20,7 +20,7 @@ export type Slice<T extends string, U extends string> = U extends `${T}${infer V
 
 export type CamelCase<T extends string, U extends string> = T extends `${Strings.EMPTY}` ? U : `${T}${Capitalize<U>}`;
 
-export type Falsy = undefined | null | false | Numbers.ZERO | `${Strings.EMPTY}`;
+export type Falsy = undefined | null | false | `${Strings.EMPTY}` | [][Length];
 
 export type UncheckedBigDecimal = number | bigint | string;
 

@@ -16,7 +16,7 @@ import {
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
 import { Animation, AnimationFactory, AnimationTimingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
-import { ReadOnly } from './NumbersTransition.types';
+import { Falsy, ReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
@@ -82,7 +82,7 @@ const opacityAnimation: Animation<object, number> = {
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
   theme: { $numberOfAnimations },
-}: NumbersTransitionExecutionContext): undefined | Animation<object, number> => ($numberOfAnimations ? opacityAnimation : undefined);
+}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => $numberOfAnimations && opacityAnimation;
 
 const style: RuleSet<object> = css<object>`
   font-size: ${Numbers.FIVE}rem;
