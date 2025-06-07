@@ -107,8 +107,8 @@ const args: ComponentProps<NumbersTransitionProps> = {
     horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
     verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
   },
-  animationInterruptionMode: AnimationInterruptionModes.INTERRUPT,
   animationTimingFunction: AnimationTimingFunctions.EASE,
+  animationInterruptionMode: AnimationInterruptionModes.INTERRUPT,
   view: { css: style, animation: opacityAnimationFactory },
 };
 
