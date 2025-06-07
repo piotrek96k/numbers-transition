@@ -40,9 +40,9 @@ export interface NumbersTransitionTheme {
   $animationDirection?: AnimationDirections;
   $animationDuration?: number;
   $animationTimingFunction?: AnimationTimingFunction;
-  $totalAnimationDuration?: number;
   $horizontalAnimationDuration?: number;
   $verticalAnimationDuration?: number;
+  $totalAnimationDuration?: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -71,9 +71,9 @@ const properties: Property[] = [
   },
   { name: VariableNames.ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
   { name: VariableNames.ANIMATION_TIMING_FUNCTION, syntax: '*', initialValue: `cubic-bezier(${AnimationTimingFunctions.EASE.join()})` },
-  { name: VariableNames.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
   { name: VariableNames.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
   { name: VariableNames.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+  { name: VariableNames.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
 ];
 
 const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
@@ -94,9 +94,9 @@ const containerVariables = ({
     $animationDirection,
     $animationDuration,
     $animationTimingFunction,
-    $totalAnimationDuration,
     $horizontalAnimationDuration,
     $verticalAnimationDuration,
+    $totalAnimationDuration,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
@@ -105,9 +105,9 @@ const containerVariables = ({
   ${VariableNames.ANIMATION_DIRECTION}: ${$animationDirection};
   ${VariableNames.ANIMATION_TIMING_FUNCTION}: cubic-bezier(${$animationTimingFunction?.join()});
   ${VariableNames.ANIMATION_DURATION}: ${$animationDuration}ms;
-  ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
   ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
   ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
+  ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;

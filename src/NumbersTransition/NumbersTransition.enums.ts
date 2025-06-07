@@ -44,9 +44,9 @@ export enum VariableNames {
   ANIMATION_NUMBER = '--animation-number',
   ANIMATION_DURATION = '--animation-duration',
   ANIMATION_TIMING_FUNCTION = '--animation-timing-function',
-  TOTAL_ANIMATION_DURATION = '--total-animation-duration',
   HORIZONTAL_ANIMATION_DURATION = '--horizontal-animation-duration',
   VERTICAL_ANIMATION_DURATION = '--vertical-animation-duration',
+  TOTAL_ANIMATION_DURATION = '--total-animation-duration',
 }
 
 export enum AnimationIds {

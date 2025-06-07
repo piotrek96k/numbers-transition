@@ -154,39 +154,39 @@ const NumbersTransition = <
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
-  const previousValueOnAnimationStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-  const [previousValueOnAnimationEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
+  const previousValueOnStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
+  const [previousValueOnEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
     useState<BigDecimal>(validInitialValue);
-  const [validValue, isValueValid]: ValidationTuple = useValue(value, previousValueOnAnimationEnd, animationInterruptionMode);
+  const [validValue, isValueValid]: ValidationTuple = useValue(value, previousValueOnEnd, animationInterruptionMode);
 
   const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
     useState<AnimationTransitions>(AnimationTransitions.NONE);
 
   const [
-    [previousValueOnAnimationEndDigits, valueDigits],
-    [previousValueOnAnimationEndBigInt, previousValueOnAnimationStartBigInt, valueBigInt],
+    [previousValueOnEndDigits, valueDigits],
+    [previousValueOEndBigInt, previousValueOnStartBigInt, valueBigInt],
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
   ]: AnimationValuesTuple = useAnimationValues({
     precision,
     currentValue: validValue,
-    previousValueOnAnimationEnd,
-    previousValueOnAnimationStart: previousValueOnAnimationStart.current,
+    previousValueOnAnimationEnd: previousValueOnEnd,
+    previousValueOnAnimationStart: previousValueOnStart.current,
   });
 
   const { hasSignChanged, omitAnimation, restartAnimation, renderAnimation }: AnimationLogic = useAnimationLogic({
-    previousValue: previousValueOnAnimationEnd,
+    previousValue: previousValueOnEnd,
     value,
     isValueValid,
-    previousValueOnStart: previousValueOnAnimationStartBigInt,
-    previousValueOnEnd: previousValueOnAnimationEndBigInt,
+    previousValueOnStart: previousValueOnStartBigInt,
+    previousValueOnEnd: previousValueOEndBigInt,
     currentValue: valueBigInt,
   });
 
   const [animationNumber, numberOfAnimations]: AnimationNumbersTuple = useAnimationNumbers({
     animationTransition,
-    previousValueDigits: previousValueOnAnimationEndDigits,
+    previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOnAnimationEndBigInt,
+    previousValue: previousValueOEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     renderAnimation,
@@ -194,9 +194,9 @@ const NumbersTransition = <
 
   const animationType: AnimationTypes = useAnimationType({
     animationTransition,
-    previousValueDigits: previousValueOnAnimationEndDigits,
+    previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOnAnimationEndBigInt,
+    previousValue: previousValueOEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     renderAnimation,
@@ -206,9 +206,9 @@ const NumbersTransition = <
   const animationDirection: AnimationDirections = useAnimationDirection({
     animationType,
     animationTransition,
-    previousValueDigits: previousValueOnAnimationEndDigits,
+    previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOnAnimationEndBigInt,
+    previousValue: previousValueOEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     numberOfAnimations,
@@ -226,7 +226,7 @@ const NumbersTransition = <
   const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
     negativeCharacterAnimationMode,
     animationTransition,
-    previousValue: previousValueOnAnimationEndBigInt,
+    previousValue: previousValueOEndBigInt,
     currentValue: valueBigInt,
     isValueValid,
     hasSignChanged,
@@ -264,10 +264,10 @@ const NumbersTransition = <
 
   useEffect((): void => {
     if (restartAnimation) {
-      setPreviousValueOnAnimationEnd(previousValueOnAnimationStart.current);
+      setPreviousValueOnAnimationEnd(previousValueOnStart.current);
       setAnimationTransition(AnimationTransitions.NONE);
     }
-    previousValueOnAnimationStart.current = validValue;
+    previousValueOnStart.current = validValue;
   }, [validValue, restartAnimation]);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
@@ -294,9 +294,9 @@ const NumbersTransition = <
     $animationDirection: animationDirection,
     $animationDuration: animationDuration,
     $animationTimingFunction: animationTimingFunction,
-    $totalAnimationDuration: totalAnimationDuration,
     $horizontalAnimationDuration: horizontalAnimationDuration,
     $verticalAnimationDuration: verticalAnimationDuration,
+    $totalAnimationDuration: totalAnimationDuration,
   };
 
   const negativeCharacterElement: ReactElement = (
@@ -320,7 +320,7 @@ const NumbersTransition = <
       decimalSeparatorStyledView={decimalSeparatorStyledView}
       digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
     >
-      {previousValueOnAnimationEndDigits}
+      {previousValueOnEndDigits}
     </NumberElement>
   );
 
@@ -332,9 +332,9 @@ const NumbersTransition = <
       negativeCharacter={negativeCharacter}
       animationDirection={animationDirection}
       animationTransition={animationTransition}
-      previousValueDigits={previousValueOnAnimationEndDigits}
+      previousValueDigits={previousValueOnEndDigits}
       currentValueDigits={valueDigits}
-      previousValue={previousValueOnAnimationEndBigInt}
+      previousValue={previousValueOEndBigInt}
       currentValue={valueBigInt}
       minNumberOfDigits={minNumberOfDigits}
       maxNumberOfDigits={maxNumberOfDigits}
@@ -359,7 +359,7 @@ const NumbersTransition = <
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationDirection={animationDirection}
       animationAlgorithm={animationAlgorithm}
-      previousValue={previousValueOnAnimationEndBigInt}
+      previousValue={previousValueOEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
