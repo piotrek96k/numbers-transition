@@ -129,7 +129,6 @@ const HorizontalAnimationNegativeCharacterElement = <T extends object, U, V exte
 interface VerticalAnimationNegativeCharacterElementProps<T extends object, U, V extends object, W> {
   negativeCharacter: NegativeCharacters;
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
-  animationDirection: AnimationDirections;
   animationDigits: number[];
   hasSignChanged: boolean;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
@@ -142,7 +141,6 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   const {
     negativeCharacter,
     negativeCharacterAnimationMode,
-    animationDirection,
     animationDigits,
     hasSignChanged,
     characterStyledView,
@@ -150,8 +148,9 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   }: VerticalAnimationNegativeCharacterElementProps<T, U, V, W> = props;
 
   const {
+    $animationDirection: animationDirection,
+    $animationDuration: animationDuration = Numbers.ZERO,
     $animationTimingFunction: animationTimingFunction,
-    $verticalAnimationDuration: animationDuration = Numbers.ZERO,
   }: NumbersTransitionTheme = useTheme();
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
@@ -297,7 +296,6 @@ interface HorizontalAnimationElementProps<
   decimalSeparator: DecimalSeparators;
   digitGroupSeparator: DigitGroupSeparators;
   negativeCharacter: NegativeCharacters;
-  animationDirection: AnimationDirections;
   animationTransition: AnimationTransitions;
   previousValueDigits: number[];
   currentValueDigits: number[];
@@ -337,7 +335,6 @@ export const HorizontalAnimationElement = <
     decimalSeparator,
     digitGroupSeparator,
     negativeCharacter,
-    animationDirection,
     animationTransition,
     previousValueDigits,
     currentValueDigits,
@@ -356,6 +353,7 @@ export const HorizontalAnimationElement = <
     negativeCharacterStyledView,
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const { $animationDirection: animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Numbers.ZERO);
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
   const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Numbers.ZERO;
@@ -457,7 +455,6 @@ interface VerticalAnimationElementProps<
   digitGroupSeparator: DigitGroupSeparators;
   negativeCharacter: NegativeCharacters;
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
-  animationDirection: AnimationDirections;
   animationAlgorithm?: AnimationAlgorithm;
   previousValue: bigint;
   currentValue: bigint;
@@ -490,7 +487,6 @@ export const VerticalAnimationElement = <
   const {
     negativeCharacter,
     negativeCharacterAnimationMode,
-    animationDirection,
     animationAlgorithm,
     previousValue,
     currentValue,
@@ -504,9 +500,6 @@ export const VerticalAnimationElement = <
     negativeCharacterStyledView,
     ...restProps
   }: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
-
-  const renderNegativeCharacter: boolean =
-    hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
@@ -527,13 +520,15 @@ export const VerticalAnimationElement = <
     </div>
   );
 
+  const renderNegativeCharacter: boolean =
+    hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
+
   return (
     <>
       <Optional condition={renderNegativeCharacter}>
         <VerticalAnimationNegativeCharacterElement<O, P, Y, Z>
           negativeCharacter={negativeCharacter}
           negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-          animationDirection={animationDirection}
           animationDigits={animationDigits[Numbers.ZERO]}
           hasSignChanged={hasSignChanged}
           characterStyledView={characterStyledView}
