@@ -15,7 +15,7 @@ import {
   VariableNames,
   ViewKeys,
 } from './NumbersTransition.enums';
-import { CamelCase, Falsy, OrArray } from './NumbersTransition.types';
+import { CamelCase, Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
@@ -33,7 +33,17 @@ type AttributesStyledComponent<T extends KnownTarget, U extends object, V extend
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
-export interface NumbersTransitionTheme {
+export interface ElementsLength {
+  $charactersLength?: number;
+  $digitsLength?: number;
+  $separatorsLength?: number;
+  $decimalSeparatorLength?: number;
+  $digitGroupSeparatorsLength?: number;
+  $negativeCharacterLength?: number;
+  $invalidLength?: number;
+}
+
+export interface NumbersTransitionTheme extends ElementsLength {
   $numberOfAnimations?: AnimationNumbers;
   $animationNumber?: AnimationNumbers;
   $animationType?: AnimationTypes;
@@ -49,31 +59,58 @@ export interface NumbersTransitionExecutionContext extends ExecutionProps {
   theme: NumbersTransitionTheme;
 }
 
-interface Property {
+interface BaseProperty {
   name: VariableNames;
+}
+
+interface Property extends BaseProperty {
   syntax: string;
   initialValue: string | number;
 }
 
-const properties: Property[] = [
-  { name: VariableNames.NUMBER_OF_ANIMATIONS, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
-  { name: VariableNames.ANIMATION_NUMBER, syntax: '<integer>', initialValue: AnimationNumbers.ZERO },
+interface EnumProperty<E extends Enum<E>> extends BaseProperty {
+  enumerable: E;
+  initialValue: TypeOf<E>;
+}
 
-  {
-    name: VariableNames.ANIMATION_TYPE,
-    syntax: Object.values<AnimationTypes>(AnimationTypes).join(`${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`),
-    initialValue: AnimationTypes.NONE,
-  },
-  {
-    name: VariableNames.ANIMATION_DIRECTION,
-    syntax: Object.values<AnimationDirections>(AnimationDirections).join(`${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`),
-    initialValue: AnimationDirections.NONE,
-  },
-  { name: VariableNames.ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
+const mapEnumProperty = <E extends Enum<E>>({ enumerable, ...restProperty }: EnumProperty<E>): Property => ({
+  ...restProperty,
+  syntax: Object.values<string | number>(enumerable).join(`${Strings.SPACE}${Strings.VERTICAL_LINE}${Strings.SPACE}`),
+});
+
+const mapTimeProperty = (name: VariableNames): Property => ({ name, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` });
+
+const mapIntegerProperty = (name: VariableNames): Property => ({ name, syntax: '<integer>', initialValue: Numbers.ZERO });
+
+const enumProperties: EnumProperty<typeof AnimationTypes | typeof AnimationDirections>[] = [
+  { name: VariableNames.ANIMATION_TYPE, enumerable: AnimationTypes, initialValue: AnimationTypes.NONE },
+  { name: VariableNames.ANIMATION_DIRECTION, enumerable: AnimationDirections, initialValue: AnimationDirections.NONE },
+];
+
+const timeProperties: VariableNames[] = [
+  VariableNames.ANIMATION_DURATION,
+  VariableNames.HORIZONTAL_ANIMATION_DURATION,
+  VariableNames.VERTICAL_ANIMATION_DURATION,
+  VariableNames.TOTAL_ANIMATION_DURATION,
+];
+
+const integerProperties: VariableNames[] = [
+  VariableNames.NUMBER_OF_ANIMATIONS,
+  VariableNames.ANIMATION_NUMBER,
+  VariableNames.CHARACTERS_LENGTH,
+  VariableNames.DIGITS_LENGTH,
+  VariableNames.SEPARATORS_LENGTH,
+  VariableNames.DECIMAL_SEPARATOR_LENGTH,
+  VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH,
+  VariableNames.NEGATIVE_CHARACTER_LENGTH,
+  VariableNames.INVALID_LENGTH,
+];
+
+const properties: Property[] = [
+  ...enumProperties.map<Property>(mapEnumProperty),
+  ...timeProperties.map<Property>(mapTimeProperty),
+  ...integerProperties.map<Property>(mapIntegerProperty),
   { name: VariableNames.ANIMATION_TIMING_FUNCTION, syntax: '*', initialValue: `cubic-bezier(${AnimationTimingFunctions.EASE.join()})` },
-  { name: VariableNames.HORIZONTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
-  { name: VariableNames.VERTICAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
-  { name: VariableNames.TOTAL_ANIMATION_DURATION, syntax: '<time>', initialValue: `${Numbers.ZERO}ms` },
 ];
 
 const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
@@ -97,6 +134,13 @@ const containerVariables = ({
     $horizontalAnimationDuration,
     $verticalAnimationDuration,
     $totalAnimationDuration,
+    $charactersLength,
+    $digitsLength,
+    $separatorsLength,
+    $decimalSeparatorLength,
+    $digitGroupSeparatorsLength,
+    $negativeCharacterLength,
+    $invalidLength,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
@@ -108,6 +152,13 @@ const containerVariables = ({
   ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
   ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
   ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
+  ${VariableNames.CHARACTERS_LENGTH}: ${$charactersLength};
+  ${VariableNames.DIGITS_LENGTH}: ${$digitsLength};
+  ${VariableNames.SEPARATORS_LENGTH}: ${$separatorsLength};
+  ${VariableNames.DECIMAL_SEPARATOR_LENGTH}: ${$decimalSeparatorLength};
+  ${VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH}: ${$digitGroupSeparatorsLength};
+  ${VariableNames.NEGATIVE_CHARACTER_LENGTH}: ${$negativeCharacterLength};
+  ${VariableNames.INVALID_LENGTH}: ${$invalidLength};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;

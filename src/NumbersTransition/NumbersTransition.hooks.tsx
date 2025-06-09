@@ -18,7 +18,7 @@ import {
   TotalAnimationDurationValues,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { AnimationTimingFunction, StyledView } from './NumbersTransition.styles';
+import { AnimationTimingFunction, ElementsLength, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type RerenderFunction = (condition?: boolean) => void;
@@ -656,6 +656,57 @@ export const useStyledView: UseStyledView = <
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
     >(mapView);
+};
+
+type UseNumberOfDigitGroupSeparators = (precision: number) => (numberOfDigits: number) => number;
+
+export const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
+  (precision: number): ((numberOfDigits: number) => number) =>
+  (numberOfDigits: number): number =>
+    [numberOfDigits - Math.max(precision, Numbers.ZERO), Math.max(precision, Numbers.ZERO)]
+      .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
+      .reduce((first: number, second: number): number => first + second);
+
+interface UseElementsLengthOptions {
+  precision: number;
+  isValueValid: boolean;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+  numberOfDigits: number;
+}
+
+type UseElementsLength = (options: UseElementsLengthOptions) => ElementsLength;
+
+export const useElementsLength: UseElementsLength = (options: UseElementsLengthOptions): ElementsLength => {
+  const { precision, isValueValid, currentValue, hasSignChanged, numberOfDigits }: UseElementsLengthOptions = options;
+
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
+  const sum = (first: number, second: number): number => first + second;
+
+  const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Numbers.ZERO) ? Numbers.ONE : Numbers.ZERO;
+  const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Numbers.ZERO;
+  const decimalSeparatorLength: number = isValueValid && precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO;
+  const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
+  const digitsLength: number = isValueValid ? numberOfDigits : Numbers.ZERO;
+  const invalidLength: number = isValueValid ? Numbers.ZERO : Numbers.ONE;
+
+  const charactersLength: number = [
+    negativeCharacterLength,
+    digitsLength,
+    digitGroupSeparatorsLength,
+    decimalSeparatorLength,
+    invalidLength,
+  ].reduce(sum);
+
+  return {
+    $charactersLength: charactersLength,
+    $digitsLength: digitsLength,
+    $separatorsLength: separatorsLength,
+    $decimalSeparatorLength: decimalSeparatorLength,
+    $digitGroupSeparatorsLength: digitGroupSeparatorsLength,
+    $negativeCharacterLength: negativeCharacterLength,
+    $invalidLength: invalidLength,
+  };
 };
 
 type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;

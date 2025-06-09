@@ -21,6 +21,7 @@ import {
   useCubicBezier,
   useElementKeyMapper,
   useHorizontalAnimationDigits,
+  useNumberOfDigitGroupSeparators,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
@@ -353,7 +354,9 @@ export const HorizontalAnimationElement = <
     negativeCharacterStyledView,
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
   const { $animationDirection: animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
+
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Numbers.ZERO);
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
   const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Numbers.ZERO;
@@ -373,13 +376,11 @@ export const HorizontalAnimationElement = <
 
   const numberOfDigits: number = renderZeros ? minNumberOfDigits : maxNumberOfDigits;
 
-  const numberOfDigitGroupSeparators: number = [numberOfDigits - Math.max(precision, Numbers.ZERO), Math.max(precision, Numbers.ZERO)]
-    .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
-    .reduce(sum);
-
   const animationStartIndex: number = [
     ref.current?.children.length ?? Numbers.ZERO,
-    [numberOfDigits, numberOfDigitGroupSeparators, precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO].reduce(sum),
+    [numberOfDigits, calculateNumberOfDigitGroupSeparators(numberOfDigits), precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO].reduce(
+      sum,
+    ),
   ].reduce(subtract);
 
   const animationDigits: number[] = useHorizontalAnimationDigits({

@@ -47,6 +47,13 @@ export enum VariableNames {
   HORIZONTAL_ANIMATION_DURATION = '--horizontal-animation-duration',
   VERTICAL_ANIMATION_DURATION = '--vertical-animation-duration',
   TOTAL_ANIMATION_DURATION = '--total-animation-duration',
+  CHARACTERS_LENGTH = '--characters-length',
+  DIGITS_LENGTH = '--digits-length',
+  SEPARATORS_LENGTH = '--separators-length',
+  DECIMAL_SEPARATOR_LENGTH = '--decimal-separator-length',
+  DIGIT_GROUP_SEPARATORS_LENGTH = '--digit-group-separators-length',
+  NEGATIVE_CHARACTER_LENGTH = '--negative-character-length',
+  INVALID_LENGTH = '--invalid-length',
 }
 
 export enum AnimationIds {

@@ -56,12 +56,13 @@ import {
   useAnimationTimingFunction,
   useAnimationType,
   useAnimationValues,
+  useElementsLength,
   useRenderNegativeCharacter,
   useStyledView,
   useValidation,
   useValue,
 } from './NumbersTransition.hooks';
-import { AnimationTimingFunction, Container, NumbersTransitionTheme } from './NumbersTransition.styles';
+import { AnimationTimingFunction, Container, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
@@ -256,6 +257,14 @@ const NumbersTransition = <
     invalidView,
   ]);
 
+  const elementsLength: ElementsLength = useElementsLength({
+    precision,
+    isValueValid,
+    currentValue: valueBigInt,
+    hasSignChanged,
+    numberOfDigits: maxNumberOfDigits,
+  });
+
   useEffect((): void => {
     if (omitAnimation) {
       setPreviousValueOnAnimationEnd(validValue);
@@ -288,6 +297,7 @@ const NumbersTransition = <
   };
 
   const theme: NumbersTransitionTheme = {
+    ...elementsLength,
     $numberOfAnimations: numberOfAnimations,
     $animationNumber: animationNumber,
     $animationType: animationType,

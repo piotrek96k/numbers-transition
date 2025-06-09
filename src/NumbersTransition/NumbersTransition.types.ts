@@ -2,6 +2,8 @@ import { Strings } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
 
+export type Enum<E> = Record<keyof E, string | number> & { [key: number]: string };
+
 type Length = TypeOf<{ [K in keyof unknown[]]: unknown[][K] extends number ? K : never }>;
 
 export type TupleIndex<T extends unknown[]> = Exclude<keyof T, keyof unknown[]>;
