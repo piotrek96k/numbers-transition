@@ -82,6 +82,14 @@ const mapTimeProperty = (name: VariableNames): Property => ({ name, syntax: '<ti
 
 const mapIntegerProperty = (name: VariableNames): Property => ({ name, syntax: '<integer>', initialValue: Numbers.ZERO });
 
+const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
+  @property ${name} {
+    syntax: '${syntax}';
+    inherits: true;
+    initial-value: ${initialValue};
+  }
+`;
+
 const enumProperties: EnumProperty<typeof AnimationTypes | typeof AnimationDirections>[] = [
   { name: VariableNames.ANIMATION_TYPE, enumerable: AnimationTypes, initialValue: AnimationTypes.NONE },
   { name: VariableNames.ANIMATION_DIRECTION, enumerable: AnimationDirections, initialValue: AnimationDirections.NONE },
@@ -112,14 +120,6 @@ const properties: Property[] = [
   ...integerProperties.map<Property>(mapIntegerProperty),
   { name: VariableNames.ANIMATION_TIMING_FUNCTION, syntax: '*', initialValue: `cubic-bezier(${AnimationTimingFunctions.EASE.join()})` },
 ];
-
-const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
-  @property ${name} {
-    syntax: '${syntax}';
-    inherits: true;
-    initial-value: ${initialValue};
-  }
-`;
 
 const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProperty);
 
