@@ -4,12 +4,10 @@ export type TypeOf<T> = T[keyof T];
 
 export type Enum<E> = Record<keyof E, string | number> & { [key: number]: string };
 
-type Length = TypeOf<{ [K in keyof unknown[]]: unknown[][K] extends number ? K : never }>;
-
 export type TupleIndex<T extends unknown[]> = Exclude<keyof T, keyof unknown[]>;
 
-export type MappedTuple<T extends { [index: `${number}`]: unknown }, U extends unknown[] = []> = `${U[Length]}` extends keyof T
-  ? MappedTuple<T, [...U, T[`${U[Length]}`]]>
+export type MappedTuple<T extends { [index: `${number}`]: unknown }, U extends unknown[] = []> = `${U[Strings.LENGTH]}` extends keyof T
+  ? MappedTuple<T, [...U, T[`${U[Strings.LENGTH]}`]]>
   : U;
 
 export type ReadOnly<T> = { +readonly [K in keyof T]: ReadOnly<T[K]> };
@@ -22,7 +20,7 @@ export type Slice<T extends string, U extends string> = U extends `${T}${infer V
 
 export type CamelCase<T extends string, U extends string> = T extends `${Strings.EMPTY}` ? U : `${T}${Capitalize<U>}`;
 
-export type Falsy = undefined | null | false | `${Strings.EMPTY}` | [][Length];
+export type Falsy = undefined | null | false | `${Strings.EMPTY}` | [][Strings.LENGTH];
 
 export type UncheckedBigDecimal = number | bigint | string;
 

@@ -148,6 +148,7 @@ export enum Strings {
   UNDERSCORE = '_',
   DOLLAR = '$',
   VERTICAL_LINE = '|',
+  LENGTH = 'length',
 }
 
 export enum Numbers {
