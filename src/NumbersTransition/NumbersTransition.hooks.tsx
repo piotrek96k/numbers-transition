@@ -21,14 +21,14 @@ import './NumbersTransition.extensions';
 import { AnimationTimingFunction, ElementsLength, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
-type RerenderFunction = (condition?: boolean) => void;
+type RerenderFunction = (condition: boolean) => void;
 
 type UseRerender = () => RerenderFunction;
 
 const useRerender: UseRerender = (): RerenderFunction => {
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
 
-  return (condition: boolean = true): void => (condition ? rerender() : (() => {})());
+  return (condition: boolean): void => (condition ? rerender() : (() => {})());
 };
 
 export type ValidationTuple = [BigDecimal, boolean];
