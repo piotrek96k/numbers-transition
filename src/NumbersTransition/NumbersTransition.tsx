@@ -36,7 +36,6 @@ import {
   NegativeCharacters,
   Numbers,
 } from './NumbersTransition.enums';
-import './NumbersTransition.extensions.ts';
 import {
   AnimationAlgorithm,
   AnimationDuration,

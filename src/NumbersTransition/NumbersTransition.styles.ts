@@ -15,6 +15,7 @@ import {
   VariableNames,
   ViewKeys,
 } from './NumbersTransition.enums';
+import './NumbersTransition.extensions';
 import { CamelCase, Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
