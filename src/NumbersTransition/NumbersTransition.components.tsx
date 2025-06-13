@@ -148,12 +148,13 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     negativeCharacterStyledView,
   }: VerticalAnimationNegativeCharacterElementProps<T, U, V, W> = props;
 
+  const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
+
   const {
     $animationDirection: animationDirection,
     $animationDuration: animationDuration = Numbers.ZERO,
     $animationTimingFunction: animationTimingFunction,
   }: NumbersTransitionTheme = useTheme();
-  const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
   const createNegativeCharacterElementProps = (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
     negativeCharacter,
@@ -354,12 +355,12 @@ export const HorizontalAnimationElement = <
     negativeCharacterStyledView,
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
-  const { $animationDirection: animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
-
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Numbers.ZERO);
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
   const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Numbers.ZERO;
+
+  const { $animationDirection: animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
 
   const sum = (first: number, second: number): number => first + second;
   const subtract = (first: number, second: number): number => first - second;
