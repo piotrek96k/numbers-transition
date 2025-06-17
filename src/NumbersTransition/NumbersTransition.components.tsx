@@ -265,14 +265,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </DigitGroupSeparator>
   );
 
-  const getSeparatorElement = (index: number, length: number): ReactNode =>
-    !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) &&
-    (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement);
-
   const reduceDigits = (accumulator: ReactElement, currentValue: ReactElement, index: number, { length }: ReactElement[]): ReactElement => (
     <>
       {accumulator}
-      {getSeparatorElement(index, length)}
+      {!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) &&
+        (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement)}
       {currentValue}
     </>
   );
@@ -394,7 +391,7 @@ export const HorizontalAnimationElement = <
 
   useLayoutEffect((): void => {
     const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
-      index >= animationStartIndex ? sum + child.getBoundingClientRect().width : Numbers.ZERO;
+      animationStartIndex <= index ? sum + child.getBoundingClientRect().width : Numbers.ZERO;
 
     setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Numbers.ZERO));
   }, [animationStartIndex]);
