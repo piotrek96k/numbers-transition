@@ -466,7 +466,7 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
   const {
     horizontalAnimation = AnimationTimingFunctions.EASE,
     verticalAnimation = AnimationTimingFunctions.EASE,
-  }: ExtendedAnimationTimingFunction = Array.isArray<OrReadOnly<AnimationTimingFunction>, ExtendedAnimationTimingFunction>(
+  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<AnimationTimingFunction>>(
     animationTimingFunctionInput,
   )
     ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
