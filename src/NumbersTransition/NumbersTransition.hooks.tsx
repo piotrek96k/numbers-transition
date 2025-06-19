@@ -843,7 +843,7 @@ interface ChildrenProps {
 
 interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
-type FunctionalComponent<T> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
+type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
 type PropsFactory<T extends ReactNode, U extends object> = (value: T, index: number, length: number) => U;
 
