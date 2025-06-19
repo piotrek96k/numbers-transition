@@ -268,7 +268,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const reduceDigits = (accumulator: ReactElement, currentValue: ReactElement, index: number, { length }: ReactElement[]): ReactElement => (
     <>
       {accumulator}
-      {!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) &&
+      {!!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) ||
         (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement)}
       {currentValue}
     </>

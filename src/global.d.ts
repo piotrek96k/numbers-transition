@@ -9,8 +9,8 @@ declare global {
   }
 
   interface ArrayConstructor {
-    isArray<T>(arg: T): arg is T[];
-    isArray<T, U extends T[]>(arg: T): arg is U;
+    isArray<T>(arg: T | T[]): arg is T[];
+    isArray<T extends unknown[] | readonly unknown[], U>(arg: T | U): arg is T;
   }
 
   interface Array<T> {

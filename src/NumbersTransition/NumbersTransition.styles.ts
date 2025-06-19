@@ -330,9 +330,7 @@ const classNameFactory = <T extends StyledComponents, U extends object, V>(
 const toCssArray = <T extends object>(
   cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
-  Array.isArray<undefined | OrArray<CssRule<T> | CssRuleFactory<T>>>(cssStyle) && cssStyle.depth() === Numbers.TWO
-    ? cssStyle
-    : <(undefined | CssRule<T> | CssRuleFactory<T>)[]>[cssStyle];
+  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) && cssStyle.depth() === Numbers.TWO ? cssStyle : [cssStyle];
 
 const cssFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
@@ -359,7 +357,7 @@ const createAnimationsKeyframes = <T extends StyledComponents, U extends object,
   props: Omit<Props<T, U, V>, keyof AnimationView<T, U, V>>,
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): RuleSet<object> | false =>
-  !!(Array.isArray<undefined | OrArray<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation) &&
+  !!(Array.isArray<undefined | Animation<U, V> | AnimationFactory<U, V>>(animation) ? animation.length : animation) &&
   [animation!]
     .flat<OrArray<Animation<U, V> | AnimationFactory<U, V>>[], Numbers.ONE>()
     .map<Partial<Animation<U, V>> | Falsy>(createViewFactoryMapper<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))

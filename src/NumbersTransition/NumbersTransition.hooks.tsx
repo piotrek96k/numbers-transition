@@ -17,7 +17,6 @@ import {
   StyledComponents,
   TotalAnimationDurationValues,
 } from './NumbersTransition.enums';
-import './NumbersTransition.extensions';
 import { AnimationTimingFunction, ElementsLength, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
@@ -28,7 +27,7 @@ type UseRerender = () => RerenderFunction;
 const useRerender: UseRerender = (): RerenderFunction => {
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
 
-  return (condition: boolean): void => (condition ? rerender() : (() => {})());
+  return (condition: boolean): void => (condition ? rerender() : undefined);
 };
 
 export type ValidationTuple = [BigDecimal, boolean];
@@ -69,8 +68,8 @@ export const useValue: UseValue = (
   const filterInvalidValues = ([, isValid]: ValidationTuple, index: number, { length }: ValidationTuple[]): boolean =>
     isValid || index === length - Numbers.ONE;
 
-  const filterDuplicates = ([val]: ValidationTuple, index: number, array: ValidationTuple[]): boolean =>
-    !index || val !== array[index - Numbers.ONE][Numbers.ZERO];
+  const filterDuplicates = ([value]: ValidationTuple, index: number, array: ValidationTuple[]): boolean =>
+    !index || value !== array[index - Numbers.ONE][Numbers.ZERO];
 
   useEffect((): void => {
     if (validValue === previousValue || !isValueValid) {
@@ -464,14 +463,12 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (
     animationDirection,
   }: UseAnimationTimingFunctionOptions = options;
 
-  const isAnimationTimingFunction: (
-    animationTimingFunction: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction,
-  ) => animationTimingFunction is OrReadOnly<AnimationTimingFunction> = Array.isArray;
-
   const {
     horizontalAnimation = AnimationTimingFunctions.EASE,
     verticalAnimation = AnimationTimingFunctions.EASE,
-  }: ExtendedAnimationTimingFunction = isAnimationTimingFunction(animationTimingFunctionInput)
+  }: ExtendedAnimationTimingFunction = Array.isArray<OrReadOnly<AnimationTimingFunction>, ExtendedAnimationTimingFunction>(
+    animationTimingFunctionInput,
+  )
     ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
     : animationTimingFunctionInput;
 

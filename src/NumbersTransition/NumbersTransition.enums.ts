@@ -3,7 +3,7 @@ export enum Runtime {
 }
 
 export enum HTMLElements {
-  'DIV' = 'div',
+  DIV = 'div',
 }
 
 export enum Display {
@@ -146,8 +146,8 @@ export enum Strings {
   MINUS = '-',
   SPACE = ' ',
   UNDERSCORE = '_',
-  DOLLAR = '$',
   VERTICAL_LINE = '|',
+  DOLLAR = '$',
   LENGTH = 'length',
 }
 
