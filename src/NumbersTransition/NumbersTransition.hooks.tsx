@@ -842,20 +842,20 @@ interface ChildrenProps {
 }
 
 interface IterableProps extends KeyProps, ChildrenProps {}
-type ComponentProps<T extends object | undefined> = T extends undefined ? IterableProps : T & IterableProps;
-type FunctionalComponent<T extends object | undefined> = FC<ComponentProps<T>> | string;
+type ComponentProps<T extends object> = T & IterableProps;
+type FunctionalComponent<T> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends ReactNode, U extends object | undefined> = (value: T, index: number, length: number) => U;
+type PropsFactory<T extends ReactNode, U extends object> = (value: T, index: number, length: number) => U;
 
 export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
 
-type UseElementKeyMapper = <T extends ReactNode, U extends object | undefined = undefined>(
+type UseElementKeyMapper = <T extends ReactNode, U extends object = object>(
   Component: FunctionalComponent<U>,
   props?: U | PropsFactory<T, U>,
 ) => ElementKeyMapper<T>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  <T extends ReactNode, U extends object | undefined = undefined>(
+  <T extends ReactNode, U extends object = object>(
     Component: FunctionalComponent<U>,
     props?: U | PropsFactory<T, U>,
   ): ElementKeyMapper<T> =>

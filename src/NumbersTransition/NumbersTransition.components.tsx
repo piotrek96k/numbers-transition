@@ -501,7 +501,7 @@ export const VerticalAnimationElement = <
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode>(VerticalAnimation);
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, object>(VerticalAnimation);
 
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<O, P, Q, R>>(Digit, {
     ...characterStyledView,
