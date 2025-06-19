@@ -845,7 +845,7 @@ interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends ReactNode, U extends object> = (value: T, index: number, length: number) => U;
+type PropsFactory<T extends ReactNode, U extends object> = (value: T, index: number, array: T[]) => U;
 
 export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
 
@@ -859,10 +859,10 @@ export const useElementKeyMapper: UseElementKeyMapper =
     Component: FunctionalComponent<U>,
     props?: U | PropsFactory<T, U>,
   ): ElementKeyMapper<T> =>
-  (child: T, index: number, { length }: T[]): ReactElement => (
+  (child: T, index: number, array: T[]): ReactElement => (
     <Component
-      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
-      {...(typeof props === 'function' ? props(child, index, length) : props)}
+      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
+      {...(typeof props === 'function' ? props(child, index, array) : props)}
     >
       {child}
     </Component>
