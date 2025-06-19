@@ -227,7 +227,7 @@ interface AnimationWidthProps {
 
 interface HorizontalAnimationProps extends AnimationCommonProps, AnimationWidthProps {}
 
-export type VerticalAnimationProps = AnimationCommonProps;
+type VerticalAnimationProps = AnimationCommonProps;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 

@@ -35,7 +35,6 @@ import {
   NegativeCharacter,
   NumbersTransitionTheme,
   VerticalAnimation,
-  VerticalAnimationProps,
 } from './NumbersTransition.styles';
 
 interface ConditionalProps {
@@ -164,7 +163,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     negativeCharacterStyledView,
   });
 
-  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
+  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeCharacterElementProps<T, U, V, W>>(
     NegativeCharacterElement<T, U, V, W>,
     createNegativeCharacterElementProps,
   );
@@ -248,7 +247,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     children,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const mapToDigitElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<DigitProps<Q, R, S, T>, ReactNode>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, DigitProps<Q, R, S, T>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
   });
@@ -502,12 +501,9 @@ export const VerticalAnimationElement = <
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<VerticalAnimationProps, ReactNode>(
-    VerticalAnimation,
-    {},
-  );
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode>(VerticalAnimation);
 
-  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<DigitProps<O, P, Q, R>, number>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<O, P, Q, R>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
     $display: Display.BLOCK,

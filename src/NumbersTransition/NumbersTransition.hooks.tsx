@@ -842,21 +842,24 @@ interface ChildrenProps {
 }
 
 interface IterableProps extends KeyProps, ChildrenProps {}
-type ComponentProps<T extends object> = T & IterableProps;
-type FunctionalComponent<T extends object> = FC<ComponentProps<T>> | string;
+type ComponentProps<T extends object | undefined> = T extends undefined ? IterableProps : T & IterableProps;
+type FunctionalComponent<T extends object | undefined> = FC<ComponentProps<T>> | string;
 
-type PropsFactory<T extends object, U extends ReactNode> = (value: U, index: number, length: number) => T;
+type PropsFactory<T extends ReactNode, U extends object | undefined> = (value: T, index: number, length: number) => U;
 
 export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
 
-type UseElementKeyMapper = <T extends object, U extends ReactNode>(
-  Component: FunctionalComponent<T>,
-  props: T | PropsFactory<T, U>,
-) => ElementKeyMapper<U>;
+type UseElementKeyMapper = <T extends ReactNode, U extends object | undefined = undefined>(
+  Component: FunctionalComponent<U>,
+  props?: U | PropsFactory<T, U>,
+) => ElementKeyMapper<T>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  <T extends object, U extends ReactNode>(Component: FunctionalComponent<T>, props: T | PropsFactory<T, U>): ElementKeyMapper<U> =>
-  (child: U, index: number, { length }: U[]): ReactElement => (
+  <T extends ReactNode, U extends object | undefined = undefined>(
+    Component: FunctionalComponent<U>,
+    props?: U | PropsFactory<T, U>,
+  ): ElementKeyMapper<T> =>
+  (child: T, index: number, { length }: T[]): ReactElement => (
     <Component
       key={`${Component}${`${index + Numbers.ONE}`.padStart(`${length}`.length, `${Numbers.ZERO}`)}`}
       {...(typeof props === 'function' ? props(child, index, length) : props)}
