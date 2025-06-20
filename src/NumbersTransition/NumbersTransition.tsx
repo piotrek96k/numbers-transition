@@ -6,7 +6,6 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
-  SyntheticEvent,
   useEffect,
   useRef,
   useState,
@@ -62,9 +61,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { AnimationTimingFunction, Container, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, UncheckedBigDecimal } from './NumbersTransition.types';
-
-type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
+import { BigDecimal, OrReadOnly, ReactEvent, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
