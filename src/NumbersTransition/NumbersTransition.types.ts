@@ -24,9 +24,9 @@ export type Falsy =
   | undefined
   | null
   | false
-  | `${Strings.EMPTY}`
   | (`${Numbers.ZERO}` extends `${infer T extends number}` ? T : never)
-  | (`${Numbers.ZERO}` extends `${infer T extends bigint}` ? T : never);
+  | (`${Numbers.ZERO}` extends `${infer T extends bigint}` ? T : never)
+  | `${Strings.EMPTY}`;
 
 export type UncheckedBigDecimal = number | bigint | string;
 
