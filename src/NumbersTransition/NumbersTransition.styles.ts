@@ -183,19 +183,19 @@ export interface Animation<T extends object, U> {
 export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
 
 type StyleView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<T, ViewKeys.STYLE>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
+  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.STYLE, T>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
 };
 
 type ClassNameView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<T, ViewKeys.CLASS_NAME>}`]?: OrArray<string | ClassNameFactory<U>>;
+  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.CLASS_NAME, T>}`]?: OrArray<string | ClassNameFactory<U>>;
 };
 
 type CssView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<T, ViewKeys.CSS>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
+  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.CSS, T>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
 };
 
 type AnimationView<T extends StyledComponents, U extends object, V> = {
-  [K in `${Strings.DOLLAR}${CamelCase<T, ViewKeys.ANIMATION>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
+  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.ANIMATION, T>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
 };
 
 export type StyledView<T extends StyledComponents, U extends object, V> = StyleView<T, U> &
@@ -330,7 +330,9 @@ const classNameFactory = <T extends StyledComponents, U extends object, V>(
 const toCssArray = <T extends object>(
   cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
-  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) && cssStyle.depth() === Numbers.TWO ? cssStyle : [cssStyle];
+  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) && cssStyle.depth() === Numbers.TWO
+    ? cssStyle
+    : [<undefined | CssRule<T> | CssRuleFactory<T>>cssStyle];
 
 const cssFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>

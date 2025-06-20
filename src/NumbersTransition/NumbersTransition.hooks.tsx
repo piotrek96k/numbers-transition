@@ -529,7 +529,7 @@ export const useRenderNegativeCharacter: UseRenderNegativeCharacter = (options: 
 };
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<Strings.DOLLAR, K>]: StyledView<StyledComponents.CONTAINER, T, U>[K];
+  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<K, Strings.DOLLAR>]: StyledView<StyledComponents.CONTAINER, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {

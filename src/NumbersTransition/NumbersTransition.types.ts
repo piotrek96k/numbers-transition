@@ -1,4 +1,4 @@
-import { Strings } from './NumbersTransition.enums';
+import { Numbers, Strings } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
 
@@ -16,11 +16,17 @@ export type OrReadOnly<T> = T | ReadOnly<T>;
 
 export type OrArray<T> = T | T[];
 
-export type Slice<T extends string, U extends string> = U extends `${T}${infer V}` ? V : U;
+export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 
-export type CamelCase<T extends string, U extends string> = T extends `${Strings.EMPTY}` ? U : `${T}${Capitalize<U>}`;
+export type CamelCase<T extends string, U extends string> = U extends `${Strings.EMPTY}` ? T : `${U}${Capitalize<T>}`;
 
-export type Falsy = undefined | null | false | `${Strings.EMPTY}` | [][Strings.LENGTH];
+export type Falsy =
+  | undefined
+  | null
+  | false
+  | `${Strings.EMPTY}`
+  | (`${Numbers.ZERO}` extends `${infer T extends number}` ? T : never)
+  | (`${Numbers.ZERO}` extends `${infer T extends bigint}` ? T : never);
 
 export type UncheckedBigDecimal = number | bigint | string;
 
