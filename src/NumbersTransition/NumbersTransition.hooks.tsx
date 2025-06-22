@@ -811,16 +811,16 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
   const generateValues = (values: DigitValues, index: number): number[] => {
     const { start, end }: DigitValues = values;
 
-    const calculateValue = (_: undefined, index: number, { length }: number[]): bigint =>
+    const calculate = (_: undefined, index: number, { length }: number[]): bigint =>
       (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
-    const roundValue = (value: bigint): bigint =>
+    const round = (value: bigint): bigint =>
       value / NumberPrecision.VALUE +
       BigInt(value - (value / NumberPrecision.VALUE) * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? Numbers.ZERO : Numbers.ONE);
 
     const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
-      .map<bigint>(calculateValue)
-      .map<bigint>(roundValue)
+      .map<bigint>(calculate)
+      .map<bigint>(round)
       .map<number>(getDigit);
 
     return numbers.at(Numbers.MINUS_ONE) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
