@@ -681,20 +681,13 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
   const sum = (first: number, second: number): number => first + second;
 
+  const invalidLength: number = isValueValid ? Numbers.ZERO : Numbers.ONE;
   const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Numbers.ZERO) ? Numbers.ONE : Numbers.ZERO;
   const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Numbers.ZERO;
   const decimalSeparatorLength: number = isValueValid && precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO;
   const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
   const digitsLength: number = isValueValid ? numberOfDigits : Numbers.ZERO;
-  const invalidLength: number = isValueValid ? Numbers.ZERO : Numbers.ONE;
-
-  const charactersLength: number = [
-    negativeCharacterLength,
-    digitsLength,
-    digitGroupSeparatorsLength,
-    decimalSeparatorLength,
-    invalidLength,
-  ].reduce(sum);
+  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength, invalidLength].reduce(sum);
 
   return {
     $charactersLength: charactersLength,
