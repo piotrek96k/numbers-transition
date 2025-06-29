@@ -16,6 +16,7 @@ import {
   Strings,
   StyledComponents,
   TotalAnimationDurationValues,
+  ViewKeys,
 } from './NumbersTransition.enums';
 import { AnimationTimingFunction, ElementsLength, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
@@ -529,7 +530,9 @@ export const useRenderNegativeCharacter: UseRenderNegativeCharacter = (options: 
 };
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<StyledComponents.CONTAINER, T, U> as Slice<K, Strings.DOLLAR>]: StyledView<StyledComponents.CONTAINER, T, U>[K];
+  [K in keyof StyledView<StyledComponents, T, U> as Uncapitalize<
+    Slice<K, StyledComponents> extends Capitalize<ViewKeys> ? Slice<K, StyledComponents> : never
+  >]: StyledView<StyledComponents, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
@@ -630,7 +633,7 @@ export const useStyledView: UseStyledView = <
     const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
       TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
-    ] => [`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${key.capitalize()}` : key}`, value];
+    ] => [`${styledComponent}${key.capitalize()}`, value];
 
     const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
       keyof StyledViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
@@ -690,13 +693,13 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength, invalidLength].reduce(sum);
 
   return {
-    $charactersLength: charactersLength,
-    $digitsLength: digitsLength,
-    $separatorsLength: separatorsLength,
-    $decimalSeparatorLength: decimalSeparatorLength,
-    $digitGroupSeparatorsLength: digitGroupSeparatorsLength,
-    $negativeCharacterLength: negativeCharacterLength,
-    $invalidLength: invalidLength,
+    charactersLength,
+    digitsLength,
+    separatorsLength,
+    decimalSeparatorLength,
+    digitGroupSeparatorsLength,
+    negativeCharacterLength,
+    invalidLength,
   };
 };
 

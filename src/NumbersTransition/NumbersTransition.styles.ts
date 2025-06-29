@@ -35,25 +35,25 @@ type AttributesStyledComponent<T extends KnownTarget, U extends object, V extend
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
 export interface ElementsLength {
-  $charactersLength?: number;
-  $digitsLength?: number;
-  $separatorsLength?: number;
-  $decimalSeparatorLength?: number;
-  $digitGroupSeparatorsLength?: number;
-  $negativeCharacterLength?: number;
-  $invalidLength?: number;
+  charactersLength?: number;
+  digitsLength?: number;
+  separatorsLength?: number;
+  decimalSeparatorLength?: number;
+  digitGroupSeparatorsLength?: number;
+  negativeCharacterLength?: number;
+  invalidLength?: number;
 }
 
 export interface NumbersTransitionTheme extends ElementsLength {
-  $numberOfAnimations?: AnimationNumbers;
-  $animationNumber?: AnimationNumbers;
-  $animationType?: AnimationTypes;
-  $animationDirection?: AnimationDirections;
-  $animationDuration?: number;
-  $animationTimingFunction?: AnimationTimingFunction;
-  $horizontalAnimationDuration?: number;
-  $verticalAnimationDuration?: number;
-  $totalAnimationDuration?: number;
+  numberOfAnimations?: AnimationNumbers;
+  animationNumber?: AnimationNumbers;
+  animationType?: AnimationTypes;
+  animationDirection?: AnimationDirections;
+  animationDuration?: number;
+  animationTimingFunction?: AnimationTimingFunction;
+  horizontalAnimationDuration?: number;
+  verticalAnimationDuration?: number;
+  totalAnimationDuration?: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -126,40 +126,40 @@ const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProp
 
 const containerVariables = ({
   theme: {
-    $numberOfAnimations,
-    $animationNumber,
-    $animationType,
-    $animationDirection,
-    $animationDuration,
-    $animationTimingFunction,
-    $horizontalAnimationDuration,
-    $verticalAnimationDuration,
-    $totalAnimationDuration,
-    $charactersLength,
-    $digitsLength,
-    $separatorsLength,
-    $decimalSeparatorLength,
-    $digitGroupSeparatorsLength,
-    $negativeCharacterLength,
-    $invalidLength,
+    numberOfAnimations,
+    animationNumber,
+    animationType,
+    animationDirection,
+    animationDuration,
+    animationTimingFunction,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+    totalAnimationDuration,
+    charactersLength,
+    digitsLength,
+    separatorsLength,
+    decimalSeparatorLength,
+    digitGroupSeparatorsLength,
+    negativeCharacterLength,
+    invalidLength,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.NUMBER_OF_ANIMATIONS}: ${$numberOfAnimations};
-  ${VariableNames.ANIMATION_NUMBER}: ${$animationNumber};
-  ${VariableNames.ANIMATION_TYPE}: ${$animationType};
-  ${VariableNames.ANIMATION_DIRECTION}: ${$animationDirection};
-  ${VariableNames.ANIMATION_TIMING_FUNCTION}: cubic-bezier(${$animationTimingFunction?.join()});
-  ${VariableNames.ANIMATION_DURATION}: ${$animationDuration}ms;
-  ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${$horizontalAnimationDuration}ms;
-  ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${$verticalAnimationDuration}ms;
-  ${VariableNames.TOTAL_ANIMATION_DURATION}: ${$totalAnimationDuration}ms;
-  ${VariableNames.CHARACTERS_LENGTH}: ${$charactersLength};
-  ${VariableNames.DIGITS_LENGTH}: ${$digitsLength};
-  ${VariableNames.SEPARATORS_LENGTH}: ${$separatorsLength};
-  ${VariableNames.DECIMAL_SEPARATOR_LENGTH}: ${$decimalSeparatorLength};
-  ${VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH}: ${$digitGroupSeparatorsLength};
-  ${VariableNames.NEGATIVE_CHARACTER_LENGTH}: ${$negativeCharacterLength};
-  ${VariableNames.INVALID_LENGTH}: ${$invalidLength};
+  ${VariableNames.NUMBER_OF_ANIMATIONS}: ${numberOfAnimations};
+  ${VariableNames.ANIMATION_NUMBER}: ${animationNumber};
+  ${VariableNames.ANIMATION_TYPE}: ${animationType};
+  ${VariableNames.ANIMATION_DIRECTION}: ${animationDirection};
+  ${VariableNames.ANIMATION_TIMING_FUNCTION}: cubic-bezier(${animationTimingFunction?.join()});
+  ${VariableNames.ANIMATION_DURATION}: ${animationDuration}ms;
+  ${VariableNames.HORIZONTAL_ANIMATION_DURATION}: ${horizontalAnimationDuration}ms;
+  ${VariableNames.VERTICAL_ANIMATION_DURATION}: ${verticalAnimationDuration}ms;
+  ${VariableNames.TOTAL_ANIMATION_DURATION}: ${totalAnimationDuration}ms;
+  ${VariableNames.CHARACTERS_LENGTH}: ${charactersLength};
+  ${VariableNames.DIGITS_LENGTH}: ${digitsLength};
+  ${VariableNames.SEPARATORS_LENGTH}: ${separatorsLength};
+  ${VariableNames.DECIMAL_SEPARATOR_LENGTH}: ${decimalSeparatorLength};
+  ${VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH}: ${digitGroupSeparatorsLength};
+  ${VariableNames.NEGATIVE_CHARACTER_LENGTH}: ${negativeCharacterLength};
+  ${VariableNames.INVALID_LENGTH}: ${invalidLength};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -183,19 +183,19 @@ export interface Animation<T extends object, U> {
 export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
 
 type StyleView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.STYLE, T>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
+  [K in `${CamelCase<ViewKeys.STYLE, T>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
 };
 
 type ClassNameView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.CLASS_NAME, T>}`]?: OrArray<string | ClassNameFactory<U>>;
+  [K in `${CamelCase<ViewKeys.CLASS_NAME, T>}`]?: OrArray<string | ClassNameFactory<U>>;
 };
 
 type CssView<T extends StyledComponents, U extends object> = {
-  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.CSS, T>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
+  [K in `${CamelCase<ViewKeys.CSS, T>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
 };
 
 type AnimationView<T extends StyledComponents, U extends object, V> = {
-  [K in `${Strings.DOLLAR}${CamelCase<ViewKeys.ANIMATION, T>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
+  [K in `${CamelCase<ViewKeys.ANIMATION, T>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
 };
 
 export type StyledView<T extends StyledComponents, U extends object, V> = StyleView<T, U> &
@@ -215,14 +215,14 @@ type AttributesOmittedKeys<T extends StyledComponents, U extends object> =
   | `${ViewKeys.CLASS_NAME}`;
 
 interface AnimationDelayProps {
-  $animationDelay?: number;
+  animationDelay?: number;
 }
 
 interface AnimationCommonProps extends Partial<NumbersTransitionExecutionContext>, AnimationDelayProps {}
 
 interface AnimationWidthProps {
-  $animationStartWidth: number;
-  $animationEndWidth: number;
+  animationStartWidth: number;
+  animationEndWidth: number;
 }
 
 interface HorizontalAnimationProps extends AnimationCommonProps, AnimationWidthProps {}
@@ -263,8 +263,8 @@ const verticalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeVal
   transform: translateY(${keyframeValue}%);
 `;
 
-const horizontalAnimation = ({ $animationStartWidth, $animationEndWidth }: AnimationWidthProps): Keyframes =>
-  createAnimationKeyframes<object, number>(horizontalAnimationKeyframe, [$animationStartWidth, $animationEndWidth]);
+const horizontalAnimation = ({ animationStartWidth, animationEndWidth }: AnimationWidthProps): Keyframes =>
+  createAnimationKeyframes<object, number>(horizontalAnimationKeyframe, [animationStartWidth, animationEndWidth]);
 
 const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(verticalAnimationKeyframe, [
   Numbers.ZERO,
@@ -272,10 +272,10 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
 ]);
 
 const animationName = ({
-  theme: { $animationType } = {},
+  theme: { animationType } = {},
   ...restProps
 }: Partial<NumbersTransitionExecutionContext>): undefined | Keyframes => {
-  switch ($animationType) {
+  switch (animationType) {
     case AnimationTypes.HORIZONTAL:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
     case AnimationTypes.VERTICAL:
@@ -288,13 +288,10 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-direction: var(${VariableNames.ANIMATION_DIRECTION});
   animation-duration: var(${VariableNames.ANIMATION_DURATION});
   animation-timing-function: var(${VariableNames.ANIMATION_TIMING_FUNCTION});
-  animation-delay: ${({ $animationDelay = Numbers.ZERO }: AnimationDelayProps): number => $animationDelay}ms;
+  animation-delay: ${({ animationDelay = Numbers.ZERO }: AnimationDelayProps): number => animationDelay}ms;
   animation-iteration-count: ${Numbers.ONE};
   animation-fill-mode: forwards;
 `;
-
-const getViewKey = <T extends object>(_: TemplateStringsArray, styledComponent: StyledComponents, viewKey: ViewKeys): keyof T =>
-  <keyof T>`${Strings.DOLLAR}${styledComponent ? `${styledComponent}${viewKey.capitalize()}` : viewKey}`;
 
 const createViewFactoryMapper =
   <T extends StyledComponents, U extends object, V, W extends string>(
@@ -337,7 +334,7 @@ const toCssArray = <T extends object>(
 const cssFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
   <U extends object, V>({
-    [getViewKey<CssView<T, U>>`${styledComponent}${ViewKeys.CSS}`]: cssStyle,
+    [<keyof CssView<T, U>>`${styledComponent}${ViewKeys.CSS.capitalize()}`]: cssStyle,
     ...restProps
   }: Props<T, U, V>): CssRule<U>[] =>
     toCssArray<U>(cssStyle)
@@ -376,7 +373,7 @@ const createOptionalAnimation = (animationsKeyframes: RuleSet<object> | false): 
 const animationFactory =
   <T extends StyledComponents>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => RuleSet<U> | false) =>
   <U extends object, V>({
-    [getViewKey<AnimationView<T, U, V>>`${styledComponent}${ViewKeys.ANIMATION}`]: animation,
+    [<keyof AnimationView<T, U, V>>`${styledComponent}${ViewKeys.ANIMATION.capitalize()}`]: animation,
     ...restProps
   }: Props<T, U, V>): RuleSet<U> | false =>
     createOptionalAnimation(createAnimationsKeyframes<T, U, V>(restProps, animation));
@@ -386,8 +383,8 @@ const attributesFactory =
   <U extends object, V>({
     style,
     className,
-    [getViewKey<StyleView<T, U>>`${styledComponent}${ViewKeys.STYLE}`]: styleView,
-    [getViewKey<ClassNameView<T, U>>`${styledComponent}${ViewKeys.CLASS_NAME}`]: classNameView,
+    [<keyof StyleView<T, U>>`${styledComponent}${ViewKeys.STYLE.capitalize()}`]: styleView,
+    [<keyof ClassNameView<T, U>>`${styledComponent}${ViewKeys.CLASS_NAME.capitalize()}`]: classNameView,
     ...restProps
   }: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
     style: { ...style, ...styleFactory(styleView, restProps) },
@@ -397,21 +394,21 @@ const attributesFactory =
   });
 
 interface VisibilityProps {
-  $visible?: boolean;
+  visible?: boolean;
 }
 
-const visibility = ({ $visible = true }: VisibilityProps): RuleSet<object> | false =>
-  !$visible &&
+const visibility = ({ visible = true }: VisibilityProps): RuleSet<object> | false =>
+  !visible &&
   css<object>`
     opacity: ${Numbers.ZERO};
   `;
 
 interface DisplayProps {
-  $display?: Display;
+  display?: Display;
 }
 
 const display: RuleSet<DisplayProps> = css<DisplayProps>`
-  display: ${({ $display = Display.INLINE_BLOCK }: DisplayProps): string => $display};
+  display: ${({ display = Display.INLINE_BLOCK }: DisplayProps): string => display};
 `;
 
 interface ContainerProps<T extends object, U>

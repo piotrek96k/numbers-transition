@@ -20,7 +20,7 @@ export enum ForwardProps {
 }
 
 export enum StyledComponents {
-  CONTAINER = '',
+  CONTAINER = 'container',
   CHARACTER = 'character',
   DIGIT = 'digit',
   SEPARATOR = 'separator',
@@ -147,7 +147,6 @@ export enum Strings {
   SPACE = ' ',
   UNDERSCORE = '_',
   VERTICAL_LINE = '|',
-  DOLLAR = '$',
   LENGTH = 'length',
 }
 

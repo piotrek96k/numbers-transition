@@ -81,8 +81,8 @@ const opacityAnimation: Animation<object, number> = {
 };
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
-  theme: { $numberOfAnimations },
-}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => $numberOfAnimations && opacityAnimation;
+  theme: { numberOfAnimations },
+}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
 
 const style: RuleSet<object> = css<object>`
   font-size: ${Numbers.FIVE}rem;

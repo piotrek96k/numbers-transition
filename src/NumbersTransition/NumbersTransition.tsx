@@ -294,15 +294,15 @@ const NumbersTransition = <
 
   const theme: NumbersTransitionTheme = {
     ...elementsLength,
-    $numberOfAnimations: numberOfAnimations,
-    $animationNumber: animationNumber,
-    $animationType: animationType,
-    $animationDirection: animationDirection,
-    $animationDuration: animationDuration,
-    $animationTimingFunction: animationTimingFunction,
-    $horizontalAnimationDuration: horizontalAnimationDuration,
-    $verticalAnimationDuration: verticalAnimationDuration,
-    $totalAnimationDuration: totalAnimationDuration,
+    numberOfAnimations,
+    animationNumber,
+    animationType,
+    animationDirection,
+    animationDuration,
+    animationTimingFunction,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+    totalAnimationDuration,
   };
 
   const negativeCharacterElement: ReactElement = (

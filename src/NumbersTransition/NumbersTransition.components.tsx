@@ -111,7 +111,7 @@ export const NegativeCharacterElement = <T extends object, U, V extends object, 
   characterStyledView,
   negativeCharacterStyledView,
 }: NegativeCharacterElementProps<T, U, V, W>): ReactNode => (
-  <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} $visible={visible} $display={display}>
+  <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} visible={visible} display={display}>
     {negativeCharacter}
   </NegativeCharacter>
 );
@@ -149,11 +149,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
-  const {
-    $animationDirection: animationDirection,
-    $animationDuration: animationDuration = Numbers.ZERO,
-    $animationTimingFunction: animationTimingFunction,
-  }: NumbersTransitionTheme = useTheme();
+  const { animationDirection, animationDuration = Numbers.ZERO, animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
   const createNegativeCharacterElementProps = (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
     negativeCharacter,
@@ -196,9 +192,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   const animationDelay: number = animationDirection === AnimationDirections.NORMAL ? -animationTime : Numbers.ZERO;
 
   const verticalAnimationElement: ReactElement = (
-    <VerticalAnimation
-      {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { $animationDelay: animationDelay })}
-    >
+    <VerticalAnimation {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { animationDelay })}>
       <div>{negativeCharactersVisible.map<ReactElement>(mapToNegativeCharacterElement)}</div>
     </VerticalAnimation>
   );
@@ -360,7 +354,7 @@ export const HorizontalAnimationElement = <
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
   const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Numbers.ZERO;
 
-  const { $animationDirection: animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
+  const { animationDirection = AnimationDirections.NONE }: NumbersTransitionTheme = useTheme();
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
 
   const sum = (first: number, second: number): number => first + second;
@@ -427,8 +421,8 @@ export const HorizontalAnimationElement = <
 
   return (
     <HorizontalAnimation
-      $animationStartWidth={animationStartWidth}
-      $animationEndWidth={animationEndWidth}
+      animationStartWidth={animationStartWidth}
+      animationEndWidth={animationEndWidth}
       id={AnimationIds.HORIZONTAL_ANIMATION}
     >
       <div ref={ref}>
@@ -511,7 +505,7 @@ export const VerticalAnimationElement = <
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<O, P, Q, R>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
-    $display: Display.BLOCK,
+    display: Display.BLOCK,
   });
 
   const mapDigits = (digits: number[], index: number, { length }: number[][]): ReactElement => (
