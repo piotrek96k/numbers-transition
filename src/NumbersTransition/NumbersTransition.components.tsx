@@ -264,7 +264,12 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </DigitGroupSeparator>
   );
 
-  const reduceDigits = (accumulator: ReactElement, currentValue: ReactElement, index: number, { length }: ReactElement[]): ReactElement => (
+  const reduceToNumber = (
+    accumulator: ReactElement,
+    currentValue: ReactElement,
+    index: number,
+    { length }: ReactElement[],
+  ): ReactElement => (
     <>
       {accumulator}
       {!!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) ||
@@ -273,7 +278,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </>
   );
 
-  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceDigits);
+  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceToNumber);
 };
 
 interface HorizontalAnimationElementProps<
