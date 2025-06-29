@@ -22,12 +22,12 @@ export type Slice<T extends string, U extends string> = T extends `${U}${infer V
 export type CamelCase<T extends string, U extends string> = U extends `${Strings.EMPTY}` ? T : `${U}${Capitalize<T>}`;
 
 export type Falsy =
-  | undefined
-  | null
   | false
+  | `${Strings.EMPTY}`
   | (`${Numbers.ZERO}` extends `${infer T extends number}` ? T : never)
   | (`${Numbers.ZERO}` extends `${infer T extends bigint}` ? T : never)
-  | `${Strings.EMPTY}`;
+  | null
+  | undefined;
 
 export type UncheckedBigDecimal = number | bigint | string;
 
