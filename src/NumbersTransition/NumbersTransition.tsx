@@ -103,6 +103,7 @@ export interface NumbersTransitionProps<
   digitGroupSeparatorView?: View<U, V>;
   negativeCharacterView?: View<W, X>;
   invalidView?: View<Y, Z>;
+  forwardProps?: string[];
 }
 
 const NumbersTransition = <
@@ -148,6 +149,7 @@ const NumbersTransition = <
     digitGroupSeparatorView,
     negativeCharacterView,
     invalidView,
+    forwardProps = [],
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const [validInitialValue]: ValidationTuple = useValidation(initialValue);
@@ -274,6 +276,11 @@ const NumbersTransition = <
     }
     previousValueOnStart.current = validValue;
   }, [validValue, restartAnimation]);
+
+  const shouldForwardProp = (prop: string): boolean =>
+    [Object.values<ForwardProps>(ForwardProps), forwardProps].some((forwardProps: string[]): boolean =>
+      forwardProps.includes<string>(prop),
+    );
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
     if (!Object.values(AnimationIds).includes<string>(event.target.id)) {
@@ -405,7 +412,7 @@ const NumbersTransition = <
   );
 
   return (
-    <StyleSheetManager shouldForwardProp={(prop: string): boolean => Object.values<ForwardProps>(ForwardProps).includes<string>(prop)}>
+    <StyleSheetManager shouldForwardProp={shouldForwardProp}>
       <ThemeProvider theme={theme}>{containerElement}</ThemeProvider>
     </StyleSheetManager>
   );
