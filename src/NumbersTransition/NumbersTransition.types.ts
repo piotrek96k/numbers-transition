@@ -19,8 +19,6 @@ export type OrArray<T> = T | T[];
 
 export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 
-export type CamelCase<T extends string, U extends string> = U extends `${Strings.EMPTY}` ? T : `${U}${Capitalize<T>}`;
-
 export type Falsy =
   | false
   | `${Strings.EMPTY}`

@@ -16,7 +16,7 @@ import {
   ViewKeys,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { CamelCase, Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
+import { Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
 
 type StyledComponentBase<T extends object> = IStyledComponent<Runtime.WEB, T>;
 
@@ -183,19 +183,19 @@ export interface Animation<T extends object, U> {
 export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
 
 type StyleView<T extends StyledComponents, U extends object> = {
-  [K in `${CamelCase<ViewKeys.STYLE, T>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
+  [K in `${T}${Capitalize<ViewKeys.STYLE>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
 };
 
 type ClassNameView<T extends StyledComponents, U extends object> = {
-  [K in `${CamelCase<ViewKeys.CLASS_NAME, T>}`]?: OrArray<string | ClassNameFactory<U>>;
+  [K in `${T}${Capitalize<ViewKeys.CLASS_NAME>}`]?: OrArray<string | ClassNameFactory<U>>;
 };
 
 type CssView<T extends StyledComponents, U extends object> = {
-  [K in `${CamelCase<ViewKeys.CSS, T>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
+  [K in `${T}${Capitalize<ViewKeys.CSS>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>>;
 };
 
 type AnimationView<T extends StyledComponents, U extends object, V> = {
-  [K in `${CamelCase<ViewKeys.ANIMATION, T>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
+  [K in `${T}${Capitalize<ViewKeys.ANIMATION>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
 };
 
 export type StyledView<T extends StyledComponents, U extends object, V> = StyleView<T, U> &
