@@ -109,13 +109,14 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
     const digits: string = `${start}${mid.slice(Numbers.ZERO, precision || mid.length) ?? Numbers.ZERO}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
     const increase: number =
-      BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(Math.max(restDigits.length, -precision), `${Numbers.ZERO}`))
+      BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Numbers.ZERO}`))
         ? Numbers.ZERO
         : Numbers.ONE;
+    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros);
 
     return [
       integer[Numbers.ZERO] === Strings.MINUS ? Strings.MINUS : Strings.EMPTY,
-      `${(BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros)}`.padStart(digits.length, `${Numbers.ZERO}`),
+      `${value}`.padStart(precision + Numbers.ONE, `${Numbers.ZERO}`),
     ].join(Strings.EMPTY);
   };
 
