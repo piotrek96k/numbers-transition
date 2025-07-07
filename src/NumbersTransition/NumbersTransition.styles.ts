@@ -34,6 +34,10 @@ type AttributesStyledComponent<T extends KnownTarget, U extends object, V extend
 
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
+interface ElementsIndex {
+  characterColumnIndex?: number;
+}
+
 export interface ElementsLength {
   charactersLength?: number;
   digitsLength?: number;
@@ -44,7 +48,7 @@ export interface ElementsLength {
   invalidLength?: number;
 }
 
-export interface NumbersTransitionTheme extends ElementsLength {
+export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
   numberOfAnimations?: AnimationNumbers;
   animationNumber?: AnimationNumbers;
   animationType?: AnimationTypes;
@@ -107,6 +111,7 @@ const integerProperties: VariableNames[] = [
   VariableNames.NUMBER_OF_ANIMATIONS,
   VariableNames.ANIMATION_NUMBER,
   VariableNames.CHARACTERS_LENGTH,
+  // VariableNames.CHARACTER_COLUMN_INDEX,
   VariableNames.DIGITS_LENGTH,
   VariableNames.SEPARATORS_LENGTH,
   VariableNames.DECIMAL_SEPARATOR_LENGTH,
@@ -160,6 +165,10 @@ const containerVariables = ({
   ${VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH}: ${digitGroupSeparatorsLength};
   ${VariableNames.NEGATIVE_CHARACTER_LENGTH}: ${negativeCharacterLength};
   ${VariableNames.INVALID_LENGTH}: ${invalidLength};
+`;
+
+const characterVariables = ({ theme: { characterColumnIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.CHARACTER_COLUMN_INDEX}: ${characterColumnIndex};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -476,6 +485,7 @@ const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any,
 )`
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
+  ${characterVariables}
   ${display};
 `;
 

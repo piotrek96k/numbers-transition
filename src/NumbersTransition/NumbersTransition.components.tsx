@@ -1,5 +1,5 @@
 import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { useTheme } from 'styled-components';
+import { ThemeProvider, useTheme } from 'styled-components';
 import {
   AnimationDirections,
   AnimationIds,
@@ -91,9 +91,11 @@ export const InvalidElement = <T extends object, U, V extends object, W>({
   characterStyledView,
   invalidStyledView,
 }: InvalidElementProps<T, U, V, W>): ReactNode => (
-  <Invalid {...characterStyledView} {...invalidStyledView}>
-    {invalidValue}
-  </Invalid>
+  <ThemeProvider theme={{ characterColumnIndex: Numbers.ZERO }}>
+    <Invalid {...characterStyledView} {...invalidStyledView}>
+      {invalidValue}
+    </Invalid>
+  </ThemeProvider>
 );
 
 interface NegativeCharacterElementProps<T extends object, U, V extends object, W> {
@@ -111,9 +113,11 @@ export const NegativeCharacterElement = <T extends object, U, V extends object, 
   characterStyledView,
   negativeCharacterStyledView,
 }: NegativeCharacterElementProps<T, U, V, W>): ReactNode => (
-  <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} visible={visible} display={display}>
-    {negativeCharacter}
-  </NegativeCharacter>
+  <ThemeProvider theme={{ characterColumnIndex: Numbers.ZERO }}>
+    <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} visible={visible} display={display}>
+      {negativeCharacter}
+    </NegativeCharacter>
+  </ThemeProvider>
 );
 
 interface HorizontalAnimationNegativeCharacterElementProps<T extends object, U, V extends object, W> {
@@ -241,10 +245,19 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     children,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
+
   const mapToDigitElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, DigitProps<Q, R, S, T>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
   });
+
+  const getCharacterIndex = (index: number, length: number): number =>
+    Math.trunc(
+      negativeCharacterLength! +
+        index +
+        (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
+    );
 
   const decimalSeparatorElement: ReactElement = (
     <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
@@ -266,13 +279,16 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   ): ReactElement => (
     <>
       {accumulator}
-      {!!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) ||
-        (length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement)}
-      {currentValue}
+      {!index || !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) || (
+        <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) - Numbers.ONE }}>
+          {length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement}
+        </ThemeProvider>
+      )}
+      <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) }}>{currentValue}</ThemeProvider>
     </>
   );
 
-  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceToNumber);
+  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceToNumber, <></>);
 };
 
 interface HorizontalAnimationElementProps<
@@ -523,7 +539,7 @@ export const VerticalAnimationElement = <
         <VerticalAnimationNegativeCharacterElement<O, P, Y, Z>
           negativeCharacter={negativeCharacter}
           negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-          animationDigits={animationDigits[Numbers.ZERO]}
+          animationDigits={animationDigits.find((digits: number[]): boolean => digits.length > Numbers.ONE || !!digits[Numbers.ZERO])!}
           hasSignChanged={hasSignChanged}
           characterStyledView={characterStyledView}
           negativeCharacterStyledView={negativeCharacterStyledView}

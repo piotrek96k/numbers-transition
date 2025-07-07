@@ -113,8 +113,7 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
 
     return [
       integer[Numbers.ZERO] === Strings.MINUS ? Strings.MINUS : Strings.EMPTY,
-      `${Numbers.ZERO}`.repeat(digits.length - `${BigInt(digits)}`.length),
-      (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros),
+      `${(BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros)}`.padStart(digits.length, `${Numbers.ZERO}`),
     ].join(Strings.EMPTY);
   };
 
