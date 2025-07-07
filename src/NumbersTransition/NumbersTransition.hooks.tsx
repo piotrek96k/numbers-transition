@@ -114,10 +114,7 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
         : Numbers.ONE;
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros);
 
-    return [
-      integer[Numbers.ZERO] === Strings.MINUS ? Strings.MINUS : Strings.EMPTY,
-      `${value}`.padStart(precision + Numbers.ONE, `${Numbers.ZERO}`),
-    ].join(Strings.EMPTY);
+    return [...(integer.match(Strings.MINUS) ?? []), `${value}`.padStart(precision + Numbers.ONE, `${Numbers.ZERO}`)].join(Strings.EMPTY);
   };
 
   return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
