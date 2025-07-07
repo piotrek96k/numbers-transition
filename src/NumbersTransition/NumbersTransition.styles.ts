@@ -36,6 +36,7 @@ export type AnimationTimingFunction = [[number, number], [number, number]];
 
 interface ElementsIndex {
   characterColumnIndex?: number;
+  digitColumnIndex?: number;
 }
 
 export interface ElementsLength {
@@ -111,8 +112,9 @@ const integerProperties: VariableNames[] = [
   VariableNames.NUMBER_OF_ANIMATIONS,
   VariableNames.ANIMATION_NUMBER,
   VariableNames.CHARACTERS_LENGTH,
-  // VariableNames.CHARACTER_COLUMN_INDEX,
+  VariableNames.CHARACTER_COLUMN_INDEX,
   VariableNames.DIGITS_LENGTH,
+  VariableNames.DIGIT_COLUMN_INDEX,
   VariableNames.SEPARATORS_LENGTH,
   VariableNames.DECIMAL_SEPARATOR_LENGTH,
   VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH,
@@ -169,6 +171,10 @@ const containerVariables = ({
 
 const characterVariables = ({ theme: { characterColumnIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.CHARACTER_COLUMN_INDEX}: ${characterColumnIndex};
+`;
+
+const digitVariables = ({ theme: { digitColumnIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.DIGIT_COLUMN_INDEX}: ${digitColumnIndex};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -485,7 +491,7 @@ const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any,
 )`
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
-  ${characterVariables}
+  ${characterVariables};
   ${display};
 `;
 
@@ -500,6 +506,7 @@ export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Char
 )`
   ${cssFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
   ${animationFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
+  ${digitVariables};
   min-width: ${Numbers.ONE}ch;
 `;
 

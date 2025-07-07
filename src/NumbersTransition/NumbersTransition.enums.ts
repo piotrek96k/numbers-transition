@@ -50,6 +50,7 @@ export enum VariableNames {
   CHARACTERS_LENGTH = '--characters-length',
   CHARACTER_COLUMN_INDEX = '--character-column-index',
   DIGITS_LENGTH = '--digits-length',
+  DIGIT_COLUMN_INDEX = '--digit-column-index',
   SEPARATORS_LENGTH = '--separators-length',
   DECIMAL_SEPARATOR_LENGTH = '--decimal-separator-length',
   DIGIT_GROUP_SEPARATORS_LENGTH = '--digit-group-separators-length',

@@ -277,7 +277,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     index: number,
     { length }: ReactElement[],
   ): ReactElement => (
-    <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) }}>
+    <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length), digitColumnIndex: index }}>
       {accumulator}
       {!index || !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) || (
         <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) - Numbers.ONE }}>
