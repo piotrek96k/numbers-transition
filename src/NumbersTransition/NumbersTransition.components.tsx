@@ -277,15 +277,15 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     index: number,
     { length }: ReactElement[],
   ): ReactElement => (
-    <>
+    <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) }}>
       {accumulator}
       {!index || !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) || (
         <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) - Numbers.ONE }}>
           {length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement}
         </ThemeProvider>
       )}
-      <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) }}>{currentValue}</ThemeProvider>
-    </>
+      {currentValue}
+    </ThemeProvider>
   );
 
   return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceToNumber, <></>);
