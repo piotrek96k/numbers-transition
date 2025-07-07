@@ -112,8 +112,8 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
       BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(restDigits.length, `${Numbers.ZERO}`)) ? Numbers.ZERO : Numbers.ONE;
 
     return [
-      integer.replace(RegularExpressions.DIGITS, Strings.EMPTY),
-      BigInt(start) ? Strings.EMPTY : start,
+      integer[Numbers.ZERO] === Strings.MINUS ? Strings.MINUS : Strings.EMPTY,
+      `${Numbers.ZERO}`.repeat(digits.length - `${BigInt(digits)}`.length),
       (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros),
     ].join(Strings.EMPTY);
   };

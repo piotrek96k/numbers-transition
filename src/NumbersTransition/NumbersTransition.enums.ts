@@ -135,7 +135,6 @@ export const NumberPrecision = {
 
 export const RegularExpressions = {
   BIG_DECIMAL: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
-  DIGITS: /\d+/,
   SINGLE_DIGIT: /^\d{1}$/,
   DOT_OR_COMMA: /\.|,/,
 } as const;
