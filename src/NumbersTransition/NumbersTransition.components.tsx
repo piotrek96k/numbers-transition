@@ -255,8 +255,8 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const getCharacterIndex = (index: number, length: number): number =>
     Math.trunc(
       negativeCharacterLength! +
-        index +
-        (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
+        (Numbers.FOUR * index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) /
+          Numbers.THREE,
     );
 
   const decimalSeparatorElement: ReactElement = (
