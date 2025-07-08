@@ -35,8 +35,9 @@ type AttributesStyledComponent<T extends KnownTarget, U extends object, V extend
 export type AnimationTimingFunction = [[number, number], [number, number]];
 
 interface ElementsIndex {
-  characterColumnIndex?: number;
-  digitColumnIndex?: number;
+  characterIndex?: number;
+  digitIndex?: number;
+  separatorIndex?: number;
 }
 
 export interface ElementsLength {
@@ -112,10 +113,11 @@ const integerProperties: VariableNames[] = [
   VariableNames.NUMBER_OF_ANIMATIONS,
   VariableNames.ANIMATION_NUMBER,
   VariableNames.CHARACTERS_LENGTH,
-  VariableNames.CHARACTER_COLUMN_INDEX,
+  VariableNames.CHARACTER_INDEX,
   VariableNames.DIGITS_LENGTH,
-  VariableNames.DIGIT_COLUMN_INDEX,
+  VariableNames.DIGIT_INDEX,
   VariableNames.SEPARATORS_LENGTH,
+  VariableNames.SEPARATOR_INDEX,
   VariableNames.DECIMAL_SEPARATOR_LENGTH,
   VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH,
   VariableNames.NEGATIVE_CHARACTER_LENGTH,
@@ -169,12 +171,16 @@ const containerVariables = ({
   ${VariableNames.INVALID_LENGTH}: ${invalidLength};
 `;
 
-const characterVariables = ({ theme: { characterColumnIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.CHARACTER_COLUMN_INDEX}: ${characterColumnIndex};
+const characterVariables = ({ theme: { characterIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.CHARACTER_INDEX}: ${characterIndex};
 `;
 
-const digitVariables = ({ theme: { digitColumnIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.DIGIT_COLUMN_INDEX}: ${digitColumnIndex};
+const digitVariables = ({ theme: { digitIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.DIGIT_INDEX}: ${digitIndex};
+`;
+
+const separatorVariables = ({ theme: { separatorIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.SEPARATOR_INDEX}: ${separatorIndex};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -525,6 +531,7 @@ const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Cha
 )`
   ${cssFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
   ${animationFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
+  ${separatorVariables};
   white-space: pre;
 `;
 

@@ -91,7 +91,7 @@ export const InvalidElement = <T extends object, U, V extends object, W>({
   characterStyledView,
   invalidStyledView,
 }: InvalidElementProps<T, U, V, W>): ReactNode => (
-  <ThemeProvider theme={{ characterColumnIndex: Numbers.ZERO }}>
+  <ThemeProvider theme={{ characterIndex: Numbers.ZERO }}>
     <Invalid {...characterStyledView} {...invalidStyledView}>
       {invalidValue}
     </Invalid>
@@ -113,7 +113,7 @@ export const NegativeCharacterElement = <T extends object, U, V extends object, 
   characterStyledView,
   negativeCharacterStyledView,
 }: NegativeCharacterElementProps<T, U, V, W>): ReactNode => (
-  <ThemeProvider theme={{ characterColumnIndex: Numbers.ZERO }}>
+  <ThemeProvider theme={{ characterIndex: Numbers.ZERO }}>
     <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} visible={visible} display={display}>
       {negativeCharacter}
     </NegativeCharacter>
@@ -252,12 +252,13 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     ...digitStyledView,
   });
 
-  const getCharacterIndex = (index: number, length: number): number =>
+  const getSeparatorIndex = (index: number, length: number): number =>
     Math.trunc(
-      negativeCharacterLength! +
-        (Numbers.FOUR * index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) /
-          Numbers.THREE,
-    );
+      (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
+    ) - Numbers.ONE;
+
+  const getCharacterIndex = (index: number, length: number): number =>
+    negativeCharacterLength! + index + getSeparatorIndex(index, length) + Numbers.ONE;
 
   const decimalSeparatorElement: ReactElement = (
     <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
@@ -277,10 +278,12 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     index: number,
     { length }: ReactElement[],
   ): ReactElement => (
-    <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length), digitColumnIndex: index }}>
+    <ThemeProvider theme={{ characterIndex: getCharacterIndex(index, length), digitIndex: index }}>
       {accumulator}
       {!index || !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) || (
-        <ThemeProvider theme={{ characterColumnIndex: getCharacterIndex(index, length) - Numbers.ONE }}>
+        <ThemeProvider
+          theme={{ characterIndex: getCharacterIndex(index, length) - Numbers.ONE, separatorIndex: getSeparatorIndex(index, length) }}
+        >
           {length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement}
         </ThemeProvider>
       )}
