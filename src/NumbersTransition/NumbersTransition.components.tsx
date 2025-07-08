@@ -91,7 +91,7 @@ export const InvalidElement = <T extends object, U, V extends object, W>({
   characterStyledView,
   invalidStyledView,
 }: InvalidElementProps<T, U, V, W>): ReactNode => (
-  <ThemeProvider theme={{ characterIndex: Numbers.ZERO }}>
+  <ThemeProvider theme={{ invalidIndex: Numbers.ZERO }}>
     <Invalid {...characterStyledView} {...invalidStyledView}>
       {invalidValue}
     </Invalid>
@@ -113,7 +113,7 @@ export const NegativeCharacterElement = <T extends object, U, V extends object, 
   characterStyledView,
   negativeCharacterStyledView,
 }: NegativeCharacterElementProps<T, U, V, W>): ReactNode => (
-  <ThemeProvider theme={{ characterIndex: Numbers.ZERO }}>
+  <ThemeProvider theme={{ characterIndex: Numbers.ZERO, negativeCharacterIndex: Numbers.ZERO }}>
     <NegativeCharacter {...characterStyledView} {...negativeCharacterStyledView} visible={visible} display={display}>
       {negativeCharacter}
     </NegativeCharacter>
@@ -155,17 +155,15 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const { animationDirection, animationDuration = Numbers.ZERO, animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
-  const createNegativeCharacterElementProps = (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
-    negativeCharacter,
-    visible,
-    display: Display.BLOCK,
-    characterStyledView,
-    negativeCharacterStyledView,
-  });
-
   const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeCharacterElementProps<T, U, V, W>>(
     NegativeCharacterElement<T, U, V, W>,
-    createNegativeCharacterElementProps,
+    (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
+      negativeCharacter,
+      visible,
+      display: Display.BLOCK,
+      characterStyledView,
+      negativeCharacterStyledView,
+    }),
   );
 
   const mapAnimationTimingFunction = (
@@ -260,16 +258,22 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const getCharacterIndex = (index: number, length: number): number =>
     negativeCharacterLength! + index + getSeparatorIndex(index, length) + Numbers.ONE;
 
-  const decimalSeparatorElement: ReactElement = (
-    <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
-      {decimalSeparator}
-    </DecimalSeparator>
+  const getDigitGroupSeparatorElement = (index: number, length: number): ReactElement => (
+    <ThemeProvider
+      theme={{ digitGroupSeparatorIndex: getSeparatorIndex(index, length) - (length - index < precision ? Numbers.ONE : Numbers.ZERO) }}
+    >
+      <DigitGroupSeparator {...characterStyledView} {...separatorStyledView} {...digitGroupSeparatorStyledView}>
+        {digitGroupSeparator}
+      </DigitGroupSeparator>
+    </ThemeProvider>
   );
 
-  const digitGroupSeparatorElement: ReactElement = (
-    <DigitGroupSeparator {...characterStyledView} {...separatorStyledView} {...digitGroupSeparatorStyledView}>
-      {digitGroupSeparator}
-    </DigitGroupSeparator>
+  const decimalSeparatorElement: ReactElement = (
+    <ThemeProvider theme={{ decimalSeparatorIndex: Numbers.ZERO }}>
+      <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
+        {decimalSeparator}
+      </DecimalSeparator>
+    </ThemeProvider>
   );
 
   const reduceToNumber = (
@@ -284,7 +288,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
         <ThemeProvider
           theme={{ characterIndex: getCharacterIndex(index, length) - Numbers.ONE, separatorIndex: getSeparatorIndex(index, length) }}
         >
-          {length - index === precision ? decimalSeparatorElement : digitGroupSeparatorElement}
+          {length - index === precision ? decimalSeparatorElement : getDigitGroupSeparatorElement(index, length)}
         </ThemeProvider>
       )}
       {currentValue}

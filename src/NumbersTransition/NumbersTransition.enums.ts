@@ -54,9 +54,13 @@ export enum VariableNames {
   SEPARATORS_LENGTH = '--separators-length',
   SEPARATOR_INDEX = '--separator-index',
   DECIMAL_SEPARATOR_LENGTH = '--decimal-separator-length',
+  DECIMAL_SEPARATOR_INDEX = '--decimal-separator-index',
   DIGIT_GROUP_SEPARATORS_LENGTH = '--digit-group-separators-length',
+  DIGIT_GROUP_SEPARATOR_INDEX = '--digit-group-separators-index',
   NEGATIVE_CHARACTER_LENGTH = '--negative-character-length',
+  NEGATIVE_CHARACTER_INDEX = '--negative-character-index',
   INVALID_LENGTH = '--invalid-length',
+  INVALID_INDEX = '--invalid-index',
 }
 
 export enum AnimationIds {

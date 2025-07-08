@@ -689,7 +689,7 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   const decimalSeparatorLength: number = isValueValid && precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO;
   const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
   const digitsLength: number = isValueValid ? numberOfDigits : Numbers.ZERO;
-  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength, invalidLength].reduce(sum);
+  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
 
   return {
     charactersLength,

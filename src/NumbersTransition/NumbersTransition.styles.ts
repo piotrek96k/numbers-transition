@@ -38,6 +38,10 @@ interface ElementsIndex {
   characterIndex?: number;
   digitIndex?: number;
   separatorIndex?: number;
+  decimalSeparatorIndex?: number;
+  digitGroupSeparatorIndex?: number;
+  negativeCharacterIndex?: number;
+  invalidIndex?: number;
 }
 
 export interface ElementsLength {
@@ -119,9 +123,13 @@ const integerProperties: VariableNames[] = [
   VariableNames.SEPARATORS_LENGTH,
   VariableNames.SEPARATOR_INDEX,
   VariableNames.DECIMAL_SEPARATOR_LENGTH,
+  VariableNames.DECIMAL_SEPARATOR_INDEX,
   VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH,
+  VariableNames.DIGIT_GROUP_SEPARATOR_INDEX,
   VariableNames.NEGATIVE_CHARACTER_LENGTH,
+  VariableNames.NEGATIVE_CHARACTER_INDEX,
   VariableNames.INVALID_LENGTH,
+  VariableNames.INVALID_INDEX,
 ];
 
 const properties: Property[] = [
@@ -181,6 +189,26 @@ const digitVariables = ({ theme: { digitIndex } }: NumbersTransitionExecutionCon
 
 const separatorVariables = ({ theme: { separatorIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.SEPARATOR_INDEX}: ${separatorIndex};
+`;
+
+const decimalSeparatorVariables = ({ theme: { decimalSeparatorIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.DECIMAL_SEPARATOR_INDEX}: ${decimalSeparatorIndex};
+`;
+
+const digitGroupSeparatorVariables = ({
+  theme: { digitGroupSeparatorIndex },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.DIGIT_GROUP_SEPARATOR_INDEX}: ${digitGroupSeparatorIndex};
+`;
+
+const negativeCharacterVariables = ({
+  theme: { negativeCharacterIndex },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.NEGATIVE_CHARACTER_INDEX}: ${negativeCharacterIndex};
+`;
+
+const invalidVariables = ({ theme: { invalidIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.INVALID_INDEX}: ${invalidIndex};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -550,6 +578,7 @@ export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<Separato
 >(attributesFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR))`
   ${cssFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
   ${animationFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
+  ${decimalSeparatorVariables};
 `;
 
 interface DigitGroupSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
@@ -567,6 +596,7 @@ export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<Se
 >(attributesFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR))`
   ${cssFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
   ${animationFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
+  ${digitGroupSeparatorVariables};
 `;
 
 interface NegativeCharacterProps<T extends object, U, V extends object, W>
@@ -585,6 +615,7 @@ export const NegativeCharacter: NegativeCharacterStyledComponent = styled<Charac
 >(attributesFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER))`
   ${cssFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
   ${animationFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
+  ${negativeCharacterVariables};
   ${visibility};
 `;
 
@@ -601,4 +632,5 @@ export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(
 )`
   ${cssFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
   ${animationFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
+  ${invalidVariables};
 `;
