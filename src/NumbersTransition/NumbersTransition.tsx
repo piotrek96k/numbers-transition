@@ -323,7 +323,7 @@ const NumbersTransition = <
   );
 
   const numberElement: ReactElement = (
-    <NumberElement<M, N, O, P, Q, R, S, T, U, V>
+    <NumberElement<number, M, N, O, P, Q, R, S, T, U, V>
       precision={precision}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}

@@ -214,7 +214,19 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   );
 };
 
-interface NumberElementProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> {
+interface NumberElementProps<
+  P extends number | number[],
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> {
   precision: number;
   decimalSeparator: DecimalSeparators;
   digitGroupSeparator: DigitGroupSeparators;
@@ -223,12 +235,24 @@ interface NumberElementProps<Q extends object, R, S extends object, T, U extends
   separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, U, V>;
   decimalSeparatorStyledView: StyledViewWithProps<StyledComponents.DECIMAL_SEPARATOR, W, X>;
   digitGroupSeparatorStyledView: StyledViewWithProps<StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z>;
-  mapToElement?: ElementKeyMapper<ReactNode>;
-  children: ReactNode[];
+  mapToElement?: ElementKeyMapper<P>;
+  children: P[];
 }
 
-export const NumberElement = <Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
-  props: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z>,
+export const NumberElement = <
+  P extends number | number[],
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+>(
+  props: NumberElementProps<P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ReactNode => {
   const {
     precision,
@@ -241,11 +265,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     digitGroupSeparatorStyledView,
     mapToElement,
     children,
-  }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
+  }: NumberElementProps<P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
-  const mapToDigitElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, DigitProps<Q, R, S, T>>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<P> = useElementKeyMapper<P, DigitProps<Q, R, S, T>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
   });
@@ -428,7 +452,7 @@ export const HorizontalAnimationElement = <
   );
 
   const numberElement: ReactElement = (
-    <NumberElement<O, P, Q, R, S, T, U, V, W, X>
+    <NumberElement<number, O, P, Q, R, S, T, U, V, W, X>
       precision={precision}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
@@ -537,6 +561,9 @@ export const VerticalAnimationElement = <
     </div>
   );
 
+  const mapToElement = (digits: number[], index: number, array: number[][]): ReactElement =>
+    mapToVerticalAnimationElement(mapDigits(digits, index, array), index, array);
+
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
 
@@ -552,16 +579,16 @@ export const VerticalAnimationElement = <
           negativeCharacterStyledView={negativeCharacterStyledView}
         />
       </Optional>
-      <NumberElement<O, P, Q, R, S, T, U, V, W, X>
+      <NumberElement<number[], O, P, Q, R, S, T, U, V, W, X>
         {...restProps}
         characterStyledView={characterStyledView}
         digitStyledView={digitStyledView}
         separatorStyledView={separatorStyledView}
         decimalSeparatorStyledView={decimalSeparatorStyledView}
         digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-        mapToElement={mapToVerticalAnimationElement}
+        mapToElement={mapToElement}
       >
-        {animationDigits.map<ReactElement>(mapDigits)}
+        {animationDigits}
       </NumberElement>
     </>
   );
