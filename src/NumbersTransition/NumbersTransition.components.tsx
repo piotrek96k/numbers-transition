@@ -1,4 +1,16 @@
-import { Dispatch, FC, ReactElement, ReactNode, RefObject, SetStateAction, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import {
+  Dispatch,
+  FC,
+  HTMLAttributes,
+  ReactElement,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ThemeProvider, useTheme } from 'styled-components';
 import {
   AnimationDirections,
@@ -8,6 +20,7 @@ import {
   DecimalSeparators,
   DigitGroupSeparators,
   Display,
+  HTMLElements,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
   Numbers,
@@ -155,7 +168,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const { animationDirection, animationDuration = Numbers.ZERO, animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
-  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeCharacterElementProps<T, U, V, W>>(
+  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
     NegativeCharacterElement<T, U, V, W>,
     (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
       negativeCharacter,
@@ -235,7 +248,7 @@ interface NumberElementProps<
   separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, U, V>;
   decimalSeparatorStyledView: StyledViewWithProps<StyledComponents.DECIMAL_SEPARATOR, W, X>;
   digitGroupSeparatorStyledView: StyledViewWithProps<StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z>;
-  mapToElement?: ElementKeyMapper<P>;
+  mappers?: ElementKeyMapper<ReactNode>[];
   children: P[];
 }
 
@@ -263,16 +276,27 @@ export const NumberElement = <
     separatorStyledView,
     decimalSeparatorStyledView,
     digitGroupSeparatorStyledView,
-    mapToElement,
+    mappers = [],
     children,
   }: NumberElementProps<P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
-  const mapToDigitElement: ElementKeyMapper<P> = useElementKeyMapper<P, DigitProps<Q, R, S, T>>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<number | number[], [number, number] | []> = useElementKeyMapper<
+    DigitProps<Q, R, S, T>,
+    number | number[],
+    [number, number] | []
+  >(Digit, {
     ...characterStyledView,
     ...digitStyledView,
+    display: children.depth() === Numbers.ONE ? Display.INLINE_BLOCK : Display.BLOCK,
   });
+
+  // prettier-ignore
+  const mapDigits = (element: P, number: number, elements: P[]): ReactNode =>
+    Array.isArray<number>(element)
+      ? element.map<ReactElement>((digit: number, index: number, digits: number[]): ReactElement => mapToDigitElement(digit, index, digits, number, elements.length))
+      : mapToDigitElement(element, number, elements);
 
   const getSeparatorIndex = (index: number, length: number): number =>
     Math.trunc(
@@ -300,12 +324,12 @@ export const NumberElement = <
     </ThemeProvider>
   );
 
-  const reduceToNumber = (
-    accumulator: ReactElement,
-    currentValue: ReactElement,
-    index: number,
-    { length }: ReactElement[],
-  ): ReactElement => (
+  const reduceToElements = (
+    mapped: P[],
+    map: (element: P, number: number, elements: P[]) => ReactNode | ElementKeyMapper<ReactNode>,
+  ): P[] => mapped.map(map);
+
+  const reduceToNumber = (accumulator: ReactElement, currentValue: ReactNode, index: number, { length }: ReactNode[]): ReactElement => (
     <ThemeProvider theme={{ characterIndex: getCharacterIndex(index, length), digitIndex: index }}>
       {accumulator}
       {!index || !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) || (
@@ -319,7 +343,7 @@ export const NumberElement = <
     </ThemeProvider>
   );
 
-  return children.map<ReactElement>(mapToElement ?? mapToDigitElement).reduce(reduceToNumber, <></>);
+  return [mapDigits, ...mappers].reduce<P[]>(reduceToElements, children).reduce<ReactElement>(reduceToNumber, <></>);
 };
 
 interface HorizontalAnimationElementProps<
@@ -547,22 +571,14 @@ export const VerticalAnimationElement = <
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, object>(VerticalAnimation);
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<object, ReactNode>(VerticalAnimation);
 
-  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<O, P, Q, R>>(Digit, {
-    ...characterStyledView,
-    ...digitStyledView,
-    display: Display.BLOCK,
-  });
-
-  const mapDigits = (digits: number[], index: number, { length }: number[][]): ReactElement => (
-    <div {...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION })}>
-      {digits.map<ReactElement>(mapToDigitElement)}
-    </div>
+  const mapToDivElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<HTMLAttributes<HTMLElements.DIV>, ReactNode>(
+    HTMLElements.DIV,
+    (_: ReactNode, index: number, { length }: ReactNode[]): HTMLAttributes<HTMLElements.DIV> => ({
+      ...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION }),
+    }),
   );
-
-  const mapToElement = (digits: number[], index: number, array: number[][]): ReactElement =>
-    mapToVerticalAnimationElement(mapDigits(digits, index, array), index, array);
 
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
@@ -586,7 +602,7 @@ export const VerticalAnimationElement = <
         separatorStyledView={separatorStyledView}
         decimalSeparatorStyledView={decimalSeparatorStyledView}
         digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-        mapToElement={mapToElement}
+        mappers={[mapToDivElement, mapToVerticalAnimationElement]}
       >
         {animationDigits}
       </NumberElement>

@@ -842,24 +842,34 @@ interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends ReactNode, U extends object> = (value: T, index: number, array: T[]) => U;
+type PropsFactory<T extends object, U extends ReactNode, V extends unknown[] = unknown[]> = (
+  value: U,
+  index: number,
+  array: U[],
+  ...args: V
+) => T;
 
-export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
+export type ElementKeyMapper<T extends ReactNode, U extends unknown[] = unknown[]> = (
+  child: T,
+  index: number,
+  children: T[],
+  ...args: U
+) => ReactElement;
 
-type UseElementKeyMapper = <T extends ReactNode, U extends object = object>(
-  Component: FunctionalComponent<U>,
-  props?: U | PropsFactory<T, U>,
-) => ElementKeyMapper<T>;
+type UseElementKeyMapper = <T extends object, U extends ReactNode, V extends unknown[] = unknown[]>(
+  Component: FunctionalComponent<T>,
+  props?: T | PropsFactory<T, U, V>,
+) => ElementKeyMapper<U, V>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  <T extends ReactNode, U extends object = object>(
-    Component: FunctionalComponent<U>,
-    props?: U | PropsFactory<T, U>,
-  ): ElementKeyMapper<T> =>
-  (child: T, index: number, array: T[]): ReactElement => (
+  <T extends object, U extends ReactNode, V extends unknown[] = unknown[]>(
+    Component: FunctionalComponent<T>,
+    props?: T | PropsFactory<T, U, V>,
+  ): ElementKeyMapper<U, V> =>
+  (child: U, index: number, array: U[], ...args: V): ReactElement => (
     <Component
       key={`${Component}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
-      {...(typeof props === 'function' ? props(child, index, array) : props)}
+      {...(typeof props === 'function' ? props(child, index, array, ...args) : props)}
     >
       {child}
     </Component>
