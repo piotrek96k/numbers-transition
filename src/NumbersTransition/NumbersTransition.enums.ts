@@ -61,6 +61,8 @@ export enum VariableNames {
   NEGATIVE_CHARACTER_INDEX = '--negative-character-index',
   INVALID_LENGTH = '--invalid-length',
   INVALID_INDEX = '--invalid-index',
+  COLUMN_LENGTH = '--column-length',
+  ROW_INDEX = '--row-index',
 }
 
 export enum AnimationIds {

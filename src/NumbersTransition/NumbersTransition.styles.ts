@@ -42,6 +42,7 @@ interface ElementsIndex {
   digitGroupSeparatorIndex?: number;
   negativeCharacterIndex?: number;
   invalidIndex?: number;
+  rowIndex?: number;
 }
 
 export interface ElementsLength {
@@ -52,6 +53,7 @@ export interface ElementsLength {
   digitGroupSeparatorsLength: number;
   negativeCharacterLength: number;
   invalidLength: number;
+  columnLength?: number;
 }
 
 export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
@@ -130,6 +132,8 @@ const integerProperties: VariableNames[] = [
   VariableNames.NEGATIVE_CHARACTER_INDEX,
   VariableNames.INVALID_LENGTH,
   VariableNames.INVALID_INDEX,
+  VariableNames.COLUMN_LENGTH,
+  VariableNames.ROW_INDEX,
 ];
 
 const properties: Property[] = [
@@ -179,8 +183,9 @@ const containerVariables = ({
   ${VariableNames.INVALID_LENGTH}: ${invalidLength};
 `;
 
-const characterVariables = ({ theme: { characterIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+const characterVariables = ({ theme: { characterIndex, rowIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.CHARACTER_INDEX}: ${characterIndex};
+  ${VariableNames.ROW_INDEX}: ${rowIndex};
 `;
 
 const digitVariables = ({ theme: { digitIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
@@ -209,6 +214,10 @@ const negativeCharacterVariables = ({
 
 const invalidVariables = ({ theme: { invalidIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableNames.INVALID_INDEX}: ${invalidIndex};
+`;
+
+const verticalAnimationVariables = ({ theme: { columnLength } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableNames.COLUMN_LENGTH}: ${columnLength};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -499,6 +508,7 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(An
 type VerticalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, VerticalAnimationProps>;
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animation)<VerticalAnimationProps>`
+  ${verticalAnimationVariables};
   :only-child:has(:not(:only-child)) {
     ${animation};
     position: relative;

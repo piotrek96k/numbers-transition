@@ -181,11 +181,11 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
 
   const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
     NegativeCharacterElement<T, U, V, W>,
-    (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
+    (visible: boolean, rowIndex: number, { length: columnLength }: boolean[]): NegativeCharacterElementProps<T, U, V, W> => ({
       negativeCharacter,
       visible,
       display: Display.BLOCK,
-      theme,
+      theme: { ...theme, columnLength, rowIndex },
       characterStyledView,
       negativeCharacterStyledView,
     }),
@@ -219,7 +219,10 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   const animationDelay: number = animationDirection === AnimationDirections.NORMAL ? -animationTime : Numbers.ZERO;
 
   const verticalAnimationElement: ReactElement = (
-    <VerticalAnimation {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { animationDelay })} theme={theme}>
+    <VerticalAnimation
+      {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { animationDelay })}
+      theme={{ ...theme, columnLength: negativeCharactersVisible.length }}
+    >
       <div>{negativeCharactersVisible.map<ReactElement>(mapToNegativeCharacterElement)}</div>
     </VerticalAnimation>
   );
@@ -280,15 +283,15 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     [number, number[][]] | []
   >(
     Digit,
-    (_: number, index: number, digits: number[], number: number = Numbers.ZERO, elements: number[][] = []): DigitProps<Q, R, S, T> => ({
+    (_: number, index: number, { length }: number[], number: number = Numbers.ZERO, elements: number[][] = []): DigitProps<Q, R, S, T> => ({
       ...characterStyledView,
       ...digitStyledView,
       display: Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE) ? Display.INLINE_BLOCK : Display.BLOCK,
       theme: {
         ...theme,
         ...(Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE)
-          ? { characterIndex: getCharacterIndex(index, digits.length), digitIndex: index }
-          : { characterIndex: getCharacterIndex(number, elements.length), digitIndex: number }),
+          ? { characterIndex: getCharacterIndex(index, length), digitIndex: index }
+          : { characterIndex: getCharacterIndex(number, elements.length), digitIndex: number, columnLength: length, rowIndex: index }),
       },
     }),
   );
@@ -584,7 +587,7 @@ export const VerticalAnimationElement = <
 
   const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<VerticalAnimationProps, ReactElement>(
     VerticalAnimation,
-    { theme },
+    (_: ReactElement, index: number): VerticalAnimationProps => ({ theme: { ...theme, columnLength: animationDigits[index].length } }),
   );
 
   const mapToDivElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<HTMLAttributes<HTMLElements.DIV>, ReactElement>(
