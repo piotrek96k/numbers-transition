@@ -1,3 +1,5 @@
+import { ArrayOfDepth, OrArray } from './NumbersTransition/NumbersTransition.types';
+
 declare global {
   interface ObjectConstructor {
     assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
@@ -9,12 +11,13 @@ declare global {
   }
 
   interface ArrayConstructor {
-    isArray<T>(arg: T | T[]): arg is T[];
+    isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
+    isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
+    depth<T>(array: T): number;
   }
 
   interface Array<T> {
-    depth(): number;
     equals<U>(array: U[]): boolean;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     invert(invert: boolean): [...this];

@@ -10,7 +10,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { StyleSheetManager, ThemeProvider } from 'styled-components';
+import { StyleSheetManager } from 'styled-components';
 import {
   Conditional,
   HorizontalAnimationElement,
@@ -316,6 +316,7 @@ const NumbersTransition = <
     <Optional condition={renderNegativeCharacter}>
       <NegativeCharacterElement<M, N, W, X>
         negativeCharacter={negativeCharacter}
+        theme={theme}
         characterStyledView={characterStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
       />
@@ -323,10 +324,11 @@ const NumbersTransition = <
   );
 
   const numberElement: ReactElement = (
-    <NumberElement<number, M, N, O, P, Q, R, S, T, U, V>
+    <NumberElement<M, N, O, P, Q, R, S, T, U, V>
       precision={precision}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
+      theme={theme}
       characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
@@ -352,7 +354,7 @@ const NumbersTransition = <
       maxNumberOfDigits={maxNumberOfDigits}
       numberOfDigitsDifference={numberOfDigitsDifference}
       hasSignChanged={hasSignChanged}
-      numberOfAnimations={numberOfAnimations}
+      theme={theme}
       characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
@@ -374,6 +376,7 @@ const NumbersTransition = <
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
+      theme={theme}
       characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
@@ -395,6 +398,7 @@ const NumbersTransition = <
       {numberElement}
       <InvalidElement<M, N, Y, Z>
         invalidValue={invalidValue}
+        theme={theme}
         characterStyledView={characterStyledView}
         invalidStyledView={invalidStyledView}
       />
@@ -402,7 +406,7 @@ const NumbersTransition = <
   );
 
   const containerElement: ReactElement = (
-    <Container {...styledView} onAnimationEnd={onAnimationEnd}>
+    <Container {...styledView} theme={theme} onAnimationEnd={onAnimationEnd}>
       {negativeCharacterElement}
       <Conditional condition={renderAnimation}>
         {animationElement}
@@ -411,11 +415,7 @@ const NumbersTransition = <
     </Container>
   );
 
-  return (
-    <StyleSheetManager shouldForwardProp={shouldForwardProp}>
-      <ThemeProvider theme={theme}>{containerElement}</ThemeProvider>
-    </StyleSheetManager>
-  );
+  return <StyleSheetManager shouldForwardProp={shouldForwardProp}>{containerElement}</StyleSheetManager>;
 };
 
 export default NumbersTransition;

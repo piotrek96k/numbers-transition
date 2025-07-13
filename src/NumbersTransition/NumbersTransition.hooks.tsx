@@ -18,7 +18,7 @@ import {
   TotalAnimationDurationValues,
   ViewKeys,
 } from './NumbersTransition.enums';
-import { AnimationTimingFunction, ElementsLength, StyledView } from './NumbersTransition.styles';
+import { AnimationTimingFunction, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
 type RerenderFunction = (condition: boolean) => void;
@@ -666,6 +666,44 @@ export const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
     [numberOfDigits - Math.max(precision, Numbers.ZERO), Math.max(precision, Numbers.ZERO)]
       .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
       .reduce((first: number, second: number): number => first + second);
+
+type CharacterIndexFunction = (index: number, length: number) => number;
+
+interface UseCharacterIndexFunctionsOptions {
+  precision: number;
+  theme: NumbersTransitionTheme;
+}
+
+export interface CharacterIndexFunctions {
+  getCharacterIndex: CharacterIndexFunction;
+  getCharacterSeparatorIndex: CharacterIndexFunction;
+  getSeparatorIndex: CharacterIndexFunction;
+  getDigitGroupSeparatorIndex: CharacterIndexFunction;
+}
+
+type UseCharacterIndexFunctions = (options: UseCharacterIndexFunctionsOptions) => CharacterIndexFunctions;
+
+export const useCharacterIndexFunctions: UseCharacterIndexFunctions = (
+  options: UseCharacterIndexFunctionsOptions,
+): CharacterIndexFunctions => {
+  const {
+    precision,
+    theme: { negativeCharacterLength },
+  }: UseCharacterIndexFunctionsOptions = options;
+
+  const getIndex = (index: number, length: number): number =>
+    Math.trunc(
+      (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
+    );
+
+  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength + index + getIndex(index, length);
+  const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Numbers.ONE;
+  const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Numbers.ONE;
+  const getDigitGroupSeparatorIndex = (index: number, length: number): number =>
+    getSeparatorIndex(index, length) - (length - index < precision ? Numbers.ONE : Numbers.ZERO);
+
+  return { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
+};
 
 interface UseElementsLengthOptions {
   precision: number;

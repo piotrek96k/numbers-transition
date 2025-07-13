@@ -45,25 +45,25 @@ interface ElementsIndex {
 }
 
 export interface ElementsLength {
-  charactersLength?: number;
-  digitsLength?: number;
-  separatorsLength?: number;
-  decimalSeparatorLength?: number;
-  digitGroupSeparatorsLength?: number;
-  negativeCharacterLength?: number;
-  invalidLength?: number;
+  charactersLength: number;
+  digitsLength: number;
+  separatorsLength: number;
+  decimalSeparatorLength: number;
+  digitGroupSeparatorsLength: number;
+  negativeCharacterLength: number;
+  invalidLength: number;
 }
 
 export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
-  numberOfAnimations?: AnimationNumbers;
-  animationNumber?: AnimationNumbers;
-  animationType?: AnimationTypes;
-  animationDirection?: AnimationDirections;
-  animationDuration?: number;
-  animationTimingFunction?: AnimationTimingFunction;
-  horizontalAnimationDuration?: number;
-  verticalAnimationDuration?: number;
-  totalAnimationDuration?: number;
+  numberOfAnimations: AnimationNumbers;
+  animationNumber: AnimationNumbers;
+  animationType: AnimationTypes;
+  animationDirection: AnimationDirections;
+  animationDuration: number;
+  animationTimingFunction: AnimationTimingFunction;
+  horizontalAnimationDuration: number;
+  verticalAnimationDuration: number;
+  totalAnimationDuration: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -267,7 +267,7 @@ interface AnimationDelayProps {
   animationDelay?: number;
 }
 
-interface AnimationCommonProps extends Partial<NumbersTransitionExecutionContext>, AnimationDelayProps {}
+interface AnimationCommonProps extends NumbersTransitionExecutionContext, AnimationDelayProps {}
 
 interface AnimationWidthProps {
   animationStartWidth: number;
@@ -276,7 +276,7 @@ interface AnimationWidthProps {
 
 interface HorizontalAnimationProps extends AnimationCommonProps, AnimationWidthProps {}
 
-type VerticalAnimationProps = AnimationCommonProps;
+export type VerticalAnimationProps = AnimationCommonProps;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
@@ -320,10 +320,7 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Numbers.MINUS_ONE_HUNDRED,
 ]);
 
-const animationName = ({
-  theme: { animationType } = {},
-  ...restProps
-}: Partial<NumbersTransitionExecutionContext>): undefined | Keyframes => {
+const animationName = ({ theme: { animationType }, ...restProps }: NumbersTransitionExecutionContext): undefined | Keyframes => {
   switch (animationType) {
     case AnimationTypes.HORIZONTAL:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
@@ -376,7 +373,8 @@ const classNameFactory = <T extends StyledComponents, U extends object, V>(
 const toCssArray = <T extends object>(
   cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
 ): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
-  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) && cssStyle.depth() === Numbers.TWO
+  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) &&
+  Array.isOfDepth<CssRule<T> | CssRuleFactory<T>, Numbers.TWO>(cssStyle, Numbers.TWO)
     ? cssStyle
     : [<undefined | CssRule<T> | CssRuleFactory<T>>cssStyle];
 
@@ -460,9 +458,7 @@ const display: RuleSet<DisplayProps> = css<DisplayProps>`
   display: ${({ display = Display.INLINE_BLOCK }: DisplayProps): string => display};
 `;
 
-interface ContainerProps<T extends object, U>
-  extends Partial<NumbersTransitionExecutionContext>,
-    StyledView<StyledComponents.CONTAINER, T, U> {}
+interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<StyledComponents.CONTAINER, T, U> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
 
@@ -515,7 +511,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
 
 interface CharacterProps<T extends object, U>
   extends DisplayProps,
-    Partial<NumbersTransitionExecutionContext>,
+    NumbersTransitionExecutionContext,
     StyledView<StyledComponents.CHARACTER, T, U> {}
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;

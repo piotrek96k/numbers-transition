@@ -17,6 +17,10 @@ export type OrReadOnly<T> = T | ReadOnly<T>;
 
 export type OrArray<T> = T | T[];
 
+export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U extends V[Strings.LENGTH]
+  ? T
+  : ArrayOfDepth<T[], U, [...V, unknown]>;
+
 export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 
 export type Falsy =

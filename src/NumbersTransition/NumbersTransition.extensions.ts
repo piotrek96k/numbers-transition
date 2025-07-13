@@ -1,15 +1,19 @@
 import { Numbers } from './NumbersTransition.enums';
-import { OrArray } from './NumbersTransition.types';
+import { ArrayOfDepth, OrArray } from './NumbersTransition.types';
 
 String.prototype.capitalize = function (): string {
   return `${this[Numbers.ZERO].toUpperCase()}${this.slice(Numbers.ONE)}`;
 };
 
-Array.prototype.depth = function (): number {
-  const depth = <T>(array: OrArray<T>): number =>
-    Array.isArray<T>(array) ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth<T>)) : Numbers.ZERO;
+Array.isOfDepth = function <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
+  return Array.depth<unknown>(array) === depth;
+};
 
-  return depth<unknown>(this);
+Array.depth = function <T>(array: T): number {
+  const depth = (array: OrArray<T>): number =>
+    Array.isArray<T>(array) ? Numbers.ONE + Math.max(Numbers.ZERO, ...array.map<number>(depth)) : Numbers.ZERO;
+
+  return depth(array);
 };
 
 Array.prototype.equals = function <T>(array: T[]): boolean {
