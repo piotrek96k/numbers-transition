@@ -336,7 +336,12 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const reduceToElements = (previousMapped: ReactElement[], mapToElement: ElementKeyMapper<ReactElement>): ReactElement[] =>
     previousMapped.map<ReactElement>(mapToElement);
 
-  const reduceToNumber = (accumulator: ReactElement, currentValue: ReactNode, index: number, { length }: ReactNode[]): ReactElement => (
+  const reduceToNumber = (
+    accumulator: ReactElement,
+    currentValue: ReactElement,
+    index: number,
+    { length }: ReactElement[],
+  ): ReactElement => (
     <>
       {accumulator}
       {!index ||
