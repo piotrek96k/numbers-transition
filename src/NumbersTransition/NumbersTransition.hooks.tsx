@@ -21,11 +21,11 @@ import {
 import { AnimationTimingFunction, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
 import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
 
-type RerenderFunction = (condition: boolean) => void;
+type ConditionalRerenderFunction = (condition: boolean) => void;
 
-type UseRerender = () => RerenderFunction;
+type UseConditionalRerender = () => ConditionalRerenderFunction;
 
-const useRerender: UseRerender = (): RerenderFunction => {
+const useConditionalRerender: UseConditionalRerender = (): ConditionalRerenderFunction => {
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
 
   return (condition: boolean): void => (condition ? rerender() : undefined);
@@ -53,7 +53,7 @@ export const useValue: UseValue = (
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionModes = AnimationInterruptionModes.INTERRUPT,
 ): ValidationTuple => {
-  const rerender: RerenderFunction = useRerender();
+  const rerenderIf: ConditionalRerenderFunction = useConditionalRerender();
   const values: RefObject<ValidationTuple[]> = useRef<ValidationTuple[]>([]);
   const validationTuple: ValidationTuple = useValidation(value, values.current.at(Numbers.MINUS_ONE)?.[Numbers.ZERO] ?? previousValue);
 
@@ -75,9 +75,9 @@ export const useValue: UseValue = (
   useEffect((): void => {
     if (validValue === previousValue || !isValueValid) {
       values.current = values.current.slice(Numbers.ONE).filter(filterInvalidValues).filter(filterDuplicates);
-      rerender(!!values.current.length);
+      rerenderIf(!!values.current.length);
     }
-  }, [rerender, previousValue, validValue, isValueValid]);
+  }, [rerenderIf, previousValue, validValue, isValueValid]);
 
   return [validValue, isValueValid];
 };
