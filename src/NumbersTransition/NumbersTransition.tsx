@@ -6,7 +6,6 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
-  useDeferredValue,
   useEffect,
   useRef,
   useState,
@@ -161,7 +160,6 @@ const NumbersTransition = <
 
   const [animationTransition, setAnimationTransition]: [AnimationTransitions, Dispatch<SetStateAction<AnimationTransitions>>] =
     useState<AnimationTransitions>(AnimationTransitions.NONE);
-  const deferredAnimationTransition: AnimationTransitions = useDeferredValue<AnimationTransitions>(animationTransition);
 
   const [
     [previousValueOnEndDigits, valueDigits],
@@ -184,7 +182,7 @@ const NumbersTransition = <
   });
 
   const [animationNumber, numberOfAnimations]: AnimationNumbersTuple = useAnimationNumbers({
-    animationTransition: deferredAnimationTransition,
+    animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
     previousValue: previousValueOEndBigInt,
@@ -194,7 +192,7 @@ const NumbersTransition = <
   });
 
   const animationType: AnimationTypes = useAnimationType({
-    animationTransition: deferredAnimationTransition,
+    animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
     previousValue: previousValueOEndBigInt,
@@ -206,7 +204,7 @@ const NumbersTransition = <
 
   const animationDirection: AnimationDirections = useAnimationDirection({
     animationType,
-    animationTransition: deferredAnimationTransition,
+    animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
     previousValue: previousValueOEndBigInt,
@@ -226,7 +224,7 @@ const NumbersTransition = <
 
   const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
     negativeCharacterAnimationMode,
-    animationTransition: deferredAnimationTransition,
+    animationTransition,
     previousValue: previousValueOEndBigInt,
     currentValue: valueBigInt,
     isValueValid,
@@ -291,9 +289,9 @@ const NumbersTransition = <
 
     if (numberOfAnimations === AnimationNumbers.ONE) {
       setPreviousValueOnAnimationEnd(validValue);
-    } else if (numberOfAnimations === AnimationNumbers.THREE && deferredAnimationTransition === AnimationTransitions.FIRST_TO_SECOND) {
+    } else if (numberOfAnimations === AnimationNumbers.THREE && animationTransition === AnimationTransitions.FIRST_TO_SECOND) {
       setAnimationTransition(AnimationTransitions.SECOND_TO_THIRD);
-    } else if (deferredAnimationTransition !== AnimationTransitions.NONE) {
+    } else if (animationTransition !== AnimationTransitions.NONE) {
       setPreviousValueOnAnimationEnd(validValue);
       setAnimationTransition(AnimationTransitions.NONE);
     } else {
@@ -347,7 +345,7 @@ const NumbersTransition = <
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
       negativeCharacter={negativeCharacter}
-      animationTransition={deferredAnimationTransition}
+      animationTransition={animationTransition}
       previousValueDigits={previousValueOnEndDigits}
       currentValueDigits={valueDigits}
       previousValue={previousValueOEndBigInt}
