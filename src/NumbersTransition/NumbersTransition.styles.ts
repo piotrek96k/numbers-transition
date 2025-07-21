@@ -6,7 +6,6 @@ import {
   AnimationNumbers,
   AnimationTimingFunctions,
   AnimationTypes,
-  Display,
   HTMLElements,
   Numbers,
   Runtime,
@@ -459,14 +458,6 @@ const visibility = ({ visible = true }: VisibilityProps): RuleSet<object> | fals
     opacity: ${Numbers.ZERO};
   `;
 
-interface DisplayProps {
-  display?: Display;
-}
-
-const display: RuleSet<DisplayProps> = css<DisplayProps>`
-  display: ${({ display = Display.INLINE_BLOCK }: DisplayProps): string => display};
-`;
-
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<StyledComponents.CONTAINER, T, U> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
@@ -517,12 +508,12 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
   }
+  :only-child > * {
+    display: block;
+  }
 `;
 
-interface CharacterProps<T extends object, U>
-  extends DisplayProps,
-    NumbersTransitionExecutionContext,
-    StyledView<StyledComponents.CHARACTER, T, U> {}
+interface CharacterProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<StyledComponents.CHARACTER, T, U> {}
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
@@ -532,7 +523,7 @@ const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any,
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${characterVariables};
-  ${display};
+  display: inline-block;
 `;
 
 export interface DigitProps<T extends object, U, V extends object, W>

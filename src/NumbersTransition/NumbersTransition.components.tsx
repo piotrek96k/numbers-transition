@@ -18,7 +18,6 @@ import {
   AnimationTransitions,
   DecimalSeparators,
   DigitGroupSeparators,
-  Display,
   HTMLElements,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
@@ -116,7 +115,6 @@ export const InvalidElement = <T extends object, U, V extends object, W>({
 interface NegativeCharacterElementProps<T extends object, U, V extends object, W> {
   negativeCharacter: NegativeCharacters;
   visible?: boolean;
-  display?: Display;
   theme: NumbersTransitionTheme;
   characterStyledView: StyledViewWithProps<StyledComponents.CHARACTER, T, U>;
   negativeCharacterStyledView: StyledViewWithProps<StyledComponents.NEGATIVE_CHARACTER, V, W>;
@@ -125,7 +123,6 @@ interface NegativeCharacterElementProps<T extends object, U, V extends object, W
 export const NegativeCharacterElement = <T extends object, U, V extends object, W>({
   negativeCharacter,
   visible,
-  display,
   theme,
   characterStyledView,
   negativeCharacterStyledView,
@@ -135,7 +132,6 @@ export const NegativeCharacterElement = <T extends object, U, V extends object, 
     {...negativeCharacterStyledView}
     theme={{ ...theme, characterIndex: Numbers.ZERO, negativeCharacterIndex: Numbers.ZERO }}
     visible={visible}
-    display={display}
   >
     {negativeCharacter}
   </NegativeCharacter>
@@ -184,7 +180,6 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     (visible: boolean, rowIndex: number, { length: columnLength }: boolean[]): NegativeCharacterElementProps<T, U, V, W> => ({
       negativeCharacter,
       visible,
-      display: Display.BLOCK,
       theme: { ...theme, columnLength, rowIndex },
       characterStyledView,
       negativeCharacterStyledView,
@@ -286,7 +281,6 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     (_: number, index: number, { length }: number[], number: number = Numbers.ZERO, elements: number[][] = []): DigitProps<Q, R, S, T> => ({
       ...characterStyledView,
       ...digitStyledView,
-      display: Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE) ? Display.INLINE_BLOCK : Display.BLOCK,
       theme: {
         ...theme,
         ...(Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE)

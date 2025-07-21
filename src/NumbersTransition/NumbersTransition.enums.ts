@@ -6,11 +6,6 @@ export enum HTMLElements {
   DIV = 'div',
 }
 
-export enum Display {
-  BLOCK = 'block',
-  INLINE_BLOCK = 'inline-block',
-}
-
 export enum ForwardProps {
   ID = 'id',
   STYLE = 'style',
