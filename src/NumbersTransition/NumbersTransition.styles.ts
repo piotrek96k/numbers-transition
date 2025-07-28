@@ -481,7 +481,8 @@ const Animation: AnimationStyledComponent = styled.div`
   display: inline-block;
   overflow: hidden;
   height: inherit;
-  :has(~ &):not(:has(:first-child)) {
+  :has(~ &):not(:has(:first-child)),
+  & ~ * {
     overflow: hidden;
   }
 `;

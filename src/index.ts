@@ -9,6 +9,7 @@ import {
   DigitGroupSeparators,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
+  OptimizationStrategies,
   VariableNames,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
@@ -61,6 +62,7 @@ export type {
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  OptimizationStrategies,
   OrReadOnly,
   ReadOnly,
   StyleFactory,

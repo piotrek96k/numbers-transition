@@ -11,6 +11,7 @@ import {
   NegativeCharacterAnimationModes,
   NegativeCharacters,
   Numbers,
+  OptimizationStrategies,
   StorybookValue,
   VariableNames,
 } from './NumbersTransition.enums';
@@ -44,7 +45,8 @@ type SelectType =
   | typeof DecimalSeparators
   | typeof NegativeCharacters
   | typeof NegativeCharacterAnimationModes
-  | typeof AnimationInterruptionModes;
+  | typeof AnimationInterruptionModes
+  | typeof OptimizationStrategies;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -67,6 +69,7 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
   ['negativeCharacter', NegativeCharacters],
   ['negativeCharacterAnimationMode', NegativeCharacterAnimationModes],
   ['animationInterruptionMode', AnimationInterruptionModes],
+  ['optimizationStrategy', OptimizationStrategies],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
@@ -107,6 +110,7 @@ const args: ComponentProps<NumbersTransitionProps> = {
   },
   animationTimingFunction: AnimationTimingFunctions.EASE,
   animationInterruptionMode: AnimationInterruptionModes.INTERRUPT,
+  optimizationStrategy: OptimizationStrategies.NONE,
   view: { css: style, animation: opacityAnimationFactory },
 };
 

@@ -1,16 +1,20 @@
 import {
   Dispatch,
   FC,
+  Fragment,
   HTMLAttributes,
   ReactElement,
   ReactNode,
   RefObject,
   SetStateAction,
+  isValidElement,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from 'react';
+import { OptimizationStrategyContext } from './NumbersTransition.contexts';
 import {
   AnimationDirections,
   AnimationIds,
@@ -22,11 +26,13 @@ import {
   NegativeCharacterAnimationModes,
   NegativeCharacters,
   Numbers,
+  OptimizationStrategies,
   StyledComponents,
 } from './NumbersTransition.enums';
 import {
   AnimationAlgorithm,
   CharacterIndexFunctions,
+  ChildrenProps,
   CubicBezierTuple,
   ElementKeyMapper,
   StyledViewWithProps,
@@ -50,6 +56,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
+import { GenericReactNode } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -92,6 +99,32 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   }, [time]);
 
   return switched === reverse ? before : after;
+};
+
+interface DeferProps {
+  children: ReactElement<ChildrenProps>[];
+  isHeavy: (child: ReactElement<ChildrenProps>) => boolean;
+  onMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
+}
+
+const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
+  const { children, isHeavy, onMount }: DeferProps = props;
+
+  const [numberOfRerenders, setNumberOfRerenders]: [number, Dispatch<SetStateAction<number>>] = useState<number>(
+    Math.max(Numbers.ONE, children.findIndex(isHeavy) + Numbers.ONE),
+  );
+  const mapToFragmentElement: ElementKeyMapper<GenericReactNode<ChildrenProps>> = useElementKeyMapper(Fragment);
+
+  useEffect((): void => {
+    if (numberOfRerenders < children.length) {
+      requestAnimationFrame((): void => setNumberOfRerenders((previous: number): number => previous + Numbers.ONE));
+    }
+  }, [children.length, numberOfRerenders]);
+
+  return [
+    ...children.slice(Numbers.ZERO, numberOfRerenders),
+    ...children.slice(numberOfRerenders).map<GenericReactNode<ChildrenProps>>(onMount),
+  ].map<ReactElement<ChildrenProps>>(mapToFragmentElement);
 };
 
 interface InvalidElementProps<T extends object, U, V extends object, W> {
@@ -213,12 +246,12 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   const animationSwitchTime: number = animationDirection === AnimationDirections.NORMAL ? animationTime : animationDuration - animationTime;
   const animationDelay: number = animationDirection === AnimationDirections.NORMAL ? -animationTime : Numbers.ZERO;
 
-  const verticalAnimationElement: ReactElement = (
+  const verticalAnimationElement: ReactElement<ChildrenProps> = (
     <VerticalAnimation
       {...(negativeCharacterAnimationMode === NegativeCharacterAnimationModes.SINGLE && { animationDelay })}
       theme={{ ...theme, columnLength: negativeCharactersVisible.length }}
     >
-      <div>{negativeCharactersVisible.map<ReactElement>(mapToNegativeCharacterElement)}</div>
+      <div>{negativeCharactersVisible.map<ReactElement<ChildrenProps>>(mapToNegativeCharacterElement)}</div>
     </VerticalAnimation>
   );
 
@@ -248,7 +281,7 @@ interface NumberElementProps<Q extends object, R, S extends object, T, U extends
   separatorStyledView: StyledViewWithProps<StyledComponents.SEPARATOR, U, V>;
   decimalSeparatorStyledView: StyledViewWithProps<StyledComponents.DECIMAL_SEPARATOR, W, X>;
   digitGroupSeparatorStyledView: StyledViewWithProps<StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z>;
-  mapToElement?: ElementKeyMapper<ReactElement>[];
+  mapToElement?: ElementKeyMapper<ReactElement<ChildrenProps>>[];
   children: number[] | number[][];
 }
 
@@ -269,8 +302,14 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     children,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const { animationDirection }: NumbersTransitionTheme = theme;
+
+  const optimizationStrategy: OptimizationStrategies = useContext<OptimizationStrategies>(OptimizationStrategyContext);
+
   const { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex }: CharacterIndexFunctions =
     useCharacterIndexFunctions({ precision, theme });
+
+  const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper(Fragment);
 
   const mapToDigitElement: ElementKeyMapper<number, [number, number[][]] | []> = useElementKeyMapper<
     DigitProps<Q, R, S, T>,
@@ -290,10 +329,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     }),
   );
 
-  const mapToDigitsElement = (element: number[], number: number, elements: number[][]): ReactElement => (
+  const mapToDigitsElement = (element: number[], number: number, elements: number[][]): ReactElement<ChildrenProps> => (
     <>
-      {element.map<ReactElement>(
-        (digit: number, index: number, digits: number[]): ReactElement => mapToDigitElement(digit, index, digits, number, elements),
+      {element.map<ReactElement<ChildrenProps>>(
+        (digit: number, index: number, digits: number[]): ReactElement<ChildrenProps> =>
+          mapToDigitElement(digit, index, digits, number, elements),
       )}
     </>
   );
@@ -305,7 +345,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     separatorIndex: getSeparatorIndex(index, length),
   });
 
-  const getDigitGroupSeparatorElement = (index: number, length: number): ReactElement => (
+  const getDigitGroupSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> => (
     <DigitGroupSeparator
       {...characterStyledView}
       {...separatorStyledView}
@@ -316,7 +356,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </DigitGroupSeparator>
   );
 
-  const getDecimalSeparatorElement = (index: number, length: number): ReactElement => (
+  const getDecimalSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> => (
     <DecimalSeparator
       {...characterStyledView}
       {...separatorStyledView}
@@ -327,29 +367,60 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     </DecimalSeparator>
   );
 
-  const reduceToElements = (previousMapped: ReactElement[], mapToElement: ElementKeyMapper<ReactElement>): ReactElement[] =>
-    previousMapped.map<ReactElement>(mapToElement);
+  const getSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> =>
+    (length - index === precision ? getDecimalSeparatorElement : getDigitGroupSeparatorElement)(index, length);
+
+  const reduceToElements = (
+    previousMapped: ReactElement<ChildrenProps>[],
+    mapToElement: ElementKeyMapper<ReactElement<ChildrenProps>>,
+  ): ReactElement<ChildrenProps>[] => previousMapped.map<ReactElement<ChildrenProps>>(mapToElement);
 
   const reduceToNumber = (
-    accumulator: ReactElement,
-    currentValue: ReactElement,
+    accumulator: ReactElement<ChildrenProps>[],
+    currentValue: ReactElement<ChildrenProps>,
     index: number,
-    { length }: ReactElement[],
-  ): ReactElement => (
-    <>
-      {accumulator}
-      {!index ||
-        !!((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) ||
-        (length - index === precision ? getDecimalSeparatorElement(index, length) : getDigitGroupSeparatorElement(index, length))}
-      {currentValue}
-    </>
+    { length }: ReactElement<ChildrenProps>[],
+  ): ReactElement<ChildrenProps>[] => [
+    ...accumulator,
+    ...(!!index && !((length - index - Math.max(precision, Numbers.ZERO)) % Numbers.THREE) ? [getSeparatorElement(index, length)] : []),
+    currentValue,
+  ];
+
+  const getLastValidElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
+    isValidElement(child.props.children) ? getLastValidElement(child.props.children) : child;
+
+  const isHeavy = (child: ReactElement<ChildrenProps>): boolean => {
+    // prettier-ignore
+    const { props: { children } }: ReactElement<ChildrenProps> = getLastValidElement(child);
+
+    return Array.isArray<GenericReactNode<ChildrenProps>>(children) && children.length > Numbers.ONE;
+  };
+
+  const onMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => {
+    const lastValidChild: ReactElement<ChildrenProps> = getLastValidElement(child);
+
+    return Array.isArray<GenericReactNode<ChildrenProps>>(lastValidChild.props.children)
+      ? lastValidChild.props.children.at(animationDirection === AnimationDirections.NORMAL ? Numbers.ZERO : Numbers.MINUS_ONE)
+      : lastValidChild;
+  };
+
+  const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE)
+    ? children.map<ReactElement<ChildrenProps>>(mapToDigitElement)
+    : children.map<ReactElement<ChildrenProps>>(mapToDigitsElement);
+
+  const number: ReactElement<ChildrenProps>[] = mapToElement
+    .reduce<ReactElement<ChildrenProps>[]>(reduceToElements, mappedChildren)
+    .reduce<ReactElement<ChildrenProps>[]>(reduceToNumber, [])
+    .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
+
+  return (
+    <Conditional condition={optimizationStrategy === OptimizationStrategies.SPLIT}>
+      <Defer isHeavy={isHeavy} onMount={onMount}>
+        {number}
+      </Defer>
+      {number}
+    </Conditional>
   );
-
-  const mappedChildren: ReactElement[] = Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE)
-    ? children.map<ReactElement>(mapToDigitElement)
-    : children.map<ReactElement>(mapToDigitsElement);
-
-  return mapToElement.reduce<ReactElement[]>(reduceToElements, mappedChildren).reduce(reduceToNumber, <></>);
 };
 
 interface HorizontalAnimationElementProps<
@@ -584,14 +655,22 @@ export const VerticalAnimationElement = <
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<VerticalAnimationProps, ReactElement>(
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
+    VerticalAnimationProps,
+    ReactElement<ChildrenProps>
+  >(
     VerticalAnimation,
-    (_: ReactElement, index: number): VerticalAnimationProps => ({ theme: { ...theme, columnLength: animationDigits[index].length } }),
+    (_: ReactElement<ChildrenProps>, index: number): VerticalAnimationProps => ({
+      theme: { ...theme, columnLength: animationDigits[index].length },
+    }),
   );
 
-  const mapToDivElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<HTMLAttributes<HTMLElements.DIV>, ReactElement>(
+  const mapToDivElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
+    HTMLAttributes<HTMLElements.DIV>,
+    ReactElement<ChildrenProps>
+  >(
     HTMLElements.DIV,
-    (_: ReactElement, index: number, { length }: ReactElement[]): HTMLAttributes<HTMLElements.DIV> => ({
+    (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElements.DIV> => ({
       ...(index === length - Numbers.ONE && { id: AnimationIds.VERTICAL_ANIMATION }),
     }),
   );

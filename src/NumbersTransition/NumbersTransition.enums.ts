@@ -127,6 +127,11 @@ export enum NegativeCharacters {
   DASH = '–',
 }
 
+export enum OptimizationStrategies {
+  NONE = 'none',
+  SPLIT = 'split',
+}
+
 export enum EquationSolver {
   DERIVATIVE_DELTA = 1e-6,
   INITIAL_VALUE = 0.5,

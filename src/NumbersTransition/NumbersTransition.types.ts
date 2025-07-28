@@ -1,4 +1,4 @@
-import { SyntheticEvent } from 'react';
+import { ReactElement, ReactNode, SyntheticEvent } from 'react';
 import { Numbers, Strings } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
@@ -36,3 +36,5 @@ export type UncheckedBigDecimal = number | bigint | string;
 export type BigDecimal = number | bigint | `${number}`;
 
 export type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
+
+export type GenericReactNode<T extends object> = Exclude<ReactNode, ReactElement<unknown>> | ReactElement<T>;

@@ -1,4 +1,4 @@
-import { ActionDispatch, FC, ReactElement, ReactNode, RefObject, useEffect, useReducer, useRef } from 'react';
+import { ActionDispatch, FC, ReactElement, RefObject, useEffect, useReducer, useRef } from 'react';
 import {
   AnimationDirections,
   AnimationDurationValues,
@@ -19,7 +19,16 @@ import {
   ViewKeys,
 } from './NumbersTransition.enums';
 import { AnimationTimingFunction, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
-import { BigDecimal, MappedTuple, OrReadOnly, Slice, TupleIndex, TypeOf, UncheckedBigDecimal } from './NumbersTransition.types';
+import {
+  BigDecimal,
+  GenericReactNode,
+  MappedTuple,
+  OrReadOnly,
+  Slice,
+  TupleIndex,
+  TypeOf,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 
 type ConditionalRerenderFunction = (condition: boolean) => void;
 
@@ -37,7 +46,7 @@ type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => V
 
 export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Numbers.ZERO): ValidationTuple => {
   const matchesBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
-    typeof value !== 'undefined' && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
+    value !== undefined && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
 
   return matchesBigDecimal(value) ? [value, true] : [validValue, false];
 };
@@ -872,41 +881,41 @@ interface KeyProps {
   key?: string;
 }
 
-interface ChildrenProps {
-  children?: ReactNode;
+export interface ChildrenProps {
+  children?: GenericReactNode<ChildrenProps>;
 }
 
 interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends object, U extends ReactNode, V extends unknown[] = unknown[]> = (
+type PropsFactory<T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]> = (
   value: U,
   index: number,
   array: U[],
   ...args: V
 ) => T;
 
-export type ElementKeyMapper<T extends ReactNode, U extends unknown[] = unknown[]> = (
+export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>, U extends unknown[] = unknown[]> = (
   child: T,
   index: number,
   children: T[],
   ...args: U
-) => ReactElement;
+) => ReactElement<ChildrenProps>;
 
-type UseElementKeyMapper = <T extends object, U extends ReactNode, V extends unknown[] = unknown[]>(
+type UseElementKeyMapper = <T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]>(
   Component: FunctionalComponent<T>,
   props?: T | PropsFactory<T, U, V>,
 ) => ElementKeyMapper<U, V>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  <T extends object, U extends ReactNode, V extends unknown[] = unknown[]>(
+  <T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]>(
     Component: FunctionalComponent<T>,
     props?: T | PropsFactory<T, U, V>,
   ): ElementKeyMapper<U, V> =>
-  (child: U, index: number, array: U[], ...args: V): ReactElement => (
+  (child: U, index: number, array: U[], ...args: V): ReactElement<ChildrenProps> => (
     <Component
-      key={`${Component}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
+      key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
       {...(typeof props === 'function' ? props(child, index, array, ...args) : props)}
     >
       {child}

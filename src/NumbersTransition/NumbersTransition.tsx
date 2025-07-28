@@ -20,6 +20,7 @@ import {
   Optional,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
+import { OptimizationStrategyContext } from './NumbersTransition.contexts';
 import {
   AnimationDirections,
   AnimationIds,
@@ -34,6 +35,7 @@ import {
   NegativeCharacterAnimationModes,
   NegativeCharacters,
   Numbers,
+  OptimizationStrategies,
 } from './NumbersTransition.enums';
 import {
   AnimationAlgorithm,
@@ -95,6 +97,7 @@ export interface NumbersTransitionProps<
   animationInterruptionMode?: AnimationInterruptionModes;
   animationAlgorithm?: AnimationAlgorithm;
   invalidValue?: string;
+  optimizationStrategy?: OptimizationStrategies;
   view?: View<K, L>;
   characterView?: View<M, N>;
   digitView?: View<O, P>;
@@ -141,6 +144,7 @@ const NumbersTransition = <
     animationInterruptionMode,
     animationAlgorithm,
     invalidValue = InvalidValue.VALUE,
+    optimizationStrategy = OptimizationStrategies.NONE,
     view,
     characterView,
     digitView,
@@ -389,7 +393,7 @@ const NumbersTransition = <
   const animationElement: ReactElement = (
     <Conditional condition={animationType === AnimationTypes.HORIZONTAL}>
       {horizontalAnimationElement}
-      {verticalAnimationElement}
+      <OptimizationStrategyContext.Provider value={optimizationStrategy}>{verticalAnimationElement}</OptimizationStrategyContext.Provider>
     </Conditional>
   );
 
