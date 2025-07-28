@@ -37,4 +37,4 @@ export type BigDecimal = number | bigint | `${number}`;
 
 export type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
 
-export type GenericReactNode<T extends object> = Exclude<ReactNode, ReactElement<unknown>> | ReactElement<T>;
+export type GenericReactNode<T> = Exclude<ReactNode, ReactElement<unknown>> | ReactElement<T>;

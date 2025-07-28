@@ -8,13 +8,11 @@ import {
   RefObject,
   SetStateAction,
   isValidElement,
-  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
   useState,
 } from 'react';
-import { OptimizationStrategyContext } from './NumbersTransition.contexts';
 import {
   AnimationDirections,
   AnimationIds,
@@ -77,6 +75,16 @@ export const Optional: FC<OptionalProps> = ({ children, condition }: OptionalPro
     {undefined}
   </Conditional>
 );
+
+interface WrapperProps<T extends GenericReactNode<unknown>> {
+  children: T;
+  wrap?: (children: T) => ReactNode;
+}
+
+const Wrapper = <T extends GenericReactNode<unknown>>({
+  children,
+  wrap = (children: T): ReactNode => <>{children}</>,
+}: WrapperProps<T>): ReactNode => wrap(children);
 
 interface SwitchProps {
   children: [ReactNode, ReactNode];
@@ -283,6 +291,7 @@ interface NumberElementProps<Q extends object, R, S extends object, T, U extends
   digitGroupSeparatorStyledView: StyledViewWithProps<StyledComponents.DIGIT_GROUP_SEPARATOR, Y, Z>;
   mapToElement?: ElementKeyMapper<ReactElement<ChildrenProps>>[];
   children: number[] | number[][];
+  wrap?: (children: ReactElement<ChildrenProps>[]) => ReactNode;
 }
 
 export const NumberElement = <Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
@@ -300,11 +309,8 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     digitGroupSeparatorStyledView,
     mapToElement = [],
     children,
+    wrap,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
-
-  const { animationDirection }: NumbersTransitionTheme = theme;
-
-  const optimizationStrategy: OptimizationStrategies = useContext<OptimizationStrategies>(OptimizationStrategyContext);
 
   const { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex }: CharacterIndexFunctions =
     useCharacterIndexFunctions({ precision, theme });
@@ -386,24 +392,6 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     currentValue,
   ];
 
-  const getLastValidElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
-    isValidElement(child.props.children) ? getLastValidElement(child.props.children) : child;
-
-  const isHeavy = (child: ReactElement<ChildrenProps>): boolean => {
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = getLastValidElement(child);
-
-    return Array.isArray<GenericReactNode<ChildrenProps>>(children) && children.length > Numbers.ONE;
-  };
-
-  const onMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => {
-    const lastValidChild: ReactElement<ChildrenProps> = getLastValidElement(child);
-
-    return Array.isArray<GenericReactNode<ChildrenProps>>(lastValidChild.props.children)
-      ? lastValidChild.props.children.at(animationDirection === AnimationDirections.NORMAL ? Numbers.ZERO : Numbers.MINUS_ONE)
-      : lastValidChild;
-  };
-
   const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Numbers.ONE>(children, Numbers.ONE)
     ? children.map<ReactElement<ChildrenProps>>(mapToDigitElement)
     : children.map<ReactElement<ChildrenProps>>(mapToDigitsElement);
@@ -413,14 +401,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     .reduce<ReactElement<ChildrenProps>[]>(reduceToNumber, [])
     .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
 
-  return (
-    <Conditional condition={optimizationStrategy === OptimizationStrategies.SPLIT}>
-      <Defer isHeavy={isHeavy} onMount={onMount}>
-        {number}
-      </Defer>
-      {number}
-    </Conditional>
-  );
+  return <Wrapper<ReactElement<ChildrenProps>[]> wrap={wrap}>{number}</Wrapper>;
 };
 
 interface HorizontalAnimationElementProps<
@@ -606,6 +587,7 @@ interface VerticalAnimationElementProps<
   negativeCharacter: NegativeCharacters;
   negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
   animationAlgorithm?: AnimationAlgorithm;
+  optimizationStrategy?: OptimizationStrategies;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
@@ -639,6 +621,7 @@ export const VerticalAnimationElement = <
     negativeCharacter,
     negativeCharacterAnimationMode,
     animationAlgorithm,
+    optimizationStrategy = OptimizationStrategies.NONE,
     previousValue,
     currentValue,
     maxNumberOfDigits,
@@ -652,6 +635,8 @@ export const VerticalAnimationElement = <
     negativeCharacterStyledView,
     ...restProps
   }: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
+
+  const { animationDirection }: NumbersTransitionTheme = theme;
 
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
@@ -678,31 +663,63 @@ export const VerticalAnimationElement = <
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
 
-  return (
-    <>
-      <Optional condition={renderNegativeCharacter}>
-        <VerticalAnimationNegativeCharacterElement<O, P, Y, Z>
-          negativeCharacter={negativeCharacter}
-          negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-          animationDigits={animationDigits.find((digits: number[]): boolean => digits.length > Numbers.ONE || !!digits[Numbers.ZERO])!}
-          hasSignChanged={hasSignChanged}
-          theme={theme}
-          characterStyledView={characterStyledView}
-          negativeCharacterStyledView={negativeCharacterStyledView}
-        />
-      </Optional>
-      <NumberElement<O, P, Q, R, S, T, U, V, W, X>
-        {...restProps}
+  const getLastValidElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
+    isValidElement(child.props.children) ? getLastValidElement(child.props.children) : child;
+
+  const isHeavy = (child: ReactElement<ChildrenProps>): boolean => {
+    // prettier-ignore
+    const { props: { children } }: ReactElement<ChildrenProps> = getLastValidElement(child);
+
+    return Array.isArray<GenericReactNode<ChildrenProps>>(children) && children.length > Numbers.ONE;
+  };
+
+  const onMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => {
+    const lastValidChild: ReactElement<ChildrenProps> = getLastValidElement(child);
+
+    return Array.isArray<GenericReactNode<ChildrenProps>>(lastValidChild.props.children)
+      ? lastValidChild.props.children.at(animationDirection === AnimationDirections.NORMAL ? Numbers.ZERO : Numbers.MINUS_ONE)
+      : lastValidChild;
+  };
+
+  const negativeCharacterElement: ReactElement<ChildrenProps> = (
+    <Optional condition={renderNegativeCharacter}>
+      <VerticalAnimationNegativeCharacterElement<O, P, Y, Z>
+        negativeCharacter={negativeCharacter}
+        negativeCharacterAnimationMode={negativeCharacterAnimationMode}
+        animationDigits={animationDigits.find((digits: number[]): boolean => digits.length > Numbers.ONE || !!digits[Numbers.ZERO])!}
+        hasSignChanged={hasSignChanged}
         theme={theme}
         characterStyledView={characterStyledView}
-        digitStyledView={digitStyledView}
-        separatorStyledView={separatorStyledView}
-        decimalSeparatorStyledView={decimalSeparatorStyledView}
-        digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-        mapToElement={[mapToDivElement, mapToVerticalAnimationElement]}
-      >
-        {animationDigits}
-      </NumberElement>
-    </>
+        negativeCharacterStyledView={negativeCharacterStyledView}
+      />
+    </Optional>
+  );
+
+  const wrap = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+    <Conditional condition={optimizationStrategy === OptimizationStrategies.SPLIT}>
+      <Defer isHeavy={isHeavy} onMount={onMount}>
+        {[negativeCharacterElement, ...children]}
+      </Defer>
+      <>
+        {negativeCharacterElement}
+        {children}
+      </>
+    </Conditional>
+  );
+
+  return (
+    <NumberElement<O, P, Q, R, S, T, U, V, W, X>
+      {...restProps}
+      theme={theme}
+      characterStyledView={characterStyledView}
+      digitStyledView={digitStyledView}
+      separatorStyledView={separatorStyledView}
+      decimalSeparatorStyledView={decimalSeparatorStyledView}
+      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
+      mapToElement={[mapToDivElement, mapToVerticalAnimationElement]}
+      wrap={wrap}
+    >
+      {animationDigits}
+    </NumberElement>
   );
 };
