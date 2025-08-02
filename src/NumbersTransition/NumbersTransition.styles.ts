@@ -478,11 +478,13 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
 type AnimationStyledComponent = StyledComponent<HTMLDivElement>;
 
 const Animation: AnimationStyledComponent = styled.div`
-  display: inline-block;
-  overflow: hidden;
-  height: inherit;
-  :has(~ &):not(:has(:first-child)),
-  & ~ * {
+  &,
+  ~ *:not(:has(:only-child)) {
+    display: inline-block;
+    overflow: hidden;
+    height: inherit;
+  }
+  :has(~ &):not(:has(:first-child)) {
     overflow: hidden;
   }
 `;
@@ -509,7 +511,8 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
     position: absolute;
     top: ${Numbers.ONE_HUNDRED}%;
   }
-  :only-child > * {
+  :only-child > *,
+  ~ *:not(:has(:only-child)) > * {
     display: block;
   }
 `;

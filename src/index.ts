@@ -43,6 +43,7 @@ export {
   DigitGroupSeparators,
   NegativeCharacterAnimationModes,
   NegativeCharacters,
+  OptimizationStrategies,
   VariableNames,
 };
 
@@ -62,7 +63,6 @@ export type {
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
-  OptimizationStrategies,
   OrReadOnly,
   ReadOnly,
   StyleFactory,

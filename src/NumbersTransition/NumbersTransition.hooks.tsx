@@ -1,4 +1,16 @@
-import { ActionDispatch, FC, ReactElement, RefObject, useEffect, useReducer, useRef } from 'react';
+import {
+  ActionDispatch,
+  Dispatch,
+  FC,
+  ReactElement,
+  RefObject,
+  SetStateAction,
+  isValidElement,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import {
   AnimationDirections,
   AnimationDurationValues,
@@ -38,6 +50,19 @@ const useConditionalRerender: UseConditionalRerender = (): ConditionalRerenderFu
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
 
   return (condition: boolean): void => (condition ? rerender() : undefined);
+};
+
+type UseTimeout = (time: number) => boolean;
+
+export const useTimeout: UseTimeout = (time: number): boolean => {
+  const [timedOut, setTimedOut]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
+
+  useEffect((): (() => void) => {
+    const timeout: NodeJS.Timeout = setTimeout((): void => setTimedOut(true), time);
+    return (): void => clearTimeout(timeout);
+  }, [time]);
+
+  return timedOut;
 };
 
 export type ValidationTuple = [BigDecimal, boolean];
@@ -786,6 +811,19 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   return [cubicBezier, (func: (value: number) => number): number => solve(func)];
 };
 
+export interface ChildrenProps {
+  children?: GenericReactNode<ChildrenProps>;
+}
+
+type UseReactElementUtil = () => (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>;
+
+export const useReactElementUtil: UseReactElementUtil = (): ((child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>) => {
+  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
+    isValidElement(child.props.children) ? getLastNestedElement(child.props.children) : child;
+
+  return getLastNestedElement;
+};
+
 interface UseHorizontalAnimationDigitsOptions {
   previousValueDigits: number[];
   currentValueDigits: number[];
@@ -879,10 +917,6 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
 
 interface KeyProps {
   key?: string;
-}
-
-export interface ChildrenProps {
-  children?: GenericReactNode<ChildrenProps>;
 }
 
 interface IterableProps extends KeyProps, ChildrenProps {}

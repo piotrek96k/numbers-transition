@@ -127,6 +127,11 @@ export enum NegativeCharacters {
   DASH = '–',
 }
 
+export enum DeferTypes {
+  PLAIN = 'plain',
+  NESTED = 'nested',
+}
+
 export enum OptimizationStrategies {
   NONE = 'none',
   SPLIT = 'split',
@@ -169,6 +174,7 @@ export enum Numbers {
   SEVEN = 7,
   TEN = 10,
   FOURTEEN = 14,
+  TWENTY_FIVE = 25,
   ONE_HUNDRED = 100,
 }
 
