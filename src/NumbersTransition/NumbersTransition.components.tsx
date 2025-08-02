@@ -697,6 +697,9 @@ export const VerticalAnimationElement = <
     onMountEnclose: (children: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <div>{children}</div>,
   });
 
+  const renderNegativeCharacter: boolean =
+    hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
+
   const onMountPlaceholder = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => {
     const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
 
@@ -709,11 +712,10 @@ export const VerticalAnimationElement = <
     // prettier-ignore
     const { props: { children } }: ReactElement<ChildrenProps> = getLastNestedElement(child);
 
-    return Array.isArray<GenericReactNode<ChildrenProps>>(children) && children.length > Numbers.ONE;
+    return (
+      (Array.isArray<GenericReactNode<ChildrenProps>>(children) && children.length > Numbers.ONE) || (!children && renderNegativeCharacter)
+    );
   };
-
-  const renderNegativeCharacter: boolean =
-    hasSignChanged || (currentValue < Numbers.ZERO && negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI);
 
   const negativeCharacterElement: ReactElement<ChildrenProps> = (
     <Optional condition={renderNegativeCharacter}>
