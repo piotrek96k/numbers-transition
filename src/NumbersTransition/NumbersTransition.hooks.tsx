@@ -11,6 +11,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import { useTheme } from 'styled-components';
 import {
   AnimationDirections,
   AnimationDurationValues,
@@ -703,11 +704,6 @@ export const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
 
 type CharacterIndexFunction = (index: number, length: number) => number;
 
-interface UseCharacterIndexFunctionsOptions {
-  precision: number;
-  theme: NumbersTransitionTheme;
-}
-
 export interface CharacterIndexFunctions {
   getCharacterIndex: CharacterIndexFunction;
   getCharacterSeparatorIndex: CharacterIndexFunction;
@@ -715,22 +711,17 @@ export interface CharacterIndexFunctions {
   getDigitGroupSeparatorIndex: CharacterIndexFunction;
 }
 
-type UseCharacterIndexFunctions = (options: UseCharacterIndexFunctionsOptions) => CharacterIndexFunctions;
+type UseCharacterIndexFunctions = (precision: number) => CharacterIndexFunctions;
 
-export const useCharacterIndexFunctions: UseCharacterIndexFunctions = (
-  options: UseCharacterIndexFunctionsOptions,
-): CharacterIndexFunctions => {
-  const {
-    precision,
-    theme: { negativeCharacterLength },
-  }: UseCharacterIndexFunctionsOptions = options;
+export const useCharacterIndexFunctions: UseCharacterIndexFunctions = (precision: number): CharacterIndexFunctions => {
+  const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
   const getIndex = (index: number, length: number): number =>
     Math.trunc(
       (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
     );
 
-  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength + index + getIndex(index, length);
+  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
   const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Numbers.ONE;
   const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Numbers.ONE;
   const getDigitGroupSeparatorIndex = (index: number, length: number): number =>

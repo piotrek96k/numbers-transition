@@ -45,26 +45,26 @@ interface ElementsIndex {
 }
 
 export interface ElementsLength {
-  charactersLength: number;
-  digitsLength: number;
-  separatorsLength: number;
-  decimalSeparatorLength: number;
-  digitGroupSeparatorsLength: number;
-  negativeCharacterLength: number;
-  invalidLength: number;
+  charactersLength?: number;
+  digitsLength?: number;
+  separatorsLength?: number;
+  decimalSeparatorLength?: number;
+  digitGroupSeparatorsLength?: number;
+  negativeCharacterLength?: number;
+  invalidLength?: number;
   columnLength?: number;
 }
 
 export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
-  numberOfAnimations: AnimationNumbers;
-  animationNumber: AnimationNumbers;
-  animationType: AnimationTypes;
-  animationDirection: AnimationDirections;
-  animationDuration: number;
-  animationTimingFunction: AnimationTimingFunction;
-  horizontalAnimationDuration: number;
-  verticalAnimationDuration: number;
-  totalAnimationDuration: number;
+  numberOfAnimations?: AnimationNumbers;
+  animationNumber?: AnimationNumbers;
+  animationType?: AnimationTypes;
+  animationDirection?: AnimationDirections;
+  animationDuration?: number;
+  animationTimingFunction?: AnimationTimingFunction;
+  horizontalAnimationDuration?: number;
+  verticalAnimationDuration?: number;
+  totalAnimationDuration?: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -118,21 +118,13 @@ const integerProperties: VariableNames[] = [
   VariableNames.NUMBER_OF_ANIMATIONS,
   VariableNames.ANIMATION_NUMBER,
   VariableNames.CHARACTERS_LENGTH,
-  VariableNames.CHARACTER_INDEX,
   VariableNames.DIGITS_LENGTH,
-  VariableNames.DIGIT_INDEX,
   VariableNames.SEPARATORS_LENGTH,
-  VariableNames.SEPARATOR_INDEX,
   VariableNames.DECIMAL_SEPARATOR_LENGTH,
-  VariableNames.DECIMAL_SEPARATOR_INDEX,
   VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH,
-  VariableNames.DIGIT_GROUP_SEPARATOR_INDEX,
   VariableNames.NEGATIVE_CHARACTER_LENGTH,
-  VariableNames.NEGATIVE_CHARACTER_INDEX,
   VariableNames.INVALID_LENGTH,
-  VariableNames.INVALID_INDEX,
   VariableNames.COLUMN_LENGTH,
-  VariableNames.ROW_INDEX,
 ];
 
 const properties: Property[] = [
@@ -180,43 +172,6 @@ const containerVariables = ({
   ${VariableNames.DIGIT_GROUP_SEPARATORS_LENGTH}: ${digitGroupSeparatorsLength};
   ${VariableNames.NEGATIVE_CHARACTER_LENGTH}: ${negativeCharacterLength};
   ${VariableNames.INVALID_LENGTH}: ${invalidLength};
-`;
-
-const characterVariables = ({ theme: { characterIndex, rowIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.CHARACTER_INDEX}: ${characterIndex};
-  ${VariableNames.ROW_INDEX}: ${rowIndex};
-`;
-
-const digitVariables = ({ theme: { digitIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.DIGIT_INDEX}: ${digitIndex};
-`;
-
-const separatorVariables = ({ theme: { separatorIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.SEPARATOR_INDEX}: ${separatorIndex};
-`;
-
-const decimalSeparatorVariables = ({ theme: { decimalSeparatorIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.DECIMAL_SEPARATOR_INDEX}: ${decimalSeparatorIndex};
-`;
-
-const digitGroupSeparatorVariables = ({
-  theme: { digitGroupSeparatorIndex },
-}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.DIGIT_GROUP_SEPARATOR_INDEX}: ${digitGroupSeparatorIndex};
-`;
-
-const negativeCharacterVariables = ({
-  theme: { negativeCharacterIndex },
-}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.NEGATIVE_CHARACTER_INDEX}: ${negativeCharacterIndex};
-`;
-
-const invalidVariables = ({ theme: { invalidIndex } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.INVALID_INDEX}: ${invalidIndex};
-`;
-
-const verticalAnimationVariables = ({ theme: { columnLength } }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableNames.COLUMN_LENGTH}: ${columnLength};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -502,7 +457,6 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(An
 type VerticalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, VerticalAnimationProps>;
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animation)<VerticalAnimationProps>`
-  ${verticalAnimationVariables};
   :only-child:has(:not(:only-child)) {
     ${animation};
     position: relative;
@@ -517,7 +471,7 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
   }
 `;
 
-interface CharacterProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<StyledComponents.CHARACTER, T, U> {}
+interface CharacterProps<T extends object, U> extends StyledView<StyledComponents.CHARACTER, T, U> {}
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
@@ -526,7 +480,6 @@ const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any,
 )`
   ${cssFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
   ${animationFactory<StyledComponents.CHARACTER>(StyledComponents.CHARACTER)};
-  ${characterVariables};
   display: inline-block;
 `;
 
@@ -541,7 +494,6 @@ export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Char
 )`
   ${cssFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
   ${animationFactory<StyledComponents.DIGIT>(StyledComponents.DIGIT)};
-  ${digitVariables};
   min-width: ${Numbers.ONE}ch;
 `;
 
@@ -560,7 +512,6 @@ const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Cha
 )`
   ${cssFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
   ${animationFactory<StyledComponents.SEPARATOR>(StyledComponents.SEPARATOR)};
-  ${separatorVariables};
   white-space: pre;
 `;
 
@@ -579,7 +530,6 @@ export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<Separato
 >(attributesFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR))`
   ${cssFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
   ${animationFactory<StyledComponents.DECIMAL_SEPARATOR>(StyledComponents.DECIMAL_SEPARATOR)};
-  ${decimalSeparatorVariables};
 `;
 
 interface DigitGroupSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
@@ -597,7 +547,6 @@ export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<Se
 >(attributesFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR))`
   ${cssFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
   ${animationFactory<StyledComponents.DIGIT_GROUP_SEPARATOR>(StyledComponents.DIGIT_GROUP_SEPARATOR)};
-  ${digitGroupSeparatorVariables};
 `;
 
 interface NegativeCharacterProps<T extends object, U, V extends object, W>
@@ -616,7 +565,6 @@ export const NegativeCharacter: NegativeCharacterStyledComponent = styled<Charac
 >(attributesFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER))`
   ${cssFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
   ${animationFactory<StyledComponents.NEGATIVE_CHARACTER>(StyledComponents.NEGATIVE_CHARACTER)};
-  ${negativeCharacterVariables};
   ${visibility};
 `;
 
@@ -633,5 +581,4 @@ export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(
 )`
   ${cssFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
   ${animationFactory<StyledComponents.INVALID>(StyledComponents.INVALID)};
-  ${invalidVariables};
 `;
