@@ -40,7 +40,7 @@ import {
   useElementKeyMapper,
   useHorizontalAnimationDigits,
   useNumberOfDigitGroupSeparators,
-  useReactElementUtil,
+  useReactNestedElement,
   useTimeout,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
@@ -235,8 +235,8 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
   const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    NumbersTransitionExecutionContext,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    NumbersTransitionExecutionContext
   >(
     ThemeProvider,
     (
@@ -246,7 +246,7 @@ const VerticalAnimationNegativeCharacterElement = <T extends object, U, V extend
     ): NumbersTransitionExecutionContext => ({ theme: { columnLength, rowIndex } }),
   );
 
-  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<NegativeCharacterElementProps<T, U, V, W>, boolean>(
+  const mapToNegativeCharacterElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeCharacterElementProps<T, U, V, W>>(
     NegativeCharacterElement<T, U, V, W>,
     (visible: boolean): NegativeCharacterElementProps<T, U, V, W> => ({
       negativeCharacter,
@@ -348,8 +348,8 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper(Fragment);
 
   const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = useElementKeyMapper<
-    NumbersTransitionExecutionContext,
-    OrArray<ReactElement<ChildrenProps>>
+    OrArray<ReactElement<ChildrenProps>>,
+    NumbersTransitionExecutionContext
   >(
     ThemeProvider,
     (
@@ -360,11 +360,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   );
 
   const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    NumbersTransitionExecutionContext,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    NumbersTransitionExecutionContext
   >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): NumbersTransitionExecutionContext => ({ theme: { rowIndex } }));
 
-  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<DigitProps<Q, R, S, T>, number>(Digit, {
+  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, {
     ...characterStyledView,
     ...digitStyledView,
   });
@@ -650,11 +650,11 @@ export const VerticalAnimationElement = <
 
   const { animationDirection }: NumbersTransitionTheme = useTheme();
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
-  const getLastNestedElement: (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps> = useReactElementUtil();
+  const getLastNestedElement: (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps> = useReactNestedElement();
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    NumbersTransitionExecutionContext,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    NumbersTransitionExecutionContext
   >(
     ThemeProvider,
     (_: ReactElement<ChildrenProps>, index: number): NumbersTransitionExecutionContext => ({
@@ -663,13 +663,13 @@ export const VerticalAnimationElement = <
   );
 
   const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    VerticalAnimationProps,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    VerticalAnimationProps
   >(VerticalAnimation);
 
   const mapToDivElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    HTMLAttributes<HTMLElements.DIV>,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    HTMLAttributes<HTMLElements.DIV>
   >(
     HTMLElements.DIV,
     (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElements.DIV> => ({
@@ -678,8 +678,8 @@ export const VerticalAnimationElement = <
   );
 
   const mapToDeferElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    NestedDeferProps<GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>>,
-    ReactElement<ChildrenProps>
+    ReactElement<ChildrenProps>,
+    NestedDeferProps<GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>>
   >(Defer, {
     deferType: DeferTypes.NESTED,
     chunkSize: Numbers.ONE_THOUSAND,

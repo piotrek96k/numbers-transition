@@ -806,9 +806,9 @@ export interface ChildrenProps {
   children?: GenericReactNode<ChildrenProps>;
 }
 
-type UseReactElementUtil = () => (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>;
+type UseReactNestedElement = () => (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>;
 
-export const useReactElementUtil: UseReactElementUtil = (): ((child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>) => {
+export const useReactNestedElement: UseReactNestedElement = (): ((child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>) => {
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
     isValidElement(child.props.children) ? getLastNestedElement(child.props.children) : child;
 
@@ -914,34 +914,28 @@ interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]> = (
-  value: U,
-  index: number,
-  array: U[],
-  ...args: V
-) => T;
+type PropsFactory<T extends GenericReactNode<ChildrenProps>, U extends object> = (value: T, index: number, array: T[]) => U;
 
-export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>, U extends unknown[] = unknown[]> = (
+export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>> = (
   child: T,
   index: number,
   children: T[],
-  ...args: U
 ) => ReactElement<ChildrenProps>;
 
-type UseElementKeyMapper = <T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]>(
-  Component: FunctionalComponent<T>,
-  props?: T | PropsFactory<T, U, V>,
-) => ElementKeyMapper<U, V>;
+type UseElementKeyMapper = <T extends GenericReactNode<ChildrenProps>, U extends object>(
+  Component: FunctionalComponent<U>,
+  props?: U | PropsFactory<T, U>,
+) => ElementKeyMapper<T>;
 
 export const useElementKeyMapper: UseElementKeyMapper =
-  <T extends object, U extends GenericReactNode<ChildrenProps>, V extends unknown[] = unknown[]>(
-    Component: FunctionalComponent<T>,
-    props?: T | PropsFactory<T, U, V>,
-  ): ElementKeyMapper<U, V> =>
-  (child: U, index: number, array: U[], ...args: V): ReactElement<ChildrenProps> => (
+  <T extends GenericReactNode<ChildrenProps>, U extends object>(
+    Component: FunctionalComponent<U>,
+    props?: U | PropsFactory<T, U>,
+  ): ElementKeyMapper<T> =>
+  (child: T, index: number, array: T[]): ReactElement<ChildrenProps> => (
     <Component
       key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
-      {...(typeof props === 'function' ? props(child, index, array, ...args) : props)}
+      {...(typeof props === 'function' ? props(child, index, array) : props)}
     >
       {child}
     </Component>
