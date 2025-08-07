@@ -119,11 +119,6 @@ export enum NegativeCharacters {
   DASH = '–',
 }
 
-export enum DeferTypes {
-  PLAIN = 'plain',
-  NESTED = 'nested',
-}
-
 export enum OptimizationStrategies {
   NONE = 'none',
   SPLIT = 'split',
@@ -167,7 +162,7 @@ export enum Numbers {
   TEN = 10,
   FOURTEEN = 14,
   ONE_HUNDRED = 100,
-  ONE_THOUSAND = 1_000,
+  FIVE_THOUSAND = 5_000,
 }
 
 export const AnimationTimingFunctions = {

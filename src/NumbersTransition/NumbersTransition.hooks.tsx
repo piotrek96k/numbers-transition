@@ -1,16 +1,4 @@
-import {
-  ActionDispatch,
-  Dispatch,
-  FC,
-  ReactElement,
-  RefObject,
-  SetStateAction,
-  isValidElement,
-  useEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { ActionDispatch, Dispatch, FC, ReactElement, RefObject, SetStateAction, useEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import {
   AnimationDirections,
@@ -802,19 +790,6 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   return [cubicBezier, (func: (value: number) => number): number => solve(func)];
 };
 
-export interface ChildrenProps {
-  children?: GenericReactNode<ChildrenProps>;
-}
-
-type UseReactNestedElement = () => (child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>;
-
-export const useReactNestedElement: UseReactNestedElement = (): ((child: ReactElement<ChildrenProps>) => ReactElement<ChildrenProps>) => {
-  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
-    isValidElement(child.props.children) ? getLastNestedElement(child.props.children) : child;
-
-  return getLastNestedElement;
-};
-
 interface UseHorizontalAnimationDigitsOptions {
   previousValueDigits: number[];
   currentValueDigits: number[];
@@ -905,6 +880,10 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Numbers.ONE>();
 };
+
+export interface ChildrenProps {
+  children?: GenericReactNode<ChildrenProps>;
+}
 
 interface KeyProps {
   key?: string;

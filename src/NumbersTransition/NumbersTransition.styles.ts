@@ -413,6 +413,13 @@ const visibility = ({ visible = true }: VisibilityProps): RuleSet<object> | fals
     opacity: ${Numbers.ZERO};
   `;
 
+const animationDisplay = ({
+  theme: { animationType, animationDirection },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  display: ${animationType === AnimationTypes.HORIZONTAL ? 'inline-block' : 'inline-flex'};
+  flex-direction: ${animationDirection === AnimationDirections.NORMAL ? 'column' : 'column-reverse'};
+`;
+
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<StyledComponents.CONTAINER, T, U> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElements.DIV, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
@@ -428,6 +435,7 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   width: fit-content;
   height: ${Numbers.ONE}lh;
   white-space: nowrap;
+  overflow-y: clip;
 `;
 
 type AnimationStyledComponent = StyledComponent<HTMLDivElement>;
@@ -435,12 +443,8 @@ type AnimationStyledComponent = StyledComponent<HTMLDivElement>;
 const Animation: AnimationStyledComponent = styled.div`
   &,
   ~ *:not(:has(:only-child)) {
-    display: inline-block;
-    overflow: hidden;
+    ${animationDisplay};
     height: inherit;
-  }
-  :has(~ &):not(:has(:first-child)) {
-    overflow: hidden;
   }
 `;
 
@@ -448,6 +452,10 @@ type HorizontalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyl
 
 export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(Animation)<HorizontalAnimationProps>`
   ${animation};
+  &,
+  :has(~ &):not(:has(:first-child)) {
+    overflow-x: hidden;
+  }
   :only-child {
     float: right;
     height: inherit;
