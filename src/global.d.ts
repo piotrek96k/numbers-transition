@@ -1,6 +1,10 @@
 import { ArrayOfDepth, OrArray } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
+  interface Number {
+    toFixed(fractionDigits?: number): `${number}`;
+  }
+
   interface ObjectConstructor {
     assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
     fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [key: T]: U };
@@ -8,6 +12,10 @@ declare global {
 
   interface String {
     capitalize(): string;
+  }
+
+  interface RegExp {
+    testAny<T>(unknown: unknown): unknown is T;
   }
 
   interface ArrayConstructor {

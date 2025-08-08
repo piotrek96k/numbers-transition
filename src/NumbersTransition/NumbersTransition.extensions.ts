@@ -5,6 +5,10 @@ String.prototype.capitalize = function (): string {
   return `${this[Numbers.ZERO].toUpperCase()}${this.slice(Numbers.ONE)}`;
 };
 
+RegExp.prototype.testAny = function <T>(unknown: unknown): unknown is T {
+  return this.test(`${unknown}`);
+};
+
 Array.isOfDepth = function <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
   return Array.depth<unknown>(array) === depth;
 };

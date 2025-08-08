@@ -58,12 +58,12 @@ export type ValidationTuple = [BigDecimal, boolean];
 
 type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => ValidationTuple;
 
-export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Numbers.ZERO): ValidationTuple => {
-  const matchesBigDecimal = (value?: UncheckedBigDecimal): value is BigDecimal =>
-    value !== undefined && !!`${value}`.match(RegularExpressions.BIG_DECIMAL);
-
-  return matchesBigDecimal(value) ? [value, true] : [validValue, false];
-};
+export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Numbers.ZERO): ValidationTuple =>
+  RegularExpressions.BIG_DECIMAL.testAny<BigDecimal>(value)
+    ? [value, true]
+    : typeof value === 'number'
+      ? [Number(value).toFixed(Numbers.ONE_HUNDRED), true]
+      : [validValue, false];
 
 type UseValue = (
   value: UncheckedBigDecimal | undefined,
