@@ -694,14 +694,17 @@ export const VerticalAnimationElement = <
 
   const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> => {
     const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
+    // prettier-ignore
+    const { props: { children } }: ReactElement<ChildrenProps> = element;
+
+    const getArrayElements = (): GenericReactNode<ChildrenProps>[] =>
+      [children]
+        .flat<GenericReactNode<ChildrenProps>[], Integer.One>()
+        .slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]));
 
     return (
-      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(element.props.children)}>
-        <div>
-          {[element.props.children]
-            .flat<GenericReactNode<ChildrenProps>[], Integer.One>()
-            .slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
-        </div>
+      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
+        <div>{getArrayElements()}</div>
         {element}
       </Conditional>
     );
