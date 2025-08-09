@@ -3,25 +3,25 @@ import { RuleSet, css } from 'styled-components';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react';
 import NumbersTransition from './NumbersTransition';
 import {
-  AnimationDurationValues,
-  AnimationInterruptionModes,
-  AnimationTimingFunctions,
-  DecimalSeparators,
-  DigitGroupSeparators,
-  NegativeCharacterAnimationModes,
-  NegativeCharacters,
-  Numbers,
-  OptimizationStrategies,
+  AnimationDurationValue,
+  AnimationInterruptionMode,
+  AnimationTimingFunction,
+  DecimalSeparatorCharacter,
+  DigitGroupSeparatorCharacter,
+  Integer,
+  NegativeCharacter,
+  NegativeCharacterAnimationMode,
+  OptimizationStrategy,
   StorybookValue,
-  VariableNames,
+  VariableName,
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
-import { Animation, AnimationFactory, AnimationTimingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
+import { Animation, AnimationFactory, AnimationTimingFunctionTuple, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
 import { Falsy, ReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
-  ReadOnly<AnimationTimingFunction>,
+  ReadOnly<AnimationTimingFunctionTuple>,
   object,
   number,
   object,
@@ -41,12 +41,12 @@ type NumbersTransitionProps = typeof NumbersTransition<
 >;
 
 type SelectType =
-  | typeof DigitGroupSeparators
-  | typeof DecimalSeparators
-  | typeof NegativeCharacters
-  | typeof NegativeCharacterAnimationModes
-  | typeof AnimationInterruptionModes
-  | typeof OptimizationStrategies;
+  | typeof DigitGroupSeparatorCharacter
+  | typeof DecimalSeparatorCharacter
+  | typeof NegativeCharacter
+  | typeof NegativeCharacterAnimationMode
+  | typeof AnimationInterruptionMode
+  | typeof OptimizationStrategy;
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
 
@@ -64,12 +64,12 @@ const reduceArgTypes = (accumulator: ComponentArgTypes, currentValue: ComponentA
 });
 
 const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
-  ['digitGroupSeparator', DigitGroupSeparators],
-  ['decimalSeparator', DecimalSeparators],
-  ['negativeCharacter', NegativeCharacters],
-  ['negativeCharacterAnimationMode', NegativeCharacterAnimationModes],
-  ['animationInterruptionMode', AnimationInterruptionModes],
-  ['optimizationStrategy', OptimizationStrategies],
+  ['digitGroupSeparator', DigitGroupSeparatorCharacter],
+  ['decimalSeparator', DecimalSeparatorCharacter],
+  ['negativeCharacter', NegativeCharacter],
+  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
+  ['animationInterruptionMode', AnimationInterruptionMode],
+  ['optimizationStrategy', OptimizationStrategy],
 ];
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
@@ -80,7 +80,7 @@ const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<
 
 const opacityAnimation: Animation<object, number> = {
   keyframeFunction: opacityKeyframeFunction,
-  keyframes: [Numbers.ONE, Numbers.ONE / Numbers.THREE],
+  keyframes: [Integer.One, Integer.One / Integer.Three],
 };
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
@@ -88,29 +88,29 @@ const opacityAnimationFactory: AnimationFactory<object, number> = ({
 }: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
 
 const style: RuleSet<object> = css<object>`
-  font-size: ${Numbers.FIVE}rem;
+  font-size: ${Integer.Five}rem;
   color: #f0ff95;
-  animation-duration: calc(var(${VariableNames.TOTAL_ANIMATION_DURATION}) / ${Numbers.TWO});
+  animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
   animation-direction: alternate;
-  animation-iteration-count: ${Numbers.TWO};
+  animation-iteration-count: ${Integer.Two};
   animation-fill-mode: forwards;
 `;
 
 const args: ComponentProps<NumbersTransitionProps> = {
-  initialValue: Numbers.ZERO,
-  value: StorybookValue.VALUE,
-  precision: Numbers.ZERO,
-  decimalSeparator: DecimalSeparators.COMMA,
-  digitGroupSeparator: DigitGroupSeparators.SPACE,
-  negativeCharacter: NegativeCharacters.MINUS,
-  negativeCharacterAnimationMode: NegativeCharacterAnimationModes.SINGLE,
+  initialValue: Integer.Zero,
+  value: StorybookValue.Value,
+  precision: Integer.Zero,
+  decimalSeparator: DecimalSeparatorCharacter.Comma,
+  digitGroupSeparator: DigitGroupSeparatorCharacter.Space,
+  negativeCharacter: NegativeCharacter.Minus,
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode.Single,
   animationDuration: {
-    horizontalAnimation: AnimationDurationValues.HORIZONTAL_ANIMATION,
-    verticalAnimation: AnimationDurationValues.VERTICAL_ANIMATION,
+    horizontalAnimation: AnimationDurationValue.HorizontalAnimation,
+    verticalAnimation: AnimationDurationValue.VerticalAnimation,
   },
-  animationTimingFunction: AnimationTimingFunctions.EASE,
-  animationInterruptionMode: AnimationInterruptionModes.INTERRUPT,
-  optimizationStrategy: OptimizationStrategies.NONE,
+  animationTimingFunction: AnimationTimingFunction.Ease,
+  animationInterruptionMode: AnimationInterruptionMode.Interrupt,
+  optimizationStrategy: OptimizationStrategy.None,
   view: { css: style, animation: opacityAnimationFactory },
 };
 

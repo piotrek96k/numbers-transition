@@ -1,16 +1,16 @@
 import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
-  AnimationDirections,
-  AnimationInterruptionModes,
-  AnimationNumbers,
-  AnimationTimingFunctions,
-  AnimationTypes,
-  DecimalSeparators,
-  DigitGroupSeparators,
-  NegativeCharacterAnimationModes,
-  NegativeCharacters,
-  OptimizationStrategies,
-  VariableNames,
+  AnimationDirection,
+  AnimationInterruptionMode,
+  AnimationNumber,
+  AnimationTimingFunction,
+  AnimationType,
+  DecimalSeparatorCharacter,
+  DigitGroupSeparatorCharacter,
+  NegativeCharacter,
+  NegativeCharacterAnimationMode,
+  OptimizationStrategy,
+  VariableName,
 } from './NumbersTransition/NumbersTransition.enums';
 import {
   AnimationAlgorithm,
@@ -22,7 +22,7 @@ import {
 import {
   Animation,
   AnimationFactory,
-  AnimationTimingFunction,
+  AnimationTimingFunctionTuple,
   ClassNameFactory,
   CssRule,
   CssRuleFactory,
@@ -34,17 +34,17 @@ import {
 import { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
-  AnimationDirections,
-  AnimationInterruptionModes,
-  AnimationNumbers,
-  AnimationTimingFunctions,
-  AnimationTypes,
-  DecimalSeparators,
-  DigitGroupSeparators,
-  NegativeCharacterAnimationModes,
-  NegativeCharacters,
-  OptimizationStrategies,
-  VariableNames,
+  AnimationDirection,
+  AnimationInterruptionMode,
+  AnimationNumber,
+  AnimationTimingFunction,
+  AnimationType,
+  DecimalSeparatorCharacter,
+  DigitGroupSeparatorCharacter,
+  NegativeCharacterAnimationMode,
+  NegativeCharacter,
+  OptimizationStrategy,
+  VariableName,
 };
 
 export type {
@@ -52,7 +52,7 @@ export type {
   AnimationAlgorithm,
   AnimationDuration,
   AnimationFactory,
-  AnimationTimingFunction,
+  AnimationTimingFunctionTuple,
   BigDecimal,
   ClassNameFactory,
   CssRule,

@@ -1,25 +1,25 @@
 import { ActionDispatch, Dispatch, FC, ReactElement, RefObject, SetStateAction, useEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import {
-  AnimationDirections,
-  AnimationDurationValues,
-  AnimationInterruptionModes,
-  AnimationKeys,
-  AnimationNumbers,
-  AnimationTimingFunctions,
-  AnimationTransitions,
-  AnimationTypes,
+  AnimationDirection,
+  AnimationDurationValue,
+  AnimationInterruptionMode,
+  AnimationKey,
+  AnimationNumber,
+  AnimationTimingFunction,
+  AnimationTransition,
+  AnimationType,
+  Character,
   EquationSolver,
-  NegativeCharacterAnimationModes,
+  Integer,
+  NegativeCharacterAnimationMode,
   NumberPrecision,
-  Numbers,
-  RegularExpressions,
-  Strings,
-  StyledComponents,
-  TotalAnimationDurationValues,
-  ViewKeys,
+  RegularExpression,
+  Styled,
+  TotalAnimationDurationValue,
+  ViewKey,
 } from './NumbersTransition.enums';
-import { AnimationTimingFunction, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
+import { AnimationTimingFunctionTuple, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
 import {
   BigDecimal,
   GenericReactNode,
@@ -36,7 +36,7 @@ type ConditionalRerenderFunction = (condition: boolean) => void;
 type UseConditionalRerender = () => ConditionalRerenderFunction;
 
 const useConditionalRerender: UseConditionalRerender = (): ConditionalRerenderFunction => {
-  const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Numbers.ONE, Numbers.ZERO);
+  const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero);
 
   return (condition: boolean): void => (condition ? rerender() : undefined);
 };
@@ -58,46 +58,46 @@ export type ValidationTuple = [BigDecimal, boolean];
 
 type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => ValidationTuple;
 
-export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Numbers.ZERO): ValidationTuple =>
-  RegularExpressions.BIG_DECIMAL.testAny<BigDecimal>(value)
+export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): ValidationTuple =>
+  RegularExpression.BigDecimal.testAny<BigDecimal>(value)
     ? [value, true]
     : typeof value === 'number'
-      ? [Number(value).toFixed(Numbers.ONE_HUNDRED), true]
+      ? [Number(value).toFixed(Integer.OneHundred), true]
       : [validValue, false];
 
 type UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
-  animationInterruptionMode?: AnimationInterruptionModes,
+  animationInterruptionMode?: AnimationInterruptionMode,
 ) => ValidationTuple;
 
 export const useValue: UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
-  animationInterruptionMode: AnimationInterruptionModes = AnimationInterruptionModes.INTERRUPT,
+  animationInterruptionMode: AnimationInterruptionMode = AnimationInterruptionMode.Interrupt,
 ): ValidationTuple => {
   const rerenderIf: ConditionalRerenderFunction = useConditionalRerender();
   const values: RefObject<ValidationTuple[]> = useRef<ValidationTuple[]>([]);
-  const validationTuple: ValidationTuple = useValidation(value, values.current.at(Numbers.MINUS_ONE)?.[Numbers.ZERO] ?? previousValue);
+  const validationTuple: ValidationTuple = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
   values.current =
-    animationInterruptionMode === AnimationInterruptionModes.CONTINUE
-      ? values.current.length && values.current.at(Numbers.MINUS_ONE)?.equals(validationTuple)
+    animationInterruptionMode === AnimationInterruptionMode.Continue
+      ? values.current.length && values.current.at(Integer.MinusOne)?.equals(validationTuple)
         ? values.current
         : [...values.current, validationTuple]
       : [validationTuple];
 
-  const [validValue, isValueValid]: ValidationTuple = values.current[Numbers.ZERO];
+  const [validValue, isValueValid]: ValidationTuple = values.current[Integer.Zero];
 
   const filterInvalidValues = ([, isValid]: ValidationTuple, index: number, { length }: ValidationTuple[]): boolean =>
-    isValid || index === length - Numbers.ONE;
+    isValid || index === length - Integer.One;
 
   const filterDuplicates = ([value]: ValidationTuple, index: number, array: ValidationTuple[]): boolean =>
-    !index || value !== array[index - Numbers.ONE][Numbers.ZERO];
+    !index || value !== array[index - Integer.One][Integer.Zero];
 
   useEffect((): void => {
     if (validValue === previousValue || !isValueValid) {
-      values.current = values.current.slice(Numbers.ONE).filter(filterInvalidValues).filter(filterDuplicates);
+      values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates);
       rerenderIf(!!values.current.length);
     }
   }, [rerenderIf, previousValue, validValue, isValueValid]);
@@ -120,28 +120,35 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
   const fillFloatingPoint = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
     ...accumulator,
     currentValue,
-    ...(length === Numbers.ONE ? [Strings.EMPTY] : []),
+    ...(length === Integer.One ? [Character.Empty] : []),
   ];
 
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
-      precision > Numbers.ZERO
-        ? [integer.replace(Strings.MINUS, Strings.EMPTY), fraction, Strings.EMPTY, Math.max(precision - fraction.length, Numbers.ZERO)]
-        : [Strings.EMPTY, integer.replace(Strings.MINUS, Strings.EMPTY), fraction, -precision];
+      precision > Integer.Zero
+        ? [
+            integer.replace(Character.Minus, Character.Empty),
+            fraction,
+            Character.Empty,
+            Math.max(precision - fraction.length, Integer.Zero),
+          ]
+        : [Character.Empty, integer.replace(Character.Minus, Character.Empty), fraction, -precision];
 
-    const digits: string = `${start}${mid.slice(Numbers.ZERO, precision || mid.length) ?? Numbers.ZERO}`;
+    const digits: string = `${start}${mid.slice(Integer.Zero, precision || mid.length) ?? Integer.Zero}`;
     const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
     const increase: number =
-      BigInt(restDigits) < BigInt(`${Numbers.FIVE}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Numbers.ZERO}`))
-        ? Numbers.ZERO
-        : Numbers.ONE;
-    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Numbers.TEN) ** BigInt(numberOfZeros);
+      BigInt(restDigits) < BigInt(`${Integer.Five}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Integer.Zero}`))
+        ? Integer.Zero
+        : Integer.One;
+    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
 
-    return [...(integer.match(Strings.MINUS) ?? []), `${value}`.padStart(precision + Numbers.ONE, `${Numbers.ZERO}`)].join(Strings.EMPTY);
+    return [...(integer.match(Character.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(
+      Character.Empty,
+    );
   };
 
   return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
-    ...`${number}`.split(RegularExpressions.DOT_OR_COMMA).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
+    ...`${number}`.split(RegularExpression.DotOrComma).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
   ]);
 };
 
@@ -153,7 +160,7 @@ type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigit
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
   options.map<number[], AnimationDigitsTuple>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(RegularExpressions.SINGLE_DIGIT)).map<number>(Number),
+    characters.filter((character: string): boolean => !!character.match(RegularExpression.SingleDigit)).map<number>(Number),
   );
 
 type UseAnimationBigIntsOptions = AnimationCharactersTuple;
@@ -163,7 +170,7 @@ type AnimationBigIntsTuple = [bigint, bigint, bigint];
 type UseAnimationBigInts = (options: UseAnimationBigIntsOptions) => AnimationBigIntsTuple;
 
 const useAnimationBigInts: UseAnimationBigInts = (options: UseAnimationBigIntsOptions): AnimationBigIntsTuple =>
-  options.map<bigint, AnimationBigIntsTuple>((digits: string[]): bigint => BigInt(digits.join(Strings.EMPTY)));
+  options.map<bigint, AnimationBigIntsTuple>((digits: string[]): bigint => BigInt(digits.join(Character.Empty)));
 
 type UseAnimationNumbersOfDigitsOptions = AnimationDigitsTuple;
 
@@ -179,7 +186,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   const fillNumberOfDigitsDifference = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
     currentValue,
-    ...(index ? [currentValue - accumulator.at(Numbers.MINUS_ONE)!] : []),
+    ...(index ? [currentValue - accumulator.at(Integer.MinusOne)!] : []),
   ];
 
   return options
@@ -207,7 +214,7 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
     values: [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue],
   });
 
-  const digits: AnimationDigitsTuple = useAnimationDigits([characters[Numbers.ZERO], characters[Numbers.TWO]]);
+  const digits: AnimationDigitsTuple = useAnimationDigits([characters[Integer.Zero], characters[Integer.Two]]);
   const bigInts: AnimationBigIntsTuple = useAnimationBigInts(characters);
   const numbersOfDigits: AnimationNumbersOfDigitsTuple = useAnimationNumberOfDigits(digits);
 
@@ -236,7 +243,7 @@ export const useAnimationLogic: UseAnimationLogic = (options: UseAnimationLogicO
   const { previousValue, value, isValueValid, previousValueOnStart, previousValueOnEnd, currentValue }: UseAnimationLogicOptions = options;
 
   const hasValueChanged: boolean = currentValue !== previousValueOnEnd;
-  const hasSignChanged: boolean = (currentValue ^ previousValueOnEnd) < Numbers.ZERO;
+  const hasSignChanged: boolean = (currentValue ^ previousValueOnEnd) < Integer.Zero;
   const omitAnimation: boolean = isValueValid && value !== previousValue && !hasValueChanged;
   const restartAnimation: boolean = currentValue !== previousValueOnStart && previousValueOnEnd !== previousValueOnStart;
   const renderAnimation: boolean = isValueValid && hasValueChanged && !restartAnimation;
@@ -245,7 +252,7 @@ export const useAnimationLogic: UseAnimationLogic = (options: UseAnimationLogicO
 };
 
 interface UseAnimationNumbersOptions {
-  animationTransition: AnimationTransitions;
+  animationTransition: AnimationTransition;
   previousValueDigits: number[];
   currentValueDigits: number[];
   previousValue: bigint;
@@ -254,7 +261,7 @@ interface UseAnimationNumbersOptions {
   renderAnimation: boolean;
 }
 
-export type AnimationNumbersTuple = [AnimationNumbers, AnimationNumbers];
+export type AnimationNumbersTuple = [AnimationNumber, AnimationNumber];
 
 type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => AnimationNumbersTuple;
 
@@ -274,41 +281,41 @@ export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNu
     (previousValueDigits.length < currentValueDigits.length && previousValue < currentValue) ||
     (previousValueDigits.length > currentValueDigits.length && previousValue > currentValue);
 
-  const animationNumber: AnimationNumbers = renderAnimation
-    ? animationTransition === AnimationTransitions.SECOND_TO_THIRD
-      ? AnimationNumbers.THREE
-      : animationTransition === AnimationTransitions.FIRST_TO_SECOND
-        ? AnimationNumbers.TWO
-        : AnimationNumbers.ONE
-    : AnimationNumbers.ZERO;
+  const animationNumber: AnimationNumber = renderAnimation
+    ? animationTransition === AnimationTransition.SecondToThird
+      ? AnimationNumber.Three
+      : animationTransition === AnimationTransition.FirstToSecond
+        ? AnimationNumber.Two
+        : AnimationNumber.One
+    : AnimationNumber.Zero;
 
-  const numberOfAnimations: AnimationNumbers = renderAnimation
+  const numberOfAnimations: AnimationNumber = renderAnimation
     ? hasSignChanged
       ? hasThreeAnimations
-        ? AnimationNumbers.THREE
-        : AnimationNumbers.TWO
+        ? AnimationNumber.Three
+        : AnimationNumber.Two
       : hasNumberOfDigitsChanged
-        ? AnimationNumbers.TWO
-        : AnimationNumbers.ONE
-    : AnimationNumbers.ZERO;
+        ? AnimationNumber.Two
+        : AnimationNumber.One
+    : AnimationNumber.Zero;
 
   return [animationNumber, numberOfAnimations];
 };
 
 interface UseAnimationTypeOptions {
-  animationTransition: AnimationTransitions;
+  animationTransition: AnimationTransition;
   previousValueDigits: number[];
   currentValueDigits: number[];
   previousValue: bigint;
   currentValue: bigint;
   hasSignChanged: boolean;
   renderAnimation: boolean;
-  numberOfAnimations: AnimationNumbers;
+  numberOfAnimations: AnimationNumber;
 }
 
-type UseAnimationType = (options: UseAnimationTypeOptions) => AnimationTypes;
+type UseAnimationType = (options: UseAnimationTypeOptions) => AnimationType;
 
-export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOptions): AnimationTypes => {
+export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOptions): AnimationType => {
   const {
     animationTransition,
     previousValueDigits,
@@ -321,34 +328,34 @@ export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOpti
   }: UseAnimationTypeOptions = options;
 
   const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
-    ? animationTransition === AnimationTransitions.NONE
+    ? animationTransition === AnimationTransition.None
       ? previousValue > currentValue
       : previousValue < currentValue
-    : animationTransition === AnimationTransitions.NONE
+    : animationTransition === AnimationTransition.None
       ? previousValueDigits.length < currentValueDigits.length
       : previousValueDigits.length > currentValueDigits.length;
 
   const renderHorizontalAnimation: boolean =
-    (numberOfAnimations === AnimationNumbers.TWO && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
-    (numberOfAnimations === AnimationNumbers.THREE && animationTransition !== AnimationTransitions.FIRST_TO_SECOND);
+    (numberOfAnimations === AnimationNumber.Two && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
+    (numberOfAnimations === AnimationNumber.Three && animationTransition !== AnimationTransition.FirstToSecond);
 
-  return renderAnimation ? (renderHorizontalAnimation ? AnimationTypes.HORIZONTAL : AnimationTypes.VERTICAL) : AnimationTypes.NONE;
+  return renderAnimation ? (renderHorizontalAnimation ? AnimationType.Horizontal : AnimationType.Vertical) : AnimationType.None;
 };
 
 interface UseAnimationDirectionOptions {
-  animationType: AnimationTypes;
-  animationTransition: AnimationTransitions;
+  animationType: AnimationType;
+  animationTransition: AnimationTransition;
   previousValueDigits: number[];
   currentValueDigits: number[];
   previousValue: bigint;
   currentValue: bigint;
   hasSignChanged: boolean;
-  numberOfAnimations: AnimationNumbers;
+  numberOfAnimations: AnimationNumber;
 }
 
-type UseAnimationDirection = (options: UseAnimationDirectionOptions) => AnimationDirections;
+type UseAnimationDirection = (options: UseAnimationDirectionOptions) => AnimationDirection;
 
-export const useAnimationDirection: UseAnimationDirection = (options: UseAnimationDirectionOptions): AnimationDirections => {
+export const useAnimationDirection: UseAnimationDirection = (options: UseAnimationDirectionOptions): AnimationDirection => {
   const {
     animationType,
     animationTransition,
@@ -360,23 +367,23 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
     numberOfAnimations,
   }: UseAnimationDirectionOptions = options;
 
-  const horizontalAnimationDirection: AnimationDirections =
-    (numberOfAnimations === AnimationNumbers.TWO &&
+  const horizontalAnimationDirection: AnimationDirection =
+    (numberOfAnimations === AnimationNumber.Two &&
       (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
-    (numberOfAnimations === AnimationNumbers.THREE && animationTransition === AnimationTransitions.NONE)
-      ? AnimationDirections.NORMAL
-      : AnimationDirections.REVERSE;
+    (numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.None)
+      ? AnimationDirection.Normal
+      : AnimationDirection.Reverse;
 
-  const verticalAnimationDirection: AnimationDirections =
-    previousValue < currentValue ? AnimationDirections.NORMAL : AnimationDirections.REVERSE;
+  const verticalAnimationDirection: AnimationDirection =
+    previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
 
   switch (animationType) {
-    case AnimationTypes.HORIZONTAL:
+    case AnimationType.Horizontal:
       return horizontalAnimationDirection;
-    case AnimationTypes.VERTICAL:
+    case AnimationType.Vertical:
       return verticalAnimationDirection;
-    case AnimationTypes.NONE:
-      return AnimationDirections.NONE;
+    case AnimationType.None:
+      return AnimationDirection.None;
   }
 };
 
@@ -391,9 +398,9 @@ export interface TotalAnimationDuration {
 }
 
 interface UseAnimationDurationOptions {
-  animationType: AnimationTypes;
+  animationType: AnimationType;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
-  numberOfAnimations: AnimationNumbers;
+  numberOfAnimations: AnimationNumber;
 }
 
 export type AnimationDurationTuple = [number, number, number, number];
@@ -405,24 +412,24 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
     !Object.keys(animationDuration).length ||
-    Object.keys(animationDuration).some((key: string): boolean => Object.values(AnimationKeys).includes<string>(key));
+    Object.keys(animationDuration).some((key: string): boolean => Object.values(AnimationKey).includes<string>(key));
 
   const fromAnimationDuration = ({
-    horizontalAnimation = AnimationDurationValues.HORIZONTAL_ANIMATION,
-    verticalAnimation = AnimationDurationValues.VERTICAL_ANIMATION,
+    horizontalAnimation = AnimationDurationValue.HorizontalAnimation,
+    verticalAnimation = AnimationDurationValue.VerticalAnimation,
   }: AnimationDuration): [number, number] => [
-    numberOfAnimations === AnimationNumbers.ONE ? Numbers.ZERO : horizontalAnimation,
+    numberOfAnimations === AnimationNumber.One ? Integer.Zero : horizontalAnimation,
     verticalAnimation,
   ];
 
   const fromTotalAnimationDuration = ({
-    animationDuration = TotalAnimationDurationValues.ANIMATION_DURATION,
-    ratio = TotalAnimationDurationValues.RATIO,
+    animationDuration = TotalAnimationDurationValue.AnimationDuration,
+    ratio = TotalAnimationDurationValue.Ratio,
   }: TotalAnimationDuration): [number, number] => {
     const horizontalAnimationDuration: number =
-      numberOfAnimations === AnimationNumbers.ONE ? Numbers.ZERO : animationDuration / (ratio + numberOfAnimations - Numbers.ONE);
+      numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One);
     const verticalAnimationDuration: number =
-      ratio === Numbers.ZERO ? Numbers.ZERO : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Numbers.ONE);
+      ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One);
 
     return [horizontalAnimationDuration, verticalAnimationDuration];
   };
@@ -435,26 +442,26 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
 
   const calculateTotalAnimationDuration = (horizontalAnimationDuration: number, verticalAnimationDuration: number): number => {
     switch (numberOfAnimations) {
-      case AnimationNumbers.ZERO:
-        return Numbers.ZERO;
-      case AnimationNumbers.ONE:
+      case AnimationNumber.Zero:
+        return Integer.Zero;
+      case AnimationNumber.One:
         return verticalAnimationDuration;
-      case AnimationNumbers.TWO:
+      case AnimationNumber.Two:
         return horizontalAnimationDuration + verticalAnimationDuration;
-      case AnimationNumbers.THREE:
-        return Numbers.TWO * horizontalAnimationDuration + verticalAnimationDuration;
+      case AnimationNumber.Three:
+        return Integer.Two * horizontalAnimationDuration + verticalAnimationDuration;
     }
   };
 
   const [horizontalAnimationDuration, verticalAnimationDuration] =
-    numberOfAnimations === AnimationNumbers.ZERO ? [Numbers.ZERO, Numbers.ZERO] : mapAnimationDuration(animationDuration);
+    numberOfAnimations === AnimationNumber.Zero ? [Integer.Zero, Integer.Zero] : mapAnimationDuration(animationDuration);
 
   const currentAnimationDuration: number =
-    animationType === AnimationTypes.HORIZONTAL
+    animationType === AnimationType.Horizontal
       ? horizontalAnimationDuration
-      : animationType === AnimationTypes.VERTICAL
+      : animationType === AnimationType.Vertical
         ? verticalAnimationDuration
-        : Numbers.ZERO;
+        : Integer.Zero;
 
   return [
     currentAnimationDuration,
@@ -465,57 +472,59 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
 };
 
 export interface ExtendedAnimationTimingFunction {
-  horizontalAnimation?: OrReadOnly<AnimationTimingFunction>;
-  verticalAnimation?: OrReadOnly<AnimationTimingFunction>;
+  horizontalAnimation?: OrReadOnly<AnimationTimingFunctionTuple>;
+  verticalAnimation?: OrReadOnly<AnimationTimingFunctionTuple>;
 }
 
 interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction?: OrReadOnly<AnimationTimingFunction> | ExtendedAnimationTimingFunction;
-  animationType: AnimationTypes;
-  animationDirection: AnimationDirections;
+  animationTimingFunction?: OrReadOnly<AnimationTimingFunctionTuple> | ExtendedAnimationTimingFunction;
+  animationType: AnimationType;
+  animationDirection: AnimationDirection;
 }
 
-type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunction;
+type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunctionTuple;
 
 export const useAnimationTimingFunction: UseAnimationTimingFunction = (
   options: UseAnimationTimingFunctionOptions,
-): AnimationTimingFunction => {
+): AnimationTimingFunctionTuple => {
   const {
-    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunctions.EASE,
+    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunction.Ease,
     animationType,
     animationDirection,
   }: UseAnimationTimingFunctionOptions = options;
 
   const {
-    horizontalAnimation = AnimationTimingFunctions.EASE,
-    verticalAnimation = AnimationTimingFunctions.EASE,
-  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<AnimationTimingFunction>>(
+    horizontalAnimation = AnimationTimingFunction.Ease,
+    verticalAnimation = AnimationTimingFunction.Ease,
+  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<AnimationTimingFunctionTuple>>(
     animationTimingFunctionInput,
   )
     ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
     : animationTimingFunctionInput;
 
-  const reverse: boolean = animationDirection === AnimationDirections.REVERSE;
+  const reverse: boolean = animationDirection === AnimationDirection.Reverse;
 
-  const animationTimingFunction: OrReadOnly<AnimationTimingFunction> =
-    animationType === AnimationTypes.HORIZONTAL ? horizontalAnimation : verticalAnimation;
+  const animationTimingFunction: OrReadOnly<AnimationTimingFunctionTuple> =
+    animationType === AnimationType.Horizontal ? horizontalAnimation : verticalAnimation;
 
-  const mapAnimationTimingFunction = (tuple: OrReadOnly<AnimationTimingFunction[number]>): AnimationTimingFunction[number] =>
-    reverse ? tuple.map<number, AnimationTimingFunction[number]>((number: number): number => Numbers.ONE - number) : [...tuple];
+  const mapAnimationTimingFunction = (tuple: OrReadOnly<AnimationTimingFunctionTuple[number]>): AnimationTimingFunctionTuple[number] =>
+    reverse ? tuple.map<number, AnimationTimingFunctionTuple[number]>((number: number): number => Integer.One - number) : [...tuple];
 
-  return animationTimingFunction.map<AnimationTimingFunction[number], AnimationTimingFunction>(mapAnimationTimingFunction).invert(reverse);
+  return animationTimingFunction
+    .map<AnimationTimingFunctionTuple[number], AnimationTimingFunctionTuple>(mapAnimationTimingFunction)
+    .invert(reverse);
 };
 
 interface UseRenderNegativeCharacterOptions {
-  negativeCharacterAnimationMode: NegativeCharacterAnimationModes;
-  animationTransition: AnimationTransitions;
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
+  animationTransition: AnimationTransition;
   previousValue: bigint;
   currentValue: bigint;
   isValueValid: boolean;
   hasSignChanged: boolean;
   renderAnimation: boolean;
-  numberOfAnimations: AnimationNumbers;
-  animationType: AnimationTypes;
+  numberOfAnimations: AnimationNumber;
+  animationType: AnimationType;
 }
 
 type UseRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions) => boolean;
@@ -535,46 +544,46 @@ export const useRenderNegativeCharacter: UseRenderNegativeCharacter = (options: 
 
   const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
     renderAnimation &&
-    animationType !== AnimationTypes.HORIZONTAL &&
-    negativeCharacterAnimationMode === NegativeCharacterAnimationModes.MULTI
+    animationType !== AnimationType.Horizontal &&
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi
   );
 
   const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
-    animationType === AnimationTypes.HORIZONTAL &&
-    numberOfAnimations === AnimationNumbers.THREE &&
-    previousValue < currentValue === (animationTransition === AnimationTransitions.NONE);
+    animationType === AnimationType.Horizontal &&
+    numberOfAnimations === AnimationNumber.Three &&
+    previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
   const renderNegativeCharacter: boolean =
-    (isValueValid && !hasSignChanged && currentValue < Numbers.ZERO && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    (isValueValid && !hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
     renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   return renderNegativeCharacter;
 };
 
 type MappedView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<StyledComponents, T, U> as Uncapitalize<
-    Slice<K, StyledComponents> extends Capitalize<ViewKeys> ? Slice<K, StyledComponents> : never
-  >]: StyledView<StyledComponents, T, U>[K];
+  [K in keyof StyledView<Styled, T, U> as Uncapitalize<
+    Slice<K, Styled> extends Capitalize<ViewKey> ? Slice<K, Styled> : never
+  >]: StyledView<Styled, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
   viewProps?: T;
 }
 
-export type StyledViewWithProps<T extends StyledComponents, U extends object, V> = Partial<U> & StyledView<T, U, V>;
+export type StyledViewWithProps<T extends Styled, U extends object, V> = Partial<U> & StyledView<T, U, V>;
 
 // prettier-ignore
 type StyledViewTypes<
   K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = [
-  [StyledComponents.CONTAINER, K, L],
-  [StyledComponents.CHARACTER, M, N],
-  [StyledComponents.DIGIT, O, P],
-  [StyledComponents.SEPARATOR, Q, R],
-  [StyledComponents.DECIMAL_SEPARATOR, S, T],
-  [StyledComponents.DIGIT_GROUP_SEPARATOR, U, V],
-  [StyledComponents.NEGATIVE_CHARACTER, W, X],
-  [StyledComponents.INVALID, Y, Z],
+  [Styled.Container, K, L],
+  [Styled.Symbol, M, N],
+  [Styled.Digit, O, P],
+  [Styled.Separator, Q, R],
+  [Styled.DecimalSeparator, S, T],
+  [Styled.DigitGroupSeparator, U, V],
+  [Styled.Negative, W, X],
+  [Styled.Invalid, Y, Z],
 ];
 
 // prettier-ignore
@@ -582,9 +591,9 @@ type StyledViewTuple<
   K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Zero],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
   >;
 }>;
 
@@ -593,8 +602,8 @@ type ViewTuple<
   K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
   >;
 }>;
 
@@ -610,9 +619,9 @@ export type StyledViewWithPropsTuple<
   K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = MappedTuple<{
   [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ZERO],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.ONE],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Numbers.TWO]
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Zero],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
+    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
   >;
 }>;
 
@@ -646,11 +655,11 @@ export const useStyledView: UseStyledView = <
   const mapView = (
     viewWithStyledComponent:
       | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]]
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents],
+      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled],
   ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
     const [{ viewProps, ...restView } = {}, styledComponent]:
       | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]]
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], StyledComponents] = viewWithStyledComponent;
+      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled] = viewWithStyledComponent;
 
     const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
@@ -674,7 +683,7 @@ export const useStyledView: UseStyledView = <
   };
 
   return options
-    .zip<StyledComponents>(Object.values<StyledComponents>(StyledComponents))
+    .zip<Styled>(Object.values<Styled>(Styled))
     .map<
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
@@ -686,36 +695,36 @@ type UseNumberOfDigitGroupSeparators = (precision: number) => (numberOfDigits: n
 export const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
   (precision: number): ((numberOfDigits: number) => number) =>
   (numberOfDigits: number): number =>
-    [numberOfDigits - Math.max(precision, Numbers.ZERO), Math.max(precision, Numbers.ZERO)]
-      .map<number>((quantity: number): number => Math.trunc((quantity - Numbers.ONE) / Numbers.THREE))
+    [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
+      .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
       .reduce((first: number, second: number): number => first + second);
 
-type CharacterIndexFunction = (index: number, length: number) => number;
+type SymbolIndexFunction = (index: number, length: number) => number;
 
-export interface CharacterIndexFunctions {
-  getCharacterIndex: CharacterIndexFunction;
-  getCharacterSeparatorIndex: CharacterIndexFunction;
-  getSeparatorIndex: CharacterIndexFunction;
-  getDigitGroupSeparatorIndex: CharacterIndexFunction;
+export interface SymbolIndexFunctions {
+  getSymbolIndex: SymbolIndexFunction;
+  getCharacterSeparatorIndex: SymbolIndexFunction;
+  getSeparatorIndex: SymbolIndexFunction;
+  getDigitGroupSeparatorIndex: SymbolIndexFunction;
 }
 
-type UseCharacterIndexFunctions = (precision: number) => CharacterIndexFunctions;
+type UseSymbolIndexFunctions = (precision: number) => SymbolIndexFunctions;
 
-export const useCharacterIndexFunctions: UseCharacterIndexFunctions = (precision: number): CharacterIndexFunctions => {
+export const useSymbolIndexFunctions: UseSymbolIndexFunctions = (precision: number): SymbolIndexFunctions => {
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
   const getIndex = (index: number, length: number): number =>
     Math.trunc(
-      (index + ((Numbers.THREE - ((length - Math.max(precision, Numbers.ZERO)) % Numbers.THREE)) % Numbers.THREE)) / Numbers.THREE,
+      (index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three,
     );
 
-  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
-  const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Numbers.ONE;
-  const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Numbers.ONE;
+  const getSymbolIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
+  const getCharacterSeparatorIndex = (index: number, length: number): number => getSymbolIndex(index, length) - Integer.One;
+  const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Integer.One;
   const getDigitGroupSeparatorIndex = (index: number, length: number): number =>
-    getSeparatorIndex(index, length) - (length - index < precision ? Numbers.ONE : Numbers.ZERO);
+    getSeparatorIndex(index, length) - (length - index < precision ? Integer.One : Integer.Zero);
 
-  return { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
+  return { getSymbolIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
 };
 
 interface UseElementsLengthOptions {
@@ -734,16 +743,16 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
   const sum = (first: number, second: number): number => first + second;
 
-  const invalidLength: number = isValueValid ? Numbers.ZERO : Numbers.ONE;
-  const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Numbers.ZERO) ? Numbers.ONE : Numbers.ZERO;
-  const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Numbers.ZERO;
-  const decimalSeparatorLength: number = isValueValid && precision > Numbers.ZERO ? Numbers.ONE : Numbers.ZERO;
+  const invalidLength: number = isValueValid ? Integer.Zero : Integer.One;
+  const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Integer.Zero) ? Integer.One : Integer.Zero;
+  const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Integer.Zero;
+  const decimalSeparatorLength: number = isValueValid && precision > Integer.Zero ? Integer.One : Integer.Zero;
   const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
-  const digitsLength: number = isValueValid ? numberOfDigits : Numbers.ZERO;
-  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
+  const digitsLength: number = isValueValid ? numberOfDigits : Integer.Zero;
+  const symbolsLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
 
   return {
-    charactersLength,
+    symbolsLength,
     digitsLength,
     separatorsLength,
     decimalSeparatorLength,
@@ -753,7 +762,7 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   };
 };
 
-type CubicBezier = (points: AnimationTimingFunction[number]) => (time: number) => number;
+type CubicBezier = (points: AnimationTimingFunctionTuple[number]) => (time: number) => number;
 
 type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
 
@@ -763,29 +772,29 @@ type UseCubicBezier = () => CubicBezierTuple;
 
 export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
   const derivative = (func: (value: number) => number, value: number) =>
-    (func(value + EquationSolver.DERIVATIVE_DELTA) - func(value - EquationSolver.DERIVATIVE_DELTA)) /
-    (Numbers.TWO * EquationSolver.DERIVATIVE_DELTA);
+    (func(value + EquationSolver.DerivativeDelta) - func(value - EquationSolver.DerivativeDelta)) /
+    (Integer.Two * EquationSolver.DerivativeDelta);
 
   const solve = (
     func: (value: number) => number,
-    previousValue: number = EquationSolver.INITIAL_VALUE,
+    previousValue: number = EquationSolver.InitialValue,
     previousFuncResult: number = func(previousValue),
   ): number => {
     const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
     const newFuncResult: number = func(newValue);
 
     const isConvergent: boolean = [newValue - previousValue, newFuncResult]
-      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DERIVATIVE_DELTA)
+      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DerivativeDelta)
       .reduce((accumulator: boolean, currentValue: boolean): boolean => accumulator && currentValue);
 
     return isConvergent ? newValue : solve(func, newValue, newFuncResult);
   };
 
   const cubicBezier =
-    ([firstPoint, secondPoint]: AnimationTimingFunction[number]): ((time: number) => number) =>
+    ([firstPoint, secondPoint]: AnimationTimingFunctionTuple[number]): ((time: number) => number) =>
     (time: number): number =>
-      Numbers.THREE * (firstPoint * time * (Numbers.ONE - time) ** Numbers.TWO + secondPoint * (Numbers.ONE - time) * time ** Numbers.TWO) +
-      time ** Numbers.THREE;
+      Integer.Three * (firstPoint * time * (Integer.One - time) ** Integer.Two + secondPoint * (Integer.One - time) * time ** Integer.Two) +
+      time ** Integer.Three;
 
   return [cubicBezier, (func: (value: number) => number): number => solve(func)];
 };
@@ -794,7 +803,7 @@ interface UseHorizontalAnimationDigitsOptions {
   previousValueDigits: number[];
   currentValueDigits: number[];
   numberOfDigitsDifference: number;
-  animationDirection: AnimationDirections;
+  animationDirection: AnimationDirection;
   renderZeros: boolean;
 }
 
@@ -807,8 +816,8 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
   animationDirection,
   renderZeros,
 }: UseHorizontalAnimationDigitsOptions): number[] => [
-  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Numbers.ZERO) : []),
-  ...(animationDirection === AnimationDirections.NORMAL ? previousValueDigits : currentValueDigits),
+  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
+  ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
 ];
 
 export interface AnimationAlgorithm {
@@ -832,7 +841,7 @@ type UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions) =
 
 export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
   const {
-    animationAlgorithm: { incrementMaxLength = Numbers.FOURTEEN, numberOfDigitsIncrease = Numbers.SEVEN } = {},
+    animationAlgorithm: { incrementMaxLength = Integer.Fourteen, numberOfDigitsIncrease = Integer.Seven } = {},
     maxNumberOfDigits,
     previousValue,
     currentValue,
@@ -840,36 +849,36 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
 
   const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: undefined, index: number): [DigitValues[], DigitValues[]] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / BigInt(Numbers.TEN) ** BigInt(maxNumberOfDigits - index - Numbers.ONE))
-      .sort((first: bigint, second: bigint): number => (first < second ? Numbers.MINUS_ONE : first > second ? Numbers.ONE : Numbers.ZERO));
+      .map<bigint>((number: bigint): bigint => number / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
+      .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero));
 
-    const accumulatorIndex: number = end - start < incrementMaxLength ? Numbers.ZERO : Numbers.ONE;
+    const accumulatorIndex: number = end - start < incrementMaxLength ? Integer.Zero : Integer.One;
     accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
 
     return accumulator;
   };
 
-  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Numbers.TEN)));
+  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
 
   const incrementValues = ({ start, end }: DigitValues): number[] =>
-    [...Array(Number(end - start) + Numbers.ONE)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
+    [...Array(Number(end - start) + Integer.One)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
 
   const generateValues = (values: DigitValues, index: number): number[] => {
     const { start, end }: DigitValues = values;
 
     const calculate = (_: undefined, index: number, { length }: number[]): bigint =>
-      (NumberPrecision.VALUE * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
+      (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
     const round = (value: bigint): bigint =>
-      value / NumberPrecision.VALUE +
-      BigInt(value - (value / NumberPrecision.VALUE) * NumberPrecision.VALUE < NumberPrecision.HALF_VALUE ? Numbers.ZERO : Numbers.ONE);
+      value / NumberPrecision.Value +
+      BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
 
     const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
       .map<bigint>(calculate)
       .map<bigint>(round)
       .map<number>(getDigit);
 
-    return numbers.at(Numbers.MINUS_ONE) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
+    return numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
   };
 
   const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
@@ -878,7 +887,7 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
   return [...Array(maxNumberOfDigits)]
     .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
-    .flat<[number[][], number[][]], Numbers.ONE>();
+    .flat<[number[][], number[][]], Integer.One>();
 };
 
 export interface ChildrenProps {
@@ -913,7 +922,7 @@ export const useElementKeyMapper: UseElementKeyMapper =
   ): ElementKeyMapper<T> =>
   (child: T, index: number, array: T[]): ReactElement<ChildrenProps> => (
     <Component
-      key={`${Component.toString()}${`${index + Numbers.ONE}`.padStart(`${array.length}`.length, `${Numbers.ZERO}`)}`}
+      key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${array.length}`.length, `${Integer.Zero}`)}`}
       {...(typeof props === 'function' ? props(child, index, array) : props)}
     >
       {child}
