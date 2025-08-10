@@ -168,7 +168,7 @@ const NumbersTransition = <
 
   const [
     [previousValueOnEndDigits, valueDigits],
-    [previousValueOEndBigInt, previousValueOnStartBigInt, valueBigInt],
+    [previousValueOnEndBigInt, previousValueOnStartBigInt, valueBigInt],
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
   ]: AnimationValuesTuple = useAnimationValues({
     precision,
@@ -182,7 +182,7 @@ const NumbersTransition = <
     value,
     isValueValid,
     previousValueOnStart: previousValueOnStartBigInt,
-    previousValueOnEnd: previousValueOEndBigInt,
+    previousValueOnEnd: previousValueOnEndBigInt,
     currentValue: valueBigInt,
   });
 
@@ -190,7 +190,7 @@ const NumbersTransition = <
     animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOEndBigInt,
+    previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     renderAnimation,
@@ -200,7 +200,7 @@ const NumbersTransition = <
     animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOEndBigInt,
+    previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     renderAnimation,
@@ -212,7 +212,7 @@ const NumbersTransition = <
     animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
-    previousValue: previousValueOEndBigInt,
+    previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
     numberOfAnimations,
@@ -230,7 +230,7 @@ const NumbersTransition = <
   const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
     negativeCharacterAnimationMode,
     animationTransition,
-    previousValue: previousValueOEndBigInt,
+    previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     isValueValid,
     hasSignChanged,
@@ -349,7 +349,7 @@ const NumbersTransition = <
       animationTransition={animationTransition}
       previousValueDigits={previousValueOnEndDigits}
       currentValueDigits={valueDigits}
-      previousValue={previousValueOEndBigInt}
+      previousValue={previousValueOnEndBigInt}
       currentValue={valueBigInt}
       minNumberOfDigits={minNumberOfDigits}
       maxNumberOfDigits={maxNumberOfDigits}
@@ -373,7 +373,7 @@ const NumbersTransition = <
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationAlgorithm={animationAlgorithm}
       optimizationStrategy={optimizationStrategy}
-      previousValue={previousValueOEndBigInt}
+      previousValue={previousValueOnEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
