@@ -160,7 +160,7 @@ type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigit
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
   options.map<number[], AnimationDigitsTuple>((characters: string[]): number[] =>
-    characters.filter((character: string): boolean => !!character.match(RegularExpression.SingleDigit)).map<number>(Number),
+    characters.filter(RegularExpression.SingleDigit.test.bind(RegularExpression.SingleDigit)).map<number>(Number),
   );
 
 type UseAnimationBigIntsOptions = AnimationCharactersTuple;
