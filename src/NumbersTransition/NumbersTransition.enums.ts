@@ -122,6 +122,7 @@ export enum NegativeCharacter {
 export enum OptimizationStrategy {
   None = 'none',
   Split = 'split',
+  Delay = 'delay',
 }
 
 export enum EquationSolver {
@@ -161,7 +162,7 @@ export enum Integer {
   Ten = 10,
   Fourteen = 14,
   OneHundred = 100,
-  FiveThousand = 5_000,
+  TwoThousandFiveHundred = 2_500,
 }
 
 export const AnimationTimingFunction = {

@@ -49,6 +49,7 @@ import {
 import {
   AnimationTimingFunctionTuple,
   DecimalSeparator,
+  Delay,
   Digit,
   DigitGroupSeparator,
   DigitProps,
@@ -118,10 +119,11 @@ interface DeferProps {
   countElements: (child: ReactElement<ChildrenProps>) => number;
   onBeforeMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
   onPartialMount: (child: ReactElement<ChildrenProps>, elementsToMount: number) => GenericReactNode<ChildrenProps>;
+  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
-  const { children, chunkSize, countElements, onBeforeMount, onPartialMount }: DeferProps = props;
+  const { children, chunkSize, countElements, onBeforeMount, onPartialMount, onAfterMount }: DeferProps = props;
 
   const [mountedElements, setMountedElements]: [number, Dispatch<SetStateAction<number>>] = useState<number>(chunkSize);
 
@@ -152,12 +154,20 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
   const mapBeforeMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
     numberOfElements > Integer.Zero ? onPartialMount(child, numberOfElements ?? Integer.Zero) : onBeforeMount(child);
 
+  const mapAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
+    onAfterMount?.(child, index) ?? child;
+
   const mapChildren = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
     aggregatedSumsOfElements[index] > mountedElements
       ? mapBeforeMount(child, mountedElements - (aggregatedSumsOfElements[index - Integer.One] ?? Integer.Zero))
-      : child;
+      : mapAfterMount(child, index);
 
-  return children.map<GenericReactNode<ChildrenProps>>(mapChildren).map<ReactElement<ChildrenProps>>(mapToFragmentElement);
+  return (
+    <Conditional condition={mountedElements < aggregatedSumsOfElements.at(Integer.MinusOne)! || !onAfterMount}>
+      {children.map<GenericReactNode<ChildrenProps>>(mapChildren).map<ReactElement<ChildrenProps>>(mapToFragmentElement)}
+      {children}
+    </Conditional>
+  );
 };
 
 interface InvalidElementProps<T extends object, U, V extends object, W> {
@@ -684,31 +694,57 @@ export const VerticalAnimationElement = <
     return Array.isArray<GenericReactNode<ChildrenProps>>(children) ? children.length : Integer.One;
   };
 
-  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => {
-    const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
-
-    return Array.isArray<GenericReactNode<ChildrenProps>>(element.props.children)
-      ? element.props.children.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne)
-      : element;
-  };
-
-  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> => {
+  const onElementMount = (
+    child: ReactElement<ChildrenProps>,
+    fromArray: (array: GenericReactNode<ChildrenProps>[]) => GenericReactNode<ChildrenProps>,
+  ): GenericReactNode<ChildrenProps> => {
     const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
     // prettier-ignore
     const { props: { children } }: ReactElement<ChildrenProps> = element;
 
-    const getArrayElements = (): GenericReactNode<ChildrenProps>[] =>
-      [children]
-        .flat<GenericReactNode<ChildrenProps>[], Integer.One>()
-        .slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]));
-
     return (
       <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
-        <div>{getArrayElements()}</div>
+        {fromArray([children].flat<GenericReactNode<ChildrenProps>[], Integer.One>())}
         {element}
       </Conditional>
     );
   };
+
+  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
+    onElementMount(
+      child,
+      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
+        array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne),
+    );
+
+  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
+    onElementMount(
+      child,
+      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
+        <Delay>
+          {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
+        </Delay>
+      ),
+    );
+
+  const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
+    <Conditional condition={!index}>
+      <Optional condition={renderNegativeCharacter}>
+        <NegativeElement<O, P, Y, Z>
+          negativeCharacter={negativeCharacter}
+          visible={animationDirection === AnimationDirection.Normal || !hasSignChanged}
+          symbolStyledView={symbolStyledView}
+          negativeCharacterStyledView={negativeCharacterStyledView}
+        />
+      </Optional>
+      {onElementMount(
+        child,
+        (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
+          <Delay>{array}</Delay>
+        ),
+      )}
+    </Conditional>
+  );
 
   const negativeElement: ReactElement<ChildrenProps> = (
     <Optional condition={renderNegativeCharacter}>
@@ -724,8 +760,14 @@ export const VerticalAnimationElement = <
   );
 
   const enclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
-    <Conditional condition={optimizationStrategy === OptimizationStrategy.Split}>
-      <Defer chunkSize={Integer.FiveThousand} countElements={countElements} onBeforeMount={onBeforeMount} onPartialMount={onPartialMount}>
+    <Conditional condition={optimizationStrategy !== OptimizationStrategy.None}>
+      <Defer
+        chunkSize={Integer.TwoThousandFiveHundred}
+        countElements={countElements}
+        onBeforeMount={onBeforeMount}
+        onPartialMount={onPartialMount}
+        {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
+      >
         {[negativeElement, ...children]}
       </Defer>
       <>

@@ -88,7 +88,7 @@ const opacityAnimationFactory: AnimationFactory<object, number> = ({
 }: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
 
 const style: RuleSet<object> = css<object>`
-  font-size: ${Integer.Five}rem;
+  font-size: ${Integer.Three}rem;
   color: #f0ff95;
   animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
   animation-direction: alternate;

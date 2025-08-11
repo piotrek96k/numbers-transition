@@ -21,13 +21,13 @@ type StyledComponentBase<T extends object> = IStyledComponent<Runtime.Web, T>;
 
 type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 
-type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
+export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
 
-type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
   Substitute<ComponentPropsWithRef<T> & BaseObject, U>
 >;
 
-type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
+export type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
   Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
 >;
 
@@ -409,13 +409,6 @@ const visibility = ({ visible = true }: VisibilityProps): RuleSet<object> | fals
     opacity: ${Integer.Zero};
   `;
 
-const animationDisplay = ({
-  theme: { animationType, animationDirection },
-}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  display: ${animationType === AnimationType.Horizontal ? 'inline-block' : 'inline-flex'};
-  flex-direction: ${animationDirection === AnimationDirection.Normal ? 'column' : 'column-reverse'};
-`;
-
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
@@ -434,22 +427,14 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   overflow-y: clip;
 `;
 
-type AnimationStyledComponent = StyledComponent<HTMLDivElement>;
+type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
 
-const Animation: AnimationStyledComponent = styled.div`
-  &,
-  ~ *:has(:first-child) {
-    ${animationDisplay};
-    height: inherit;
-  }
-`;
-
-type HorizontalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, HorizontalAnimationProps>;
-
-export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(Animation)<HorizontalAnimationProps>`
+export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.div<HorizontalAnimationProps>`
   ${animation};
   &,
   :has(~ &):not(:has(:first-child)) {
+    display: inline-block;
+    height: inherit;
     overflow-x: hidden;
   }
   :only-child {
@@ -458,9 +443,12 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled(An
   }
 `;
 
-type VerticalAnimationStyledComponent = ExtensionStyledComponent<AnimationStyledComponent, VerticalAnimationProps>;
+type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, VerticalAnimationProps>;
 
-export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animation)<VerticalAnimationProps>`
+export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
+  display: inline-flex;
+  flex-direction: column;
+  height: inherit;
   :only-child:has(:not(:only-child)) {
     ${animation};
     position: relative;
@@ -469,8 +457,19 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled(Animat
     position: absolute;
     top: ${Integer.OneHundred}%;
   }
-  :only-child > *,
-  ~ *:has(:first-child) > * {
+  :only-child > * {
+    display: block;
+  }
+`;
+
+type DelayStyledComponent = StyledComponent<HTMLDivElement, BaseObject>;
+
+export const Delay: DelayStyledComponent = styled.div<BaseObject>`
+  display: inline-flex;
+  flex-direction: ${({ theme: { animationDirection } }: NumbersTransitionExecutionContext): string =>
+    animationDirection === AnimationDirection.Normal ? 'column' : 'column-reverse'};
+  height: inherit;
+  > * {
     display: block;
   }
 `;
