@@ -97,6 +97,7 @@ export interface NumbersTransitionProps<
   animationAlgorithm?: AnimationAlgorithm;
   invalidValue?: string;
   optimizationStrategy?: OptimizationStrategy;
+  deferChunkSize?: number;
   view?: View<K, L>;
   symbolView?: View<M, N>;
   digitView?: View<O, P>;
@@ -146,6 +147,7 @@ const NumbersTransition = <
     animationAlgorithm,
     invalidValue = InvalidValue.Value,
     optimizationStrategy,
+    deferChunkSize,
     view,
     symbolView,
     digitView,
@@ -373,6 +375,7 @@ const NumbersTransition = <
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationAlgorithm={animationAlgorithm}
       optimizationStrategy={optimizationStrategy}
+      deferChunkSize={deferChunkSize}
       previousValue={previousValueOnEndBigInt}
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}

@@ -609,6 +609,7 @@ interface VerticalAnimationElementProps<
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationAlgorithm?: AnimationAlgorithm;
   optimizationStrategy?: OptimizationStrategy;
+  deferChunkSize?: number;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
@@ -642,6 +643,7 @@ export const VerticalAnimationElement = <
     negativeCharacterAnimationMode,
     animationAlgorithm,
     optimizationStrategy = OptimizationStrategy.None,
+    deferChunkSize = Integer.TwoThousandFiveHundred,
     previousValue,
     currentValue,
     maxNumberOfDigits,
@@ -694,7 +696,7 @@ export const VerticalAnimationElement = <
 
   const deferEnclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
     <Defer
-      chunkSize={Integer.TwoThousandFiveHundred}
+      chunkSize={deferChunkSize}
       {...restDeferFunctions}
       {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
     >

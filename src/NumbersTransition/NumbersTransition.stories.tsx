@@ -111,6 +111,7 @@ const args: ComponentProps<NumbersTransitionProps> = {
   animationTimingFunction: AnimationTimingFunction.Ease,
   animationInterruptionMode: AnimationInterruptionMode.Interrupt,
   optimizationStrategy: OptimizationStrategy.None,
+  deferChunkSize: Integer.TwoThousandFiveHundred,
   view: { css: style, animation: opacityAnimationFactory },
 };
 
