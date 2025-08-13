@@ -8,7 +8,6 @@ import {
   ReactNode,
   RefObject,
   SetStateAction,
-  isValidElement,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -35,6 +34,7 @@ import {
   AnimationAlgorithm,
   ChildrenProps,
   CubicBezierTuple,
+  DeferFunctions,
   ElementKeyMapper,
   StyledViewWithProps,
   SymbolIndexFunctions,
@@ -44,6 +44,7 @@ import {
   useNumberOfDigitGroupSeparators,
   useSymbolIndexFunctions,
   useTimeout,
+  useVerticalAnimationDeferFunctions,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
@@ -85,12 +86,13 @@ export const Optional: FC<OptionalProps> = ({ children, condition }: OptionalPro
 
 interface EncloseProps<T extends GenericReactNode<ChildrenProps>> {
   children: T;
+  condition?: boolean;
   enclose?: (children: T) => ReactNode;
 }
 
-const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose }: EncloseProps<T>): ReactNode => (
-  <Conditional condition={!!enclose}>
-    {enclose?.(children)}
+const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose, condition = !!enclose }: EncloseProps<T>): ReactNode => (
+  <Conditional condition={condition}>
+    {(enclose ?? ((children: T): ReactNode => <>{children}</>))(children)}
     {children}
   </Conditional>
 );
@@ -113,13 +115,9 @@ const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
   return timedOut === reverse ? before : after;
 };
 
-interface DeferProps {
+interface DeferProps extends DeferFunctions {
   children: ReactElement<ChildrenProps>[];
   chunkSize: number;
-  countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
-  onPartialMount: (child: ReactElement<ChildrenProps>, elementsToMount: number) => GenericReactNode<ChildrenProps>;
-  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
@@ -225,6 +223,7 @@ interface VerticalAnimationNegativeElementProps<T extends object, U, V extends o
   hasSignChanged: boolean;
   symbolStyledView: StyledViewWithProps<Styled.Symbol, T, U>;
   negativeCharacterStyledView: StyledViewWithProps<Styled.Negative, V, W>;
+  enclose: (children: ReactElement<ChildrenProps>) => ReactNode;
 }
 
 const VerticalAnimationNegativeElement = <T extends object, U, V extends object, W>(
@@ -237,6 +236,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     hasSignChanged,
     symbolStyledView,
     negativeCharacterStyledView,
+    enclose,
   }: VerticalAnimationNegativeElementProps<T, U, V, W> = props;
 
   const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
@@ -299,17 +299,19 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   );
 
   return (
-    <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
-      <Switch time={animationSwitchTime} reverse={animationDirection === AnimationDirection.Reverse}>
-        <NegativeElement<T, U, V, W>
-          negativeCharacter={negativeCharacter}
-          symbolStyledView={symbolStyledView}
-          negativeCharacterStyledView={negativeCharacterStyledView}
-        />
+    <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
+      <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
+        <Switch time={animationSwitchTime} reverse={animationDirection === AnimationDirection.Reverse}>
+          <NegativeElement<T, U, V, W>
+            negativeCharacter={negativeCharacter}
+            symbolStyledView={symbolStyledView}
+            negativeCharacterStyledView={negativeCharacterStyledView}
+          />
+          {verticalAnimationElement}
+        </Switch>
         {verticalAnimationElement}
-      </Switch>
-      {verticalAnimationElement}
-    </Conditional>
+      </Conditional>
+    </Enclose>
   );
 };
 
@@ -681,73 +683,38 @@ export const VerticalAnimationElement = <
     }),
   );
 
+  const { onAfterMount, ...restDeferFunctions }: DeferFunctions = useVerticalAnimationDeferFunctions({
+    Conditional,
+    Delay,
+    animationDirection: animationDirection!,
+  });
+
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);
 
-  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
-    isValidElement(child.props.children) ? getLastNestedElement(child.props.children) : child;
-
-  const countElements = (child: ReactElement<ChildrenProps>): number => {
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = getLastNestedElement(child);
-
-    return Array.isArray<GenericReactNode<ChildrenProps>>(children) ? children.length : Integer.One;
-  };
-
-  const onElementMount = (
-    child: ReactElement<ChildrenProps>,
-    fromArray: (array: GenericReactNode<ChildrenProps>[]) => GenericReactNode<ChildrenProps>,
-  ): GenericReactNode<ChildrenProps> => {
-    const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = element;
-
-    return (
-      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
-        {fromArray([children].flat<GenericReactNode<ChildrenProps>[], Integer.One>())}
-        {element}
-      </Conditional>
-    );
-  };
-
-  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
-        array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne),
-    );
-
-  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-        <Delay>
-          {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
-        </Delay>
-      ),
-    );
-
-  const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
-    <Conditional condition={!index}>
-      <Optional condition={renderNegativeCharacter}>
-        <NegativeElement<O, P, Y, Z>
-          negativeCharacter={negativeCharacter}
-          visible={animationDirection === AnimationDirection.Normal || !hasSignChanged}
-          symbolStyledView={symbolStyledView}
-          negativeCharacterStyledView={negativeCharacterStyledView}
-        />
-      </Optional>
-      {onElementMount(
-        child,
-        (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-          <Delay>{array}</Delay>
-        ),
-      )}
-    </Conditional>
+  const deferEnclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+    <Defer
+      chunkSize={Integer.TwoThousandFiveHundred}
+      {...restDeferFunctions}
+      {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
+    >
+      {children}
+    </Defer>
   );
 
-  const negativeElement: ReactElement<ChildrenProps> = (
-    <Optional condition={renderNegativeCharacter}>
+  const createEncloseElement = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+    <Enclose<ReactElement<ChildrenProps>[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={deferEnclose}>
+      {children}
+    </Enclose>
+  );
+
+  const negativeEncloseFactory =
+    (digits: ReactElement<ChildrenProps>[]): ((negative: ReactElement<ChildrenProps>) => ReactNode) =>
+    (negative: ReactElement<ChildrenProps>): ReactNode =>
+      createEncloseElement([negative, ...digits]);
+
+  const numberEnclose = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
+    <Conditional condition={renderNegativeCharacter}>
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
         negativeCharacterAnimationMode={negativeCharacterAnimationMode}
@@ -755,25 +722,9 @@ export const VerticalAnimationElement = <
         hasSignChanged={hasSignChanged}
         symbolStyledView={symbolStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
+        enclose={negativeEncloseFactory(digits)}
       />
-    </Optional>
-  );
-
-  const enclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
-    <Conditional condition={optimizationStrategy !== OptimizationStrategy.None}>
-      <Defer
-        chunkSize={Integer.TwoThousandFiveHundred}
-        countElements={countElements}
-        onBeforeMount={onBeforeMount}
-        onPartialMount={onPartialMount}
-        {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
-      >
-        {[negativeElement, ...children]}
-      </Defer>
-      <>
-        {negativeElement}
-        {children}
-      </>
+      {createEncloseElement(digits)}
     </Conditional>
   );
 
@@ -786,7 +737,7 @@ export const VerticalAnimationElement = <
       decimalSeparatorStyledView={decimalSeparatorStyledView}
       digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
       mapToElement={[mapToDivElement, mapToVerticalAnimationElement, mapToThemeProviderElement]}
-      enclose={enclose}
+      enclose={numberEnclose}
     >
       {animationDigits}
     </NumberElement>

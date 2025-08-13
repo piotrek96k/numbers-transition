@@ -23,6 +23,7 @@ declare global {
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
     isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     depth<T>(array: T): number;
+    toArray<T>(value: OrArray<T>): T[];
   }
 
   interface Array<T> {

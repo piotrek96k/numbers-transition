@@ -20,6 +20,10 @@ Array.depth = function <T>(array: T): number {
   return depth(array);
 };
 
+Array.toArray = function <T>(value: OrArray<T>): T[] {
+  return Array.isArray<T>(value) ? value : [value];
+};
+
 Array.prototype.equals = function <T>(array: T[]): boolean {
   return this.length === array.length && this.every((value: unknown, index: number): boolean => value === array[index]);
 };

@@ -314,8 +314,7 @@ const styleFactory = <T extends Styled, U extends object, V>(
   style: undefined | OrArray<CSSProperties | StyleFactory<U>>,
   props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
 ): CSSProperties =>
-  [style]
-    .flat<(undefined | OrArray<CSSProperties | StyleFactory<U>>)[], Integer.One>()
+  Array.toArray<undefined | CSSProperties | StyleFactory<U>>(style)
     .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties, AttributesOmittedKeys<T, U>>(props))
     .reduce<CSSProperties>(reduceStyles, {});
 
@@ -323,8 +322,7 @@ const classNameFactory = <T extends Styled, U extends object, V>(
   className: undefined | OrArray<string | ClassNameFactory<U>>,
   props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
 ): undefined | string =>
-  [className]
-    .flat<(undefined | OrArray<string | ClassNameFactory<U>>)[], Integer.One>()
+  Array.toArray<undefined | string | ClassNameFactory<U>>(className)
     .map<string | Falsy>(createViewFactoryMapper<T, U, string, AttributesOmittedKeys<T, U>>(props))
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Character.Space);
@@ -363,8 +361,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): RuleSet<object> | false =>
   !!(Array.isArray<undefined | Animation<U, V> | AnimationFactory<U, V>>(animation) ? animation.length : animation) &&
-  [animation!]
-    .flat<OrArray<Animation<U, V> | AnimationFactory<U, V>>[], Integer.One>()
+  Array.toArray<undefined | Animation<U, V> | AnimationFactory<U, V>>(animation)
     .map<Partial<Animation<U, V>> | Falsy>(createViewFactoryMapper<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))
     .map<undefined | Partial<Animation<U, V>>>(mapAnimationFalsyValue<U, V>)
     .map<undefined | Keyframes>(mapAnimation<U, V>)

@@ -1,4 +1,16 @@
-import { ActionDispatch, Dispatch, FC, ReactElement, RefObject, SetStateAction, useEffect, useReducer, useRef, useState } from 'react';
+import {
+  ActionDispatch,
+  Dispatch,
+  FC,
+  ReactElement,
+  RefObject,
+  SetStateAction,
+  isValidElement,
+  useEffect,
+  useReducer,
+  useRef,
+  useState,
+} from 'react';
 import { useTheme } from 'styled-components';
 import {
   AnimationDirection,
@@ -893,6 +905,94 @@ export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: 
 export interface ChildrenProps {
   children?: GenericReactNode<ChildrenProps>;
 }
+
+interface ConditionalProps {
+  condition: boolean;
+  children: [GenericReactNode<ChildrenProps>, GenericReactNode<ChildrenProps>];
+}
+
+interface UseVerticalAnimationDeferFunctionsOptions {
+  Conditional: FC<ConditionalProps>;
+  Delay: FC<ChildrenProps>;
+  animationDirection: AnimationDirection;
+}
+
+export interface DeferFunctions {
+  countElements: (child: ReactElement<ChildrenProps>) => number;
+  onBeforeMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
+  onPartialMount: (child: ReactElement<ChildrenProps>, elementsToMount: number) => GenericReactNode<ChildrenProps>;
+  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
+}
+
+type UseVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFunctionsOptions) => DeferFunctions;
+
+export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFunctions = (
+  options: UseVerticalAnimationDeferFunctionsOptions,
+): DeferFunctions => {
+  const { Conditional, Delay, animationDirection }: UseVerticalAnimationDeferFunctionsOptions = options;
+
+  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
+    isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
+
+  const getLastNestedOrUndefined = (child: GenericReactNode<ChildrenProps>): ReactElement<ChildrenProps> | undefined =>
+    isValidElement(child) ? getLastNestedElement(child) : undefined;
+
+  const countElements = (child: ReactElement<ChildrenProps>): number => {
+    // prettier-ignore
+    const { props: { children } }: ReactElement<ChildrenProps> = getLastNestedElement(child);
+
+    return Array.isArray<GenericReactNode<ChildrenProps>>(children) ? children.length : Integer.One;
+  };
+
+  const onElementMount = (
+    child: ReactElement<ChildrenProps>,
+    fromArray: (array: GenericReactNode<ChildrenProps>[]) => GenericReactNode<ChildrenProps>,
+  ): GenericReactNode<ChildrenProps> => {
+    const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
+    // prettier-ignore
+    const { props: { children } }: ReactElement<ChildrenProps> = element;
+
+    return (
+      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
+        {fromArray(Array.toArray<GenericReactNode<ChildrenProps>>(children))}
+        {element}
+      </Conditional>
+    );
+  };
+
+  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
+    onElementMount(
+      child,
+      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
+        array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne),
+    );
+
+  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
+    onElementMount(
+      child,
+      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
+        <Delay>
+          {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
+        </Delay>
+      ),
+    );
+
+  const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
+    <Conditional condition={!index && child === getLastNestedElement(child)}>
+      {Array.toArray<GenericReactNode<ChildrenProps>>(
+        getLastNestedOrUndefined(Array.toArray<GenericReactNode<ChildrenProps>>(child.props.children)[Integer.One])?.props.children,
+      ).at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne)}
+      {onElementMount(
+        child,
+        (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
+          <Delay>{array}</Delay>
+        ),
+      )}
+    </Conditional>
+  );
+
+  return { countElements, onBeforeMount, onPartialMount, onAfterMount };
+};
 
 interface KeyProps {
   key?: string;
