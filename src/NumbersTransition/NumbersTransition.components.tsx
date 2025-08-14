@@ -704,7 +704,7 @@ export const VerticalAnimationElement = <
     </Defer>
   );
 
-  const createEncloseElement = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+  const enclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
     <Enclose<ReactElement<ChildrenProps>[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={deferEnclose}>
       {children}
     </Enclose>
@@ -719,9 +719,9 @@ export const VerticalAnimationElement = <
         hasSignChanged={hasSignChanged}
         symbolStyledView={symbolStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
-        enclose={(negative: ReactElement<ChildrenProps>): ReactNode => createEncloseElement([negative, ...digits])}
+        enclose={(negative: ReactElement<ChildrenProps>): ReactNode => enclose([negative, ...digits])}
       />
-      {createEncloseElement(digits)}
+      {enclose(digits)}
     </Conditional>
   );
 
