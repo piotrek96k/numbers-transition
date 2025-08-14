@@ -720,7 +720,7 @@ export const VerticalAnimationElement = <
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
         negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-        animationDigits={animationDigits.find((digits: number[]): boolean => digits.length > Integer.One || !!digits[Integer.Zero])!}
+        animationDigits={animationDigits.find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!}
         hasSignChanged={hasSignChanged}
         symbolStyledView={symbolStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
