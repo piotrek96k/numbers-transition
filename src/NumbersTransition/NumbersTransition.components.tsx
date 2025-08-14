@@ -710,11 +710,6 @@ export const VerticalAnimationElement = <
     </Enclose>
   );
 
-  const negativeEncloseFactory =
-    (digits: ReactElement<ChildrenProps>[]): ((negative: ReactElement<ChildrenProps>) => ReactNode) =>
-    (negative: ReactElement<ChildrenProps>): ReactNode =>
-      createEncloseElement([negative, ...digits]);
-
   const numberEnclose = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
     <Conditional condition={renderNegativeCharacter}>
       <VerticalAnimationNegativeElement<O, P, Y, Z>
@@ -724,7 +719,7 @@ export const VerticalAnimationElement = <
         hasSignChanged={hasSignChanged}
         symbolStyledView={symbolStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
-        enclose={negativeEncloseFactory(digits)}
+        enclose={(negative: ReactElement<ChildrenProps>): ReactNode => createEncloseElement([negative, ...digits])}
       />
       {createEncloseElement(digits)}
     </Conditional>
