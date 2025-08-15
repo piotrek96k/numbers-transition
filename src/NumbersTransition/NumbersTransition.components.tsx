@@ -505,7 +505,7 @@ export const HorizontalAnimationElement = <
     negativeCharacterStyledView,
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const { numberOfAnimations, animationDirection }: NumbersTransitionTheme = useTheme();
+  const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Integer.Zero);
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
   const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Integer.Zero;
@@ -538,7 +538,6 @@ export const HorizontalAnimationElement = <
     numberOfDigitsDifference,
     previousValueDigits,
     currentValueDigits,
-    animationDirection: animationDirection!,
     renderZeros,
   });
 
@@ -657,7 +656,6 @@ export const VerticalAnimationElement = <
     ...restProps
   }: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const { animationDirection }: NumbersTransitionTheme = useTheme();
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
@@ -685,11 +683,7 @@ export const VerticalAnimationElement = <
     }),
   );
 
-  const { onAfterMount, ...restDeferFunctions }: DeferFunctions = useVerticalAnimationDeferFunctions({
-    Conditional,
-    Delay,
-    animationDirection: animationDirection!,
-  });
+  const { onAfterMount, ...restDeferFunctions }: DeferFunctions = useVerticalAnimationDeferFunctions({ Conditional, Delay });
 
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);

@@ -815,22 +815,20 @@ interface UseHorizontalAnimationDigitsOptions {
   previousValueDigits: number[];
   currentValueDigits: number[];
   numberOfDigitsDifference: number;
-  animationDirection: AnimationDirection;
   renderZeros: boolean;
 }
 
 type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
 
-export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = ({
-  numberOfDigitsDifference,
-  previousValueDigits,
-  currentValueDigits,
-  animationDirection,
-  renderZeros,
-}: UseHorizontalAnimationDigitsOptions): number[] => [
-  ...(renderZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
-  ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
-];
+export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (props: UseHorizontalAnimationDigitsOptions): number[] => {
+  const { numberOfDigitsDifference, previousValueDigits, currentValueDigits, renderZeros }: UseHorizontalAnimationDigitsOptions = props;
+  const { animationDirection }: NumbersTransitionTheme = useTheme();
+
+  return [
+    ...(renderZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
+    ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
+  ];
+};
 
 export interface AnimationAlgorithm {
   incrementMaxLength?: number;
@@ -914,7 +912,6 @@ interface ConditionalProps {
 interface UseVerticalAnimationDeferFunctionsOptions {
   Conditional: FC<ConditionalProps>;
   Delay: FC<ChildrenProps>;
-  animationDirection: AnimationDirection;
 }
 
 export interface DeferFunctions {
@@ -929,7 +926,8 @@ type UseVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFun
 export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFunctions = (
   options: UseVerticalAnimationDeferFunctionsOptions,
 ): DeferFunctions => {
-  const { Conditional, Delay, animationDirection }: UseVerticalAnimationDeferFunctionsOptions = options;
+  const { Conditional, Delay }: UseVerticalAnimationDeferFunctionsOptions = options;
+  const { animationDirection }: NumbersTransitionTheme = useTheme();
 
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
     isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
