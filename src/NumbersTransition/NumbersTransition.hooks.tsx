@@ -1020,10 +1020,10 @@ export const useElementKeyMapper: UseElementKeyMapper =
     Component: FunctionalComponent<U>,
     props?: U | PropsFactory<T, U>,
   ): ElementKeyMapper<T> =>
-  (child: T, index: number, array: T[]): ReactElement<ChildrenProps> => (
+  (child: T, index: number, { length, ...array }: T[]): ReactElement<ChildrenProps> => (
     <Component
-      key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${array.length}`.length, `${Integer.Zero}`)}`}
-      {...(typeof props === 'function' ? props(child, index, array) : props)}
+      key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${length}`.length, `${Integer.Zero}`)}`}
+      {...(typeof props === 'function' ? props(child, index, { ...array, length }) : props)}
     >
       {child}
     </Component>
