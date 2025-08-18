@@ -485,8 +485,6 @@ export const HorizontalAnimationElement = <
 ): ReactNode => {
   const {
     precision,
-    decimalSeparator,
-    digitGroupSeparator,
     negativeCharacter,
     animationTransition,
     previousValueDigits,
@@ -498,11 +496,8 @@ export const HorizontalAnimationElement = <
     numberOfDigitsDifference,
     hasSignChanged,
     symbolStyledView,
-    digitStyledView,
-    separatorStyledView,
-    decimalSeparatorStyledView,
-    digitGroupSeparatorStyledView,
     negativeCharacterStyledView,
+    ...restProps
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
@@ -559,16 +554,7 @@ export const HorizontalAnimationElement = <
   );
 
   const numberElement: ReactElement = (
-    <NumberElement<O, P, Q, R, S, T, U, V, W, X>
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      symbolStyledView={symbolStyledView}
-      digitStyledView={digitStyledView}
-      separatorStyledView={separatorStyledView}
-      decimalSeparatorStyledView={decimalSeparatorStyledView}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-    >
+    <NumberElement<O, P, Q, R, S, T, U, V, W, X> {...restProps} precision={precision} symbolStyledView={symbolStyledView}>
       {animationDigits}
     </NumberElement>
   );
@@ -648,10 +634,6 @@ export const VerticalAnimationElement = <
     maxNumberOfDigits,
     hasSignChanged,
     symbolStyledView,
-    digitStyledView,
-    separatorStyledView,
-    decimalSeparatorStyledView,
-    digitGroupSeparatorStyledView,
     negativeCharacterStyledView,
     ...restProps
   }: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
@@ -723,10 +705,6 @@ export const VerticalAnimationElement = <
     <NumberElement<O, P, Q, R, S, T, U, V, W, X>
       {...restProps}
       symbolStyledView={symbolStyledView}
-      digitStyledView={digitStyledView}
-      separatorStyledView={separatorStyledView}
-      decimalSeparatorStyledView={decimalSeparatorStyledView}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
       mapToElement={[mapToDivElement, mapToVerticalAnimationElement, mapToThemeProviderElement]}
       enclose={numberEnclose}
     >
