@@ -10,7 +10,6 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -41,7 +40,7 @@ import {
   useCubicBezier,
   useElementKeyMapper,
   useHorizontalAnimationDigits,
-  useNumberOfDigitGroupSeparators,
+  useHorizontalAnimationWidths,
   useSymbolIndexFunctions,
   useTimeout,
   useVerticalAnimationDeferFunctions,
@@ -286,14 +285,14 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   const animationSwitchTime: number = animationDirection === AnimationDirection.Normal ? animationTime : animationDuration! - animationTime;
   const animationDelay: number = animationDirection === AnimationDirection.Normal ? -animationTime : Integer.Zero;
 
+  const negativeElements: ReactElement<ChildrenProps>[] = negativeCharactersVisible
+    .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
+    .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement);
+
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
     <ThemeProvider theme={{ columnLength: negativeCharactersVisible.length }}>
       <VerticalAnimation {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single && { animationDelay })}>
-        <div>
-          {negativeCharactersVisible
-            .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
-            .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement)}
-        </div>
+        <div>{negativeElements}</div>
       </VerticalAnimation>
     </ThemeProvider>
   );
@@ -500,48 +499,32 @@ export const HorizontalAnimationElement = <
     ...restProps
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
-  const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Integer.Zero);
   const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
-  const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Integer.Zero;
+  const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
 
-  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
+  const animationDigits: number[] = useHorizontalAnimationDigits({
+    animationTransition,
+    previousValueDigits,
+    currentValueDigits,
+    previousValue,
+    currentValue,
+    numberOfDigitsDifference,
+  });
 
-  const sum = (first: number, second: number): number => first + second;
-  const subtract = (first: number, second: number): number => first - second;
+  const [animationStartWidth, animationEndWidth]: [number, number] = useHorizontalAnimationWidths({
+    precision,
+    animationTransition,
+    previousValue,
+    currentValue,
+    minNumberOfDigits,
+    maxNumberOfDigits,
+    ref,
+  });
 
   const renderNegativeCharacter: boolean =
     hasSignChanged &&
     (numberOfAnimations === AnimationNumber.Two ||
-      (numberOfAnimations === AnimationNumber.Three &&
-        previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird)));
-
-  const renderZeros: boolean =
-    numberOfAnimations === AnimationNumber.Two ||
-    (numberOfAnimations === AnimationNumber.Three && previousValue < currentValue === (animationTransition === AnimationTransition.None));
-
-  const numberOfDigits: number = renderZeros ? minNumberOfDigits : maxNumberOfDigits;
-
-  const animationStartIndex: number = [
-    ref.current?.children.length ?? Integer.Zero,
-    [numberOfDigits, calculateNumberOfDigitGroupSeparators(numberOfDigits), precision > Integer.Zero ? Integer.One : Integer.Zero].reduce(
-      sum,
-    ),
-  ].reduce(subtract);
-
-  const animationDigits: number[] = useHorizontalAnimationDigits({
-    numberOfDigitsDifference,
-    previousValueDigits,
-    currentValueDigits,
-    renderZeros,
-  });
-
-  useLayoutEffect((): void => {
-    const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
-      animationStartIndex <= index ? sum + child.getBoundingClientRect().width : Integer.Zero;
-
-    setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Integer.Zero));
-  }, [animationStartIndex]);
+      previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
 
   const negativeElement: ReactElement = (
     <Optional condition={renderNegativeCharacter}>
@@ -670,7 +653,7 @@ export const VerticalAnimationElement = <
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);
 
-  const deferEnclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+  const encloseDefer = (children: ReactElement<ChildrenProps>[]): ReactNode => (
     <Defer
       chunkSize={deferChunkSize}
       {...restDeferFunctions}
@@ -681,12 +664,12 @@ export const VerticalAnimationElement = <
   );
 
   const enclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
-    <Enclose<ReactElement<ChildrenProps>[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={deferEnclose}>
+    <Enclose<ReactElement<ChildrenProps>[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={encloseDefer}>
       {children}
     </Enclose>
   );
 
-  const numberEnclose = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
+  const encloseNumber = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
     <Conditional condition={renderNegativeCharacter}>
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
@@ -706,7 +689,7 @@ export const VerticalAnimationElement = <
       {...restProps}
       symbolStyledView={symbolStyledView}
       mapToElement={[mapToDivElement, mapToVerticalAnimationElement, mapToThemeProviderElement]}
-      enclose={numberEnclose}
+      enclose={encloseNumber}
     >
       {animationDigits}
     </NumberElement>

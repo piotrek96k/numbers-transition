@@ -7,6 +7,7 @@ import {
   SetStateAction,
   isValidElement,
   useEffect,
+  useLayoutEffect,
   useReducer,
   useRef,
   useState,
@@ -704,7 +705,7 @@ export const useStyledView: UseStyledView = <
 
 type UseNumberOfDigitGroupSeparators = (precision: number) => (numberOfDigits: number) => number;
 
-export const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
+const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
   (precision: number): ((numberOfDigits: number) => number) =>
   (numberOfDigits: number): number =>
     [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
@@ -812,22 +813,88 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
 };
 
 interface UseHorizontalAnimationDigitsOptions {
+  animationTransition: AnimationTransition;
   previousValueDigits: number[];
   currentValueDigits: number[];
+  previousValue: bigint;
+  currentValue: bigint;
   numberOfDigitsDifference: number;
-  renderZeros: boolean;
 }
 
 type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
 
 export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (props: UseHorizontalAnimationDigitsOptions): number[] => {
-  const { numberOfDigitsDifference, previousValueDigits, currentValueDigits, renderZeros }: UseHorizontalAnimationDigitsOptions = props;
-  const { animationDirection }: NumbersTransitionTheme = useTheme();
+  const {
+    animationTransition,
+    previousValueDigits,
+    currentValueDigits,
+    previousValue,
+    currentValue,
+    numberOfDigitsDifference,
+  }: UseHorizontalAnimationDigitsOptions = props;
+
+  const { numberOfAnimations, animationDirection }: NumbersTransitionTheme = useTheme();
+
+  const fillZeros: boolean =
+    numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
   return [
-    ...(renderZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
+    ...(fillZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
     ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
   ];
+};
+
+interface UseHorizontalAnimationWidthsOptions {
+  precision: number;
+  animationTransition: AnimationTransition;
+  previousValue: bigint;
+  currentValue: bigint;
+  minNumberOfDigits: number;
+  maxNumberOfDigits: number;
+  ref: RefObject<HTMLDivElement | null>;
+}
+
+type UseHorizontalAnimationWidths = (options: UseHorizontalAnimationWidthsOptions) => [number, number];
+
+export const useHorizontalAnimationWidths: UseHorizontalAnimationWidths = (
+  options: UseHorizontalAnimationWidthsOptions,
+): [number, number] => {
+  const {
+    precision,
+    animationTransition,
+    previousValue,
+    currentValue,
+    minNumberOfDigits,
+    maxNumberOfDigits,
+    ref,
+  }: UseHorizontalAnimationWidthsOptions = options;
+
+  const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Integer.Zero);
+  const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Integer.Zero;
+
+  const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
+
+  const numberOfDigits: number =
+    numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None)
+      ? minNumberOfDigits
+      : maxNumberOfDigits;
+
+  const animationStartIndex: number = [
+    ref.current?.children.length ?? Integer.Zero,
+    numberOfDigits,
+    calculateNumberOfDigitGroupSeparators(numberOfDigits),
+    precision > Integer.Zero ? Integer.One : Integer.Zero,
+  ].reduce((first: number, second: number): number => first - second);
+
+  useLayoutEffect((): void => {
+    const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
+      animationStartIndex <= index ? sum + child.getBoundingClientRect().width : Integer.Zero;
+
+    setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Integer.Zero));
+  }, [ref, animationStartIndex]);
+
+  return [animationStartWidth, animationEndWidth];
 };
 
 export interface AnimationAlgorithm {
