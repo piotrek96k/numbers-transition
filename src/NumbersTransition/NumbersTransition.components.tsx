@@ -127,13 +127,13 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
   const countAggregatedSums = useCallback<(aggregatedSums: number[], child: ReactElement<ChildrenProps>) => number[]>(
     (aggregatedSums: number[], child: ReactElement<ChildrenProps>): number[] => [
       ...aggregatedSums,
-      aggregatedSums.at(Integer.MinusOne)! + countElements(child),
+      (aggregatedSums.at(Integer.MinusOne) ?? Integer.Zero) + countElements(child),
     ],
     [countElements],
   );
 
   const aggregatedSumsOfElements = useMemo<number[]>(
-    (): number[] => children.reduce<number[]>(countAggregatedSums, [Integer.Zero]).slice(Integer.One),
+    (): number[] => children.reduce<number[]>(countAggregatedSums, []),
     [children, countAggregatedSums],
   );
 

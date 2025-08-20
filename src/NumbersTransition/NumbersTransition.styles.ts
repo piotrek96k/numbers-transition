@@ -1,6 +1,15 @@
-import { CSSProperties, ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
-import styled, { RuleSet, css, keyframes } from 'styled-components';
-import { BaseObject, ExecutionProps, IStyledComponent, Keyframes, KnownTarget, Substitute } from 'styled-components/dist/types';
+import { CSSProperties, HTMLAttributes } from 'react';
+import styled, {
+  AttributesStyledComponent,
+  BaseObject,
+  ExecutionProps,
+  HTMLDetailedElement,
+  Keyframes,
+  RuleSet,
+  StyledComponent,
+  css,
+  keyframes,
+} from 'styled-components';
 import {
   AnimationDirection,
   AnimationNumber,
@@ -9,27 +18,12 @@ import {
   Character,
   HTMLElement,
   Integer,
-  Runtime,
   Styled,
   VariableName,
   ViewKey,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
-
-type StyledComponentBase<T extends object> = IStyledComponent<Runtime.Web, T>;
-
-type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
-
-export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
-
-export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
-  Substitute<ComponentPropsWithRef<T> & BaseObject, U>
->;
-
-export type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
-  Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
->;
 
 export type AnimationTimingFunctionTuple = [[number, number], [number, number]];
 
