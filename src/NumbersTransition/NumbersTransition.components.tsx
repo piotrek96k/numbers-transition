@@ -47,9 +47,9 @@ import {
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
+  AnimationPlaceholder,
   AnimationTimingFunctionTuple,
   DecimalSeparator,
-  Delay,
   Digit,
   DigitGroupSeparator,
   DigitProps,
@@ -648,7 +648,7 @@ export const VerticalAnimationElement = <
     }),
   );
 
-  const { onAfterMount, ...restDeferFunctions }: DeferFunctions = useVerticalAnimationDeferFunctions({ Conditional, Delay });
+  const { onAfterMount, ...restDeferFunctions }: DeferFunctions = useVerticalAnimationDeferFunctions({ Conditional, AnimationPlaceholder });
 
   const renderNegativeCharacter: boolean =
     hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);

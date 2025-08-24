@@ -453,9 +453,9 @@ export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<Ve
   }
 `;
 
-type DelayStyledComponent = StyledComponent<HTMLDivElement, BaseObject>;
+type AnimationPlaceholderStyledComponent = StyledComponent<HTMLDivElement, BaseObject>;
 
-export const Delay: DelayStyledComponent = styled.div<BaseObject>`
+export const AnimationPlaceholder: AnimationPlaceholderStyledComponent = styled.div<BaseObject>`
   display: inline-flex;
   flex-direction: ${({ theme: { animationDirection } }: NumbersTransitionExecutionContext): string =>
     animationDirection === AnimationDirection.Normal ? 'column' : 'column-reverse'};

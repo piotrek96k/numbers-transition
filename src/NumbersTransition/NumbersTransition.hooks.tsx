@@ -978,7 +978,7 @@ interface ConditionalProps {
 
 interface UseVerticalAnimationDeferFunctionsOptions {
   Conditional: FC<ConditionalProps>;
-  Delay: FC<ChildrenProps>;
+  AnimationPlaceholder: FC<ChildrenProps>;
 }
 
 export interface DeferFunctions {
@@ -993,7 +993,7 @@ type UseVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFun
 export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFunctions = (
   options: UseVerticalAnimationDeferFunctionsOptions,
 ): DeferFunctions => {
-  const { Conditional, Delay }: UseVerticalAnimationDeferFunctionsOptions = options;
+  const { Conditional, AnimationPlaceholder }: UseVerticalAnimationDeferFunctionsOptions = options;
   const { animationDirection }: NumbersTransitionTheme = useTheme();
 
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
@@ -1036,9 +1036,9 @@ export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFuncti
     onElementMount(
       child,
       (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-        <Delay>
+        <AnimationPlaceholder>
           {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
-        </Delay>
+        </AnimationPlaceholder>
       ),
     );
 
@@ -1050,7 +1050,7 @@ export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFuncti
       {onElementMount(
         child,
         (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-          <Delay>{array}</Delay>
+          <AnimationPlaceholder>{array}</AnimationPlaceholder>
         ),
       )}
     </Conditional>
