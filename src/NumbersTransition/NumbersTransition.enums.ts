@@ -137,8 +137,8 @@ export const NumberPrecision = {
 
 export const RegularExpression = {
   BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
-  SingleDigit: /^\d{1}$/,
-  DotOrComma: /\.|,/,
+  Digit: /^\d{1}$/,
+  DecimalSeparator: /\.|,/,
 } as const;
 
 export enum Character {

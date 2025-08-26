@@ -161,7 +161,7 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
   };
 
   return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
-    ...`${number}`.split(RegularExpression.DotOrComma).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
+    ...`${number}`.split(RegularExpression.DecimalSeparator).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
   ]);
 };
 
@@ -173,7 +173,7 @@ type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigit
 
 const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
   options.map<number[], AnimationDigitsTuple>((characters: string[]): number[] =>
-    characters.filter(RegularExpression.SingleDigit.test.bind(RegularExpression.SingleDigit)).map<number>(Number),
+    characters.filter(RegularExpression.Digit.test.bind(RegularExpression.Digit)).map<number>(Number),
   );
 
 type UseAnimationBigIntsOptions = AnimationCharactersTuple;
