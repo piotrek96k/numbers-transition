@@ -145,7 +145,7 @@ const NumbersTransition = <
     animationTimingFunction: animationTimingFunctionInput,
     animationInterruptionMode,
     animationAlgorithm,
-    invalidValue = InvalidValue.Value,
+    invalidValue = `${InvalidValue.Value}`,
     optimizationStrategy,
     deferChunkSize,
     view,

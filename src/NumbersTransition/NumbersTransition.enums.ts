@@ -199,7 +199,7 @@ export enum TotalAnimationDurationValue {
 }
 
 export enum InvalidValue {
-  Value = '',
+  Value = Number.NaN,
 }
 
 export enum StorybookValue {
