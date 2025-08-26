@@ -823,7 +823,7 @@ interface UseHorizontalAnimationDigitsOptions {
 
 type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
 
-export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (props: UseHorizontalAnimationDigitsOptions): number[] => {
+export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions): number[] => {
   const {
     animationTransition,
     previousValueDigits,
@@ -831,7 +831,7 @@ export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (props
     previousValue,
     currentValue,
     numberOfDigitsDifference,
-  }: UseHorizontalAnimationDigitsOptions = props;
+  }: UseHorizontalAnimationDigitsOptions = options;
 
   const { numberOfAnimations, animationDirection }: NumbersTransitionTheme = useTheme();
 
@@ -870,8 +870,6 @@ export const useHorizontalAnimationWidths: UseHorizontalAnimationWidths = (
   }: UseHorizontalAnimationWidthsOptions = options;
 
   const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Integer.Zero);
-  const animationEndWidth: number = ref.current?.getBoundingClientRect().width ?? Integer.Zero;
-
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
 
@@ -894,7 +892,7 @@ export const useHorizontalAnimationWidths: UseHorizontalAnimationWidths = (
     setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Integer.Zero));
   }, [ref, animationStartIndex]);
 
-  return [animationStartWidth, animationEndWidth];
+  return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
 };
 
 export interface AnimationAlgorithm {
