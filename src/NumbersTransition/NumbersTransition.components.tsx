@@ -32,15 +32,15 @@ import {
 import {
   AnimationAlgorithm,
   ChildrenProps,
-  CubicBezierTuple,
   DeferFunctions,
   ElementKeyMapper,
   StyledViewWithProps,
   SymbolIndexFunctions,
-  useCubicBezier,
   useElementKeyMapper,
   useHorizontalAnimationDigits,
   useHorizontalAnimationWidths,
+  useNegativeElementAnimationTimings,
+  useNegativeElementAnimationVisibilities,
   useSymbolIndexFunctions,
   useTimeout,
   useVerticalAnimationDeferFunctions,
@@ -48,7 +48,6 @@ import {
 } from './NumbersTransition.hooks';
 import {
   AnimationPlaceholder,
-  AnimationTimingFunctionTuple,
   DecimalSeparator,
   Digit,
   DigitGroupSeparator,
@@ -218,7 +217,7 @@ const HorizontalAnimationNegativeElement = <T extends object, U, V extends objec
 interface VerticalAnimationNegativeElementProps<T extends object, U, V extends object, W> {
   negativeCharacter: NegativeCharacter;
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
-  animationDigits: number[];
+  animationDigits: number[][];
   hasSignChanged: boolean;
   symbolStyledView: StyledViewWithProps<Styled.Symbol, T, U>;
   negativeCharacterStyledView: StyledViewWithProps<Styled.Negative, V, W>;
@@ -238,19 +237,22 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     enclose,
   }: VerticalAnimationNegativeElementProps<T, U, V, W> = props;
 
-  const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
-  const [cubicBezier, solve]: CubicBezierTuple = useCubicBezier();
+  const { animationDirection }: NumbersTransitionTheme = useTheme();
+  const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
+
+  const [animationSwitchTime, animationDelay]: [number, number] = useNegativeElementAnimationTimings({
+    negativeCharacterAnimationMode,
+    animationVisibilities,
+  });
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
     NumbersTransitionExecutionContext
   >(
     ThemeProvider,
-    (
-      _: ReactElement<ChildrenProps>,
-      rowIndex: number,
-      { length: columnLength }: ReactElement<ChildrenProps>[],
-    ): NumbersTransitionExecutionContext => ({ theme: { columnLength, rowIndex } }),
+    (_: ReactElement<ChildrenProps>, rowIndex: number, { length }: ReactElement<ChildrenProps>[]): NumbersTransitionExecutionContext => ({
+      theme: { columnLength: length, rowIndex },
+    }),
   );
 
   const mapToNegativeElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeElementProps<T, U, V, W>>(
@@ -258,39 +260,12 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     (visible: boolean): NegativeElementProps<T, U, V, W> => ({ negativeCharacter, visible, symbolStyledView, negativeCharacterStyledView }),
   );
 
-  const mapAnimationTimingFunction = (
-    accumulator: [number[], number[]],
-    currentValue: AnimationTimingFunctionTuple[number],
-  ): AnimationTimingFunctionTuple =>
-    accumulator.map<number[], AnimationTimingFunctionTuple>((coordinates: number[], index: number): number[] => [
-      ...coordinates,
-      currentValue[index],
-    ]);
-
-  const [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number] = animationTimingFunction!
-    .reduce<[number[], number[]], AnimationTimingFunctionTuple>(mapAnimationTimingFunction, [[], []])
-    .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier);
-
-  const mapVisibility = (digit: number, index: number, digits: number[]): boolean =>
-    !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged;
-
-  const negativeCharactersVisible: boolean[] = animationDigits.map<boolean>(mapVisibility);
-  const outputAnimationProgress: number = negativeCharactersVisible.lastIndexOf(true) / (negativeCharactersVisible.length - Integer.One);
-  const inputAnimationProgress: number =
-    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single
-      ? xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputAnimationProgress))
-      : Integer.Zero;
-
-  const animationTime: number = animationDuration! * inputAnimationProgress;
-  const animationSwitchTime: number = animationDirection === AnimationDirection.Normal ? animationTime : animationDuration! - animationTime;
-  const animationDelay: number = animationDirection === AnimationDirection.Normal ? -animationTime : Integer.Zero;
-
-  const negativeElements: ReactElement<ChildrenProps>[] = negativeCharactersVisible
+  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities
     .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
     .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement);
 
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
-    <ThemeProvider theme={{ columnLength: negativeCharactersVisible.length }}>
+    <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
       <VerticalAnimation {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single && { animationDelay })}>
         <div>{negativeElements}</div>
       </VerticalAnimation>
@@ -674,7 +649,7 @@ export const VerticalAnimationElement = <
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
         negativeCharacterAnimationMode={negativeCharacterAnimationMode}
-        animationDigits={animationDigits.find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!}
+        animationDigits={animationDigits}
         hasSignChanged={hasSignChanged}
         symbolStyledView={symbolStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}

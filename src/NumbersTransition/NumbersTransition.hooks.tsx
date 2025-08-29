@@ -194,8 +194,6 @@ type UseAnimationNumbersOfDigits = (options: UseAnimationNumbersOfDigitsOptions)
 const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
   options: UseAnimationNumbersOfDigitsOptions,
 ): AnimationNumbersOfDigitsTuple => {
-  const subtract = (first: number, second: number): number => first - second;
-
   const fillNumberOfDigitsDifference = (accumulator: number[], currentValue: number, index: number): number[] => [
     ...accumulator,
     currentValue,
@@ -204,7 +202,7 @@ const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
 
   return options
     .map<number, [number, number]>(({ length }: number[]): number => length)
-    .sort(subtract)
+    .sort((first: number, second: number): number => first - second)
     .reduce<number[], AnimationNumbersOfDigitsTuple>(fillNumberOfDigitsDifference, []);
 };
 
@@ -775,15 +773,29 @@ export const useElementsLength: UseElementsLength = (options: UseElementsLengthO
   };
 };
 
+interface UseNegativeElementAnimationVisibilitiesOptions {
+  animationDigits: number[][];
+  hasSignChanged: boolean;
+}
+
+type UseNegativeElementAnimationVisibilities = (options: UseNegativeElementAnimationVisibilitiesOptions) => boolean[];
+
+// prettier-ignore
+export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimationVisibilities = ({
+  animationDigits,
+  hasSignChanged,
+}: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
+  animationDigits
+    .find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!
+    .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
+
 type CubicBezier = (points: AnimationTimingFunctionTuple[number]) => (time: number) => number;
 
 type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
 
-export type CubicBezierTuple = [CubicBezier, Solve];
+type UseCubicBezier = () => [CubicBezier, Solve];
 
-type UseCubicBezier = () => CubicBezierTuple;
-
-export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
+const useCubicBezier: UseCubicBezier = (): [CubicBezier, Solve] => {
   const derivative = (func: (value: number) => number, value: number) =>
     (func(value + EquationSolver.DerivativeDelta) - func(value - EquationSolver.DerivativeDelta)) /
     (Integer.Two * EquationSolver.DerivativeDelta);
@@ -810,6 +822,47 @@ export const useCubicBezier: UseCubicBezier = (): CubicBezierTuple => {
       time ** Integer.Three;
 
   return [cubicBezier, (func: (value: number) => number): number => solve(func)];
+};
+
+interface UseNegativeElementAnimationTimingsOptions {
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
+  animationVisibilities: boolean[];
+}
+
+type UseNegativeElementAnimationTimings = (options: UseNegativeElementAnimationTimingsOptions) => [number, number];
+
+export const useNegativeElementAnimationTimings: UseNegativeElementAnimationTimings = (
+  options: UseNegativeElementAnimationTimingsOptions,
+): [number, number] => {
+  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationTimingsOptions = options;
+
+  const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
+  const [cubicBezier, solve]: [CubicBezier, Solve] = useCubicBezier();
+
+  const mapAnimationTimingFunction = (
+    accumulator: [number[], number[]],
+    currentValue: AnimationTimingFunctionTuple[number],
+  ): AnimationTimingFunctionTuple =>
+    accumulator.map<number[], AnimationTimingFunctionTuple>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
+
+  const [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number] = animationTimingFunction!
+    .reduce<[number[], number[]], AnimationTimingFunctionTuple>(mapAnimationTimingFunction, [[], []])
+    .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier);
+
+  const outputAnimationProgress: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
+  const inputAnimationProgress: number =
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single
+      ? xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputAnimationProgress))
+      : Integer.Zero;
+
+  const animationTime: number = animationDuration! * inputAnimationProgress;
+  const animationSwitchTime: number = animationDirection === AnimationDirection.Normal ? animationTime : animationDuration! - animationTime;
+  const animationDelay: number = animationDirection === AnimationDirection.Normal ? -animationTime : Integer.Zero;
+
+  return [animationSwitchTime, animationDelay];
 };
 
 interface UseHorizontalAnimationDigitsOptions {
