@@ -39,14 +39,11 @@ import {
 import {
   AnimationAlgorithm,
   AnimationDuration,
-  AnimationDurationTuple,
   AnimationLogic,
-  AnimationNumbersTuple,
-  AnimationValuesTuple,
+  AnimationValues,
   ExtendedAnimationTimingFunction,
   StyledViewWithPropsTuple,
   TotalAnimationDuration,
-  ValidationTuple,
   View,
   useAnimationDirection,
   useAnimationDuration,
@@ -159,11 +156,11 @@ const NumbersTransition = <
     forwardProps = [],
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const [validInitialValue]: ValidationTuple = useValidation(initialValue);
+  const [validInitialValue]: [BigDecimal, boolean] = useValidation(initialValue);
   const previousValueOnStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
   const [previousValueOnEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
     useState<BigDecimal>(validInitialValue);
-  const [validValue, isValueValid]: ValidationTuple = useValue(value, previousValueOnEnd, animationInterruptionMode);
+  const [validValue, isValueValid]: [BigDecimal, boolean] = useValue(value, previousValueOnEnd, animationInterruptionMode);
 
   const [animationTransition, setAnimationTransition]: [AnimationTransition, Dispatch<SetStateAction<AnimationTransition>>] =
     useState<AnimationTransition>(AnimationTransition.None);
@@ -172,7 +169,7 @@ const NumbersTransition = <
     [previousValueOnEndDigits, valueDigits],
     [previousValueOnEndBigInt, previousValueOnStartBigInt, valueBigInt],
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
-  ]: AnimationValuesTuple = useAnimationValues({
+  ]: AnimationValues = useAnimationValues({
     precision,
     currentValue: validValue,
     previousValueOnAnimationEnd: previousValueOnEnd,
@@ -188,7 +185,7 @@ const NumbersTransition = <
     currentValue: valueBigInt,
   });
 
-  const [animationNumber, numberOfAnimations]: AnimationNumbersTuple = useAnimationNumbers({
+  const [animationNumber, numberOfAnimations]: [AnimationNumber, AnimationNumber] = useAnimationNumbers({
     animationTransition,
     previousValueDigits: previousValueOnEndDigits,
     currentValueDigits: valueDigits,
@@ -220,8 +217,12 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: AnimationDurationTuple =
-    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [
+    number,
+    number,
+    number,
+    number,
+  ] = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   const animationTimingFunction: AnimationTimingFunctionTuple = useAnimationTimingFunction({
     animationTimingFunction: animationTimingFunctionInput,

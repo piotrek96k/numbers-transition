@@ -67,11 +67,9 @@ export const useTimeout: UseTimeout = (time: number): boolean => {
   return timedOut;
 };
 
-export type ValidationTuple = [BigDecimal, boolean];
+type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => [BigDecimal, boolean];
 
-type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => ValidationTuple;
-
-export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): ValidationTuple =>
+export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   RegularExpression.BigDecimal.testAny<BigDecimal>(value)
     ? [value, true]
     : typeof value === 'number'
@@ -82,16 +80,16 @@ type UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
   animationInterruptionMode?: AnimationInterruptionMode,
-) => ValidationTuple;
+) => [BigDecimal, boolean];
 
 export const useValue: UseValue = (
   value: UncheckedBigDecimal | undefined,
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionMode = AnimationInterruptionMode.Interrupt,
-): ValidationTuple => {
+): [BigDecimal, boolean] => {
   const rerenderIf: ConditionalRerenderFunction = useConditionalRerender();
-  const values: RefObject<ValidationTuple[]> = useRef<ValidationTuple[]>([]);
-  const validationTuple: ValidationTuple = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
+  const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
+  const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
   values.current =
     animationInterruptionMode === AnimationInterruptionMode.Continue
@@ -100,12 +98,12 @@ export const useValue: UseValue = (
         : [...values.current, validationTuple]
       : [validationTuple];
 
-  const [validValue, isValueValid]: ValidationTuple = values.current[Integer.Zero];
+  const [validValue, isValueValid]: [BigDecimal, boolean] = values.current[Integer.Zero];
 
-  const filterInvalidValues = ([, isValid]: ValidationTuple, index: number, { length }: ValidationTuple[]): boolean =>
+  const filterInvalidValues = ([, isValid]: [BigDecimal, boolean], index: number, { length }: [BigDecimal, boolean][]): boolean =>
     isValid || index === length - Integer.One;
 
-  const filterDuplicates = ([value]: ValidationTuple, index: number, array: ValidationTuple[]): boolean =>
+  const filterDuplicates = ([value]: [BigDecimal, boolean], index: number, array: [BigDecimal, boolean][]): boolean =>
     !index || value !== array[index - Integer.One][Integer.Zero];
 
   useEffect((): void => {
@@ -118,24 +116,9 @@ export const useValue: UseValue = (
   return [validValue, isValueValid];
 };
 
-interface UseAnimationCharactersOptions {
-  precision: number;
-  values: [BigDecimal, BigDecimal, BigDecimal];
-}
+type UseBigDecimalParser = (precision: number) => (value: BigDecimal) => string;
 
-type AnimationCharactersTuple = [string[], string[], string[]];
-
-type UseAnimationCharacters = (options: UseAnimationCharactersOptions) => AnimationCharactersTuple;
-
-const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCharactersOptions): AnimationCharactersTuple => {
-  const { precision, values }: UseAnimationCharactersOptions = options;
-
-  const fillFloatingPoint = (accumulator: string[], currentValue: string, _: number, { length }: string[]) => [
-    ...accumulator,
-    currentValue,
-    ...(length === Integer.One ? [Character.Empty] : []),
-  ];
-
+const useBigDecimalParser: UseBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [start, mid, end, numberOfZeros]: [string, string, string, number] =
       precision > Integer.Zero
@@ -160,50 +143,10 @@ const useAnimationCharacters: UseAnimationCharacters = (options: UseAnimationCha
     );
   };
 
-  return values.map<string[], AnimationCharactersTuple>((number: BigDecimal): string[] => [
-    ...`${number}`.split(RegularExpression.DecimalSeparator).reduce<string[]>(fillFloatingPoint, []).reduce(reduceFloatingPoint),
-  ]);
-};
-
-type UseAnimationDigitsOptions = [string[], string[]];
-
-type AnimationDigitsTuple = [number[], number[]];
-
-type UseAnimationDigits = (options: UseAnimationDigitsOptions) => AnimationDigitsTuple;
-
-const useAnimationDigits: UseAnimationDigits = (options: UseAnimationDigitsOptions): AnimationDigitsTuple =>
-  options.map<number[], AnimationDigitsTuple>((characters: string[]): number[] =>
-    characters.filter(RegularExpression.Digit.test.bind(RegularExpression.Digit)).map<number>(Number),
-  );
-
-type UseAnimationBigIntsOptions = AnimationCharactersTuple;
-
-type AnimationBigIntsTuple = [bigint, bigint, bigint];
-
-type UseAnimationBigInts = (options: UseAnimationBigIntsOptions) => AnimationBigIntsTuple;
-
-const useAnimationBigInts: UseAnimationBigInts = (options: UseAnimationBigIntsOptions): AnimationBigIntsTuple =>
-  options.map<bigint, AnimationBigIntsTuple>((digits: string[]): bigint => BigInt(digits.join(Character.Empty)));
-
-type UseAnimationNumbersOfDigitsOptions = AnimationDigitsTuple;
-
-type AnimationNumbersOfDigitsTuple = [number, number, number];
-
-type UseAnimationNumbersOfDigits = (options: UseAnimationNumbersOfDigitsOptions) => AnimationNumbersOfDigitsTuple;
-
-const useAnimationNumberOfDigits: UseAnimationNumbersOfDigits = (
-  options: UseAnimationNumbersOfDigitsOptions,
-): AnimationNumbersOfDigitsTuple => {
-  const fillNumberOfDigitsDifference = (accumulator: number[], currentValue: number, index: number): number[] => [
-    ...accumulator,
-    currentValue,
-    ...(index ? [currentValue - accumulator.at(Integer.MinusOne)!] : []),
-  ];
-
-  return options
-    .map<number, [number, number]>(({ length }: number[]): number => length)
-    .sort((first: number, second: number): number => first - second)
-    .reduce<number[], AnimationNumbersOfDigitsTuple>(fillNumberOfDigitsDifference, []);
+  return (value: BigDecimal): string =>
+    [`${value}`.split(RegularExpression.DecimalSeparator)]
+      .reduce<string[]>((_: string[], [integer, fraction = Character.Empty]: string[]): string[] => [integer, fraction], [])
+      .reduce(reduceFloatingPoint);
 };
 
 interface UseAnimationValuesOptions {
@@ -213,21 +156,32 @@ interface UseAnimationValuesOptions {
   previousValueOnAnimationStart: BigDecimal;
 }
 
-export type AnimationValuesTuple = [AnimationDigitsTuple, AnimationBigIntsTuple, AnimationNumbersOfDigitsTuple];
+export type AnimationValues = [[number[], number[]], [bigint, bigint, bigint], [number, number, number]];
 
-type UseAnimationValues = (options: UseAnimationValuesOptions) => AnimationValuesTuple;
+type UseAnimationValues = (options: UseAnimationValuesOptions) => AnimationValues;
 
-export const useAnimationValues: UseAnimationValues = (options: UseAnimationValuesOptions): AnimationValuesTuple => {
+export const useAnimationValues: UseAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const characters: AnimationCharactersTuple = useAnimationCharacters({
-    precision,
-    values: [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue],
-  });
+  const parseBigDecimal: (value: BigDecimal) => string = useBigDecimalParser(precision);
 
-  const digits: AnimationDigitsTuple = useAnimationDigits([characters[Integer.Zero], characters[Integer.Two]]);
-  const bigInts: AnimationBigIntsTuple = useAnimationBigInts(characters);
-  const numbersOfDigits: AnimationNumbersOfDigitsTuple = useAnimationNumberOfDigits(digits);
+  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue].map<
+    string,
+    [string, string, string]
+  >(parseBigDecimal);
+
+  const digits: [number[], number[]] = [characters[Integer.Zero], characters[Integer.Two]].map<number[], [number[], number[]]>(
+    (characters: string): number[] =>
+      [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
+  );
+
+  const bigInts: [bigint, bigint, bigint] = characters.map<bigint, [bigint, bigint, bigint]>(BigInt);
+
+  const numbersOfDigits: [number, number, number] = digits
+    .map<number, [number, number]>(({ length }: number[]): number => length)
+    .sort((first: number, second: number): number => first - second)
+    .reduce<[number[]], [[number, number]]>(([accumulator]: [number[]], value: number): [number[]] => [[...accumulator, value]], [[]])
+    .reduce<number[], [number, number, number]>((_: number[], [min, max]: [number, number]): number[] => [min, max, max - min], []);
 
   return [digits, bigInts, numbersOfDigits];
 };
@@ -272,11 +226,9 @@ interface UseAnimationNumbersOptions {
   renderAnimation: boolean;
 }
 
-export type AnimationNumbersTuple = [AnimationNumber, AnimationNumber];
+type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => [AnimationNumber, AnimationNumber];
 
-type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => AnimationNumbersTuple;
-
-export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNumbersOptions): AnimationNumbersTuple => {
+export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNumbersOptions): [AnimationNumber, AnimationNumber] => {
   const {
     animationTransition,
     previousValueDigits,
@@ -414,11 +366,9 @@ interface UseAnimationDurationOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-export type AnimationDurationTuple = [number, number, number, number];
+type UseAnimationDuration = (options: UseAnimationDurationOptions) => [number, number, number, number];
 
-type UseAnimationDuration = (options: UseAnimationDurationOptions) => AnimationDurationTuple;
-
-export const useAnimationDuration: UseAnimationDuration = (options: UseAnimationDurationOptions): AnimationDurationTuple => {
+export const useAnimationDuration: UseAnimationDuration = (options: UseAnimationDurationOptions): [number, number, number, number] => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
