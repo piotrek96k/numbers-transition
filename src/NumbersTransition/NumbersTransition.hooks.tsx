@@ -121,15 +121,15 @@ type UseBigDecimalParser = (precision: number) => (value: BigDecimal) => string;
 const useBigDecimalParser: UseBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [digits, restDigits, numberOfZeros]: [string, string, number] =
-      precision > Integer.Zero
+      precision >= Integer.Zero
         ? [
             `${integer.replace(Character.Minus, Character.Empty)}${fraction.slice(Integer.Zero, precision)}`,
             `${fraction.slice(precision)}`,
             Math.max(precision - fraction.length, Integer.Zero),
           ]
         : [
-            `${integer.replace(Character.Minus, Character.Empty).slice(Integer.Zero, ...(precision ? [precision] : []))}`,
-            `${precision ? integer.replace(Character.Minus, Character.Empty).slice(precision) : ''}${fraction}`,
+            `${integer.replace(Character.Minus, Character.Empty).slice(Integer.Zero, precision)}`,
+            `${integer.replace(Character.Minus, Character.Empty).slice(precision)}${fraction}`,
             -precision,
           ];
 
