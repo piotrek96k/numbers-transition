@@ -120,22 +120,24 @@ type UseBigDecimalParser = (precision: number) => (value: BigDecimal) => string;
 
 const useBigDecimalParser: UseBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
-    const [start, mid, end, numberOfZeros]: [string, string, string, number] =
+    const [digits, restDigits, numberOfZeros]: [string, string, number] =
       precision > Integer.Zero
         ? [
-            integer.replace(Character.Minus, Character.Empty),
-            fraction,
-            Character.Empty,
+            `${integer.replace(Character.Minus, Character.Empty)}${fraction.slice(Integer.Zero, precision)}`,
+            `${fraction.slice(precision)}`,
             Math.max(precision - fraction.length, Integer.Zero),
           ]
-        : [Character.Empty, integer.replace(Character.Minus, Character.Empty), fraction, -precision];
+        : [
+            `${integer.replace(Character.Minus, Character.Empty).slice(Integer.Zero, ...(precision ? [precision] : []))}`,
+            `${precision ? integer.replace(Character.Minus, Character.Empty).slice(precision) : ''}${fraction}`,
+            -precision,
+          ];
 
-    const digits: string = `${start}${mid.slice(Integer.Zero, precision || mid.length) ?? Integer.Zero}`;
-    const restDigits: string = `${mid.slice(precision || mid.length)}${end}`;
     const increase: number =
       BigInt(restDigits) < BigInt(`${Integer.Five}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Integer.Zero}`))
         ? Integer.Zero
         : Integer.One;
+
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
 
     return [...(integer.match(Character.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(
