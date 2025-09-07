@@ -158,7 +158,7 @@ const NumbersTransition = <
 
   const [validInitialValue]: [BigDecimal, boolean] = useValidation(initialValue);
   const previousValueOnStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-  const [previousValueOnEnd, setPreviousValueOnAnimationEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
+  const [previousValueOnEnd, setPreviousValueOnEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
     useState<BigDecimal>(validInitialValue);
   const [validValue, isValueValid]: [BigDecimal, boolean] = useValue(value, previousValueOnEnd, animationInterruptionMode);
 
@@ -217,12 +217,9 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [
-    number,
-    number,
-    number,
-    number,
-  ] = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
+  // prettier-ignore
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [number, number, number, number] =
+    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   const animationTimingFunction: AnimationTimingFunctionTuple = useAnimationTimingFunction({
     animationTimingFunction: animationTimingFunctionInput,
@@ -271,18 +268,16 @@ const NumbersTransition = <
     numberOfDigits: maxNumberOfDigits,
   });
 
+  // prettier-ignore
   useEffect(
-    (): void => [omitAnimation].filter((value: boolean): boolean => value).forEach((): void => setPreviousValueOnAnimationEnd(validValue)),
+    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach((callback: () => void): void => callback()),
     [validValue, omitAnimation],
   );
 
   useEffect((): void => {
-    [restartAnimation]
-      .filter((condition: boolean): boolean => condition)
-      .flatMap<() => void>((): (() => void)[] => [
-        (): void => setPreviousValueOnAnimationEnd(previousValueOnStart.current),
-        (): void => setAnimationTransition(AnimationTransition.None),
-      ])
+    [[() => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]]
+      .filter((): boolean => restartAnimation)
+      .flat<(() => void)[][], Integer.One>()
       .forEach((callback: () => void): void => callback());
 
     previousValueOnStart.current = validValue;
@@ -301,13 +296,13 @@ const NumbersTransition = <
     ]
       .zip<TupleOfLength<() => boolean, Integer.Five>, TupleOfLength<(() => void)[], Integer.Five>>([
         [],
-        [(): void => setPreviousValueOnAnimationEnd(validValue)],
+        [(): void => setPreviousValueOnEnd(validValue)],
         [(): void => setAnimationTransition(AnimationTransition.SecondToThird)],
-        [(): void => setPreviousValueOnAnimationEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
+        [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       ])
       .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())!
-      .at<Integer.One>(Integer.One)!
+      .at<Integer.One>(Integer.One)
       .forEach((callback: () => void): void => callback());
 
   const theme: NumbersTransitionTheme = {
