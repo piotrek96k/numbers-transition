@@ -288,7 +288,7 @@ const NumbersTransition = <
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
-      (): boolean => !Object.values(AnimationId).includes<string>(event.target.id),
+      (): boolean => !Object.values<AnimationId>(AnimationId).includes<string>(event.target.id),
       (): boolean => numberOfAnimations === AnimationNumber.One,
       (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
       (): boolean => animationTransition !== AnimationTransition.None,
