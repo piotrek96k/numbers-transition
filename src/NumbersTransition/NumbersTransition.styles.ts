@@ -23,7 +23,7 @@ import {
   ViewKey,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { Enum, Falsy, OrArray, TypeOf } from './NumbersTransition.types';
+import { Enum, Falsy, Optional, OrArray, TypeOf } from './NumbersTransition.types';
 
 export type AnimationTimingFunctionTuple = [[number, number], [number, number]];
 
@@ -254,7 +254,7 @@ const createAnimationKeyframes = <T extends object, U>(
   progress: number[] = [],
 ): Keyframes => keyframes<T>`
   ${keyframesValues
-    .zip<number>(progress)
+    .zip<number[]>(progress)
     .map<RuleSet<T>>(createAnimationKeyframeMapper<T, U>(mapKeyframe))
     .reduce<RuleSet<T>>(reduceAnimationKeyframes<T>, css<T>``)}
 `;
@@ -275,7 +275,7 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Integer.MinusOneHundred,
 ]);
 
-const animationName = ({ theme: { animationType }, ...restProps }: NumbersTransitionExecutionContext): undefined | Keyframes => {
+const animationName = ({ theme: { animationType }, ...restProps }: NumbersTransitionExecutionContext): Optional<Keyframes> => {
   switch (animationType) {
     case AnimationType.Horizontal:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
@@ -305,29 +305,27 @@ const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | 
 });
 
 const styleFactory = <T extends Styled, U extends object, V>(
-  style: undefined | OrArray<CSSProperties | StyleFactory<U>>,
+  style: Optional<OrArray<CSSProperties | StyleFactory<U>>>,
   props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
 ): CSSProperties =>
-  Array.toArray<undefined | CSSProperties | StyleFactory<U>>(style)
+  Array.toArray<Optional<CSSProperties | StyleFactory<U>>>(style)
     .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties, AttributesOmittedKeys<T, U>>(props))
     .reduce<CSSProperties>(reduceStyles, {});
 
 const classNameFactory = <T extends Styled, U extends object, V>(
-  className: undefined | OrArray<string | ClassNameFactory<U>>,
+  className: Optional<OrArray<string | ClassNameFactory<U>>>,
   props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
-): undefined | string =>
-  Array.toArray<undefined | string | ClassNameFactory<U>>(className)
+): Optional<string> =>
+  Array.toArray<Optional<string | ClassNameFactory<U>>>(className)
     .map<string | Falsy>(createViewFactoryMapper<T, U, string, AttributesOmittedKeys<T, U>>(props))
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Character.Space);
 
-const toCssArray = <T extends object>(
-  cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>,
-): (undefined | CssRule<T> | CssRuleFactory<T>)[] =>
-  Array.isArray<undefined | CssRule<T> | CssRuleFactory<T>>(cssStyle) &&
+const toCssArray = <T extends object>(cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>): Optional<CssRule<T> | CssRuleFactory<T>>[] =>
+  Array.isArray<Optional<CssRule<T> | CssRuleFactory<T>>>(cssStyle) &&
   Array.isOfDepth<CssRule<T> | CssRuleFactory<T>, Integer.Two>(cssStyle, Integer.Two)
     ? cssStyle
-    : [<undefined | CssRule<T> | CssRuleFactory<T>>cssStyle];
+    : [<Optional<CssRule<T> | CssRuleFactory<T>>>cssStyle];
 
 const cssFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
@@ -339,40 +337,37 @@ const cssFactory =
       .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
 
-const mapAnimationFalsyValue = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): undefined | Partial<Animation<T, U>> =>
+const mapAnimationFalsyValue = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): Optional<Partial<Animation<T, U>>> =>
   animation || undefined;
 
-const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}):
-  | undefined
-  | Keyframes => keyframeFunction && keyframes && createAnimationKeyframes(keyframeFunction, keyframes, progress);
+const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}): Optional<Keyframes> =>
+  keyframeFunction && keyframes && createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
-const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: undefined | Keyframes, index: number) => css<object>`
+const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Optional<Keyframes>, index: number) => css<object>`
   ${accumulator}${index ? Character.Comma : Character.Empty}${currentValue ?? AnimationType.None}
 `;
 
 const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   props: Omit<Props<T, U, V>, keyof AnimationView<T, U, V>>,
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
-): RuleSet<object> | false =>
-  !!(Array.isArray<undefined | Animation<U, V> | AnimationFactory<U, V>>(animation) ? animation.length : animation) &&
-  Array.toArray<undefined | Animation<U, V> | AnimationFactory<U, V>>(animation)
+): Optional<RuleSet<object>> =>
+  Array.toArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation)
+    .filter((): boolean => !!(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation))
     .map<Partial<Animation<U, V>> | Falsy>(createViewFactoryMapper<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props))
-    .map<undefined | Partial<Animation<U, V>>>(mapAnimationFalsyValue<U, V>)
-    .map<undefined | Keyframes>(mapAnimation<U, V>)
+    .map<Optional<Partial<Animation<U, V>>>>(mapAnimationFalsyValue<U, V>)
+    .map<Optional<Keyframes>>(mapAnimation<U, V>)
     .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
-const createOptionalAnimation = (animationsKeyframes: RuleSet<object> | false): RuleSet<object> | false =>
-  animationsKeyframes &&
-  css<object>`
-    animation-name: ${animationsKeyframes};
-  `;
+// prettier-ignore
+const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
+  [css<object>`animation-name: ${animationsKeyframes};`].filter((): boolean => !!animationsKeyframes)[Integer.Zero];
 
 const animationFactory =
-  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => RuleSet<U> | false) =>
+  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
   <U extends object, V>({
     [<keyof AnimationView<T, U, V>>`${styledComponent}${ViewKey.Animation.capitalize()}`]: animation,
     ...restProps
-  }: Props<T, U, V>): RuleSet<U> | false =>
+  }: Props<T, U, V>): Optional<RuleSet<U>> =>
     createOptionalAnimation(createAnimationsKeyframes<T, U, V>(restProps, animation));
 
 const attributesFactory =
@@ -386,7 +381,7 @@ const attributesFactory =
   }: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
     style: { ...style, ...styleFactory(styleView, restProps) },
     className: [className, classNameFactory(classNameView, restProps)]
-      .filter<string>((className: undefined | string): className is string => !!className)
+      .filter<string>((className: Optional<string>): className is string => !!className)
       .join(Character.Space),
   });
 
@@ -394,11 +389,9 @@ interface VisibilityProps {
   visible?: boolean;
 }
 
-const visibility = ({ visible = true }: VisibilityProps): RuleSet<object> | false =>
-  !visible &&
-  css<object>`
-    opacity: ${Integer.Zero};
-  `;
+// prettier-ignore
+const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
+  [css<object>`opacity: ${Integer.Zero};`].filter((): boolean => !visible)[Integer.Zero];
 
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 

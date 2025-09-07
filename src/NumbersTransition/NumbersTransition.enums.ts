@@ -125,6 +125,10 @@ export enum OptimizationStrategy {
   Delay = 'delay',
 }
 
+export enum Key {
+  Length = 'length',
+}
+
 export enum EquationSolver {
   DerivativeDelta = 1e-6,
   InitialValue = 0.5,
@@ -159,6 +163,7 @@ export enum Integer {
   Three,
   Five = 5,
   Seven = 7,
+  Eight,
   Ten = 10,
   Fourteen = 14,
   OneHundred = 100,

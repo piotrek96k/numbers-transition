@@ -1,4 +1,4 @@
-import { ArrayOfDepth, OrArray } from './NumbersTransition/NumbersTransition.types';
+import { ArrayOfDepth, Optional, OrArray, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
   interface Number {
@@ -8,6 +8,8 @@ declare global {
   interface ObjectConstructor {
     assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
     fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [key: T]: U };
+    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
+    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
   }
 
   interface String {
@@ -27,19 +29,23 @@ declare global {
   }
 
   interface Array<T> {
+    at(index: U): Optional<T>;
+    at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
+    forEach(callbackfn: (value: T, index: number, array: this) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     invert(invert: boolean): [...this];
-    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: this) => U, thisArg?: unknown): V;
     reduce<U extends unknown[], V extends U>(
-      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U,
+      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: this) => U,
       initialValue: U,
     ): V;
-    zip<U>(array: U[]): ([T] | [T, U])[];
+    zip<U extends unknown[]>(array: U): Zip<this, U>;
+    zip<U extends this, V extends unknown[]>(array: V): Zip<U, V>;
   }
 
   interface ReadonlyArray<T> {
-    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: readonly this) => U, thisArg?: unknown): V;
   }
 }
 

@@ -59,7 +59,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { AnimationTimingFunctionTuple, Container, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, ReactEvent, UncheckedBigDecimal } from './NumbersTransition.types';
+import { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
@@ -271,39 +271,44 @@ const NumbersTransition = <
     numberOfDigits: maxNumberOfDigits,
   });
 
-  useEffect((): void => {
-    if (omitAnimation) {
-      setPreviousValueOnAnimationEnd(validValue);
-    }
-  }, [validValue, omitAnimation]);
+  useEffect(
+    (): void => [omitAnimation].filter((value: boolean): boolean => value).forEach((): void => setPreviousValueOnAnimationEnd(validValue)),
+    [validValue, omitAnimation],
+  );
 
   useEffect((): void => {
-    if (restartAnimation) {
-      setPreviousValueOnAnimationEnd(previousValueOnStart.current);
-      setAnimationTransition(AnimationTransition.None);
-    }
+    [restartAnimation]
+      .filter((condition: boolean): boolean => condition)
+      .flatMap<() => void>((): (() => void)[] => [
+        (): void => setPreviousValueOnAnimationEnd(previousValueOnStart.current),
+        (): void => setAnimationTransition(AnimationTransition.None),
+      ])
+      .forEach((callback: () => void): void => callback());
+
     previousValueOnStart.current = validValue;
   }, [validValue, restartAnimation]);
 
   const shouldForwardProp = (prop: string): boolean =>
     [Object.values<ForwardProp>(ForwardProp), forwardProps].some((forwardProps: string[]): boolean => forwardProps.includes<string>(prop));
 
-  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void => {
-    if (!Object.values(AnimationId).includes<string>(event.target.id)) {
-      return;
-    }
-
-    if (numberOfAnimations === AnimationNumber.One) {
-      setPreviousValueOnAnimationEnd(validValue);
-    } else if (numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond) {
-      setAnimationTransition(AnimationTransition.SecondToThird);
-    } else if (animationTransition !== AnimationTransition.None) {
-      setPreviousValueOnAnimationEnd(validValue);
-      setAnimationTransition(AnimationTransition.None);
-    } else {
-      setAnimationTransition(AnimationTransition.FirstToSecond);
-    }
-  };
+  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
+    [
+      (): boolean => !Object.values(AnimationId).includes<string>(event.target.id),
+      (): boolean => numberOfAnimations === AnimationNumber.One,
+      (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
+      (): boolean => animationTransition !== AnimationTransition.None,
+      (): boolean => true,
+    ]
+      .zip<TupleOfLength<() => boolean, Integer.Five>, TupleOfLength<(() => void)[], Integer.Five>>([
+        [],
+        [(): void => setPreviousValueOnAnimationEnd(validValue)],
+        [(): void => setAnimationTransition(AnimationTransition.SecondToThird)],
+        [(): void => setPreviousValueOnAnimationEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
+        [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
+      ])
+      .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())!
+      .at<Integer.One>(Integer.One)!
+      .forEach((callback: () => void): void => callback());
 
   const theme: NumbersTransitionTheme = {
     ...elementsLength,

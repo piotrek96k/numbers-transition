@@ -25,6 +25,7 @@ import {
   Character,
   EquationSolver,
   Integer,
+  Key,
   NegativeCharacterAnimationMode,
   NumberPrecision,
   RegularExpression,
@@ -36,10 +37,11 @@ import { AnimationTimingFunctionTuple, ElementsLength, NumbersTransitionTheme, S
 import {
   BigDecimal,
   GenericReactNode,
-  MappedTuple,
+  Nullable,
+  Optional,
   OrReadOnly,
   Slice,
-  TupleIndex,
+  TupleOfLength,
   TypeOf,
   UncheckedBigDecimal,
 } from './NumbersTransition.types';
@@ -77,13 +79,13 @@ export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validV
       : [validValue, false];
 
 type UseValue = (
-  value: UncheckedBigDecimal | undefined,
+  value: Optional<UncheckedBigDecimal>,
   previousValue: BigDecimal,
   animationInterruptionMode?: AnimationInterruptionMode,
 ) => [BigDecimal, boolean];
 
 export const useValue: UseValue = (
-  value: UncheckedBigDecimal | undefined,
+  value: Optional<UncheckedBigDecimal>,
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionMode = AnimationInterruptionMode.Interrupt,
 ): [BigDecimal, boolean] => {
@@ -106,12 +108,17 @@ export const useValue: UseValue = (
   const filterDuplicates = ([value]: [BigDecimal, boolean], index: number, array: [BigDecimal, boolean][]): boolean =>
     !index || value !== array[index - Integer.One][Integer.Zero];
 
-  useEffect((): void => {
-    if (validValue === previousValue || !isValueValid) {
-      values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates);
-      rerenderIf(!!values.current.length);
-    }
-  }, [rerenderIf, previousValue, validValue, isValueValid]);
+  useEffect(
+    (): void =>
+      [validValue === previousValue || !isValueValid]
+        .filter((condition: boolean): boolean => condition)
+        .flatMap<() => unknown>((): (() => unknown)[] => [
+          (): unknown => (values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates)),
+          (): unknown => rerenderIf(!!values.current.length),
+        ])
+        .forEach((callback: () => unknown): unknown => callback()),
+    [rerenderIf, previousValue, validValue, isValueValid],
+  );
 
   return [validValue, isValueValid];
 };
@@ -187,7 +194,7 @@ export const useAnimationValues: UseAnimationValues = (options: UseAnimationValu
 
 interface UseAnimationLogicOptions {
   previousValue: BigDecimal;
-  value: UncheckedBigDecimal | undefined;
+  value: Optional<UncheckedBigDecimal>;
   isValueValid: boolean;
   previousValueOnStart: bigint;
   previousValueOnEnd: bigint;
@@ -372,7 +379,7 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
     !Object.keys(animationDuration).length ||
-    Object.keys(animationDuration).some((key: string): boolean => Object.values(AnimationKey).includes<string>(key));
+    Object.keys(animationDuration).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
 
   const fromAnimationDuration = ({
     horizontalAnimation = AnimationDurationValue.HorizontalAnimation,
@@ -548,42 +555,58 @@ type StyledViewTypes<
 
 // prettier-ignore
 type StyledViewTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledView<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Zero],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
-  >;
-}>;
+  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
+> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
+  ? Z
+  : StyledViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
+        ...Z,
+        StyledView<
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Zero],
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
+        >,
+      ]
+    >;
 
 // prettier-ignore
 type ViewTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: View<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
-  >;
-}>;
+  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
+> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
+  ? Z
+  : ViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
+        ...Z,
+        View<
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
+        >,
+      ]
+    >;
 
 // prettier-ignore
 type UseStyledViewOptions<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]?: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I];
-}>;
+  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
+> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
+  ? Z
+  : UseStyledViewOptions<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
+        ...Z,
+        Optional<ViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]]>
+      ]
+    >;
 
 // prettier-ignore
 export type StyledViewWithPropsTuple<
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
-> = MappedTuple<{
-  [I in TupleIndex<StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>]: StyledViewWithProps<
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Zero],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.One],
-    StyledViewTypes<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[I][Integer.Two]
-  >;
-}>;
+  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
+> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
+  ? Z
+  : StyledViewWithPropsTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
+        ...Z,
+        StyledViewWithProps<
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Zero],
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
+          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
+        >,
+      ]
+    >;
 
 // prettier-ignore
 type UseStyledView = <
@@ -613,13 +636,12 @@ export const useStyledView: UseStyledView = <
   options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
   const mapView = (
-    viewWithStyledComponent:
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]]
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled],
+    viewWithStyledComponent: [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled],
   ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
-    const [{ viewProps, ...restView } = {}, styledComponent]:
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]]
-      | [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled] = viewWithStyledComponent;
+    const [{ viewProps, ...restView } = {}, styledComponent]: [
+      UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+      Styled,
+    ] = viewWithStyledComponent;
 
     const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
@@ -643,7 +665,7 @@ export const useStyledView: UseStyledView = <
   };
 
   return options
-    .zip<Styled>(Object.values<Styled>(Styled))
+    .zip<TupleOfLength<Styled, Integer.Eight>>(Object.values<Styled, TupleOfLength<Styled, Integer.Eight>>(Styled))
     .map<
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
@@ -853,7 +875,7 @@ interface UseHorizontalAnimationWidthsOptions {
   currentValue: bigint;
   minNumberOfDigits: number;
   maxNumberOfDigits: number;
-  ref: RefObject<HTMLDivElement | null>;
+  ref: RefObject<Nullable<HTMLDivElement>>;
 }
 
 type UseHorizontalAnimationWidths = (options: UseHorizontalAnimationWidthsOptions) => [number, number];
@@ -999,7 +1021,7 @@ export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFuncti
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
     isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
 
-  const getLastNestedOrUndefined = (child: GenericReactNode<ChildrenProps>): ReactElement<ChildrenProps> | undefined =>
+  const getLastNestedOrUndefined = (child: GenericReactNode<ChildrenProps>): Optional<ReactElement<ChildrenProps>> =>
     isValidElement(child) ? getLastNestedElement(child) : undefined;
 
   const countElements = (child: ReactElement<ChildrenProps>): number => {

@@ -1,5 +1,5 @@
 import { Integer } from './NumbersTransition.enums';
-import { ArrayOfDepth, OrArray } from './NumbersTransition.types';
+import { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
 String.prototype.capitalize = function (): string {
   return `${this[Integer.Zero].toUpperCase()}${this.slice(Integer.One)}`;
@@ -32,8 +32,9 @@ Array.prototype.invert = function <T>(reverse: boolean): T[] {
   return reverse ? this.reverse() : this;
 };
 
-Array.prototype.zip = function <T>(array: T[]): ([unknown] | [unknown, T])[] {
-  return this.map<[unknown] | [unknown, T]>((value: unknown, index: number): [unknown] | [unknown, T] =>
-    array[index] === undefined ? [value] : [value, array[index]],
+Array.prototype.zip = function <T extends unknown[], U extends unknown[]>(array: U[]): Zip<T, U> {
+  return this.map<[T[number]] | [T[number], U[number]], Zip<T, U>>(
+    (value: T[number], index: number): [T[number]] | [T[number], U[number]] =>
+      array[index] === undefined ? [value] : [value, array[index]],
   );
 };

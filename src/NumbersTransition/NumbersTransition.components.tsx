@@ -60,7 +60,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import { GenericReactNode, OrArray } from './NumbersTransition.types';
+import { GenericReactNode, Nullable, OrArray } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -141,11 +141,13 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     FragmentProps
   >(Fragment);
 
-  useEffect((): void => {
-    if (mountedElements < aggregatedSumsOfElements.at(Integer.MinusOne)!) {
-      requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize));
-    }
-  }, [chunkSize, mountedElements, aggregatedSumsOfElements]);
+  useEffect(
+    (): void =>
+      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
+        .filter((): boolean => mountedElements < aggregatedSumsOfElements.at(Integer.MinusOne)!)
+        .forEach((callback: () => unknown): unknown => callback()),
+    [chunkSize, mountedElements, aggregatedSumsOfElements],
+  );
 
   const mapBeforeMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
     numberOfElements > Integer.Zero ? onPartialMount(child, numberOfElements ?? Integer.Zero) : onBeforeMount(child);
@@ -474,7 +476,7 @@ export const HorizontalAnimationElement = <
     ...restProps
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const ref: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
+  const ref: RefObject<Nullable<HTMLDivElement>> = useRef<HTMLDivElement>(null);
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
 
   const animationDigits: number[] = useHorizontalAnimationDigits({
