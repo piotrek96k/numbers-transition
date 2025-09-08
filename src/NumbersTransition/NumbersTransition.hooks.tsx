@@ -62,7 +62,7 @@ export const useTimeout: UseTimeout = (time: number): boolean => {
   const [timedOut, setTimedOut]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
 
   useEffect((): (() => void) => {
-    const timeout: NodeJS.Timeout = setTimeout((): void => setTimedOut(true), time);
+    const timeout: number = setTimeout((): void => setTimedOut(true), time);
     return (): void => clearTimeout(timeout);
   }, [time]);
 

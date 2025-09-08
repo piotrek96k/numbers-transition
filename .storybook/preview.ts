@@ -1,13 +1,13 @@
-import type { Preview } from '@storybook/react';
+import type { Preview } from '@storybook/react-vite';
+import Decorator from './decorator';
 
 const preview: Preview = {
   parameters: {
-    controls: { matchers: { color: /(background|color)$/i, date: /Date$/i } },
-    backgrounds: { default: 'dark', values: [{ name: 'dark', value: '#222' }] },
+    backgrounds: { options: { dark: { name: 'Dark', value: '#222' }, light: { name: 'Light', value: '#F7F9F2' } } },
     layout: 'fullscreen',
   },
-
-  tags: ['autodocs'],
+  decorators: [Decorator],
+  initialGlobals: { backgrounds: { value: 'dark' } },
 };
 
 export default preview;

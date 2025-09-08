@@ -1,6 +1,6 @@
 import { ComponentProps } from 'react';
 import { RuleSet, css } from 'styled-components';
-import { ArgTypes, Meta, StoryObj } from '@storybook/react';
+import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDurationValue,
