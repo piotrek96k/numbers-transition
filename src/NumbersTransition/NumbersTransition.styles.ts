@@ -400,15 +400,15 @@ type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLD
 export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(
   attributesFactory<Styled.Container>(Styled.Container),
 )`
-  ${cssFactory<Styled.Container>(Styled.Container)};
-  ${animationFactory<Styled.Container>(Styled.Container)};
   ${cssProperties};
-  ${containerVariables};
   max-width: ${Integer.OneHundred}%;
   width: fit-content;
   height: ${Integer.One}lh;
   white-space: nowrap;
   overflow-y: clip;
+  ${cssFactory<Styled.Container>(Styled.Container)};
+  ${animationFactory<Styled.Container>(Styled.Container)};
+  ${containerVariables};
 `;
 
 type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
@@ -418,12 +418,10 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
   &,
   :has(~ &):not(:has(:first-child)) {
     display: inline-block;
-    height: inherit;
     overflow-x: hidden;
   }
   :only-child {
     float: right;
-    height: inherit;
   }
 `;
 
@@ -463,9 +461,9 @@ interface SymbolProps<T extends object, U> extends StyledView<Styled.Symbol, T, 
 type SymbolStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, SymbolProps<any, any>>;
 
 const Symbol: SymbolStyledComponent = styled.div.attrs<SymbolProps<any, any>>(attributesFactory<Styled.Symbol>(Styled.Symbol))`
+  display: inline-block;
   ${cssFactory<Styled.Symbol>(Styled.Symbol)};
   ${animationFactory<Styled.Symbol>(Styled.Symbol)};
-  display: inline-block;
 `;
 
 export interface DigitProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Digit, V, W> {}
@@ -475,9 +473,9 @@ type DigitStyledComponent = AttributesStyledComponent<SymbolStyledComponent, Sym
 export const Digit: DigitStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<DigitProps<any, any, any, any>>(
   attributesFactory<Styled.Digit>(Styled.Digit),
 )`
+  min-width: ${Integer.One}ch;
   ${cssFactory<Styled.Digit>(Styled.Digit)};
   ${animationFactory<Styled.Digit>(Styled.Digit)};
-  min-width: ${Integer.One}ch;
 `;
 
 interface SeparatorProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Separator, V, W> {}
@@ -487,9 +485,9 @@ type SeparatorStyledComponent = AttributesStyledComponent<SymbolStyledComponent,
 const Separator: SeparatorStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<SeparatorProps<any, any, any, any>>(
   attributesFactory<Styled.Separator>(Styled.Separator),
 )`
+  white-space: pre;
   ${cssFactory<Styled.Separator>(Styled.Separator)};
   ${animationFactory<Styled.Separator>(Styled.Separator)};
-  white-space: pre;
 `;
 
 interface DecimalSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
