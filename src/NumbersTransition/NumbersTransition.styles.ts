@@ -534,9 +534,9 @@ type NegativeStyledComponent = AttributesStyledComponent<SymbolStyledComponent, 
 export const Negative: NegativeStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<NegativeProps<any, any, any, any>>(
   attributesFactory<Styled.Negative>(Styled.Negative),
 )`
+  ${visibility};
   ${cssFactory<Styled.Negative>(Styled.Negative)};
   ${animationFactory<Styled.Negative>(Styled.Negative)};
-  ${visibility};
 `;
 
 interface InvalidProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Invalid, V, W> {}
