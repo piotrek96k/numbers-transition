@@ -909,12 +909,24 @@ export const useHorizontalAnimationWidths: UseHorizontalAnimationWidths = (
     precision > Integer.Zero ? Integer.One : Integer.Zero,
   ].reduce((first: number, second: number): number => first - second);
 
-  useLayoutEffect((): void => {
-    const reduceAnimationStartWidth = (sum: number, child: Element, index: number) =>
-      animationStartIndex <= index ? sum + child.getBoundingClientRect().width : Integer.Zero;
+  const getElementWidth = (element: Element): number =>
+    [
+      element.getBoundingClientRect().width,
+      ...[getComputedStyle(element)]
+        .flatMap<string>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
+        .map<number>(parseFloat),
+    ].reduce((first: number, second: number): number => first + second);
 
-    setAnimationStartWidth([...(ref.current?.children ?? [])].reduce<number>(reduceAnimationStartWidth, Integer.Zero));
-  }, [ref, animationStartIndex]);
+  useLayoutEffect(
+    (): void =>
+      setAnimationStartWidth(
+        [...(ref.current?.children ?? [])].reduce<number>(
+          (sum: number, child: Element, index: number) => (animationStartIndex <= index ? sum + getElementWidth(child) : Integer.Zero),
+          Integer.Zero,
+        ),
+      ),
+    [animationStartIndex, ref],
+  );
 
   return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
 };
