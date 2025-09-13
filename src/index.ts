@@ -1,6 +1,7 @@
 import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
   AnimationDirection,
+  AnimationId,
   AnimationInterruptionMode,
   AnimationNumber,
   AnimationTimingFunction,
@@ -52,6 +53,7 @@ export type {
   AnimationAlgorithm,
   AnimationDuration,
   AnimationFactory,
+  AnimationId,
   AnimationTimingFunctionTuple,
   BigDecimal,
   ClassNameFactory,

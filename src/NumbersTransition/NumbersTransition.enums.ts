@@ -166,6 +166,7 @@ export enum Integer {
   Eight,
   Ten = 10,
   Fourteen = 14,
+  Sixteen = 16,
   OneHundred = 100,
   TwoThousandFiveHundred = 2_500,
 }
