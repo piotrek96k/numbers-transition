@@ -131,7 +131,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [countElements],
   );
 
-  const aggregatedSumsOfElements = useMemo<number[]>(
+  const aggregatedSums = useMemo<number[]>(
     (): number[] => children.reduce<number[]>(countAggregatedSums, []),
     [children, countAggregatedSums],
   );
@@ -144,9 +144,9 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
   useEffect(
     (): void =>
       [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
-        .filter((): boolean => mountedElements < aggregatedSumsOfElements.at(Integer.MinusOne)!)
+        .filter((): boolean => mountedElements < aggregatedSums.at(Integer.MinusOne)!)
         .forEach((callback: () => unknown): unknown => callback()),
-    [chunkSize, mountedElements, aggregatedSumsOfElements],
+    [chunkSize, mountedElements, aggregatedSums],
   );
 
   const mapBeforeMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
@@ -156,12 +156,12 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     onAfterMount?.(child, index) ?? child;
 
   const mapChildren = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
-    aggregatedSumsOfElements[index] > mountedElements
-      ? mapBeforeMount(child, mountedElements - (aggregatedSumsOfElements[index - Integer.One] ?? Integer.Zero))
+    aggregatedSums[index] > mountedElements
+      ? mapBeforeMount(child, mountedElements - (aggregatedSums[index - Integer.One] ?? Integer.Zero))
       : mapAfterMount(child, index);
 
   return (
-    <Conditional condition={mountedElements < aggregatedSumsOfElements.at(Integer.MinusOne)! || !onAfterMount}>
+    <Conditional condition={mountedElements < aggregatedSums.at(Integer.MinusOne)! || !onAfterMount}>
       {children.map<GenericReactNode<ChildrenProps>>(mapChildren).map<ReactElement<ChildrenProps>>(mapToFragmentElement)}
       {children}
     </Conditional>

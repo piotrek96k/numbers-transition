@@ -164,7 +164,8 @@ export enum Integer {
   Five = 5,
   Seven = 7,
   Eight,
-  Ten = 10,
+  Nine,
+  Ten,
   Fourteen = 14,
   Sixteen = 16,
   OneHundred = 100,
@@ -209,5 +210,5 @@ export enum InvalidValue {
 }
 
 export enum StorybookValue {
-  Value = 123_456_789,
+  Value = 987_654_321.012_345,
 }

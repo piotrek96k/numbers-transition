@@ -4,6 +4,7 @@ import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDurationValue,
+  AnimationId,
   AnimationInterruptionMode,
   AnimationTimingFunction,
   DecimalSeparatorCharacter,
@@ -74,32 +75,15 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
 
-const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
-  opacity: ${keyframeValue};
-`;
-
-const opacityAnimation: Animation<object, number> = {
-  keyframeFunction: opacityKeyframeFunction,
-  keyframes: [Integer.One, Integer.One / Integer.Three],
-};
-
-const opacityAnimationFactory: AnimationFactory<object, number> = ({
-  theme: { numberOfAnimations },
-}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
-
-const style: RuleSet<object> = css<object>`
+const basicEffectCss: RuleSet<object> = css<object>`
   font-size: ${Integer.Three}rem;
   color: #f0ff95;
-  animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
-  animation-direction: alternate;
-  animation-iteration-count: ${Integer.Two};
-  animation-fill-mode: forwards;
 `;
 
-const args: ComponentProps<NumbersTransitionProps> = {
+const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
   initialValue: Integer.Zero,
   value: StorybookValue.Value,
-  precision: Integer.Zero,
+  precision: Integer.Nine,
   decimalSeparator: DecimalSeparatorCharacter.Comma,
   digitGroupSeparator: DigitGroupSeparatorCharacter.Space,
   negativeCharacter: NegativeCharacter.Minus,
@@ -112,9 +96,54 @@ const args: ComponentProps<NumbersTransitionProps> = {
   animationInterruptionMode: AnimationInterruptionMode.Interrupt,
   optimizationStrategy: OptimizationStrategy.None,
   deferChunkSize: Integer.TwoThousandFiveHundred,
-  view: { css: style, animation: opacityAnimationFactory },
+  view: { css: basicEffectCss },
 };
 
-export const Primary: Story = { argTypes, args };
+export const BasicEffect: Story = { argTypes, args: basicEffectArgs };
+
+const marginCss: RuleSet<object> = css<object>`
+  ${basicEffectCss};
+  margin: ${Integer.One}rem;
+  > :not(:last-child),
+  #${AnimationId.HorizontalAnimation} > * :not(:last-child) {
+    margin-right: ${Integer.Five / Integer.Sixteen}rem;
+  }
+  #${AnimationId.VerticalAnimation} :not(:last-child),
+  :has(~ * > #${AnimationId.VerticalAnimation}) > * :not(:last-child) {
+    margin-bottom: ${Integer.Two}rem;
+  }
+`;
+
+const marginArgs: ComponentProps<NumbersTransitionProps> = { ...basicEffectArgs, view: { css: marginCss } };
+
+export const Margin: Story = { argTypes, args: marginArgs };
+
+const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
+  opacity: ${keyframeValue};
+`;
+
+const opacityAnimation: Animation<object, number> = {
+  keyframeFunction: opacityKeyframeFunction,
+  keyframes: [Integer.One, Integer.One / Integer.Ten],
+};
+
+const opacityAnimationFactory: AnimationFactory<object, number> = ({
+  theme: { numberOfAnimations },
+}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
+
+const opacityAnimationCss: RuleSet<object> = css<object>`
+  ${basicEffectCss};
+  animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
+  animation-direction: alternate;
+  animation-iteration-count: ${Integer.Two};
+  animation-fill-mode: forwards;
+`;
+
+const opacityAnimationArgs: ComponentProps<NumbersTransitionProps> = {
+  ...basicEffectArgs,
+  view: { css: opacityAnimationCss, animation: opacityAnimationFactory },
+};
+
+export const OpacityAnimation: Story = { argTypes, args: opacityAnimationArgs };
 
 export default meta;

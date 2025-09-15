@@ -400,12 +400,12 @@ type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLD
 export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(
   attributesFactory<Styled.Container>(Styled.Container),
 )`
-  ${cssProperties};
   max-width: ${Integer.OneHundred}%;
   width: fit-content;
   height: ${Integer.One}lh;
   white-space: nowrap;
   overflow-y: clip;
+  ${cssProperties};
   ${cssFactory<Styled.Container>(Styled.Container)};
   ${animationFactory<Styled.Container>(Styled.Container)};
   ${containerVariables};
