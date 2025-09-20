@@ -58,12 +58,12 @@ import {
   useValidation,
   useValue,
 } from './NumbersTransition.hooks';
-import { AnimationTimingFunctionTuple, Container, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
+import { Container, CubicBezierEasingFunction, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<AnimationTimingFunctionTuple> | ExtendedAnimationTimingFunction = AnimationTimingFunctionTuple,
+  J extends OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction = CubicBezierEasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -108,7 +108,7 @@ export interface NumbersTransitionProps<
 
 const NumbersTransition = <
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<AnimationTimingFunctionTuple> | ExtendedAnimationTimingFunction = AnimationTimingFunctionTuple,
+  J extends OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction = CubicBezierEasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -217,15 +217,15 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  // prettier-ignore
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [number, number, number, number] =
-    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
-
-  const animationTimingFunction: AnimationTimingFunctionTuple = useAnimationTimingFunction({
+  const animationTimingFunction: CubicBezierEasingFunction = useAnimationTimingFunction({
     animationTimingFunction: animationTimingFunctionInput,
     animationType,
     animationDirection,
   });
+
+  // prettier-ignore
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [number, number, number, number] =
+    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
     negativeCharacterAnimationMode,
@@ -311,8 +311,8 @@ const NumbersTransition = <
     animationNumber,
     animationType,
     animationDirection,
-    animationDuration,
     animationTimingFunction,
+    animationDuration,
     horizontalAnimationDuration,
     verticalAnimationDuration,
     totalAnimationDuration,

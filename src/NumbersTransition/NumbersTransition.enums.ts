@@ -37,8 +37,9 @@ export enum VariableName {
   AnimationDirection = '--animation-direction',
   NumberOfAnimations = '--number-of-animations',
   AnimationNumber = '--animation-number',
-  AnimationDuration = '--animation-duration',
   AnimationTimingFunction = '--animation-timing-function',
+  AnimationFillMode = '--animation-fill-mode',
+  AnimationDuration = '--animation-duration',
   HorizontalAnimationDuration = '--horizontal-animation-duration',
   VerticalAnimationDuration = '--vertical-animation-duration',
   TotalAnimationDuration = '--total-animation-duration',
@@ -50,6 +51,18 @@ export enum VariableName {
   NegativeCharacterLength = '--negative-character-length',
   InvalidLength = '--invalid-length',
   ColumnLength = '--column-length',
+}
+
+export enum AnimationFillMode {
+  Forwards = 'forwards',
+  Backwards = 'backwards',
+}
+
+export enum StepPosition {
+  JumpStart = 'jump-start',
+  JumpEnd = 'jump-end',
+  JumpNone = 'jump-none',
+  JumpBoth = 'jump-both',
 }
 
 export enum AnimationId {

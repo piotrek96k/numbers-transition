@@ -33,7 +33,13 @@ import {
   TotalAnimationDurationValue,
   ViewKey,
 } from './NumbersTransition.enums';
-import { AnimationTimingFunctionTuple, ElementsLength, NumbersTransitionTheme, StyledView } from './NumbersTransition.styles';
+import {
+  CubicBezierEasingFunction,
+  ElementsLength,
+  NumbersTransitionTheme,
+  StepsEasingFunction,
+  StyledView,
+} from './NumbersTransition.styles';
 import {
   BigDecimal,
   GenericReactNode,
@@ -54,19 +60,6 @@ const useConditionalRerender: UseConditionalRerender = (): ConditionalRerenderFu
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero);
 
   return (condition: boolean): void => (condition ? rerender() : undefined);
-};
-
-type UseTimeout = (time: number) => boolean;
-
-export const useTimeout: UseTimeout = (time: number): boolean => {
-  const [timedOut, setTimedOut]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
-
-  useEffect((): (() => void) => {
-    const timeout: number = setTimeout((): void => setTimedOut(true), time);
-    return (): void => clearTimeout(timeout);
-  }, [time]);
-
-  return timedOut;
 };
 
 type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => [BigDecimal, boolean];
@@ -356,6 +349,50 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
   }
 };
 
+export interface ExtendedAnimationTimingFunction {
+  horizontalAnimation?: OrReadOnly<CubicBezierEasingFunction>;
+  verticalAnimation?: OrReadOnly<CubicBezierEasingFunction>;
+}
+
+interface UseAnimationTimingFunctionOptions {
+  animationTimingFunction?: OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction;
+  animationType: AnimationType;
+  animationDirection: AnimationDirection;
+}
+
+type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => CubicBezierEasingFunction;
+
+export const useAnimationTimingFunction: UseAnimationTimingFunction = (
+  options: UseAnimationTimingFunctionOptions,
+): CubicBezierEasingFunction => {
+  const {
+    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunction.Ease,
+    animationType,
+    animationDirection,
+  }: UseAnimationTimingFunctionOptions = options;
+
+  const {
+    horizontalAnimation = AnimationTimingFunction.Ease,
+    verticalAnimation = AnimationTimingFunction.Ease,
+  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<CubicBezierEasingFunction>>(
+    animationTimingFunctionInput,
+  )
+    ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
+    : animationTimingFunctionInput;
+
+  const reverse: boolean = animationDirection === AnimationDirection.Reverse;
+
+  const animationTimingFunction: OrReadOnly<CubicBezierEasingFunction> =
+    animationType === AnimationType.Horizontal ? horizontalAnimation : verticalAnimation;
+
+  const mapAnimationTimingFunction = (tuple: OrReadOnly<CubicBezierEasingFunction[number]>): CubicBezierEasingFunction[number] =>
+    reverse ? tuple.map<number, CubicBezierEasingFunction[number]>((number: number): number => Integer.One - number) : [...tuple];
+
+  return animationTimingFunction
+    .map<CubicBezierEasingFunction[number], CubicBezierEasingFunction>(mapAnimationTimingFunction)
+    .invert(reverse);
+};
+
 export interface AnimationDuration {
   horizontalAnimation?: number;
   verticalAnimation?: number;
@@ -436,50 +473,6 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
     verticalAnimationDuration,
     calculateTotalAnimationDuration(horizontalAnimationDuration, verticalAnimationDuration),
   ];
-};
-
-export interface ExtendedAnimationTimingFunction {
-  horizontalAnimation?: OrReadOnly<AnimationTimingFunctionTuple>;
-  verticalAnimation?: OrReadOnly<AnimationTimingFunctionTuple>;
-}
-
-interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction?: OrReadOnly<AnimationTimingFunctionTuple> | ExtendedAnimationTimingFunction;
-  animationType: AnimationType;
-  animationDirection: AnimationDirection;
-}
-
-type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => AnimationTimingFunctionTuple;
-
-export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  options: UseAnimationTimingFunctionOptions,
-): AnimationTimingFunctionTuple => {
-  const {
-    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunction.Ease,
-    animationType,
-    animationDirection,
-  }: UseAnimationTimingFunctionOptions = options;
-
-  const {
-    horizontalAnimation = AnimationTimingFunction.Ease,
-    verticalAnimation = AnimationTimingFunction.Ease,
-  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<AnimationTimingFunctionTuple>>(
-    animationTimingFunctionInput,
-  )
-    ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
-    : animationTimingFunctionInput;
-
-  const reverse: boolean = animationDirection === AnimationDirection.Reverse;
-
-  const animationTimingFunction: OrReadOnly<AnimationTimingFunctionTuple> =
-    animationType === AnimationType.Horizontal ? horizontalAnimation : verticalAnimation;
-
-  const mapAnimationTimingFunction = (tuple: OrReadOnly<AnimationTimingFunctionTuple[number]>): AnimationTimingFunctionTuple[number] =>
-    reverse ? tuple.map<number, AnimationTimingFunctionTuple[number]>((number: number): number => Integer.One - number) : [...tuple];
-
-  return animationTimingFunction
-    .map<AnimationTimingFunctionTuple[number], AnimationTimingFunctionTuple>(mapAnimationTimingFunction)
-    .invert(reverse);
 };
 
 interface UseRenderNegativeCharacterOptions {
@@ -760,7 +753,7 @@ export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimatio
     .find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
-type CubicBezier = (points: AnimationTimingFunctionTuple[number]) => (time: number) => number;
+type CubicBezier = (points: CubicBezierEasingFunction[number]) => (time: number) => number;
 
 type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
 
@@ -787,7 +780,7 @@ const useCubicBezier: UseCubicBezier = (): [CubicBezier, Solve] => {
   };
 
   const cubicBezier =
-    ([firstPoint, secondPoint]: AnimationTimingFunctionTuple[number]): ((time: number) => number) =>
+    ([firstPoint, secondPoint]: CubicBezierEasingFunction[number]): ((time: number) => number) =>
     (time: number): number =>
       Integer.Three * (firstPoint * time * (Integer.One - time) ** Integer.Two + secondPoint * (Integer.One - time) * time ** Integer.Two) +
       time ** Integer.Three;
@@ -795,32 +788,38 @@ const useCubicBezier: UseCubicBezier = (): [CubicBezier, Solve] => {
   return [cubicBezier, (func: (value: number) => number): number => solve(func)];
 };
 
-interface UseNegativeElementAnimationTimingsOptions {
+interface UseNegativeElementAnimationDurationOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationVisibilities: boolean[];
 }
 
-type UseNegativeElementAnimationTimings = (options: UseNegativeElementAnimationTimingsOptions) => [number, number];
+type UseNegativeElementAnimationDuration = (options: UseNegativeElementAnimationDurationOptions) => number;
 
-export const useNegativeElementAnimationTimings: UseNegativeElementAnimationTimings = (
-  options: UseNegativeElementAnimationTimingsOptions,
-): [number, number] => {
-  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationTimingsOptions = options;
+export const useNegativeElementAnimationDuration: UseNegativeElementAnimationDuration = (
+  options: UseNegativeElementAnimationDurationOptions,
+): number => {
+  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationDurationOptions = options;
 
   const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
   const [cubicBezier, solve]: [CubicBezier, Solve] = useCubicBezier();
 
   const mapAnimationTimingFunction = (
     accumulator: [number[], number[]],
-    currentValue: AnimationTimingFunctionTuple[number],
-  ): AnimationTimingFunctionTuple =>
-    accumulator.map<number[], AnimationTimingFunctionTuple>((coordinates: number[], index: number): number[] => [
+    currentValue: CubicBezierEasingFunction[number],
+  ): CubicBezierEasingFunction =>
+    accumulator.map<number[], CubicBezierEasingFunction>((coordinates: number[], index: number): number[] => [
       ...coordinates,
       currentValue[index],
     ]);
 
-  const [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number] = animationTimingFunction!
-    .reduce<[number[], number[]], AnimationTimingFunctionTuple>(mapAnimationTimingFunction, [[], []])
+  const cubicBezierEasingFunction: CubicBezierEasingFunction = Array.isArray<StepsEasingFunction, CubicBezierEasingFunction>(
+    animationTimingFunction!,
+  )
+    ? animationTimingFunction!
+    : [[...AnimationTimingFunction.Ease[Integer.Zero]], [...AnimationTimingFunction.Ease[Integer.One]]];
+
+  const [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number] = cubicBezierEasingFunction
+    .reduce<[number[], number[]], CubicBezierEasingFunction>(mapAnimationTimingFunction, [[], []])
     .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier);
 
   const outputAnimationProgress: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
@@ -829,11 +828,9 @@ export const useNegativeElementAnimationTimings: UseNegativeElementAnimationTimi
       ? xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputAnimationProgress))
       : Integer.Zero;
 
-  const animationTime: number = animationDuration! * inputAnimationProgress;
-  const animationSwitchTime: number = animationDirection === AnimationDirection.Normal ? animationTime : animationDuration! - animationTime;
-  const animationDelay: number = animationDirection === AnimationDirection.Normal ? -animationTime : Integer.Zero;
-
-  return [animationSwitchTime, animationDelay];
+  return (
+    animationDuration! * (animationDirection === AnimationDirection.Normal ? inputAnimationProgress : Integer.One - inputAnimationProgress)
+  );
 };
 
 interface UseHorizontalAnimationDigitsOptions {

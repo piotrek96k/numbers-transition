@@ -12,20 +12,29 @@ import styled, {
 } from 'styled-components';
 import {
   AnimationDirection,
+  AnimationFillMode,
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
   Character,
   HTMLElement,
   Integer,
+  StepPosition,
   Styled,
   VariableName,
   ViewKey,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { Enum, Falsy, Optional, OrArray, TypeOf } from './NumbersTransition.types';
+import { Enum, Falsy, Optional, OrArray, OrReadOnly, TypeOf } from './NumbersTransition.types';
 
-export type AnimationTimingFunctionTuple = [[number, number], [number, number]];
+export type CubicBezierEasingFunction = [[number, number], [number, number]];
+
+export interface StepsEasingFunction {
+  steps: number;
+  stepPosition: StepPosition;
+}
+
+export type EasingFunction = CubicBezierEasingFunction | StepsEasingFunction;
 
 interface ElementsIndex {
   symbolIndex?: number;
@@ -54,8 +63,9 @@ export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
   animationNumber?: AnimationNumber;
   animationType?: AnimationType;
   animationDirection?: AnimationDirection;
+  animationTimingFunction?: EasingFunction;
+  animationFillMode?: AnimationFillMode;
   animationDuration?: number;
-  animationTimingFunction?: AnimationTimingFunctionTuple;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
   totalAnimationDuration?: number;
@@ -71,7 +81,7 @@ interface BaseProperty {
 
 interface Property extends BaseProperty {
   syntax: string;
-  initialValue: string | number;
+  initialValue: number | string | RuleSet<object>;
 }
 
 interface EnumProperty<E extends Enum<E>> extends BaseProperty {
@@ -79,7 +89,18 @@ interface EnumProperty<E extends Enum<E>> extends BaseProperty {
   initialValue: TypeOf<E>;
 }
 
-const mapEnumProperty = <E extends Enum<E>>({ enumerable, ...restProperty }: EnumProperty<E>): Property => ({
+const cubicBezier = (easingFunction: OrReadOnly<CubicBezierEasingFunction>): RuleSet<object> =>
+  css<object>`cubic-bezier(${easingFunction.join()})`;
+
+const steps = ({ steps, stepPosition }: StepsEasingFunction): RuleSet<object> => css<object>`steps(${steps}, ${stepPosition})`;
+
+const easingFunction = (easingFunction: EasingFunction): RuleSet<object> =>
+  Array.isArray<StepsEasingFunction, CubicBezierEasingFunction>(easingFunction) ? cubicBezier(easingFunction) : steps(easingFunction);
+
+const mapEnumProperty = ({
+  enumerable,
+  ...restProperty
+}: EnumProperty<typeof AnimationType> | EnumProperty<typeof AnimationDirection> | EnumProperty<typeof AnimationFillMode>): Property => ({
   ...restProperty,
   syntax: Object.values<string | number>(enumerable).join(`${Character.Space}${Character.VerticalLine}${Character.Space}`),
 });
@@ -96,9 +117,14 @@ const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> 
   }
 `;
 
-const enumProperties: EnumProperty<typeof AnimationType | typeof AnimationDirection>[] = [
+const enumProperties: [
+  EnumProperty<typeof AnimationType>,
+  EnumProperty<typeof AnimationDirection>,
+  EnumProperty<typeof AnimationFillMode>,
+] = [
   { name: VariableName.AnimationType, enumerable: AnimationType, initialValue: AnimationType.None },
   { name: VariableName.AnimationDirection, enumerable: AnimationDirection, initialValue: AnimationDirection.None },
+  { name: VariableName.AnimationFillMode, enumerable: AnimationFillMode, initialValue: AnimationFillMode.Forwards },
 ];
 
 const timeProperties: VariableName[] = [
@@ -125,19 +151,22 @@ const properties: Property[] = [
   ...enumProperties.map<Property>(mapEnumProperty),
   ...timeProperties.map<Property>(mapTimeProperty),
   ...integerProperties.map<Property>(mapIntegerProperty),
-  { name: VariableName.AnimationTimingFunction, syntax: '*', initialValue: `cubic-bezier(${AnimationTimingFunction.Ease.join()})` },
+  { name: VariableName.AnimationTimingFunction, syntax: '*', initialValue: cubicBezier(AnimationTimingFunction.Ease) },
 ];
 
 const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProperty);
 
-const containerVariables = ({
+const variables = ({
   theme: {
     numberOfAnimations,
     animationNumber,
     animationType,
     animationDirection,
-    animationDuration,
     animationTimingFunction,
+    animationFillMode = animationType === AnimationType.Horizontal || animationDirection === AnimationDirection.Normal
+      ? AnimationFillMode.Forwards
+      : AnimationFillMode.Backwards,
+    animationDuration,
     horizontalAnimationDuration,
     verticalAnimationDuration,
     totalAnimationDuration,
@@ -154,7 +183,8 @@ const containerVariables = ({
   ${VariableName.AnimationNumber}: ${animationNumber};
   ${VariableName.AnimationType}: ${animationType};
   ${VariableName.AnimationDirection}: ${animationDirection};
-  ${VariableName.AnimationTimingFunction}: cubic-bezier(${animationTimingFunction?.join()});
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(animationTimingFunction!)};
+  ${VariableName.AnimationFillMode}: ${animationFillMode};
   ${VariableName.AnimationDuration}: ${animationDuration}ms;
   ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}ms;
   ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}ms;
@@ -218,20 +248,14 @@ type AttributesOmittedKeys<T extends Styled, U extends object> =
   | `${ViewKey.Style}`
   | `${ViewKey.ClassName}`;
 
-interface AnimationDelayProps {
-  animationDelay?: number;
-}
-
-interface AnimationCommonProps extends NumbersTransitionExecutionContext, AnimationDelayProps {}
-
 interface AnimationWidthProps {
   animationStartWidth: number;
   animationEndWidth: number;
 }
 
-interface HorizontalAnimationProps extends AnimationCommonProps, AnimationWidthProps {}
+interface HorizontalAnimationProps extends NumbersTransitionExecutionContext, AnimationWidthProps {}
 
-export type VerticalAnimationProps = AnimationCommonProps;
+export type VerticalAnimationProps = NumbersTransitionExecutionContext;
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
@@ -287,11 +311,10 @@ const animationName = ({ theme: { animationType }, ...restProps }: NumbersTransi
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${animationName};
   animation-direction: var(${VariableName.AnimationDirection});
-  animation-duration: var(${VariableName.AnimationDuration});
   animation-timing-function: var(${VariableName.AnimationTimingFunction});
-  animation-delay: ${({ animationDelay = Integer.Zero }: AnimationDelayProps): number => animationDelay}ms;
+  animation-fill-mode: var(${VariableName.AnimationFillMode});
+  animation-duration: var(${VariableName.AnimationDuration});
   animation-iteration-count: ${Integer.One};
-  animation-fill-mode: forwards;
 `;
 
 const createViewFactoryMapper =
@@ -406,9 +429,9 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   white-space: nowrap;
   overflow-y: clip;
   ${cssProperties};
+  ${variables};
   ${cssFactory<Styled.Container>(Styled.Container)};
   ${animationFactory<Styled.Container>(Styled.Container)};
-  ${containerVariables};
 `;
 
 type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
@@ -428,10 +451,12 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
 type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, VerticalAnimationProps>;
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
+  ${variables};
   display: inline-flex;
   flex-direction: column;
   height: inherit;
-  :only-child:has(:not(:only-child)) {
+  overflow-y: hidden;
+  > :only-child:has(:not(:only-child)) {
     ${animation};
     position: relative;
   }

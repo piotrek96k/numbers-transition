@@ -17,12 +17,12 @@ import {
   VariableName,
 } from './NumbersTransition.enums';
 import { AnimationDuration } from './NumbersTransition.hooks';
-import { Animation, AnimationFactory, AnimationTimingFunctionTuple, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
+import { Animation, AnimationFactory, CubicBezierEasingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
 import { Falsy, ReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
-  ReadOnly<AnimationTimingFunctionTuple>,
+  ReadOnly<CubicBezierEasingFunction>,
   object,
   number,
   object,

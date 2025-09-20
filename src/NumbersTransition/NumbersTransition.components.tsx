@@ -27,6 +27,7 @@ import {
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
+  StepPosition,
   Styled,
 } from './NumbersTransition.enums';
 import {
@@ -39,10 +40,9 @@ import {
   useElementKeyMapper,
   useHorizontalAnimationDigits,
   useHorizontalAnimationWidths,
-  useNegativeElementAnimationTimings,
+  useNegativeElementAnimationDuration,
   useNegativeElementAnimationVisibilities,
   useSymbolIndexFunctions,
-  useTimeout,
   useVerticalAnimationDeferFunctions,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
@@ -94,24 +94,6 @@ const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose,
     {children}
   </Conditional>
 );
-
-interface SwitchProps {
-  children: [ReactNode, ReactNode];
-  time: number;
-  reverse: boolean;
-}
-
-const Switch: FC<SwitchProps> = (props: SwitchProps): ReactNode => {
-  const {
-    children: [before, after],
-    time,
-    reverse,
-  }: SwitchProps = props;
-
-  const timedOut: boolean = useTimeout(time);
-
-  return timedOut === reverse ? before : after;
-};
 
 interface DeferProps extends DeferFunctions {
   children: ReactElement<ChildrenProps>[];
@@ -239,13 +221,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     enclose,
   }: VerticalAnimationNegativeElementProps<T, U, V, W> = props;
 
-  const { animationDirection }: NumbersTransitionTheme = useTheme();
+  const { animationDirection, ...restTheme }: NumbersTransitionTheme = useTheme();
   const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
-
-  const [animationSwitchTime, animationDelay]: [number, number] = useNegativeElementAnimationTimings({
-    negativeCharacterAnimationMode,
-    animationVisibilities,
-  });
+  const animationDuration: number = useNegativeElementAnimationDuration({ negativeCharacterAnimationMode, animationVisibilities });
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
@@ -262,13 +240,23 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     (visible: boolean): NegativeElementProps<T, U, V, W> => ({ negativeCharacter, visible, symbolStyledView, negativeCharacterStyledView }),
   );
 
+  const theme: NumbersTransitionTheme = {
+    ...restTheme,
+    animationDirection,
+    animationTimingFunction: {
+      steps: Integer.One,
+      stepPosition: animationDirection === AnimationDirection.Normal ? StepPosition.JumpEnd : StepPosition.JumpStart,
+    },
+    animationDuration,
+  };
+
   const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities
     .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
     .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement);
 
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
     <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
-      <VerticalAnimation {...(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single && { animationDelay })}>
+      <VerticalAnimation>
         <div>{negativeElements}</div>
       </VerticalAnimation>
     </ThemeProvider>
@@ -277,14 +265,16 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   return (
     <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
       <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
-        <Switch time={animationSwitchTime} reverse={animationDirection === AnimationDirection.Reverse}>
-          <NegativeElement<T, U, V, W>
-            negativeCharacter={negativeCharacter}
-            symbolStyledView={symbolStyledView}
-            negativeCharacterStyledView={negativeCharacterStyledView}
-          />
-          {verticalAnimationElement}
-        </Switch>
+        <VerticalAnimation theme={theme}>
+          <div>
+            <NegativeElement<T, U, V, W>
+              negativeCharacter={negativeCharacter}
+              symbolStyledView={symbolStyledView}
+              negativeCharacterStyledView={negativeCharacterStyledView}
+            />
+            {verticalAnimationElement}
+          </div>
+        </VerticalAnimation>
         {verticalAnimationElement}
       </Conditional>
     </Enclose>
