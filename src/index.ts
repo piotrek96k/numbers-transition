@@ -27,9 +27,11 @@ import {
   CssRule,
   CssRuleFactory,
   CubicBezierEasingFunction,
+  EasingFunction,
   KeyframeFunction,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
+  StepsEasingFunction,
   StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
 import { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
@@ -59,6 +61,7 @@ export type {
   CssRule,
   CssRuleFactory,
   CubicBezierEasingFunction,
+  EasingFunction,
   ExtendedAnimationTimingFunction,
   Falsy,
   KeyframeFunction,
@@ -67,6 +70,7 @@ export type {
   NumbersTransitionTheme,
   OrReadOnly,
   ReadOnly,
+  StepsEasingFunction,
   StyleFactory,
   TotalAnimationDuration,
   UncheckedBigDecimal,
