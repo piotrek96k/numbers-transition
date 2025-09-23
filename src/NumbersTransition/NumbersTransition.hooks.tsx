@@ -15,7 +15,6 @@ import {
 import { useTheme } from 'styled-components';
 import {
   AnimationDirection,
-  AnimationDurationValue,
   AnimationInterruptionMode,
   AnimationKey,
   AnimationNumber,
@@ -29,12 +28,13 @@ import {
   NegativeCharacterAnimationMode,
   NumberPrecision,
   RegularExpression,
+  StepPosition,
   Styled,
-  TotalAnimationDurationValue,
   ViewKey,
 } from './NumbersTransition.enums';
 import {
   CubicBezierEasingFunction,
+  EasingFunction,
   ElementsLength,
   NumbersTransitionTheme,
   StepsEasingFunction,
@@ -350,47 +350,70 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
 };
 
 export interface ExtendedAnimationTimingFunction {
-  horizontalAnimation?: OrReadOnly<CubicBezierEasingFunction>;
-  verticalAnimation?: OrReadOnly<CubicBezierEasingFunction>;
+  horizontalAnimation: OrReadOnly<EasingFunction>;
+  verticalAnimation: OrReadOnly<EasingFunction>;
 }
 
 interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction?: OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction;
+  animationTimingFunction?: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
   animationType: AnimationType;
   animationDirection: AnimationDirection;
 }
 
-type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => CubicBezierEasingFunction;
+type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => EasingFunction;
 
-export const useAnimationTimingFunction: UseAnimationTimingFunction = (
-  options: UseAnimationTimingFunctionOptions,
-): CubicBezierEasingFunction => {
+export const useAnimationTimingFunction: UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions): EasingFunction => {
   const {
-    animationTimingFunction: animationTimingFunctionInput = AnimationTimingFunction.Ease,
+    animationTimingFunction = AnimationTimingFunction.Ease,
     animationType,
     animationDirection,
   }: UseAnimationTimingFunctionOptions = options;
 
+  const isExtendedAnimationTimingFunction = (
+    animationTimingFunction: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction,
+  ): animationTimingFunction is ExtendedAnimationTimingFunction =>
+    Object.keys(animationTimingFunction).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
+
   const {
     horizontalAnimation = AnimationTimingFunction.Ease,
     verticalAnimation = AnimationTimingFunction.Ease,
-  }: ExtendedAnimationTimingFunction = Array.isArray<ExtendedAnimationTimingFunction, OrReadOnly<CubicBezierEasingFunction>>(
-    animationTimingFunctionInput,
-  )
-    ? { horizontalAnimation: animationTimingFunctionInput, verticalAnimation: animationTimingFunctionInput }
-    : animationTimingFunctionInput;
+  }: ExtendedAnimationTimingFunction = isExtendedAnimationTimingFunction(animationTimingFunction)
+    ? animationTimingFunction
+    : { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction };
 
-  const reverse: boolean = animationDirection === AnimationDirection.Reverse;
+  const easingFunction: OrReadOnly<EasingFunction> = animationType === AnimationType.Horizontal ? horizontalAnimation : verticalAnimation;
 
-  const animationTimingFunction: OrReadOnly<CubicBezierEasingFunction> =
-    animationType === AnimationType.Horizontal ? horizontalAnimation : verticalAnimation;
+  const copyCubicBezier = (accumulator: number[][], tuple: OrReadOnly<CubicBezierEasingFunction[number]>): number[][] => [
+    ...accumulator,
+    [...tuple],
+  ];
 
-  const mapAnimationTimingFunction = (tuple: OrReadOnly<CubicBezierEasingFunction[number]>): CubicBezierEasingFunction[number] =>
-    reverse ? tuple.map<number, CubicBezierEasingFunction[number]>((number: number): number => Integer.One - number) : [...tuple];
+  const reverseCubicBezier = (
+    accumulator: number[][],
+    _: OrReadOnly<CubicBezierEasingFunction[number]>,
+    index: number,
+    easingFunction: OrReadOnly<OrReadOnly<CubicBezierEasingFunction[number]>[]>,
+  ): number[][] => [
+    ...accumulator,
+    easingFunction[Integer.One - index].map<number, CubicBezierEasingFunction[number]>((number: number): number => Integer.One - number),
+  ];
 
-  return animationTimingFunction
-    .map<CubicBezierEasingFunction[number], CubicBezierEasingFunction>(mapAnimationTimingFunction)
-    .invert(reverse);
+  const reverseStepPosition = (stepPosition: StepPosition): StepPosition =>
+    [[StepPosition.JumpStart, StepPosition.JumpEnd], [StepPosition.JumpNone], [StepPosition.JumpBoth]]
+      .find((steps: StepPosition[]): boolean => steps.includes(stepPosition))!
+      .find(
+        (step: StepPosition, _: number, steps: StepPosition[]): boolean => step === steps.at(steps.indexOf(stepPosition) - Integer.One),
+      )!;
+
+  return Array.isArray<OrReadOnly<StepsEasingFunction>, OrReadOnly<CubicBezierEasingFunction>>(easingFunction)
+    ? easingFunction.reduce<number[][], CubicBezierEasingFunction>(
+        animationDirection === AnimationDirection.Normal ? copyCubicBezier : reverseCubicBezier,
+        [],
+      )
+    : {
+        ...easingFunction,
+        ...(animationDirection === AnimationDirection.Reverse && { stepPosition: reverseStepPosition(easingFunction.stepPosition) }),
+      };
 };
 
 export interface AnimationDuration {
@@ -419,16 +442,16 @@ export const useAnimationDuration: UseAnimationDuration = (options: UseAnimation
     Object.keys(animationDuration).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
 
   const fromAnimationDuration = ({
-    horizontalAnimation = AnimationDurationValue.HorizontalAnimation,
-    verticalAnimation = AnimationDurationValue.VerticalAnimation,
+    horizontalAnimation = Integer.TwoThousand,
+    verticalAnimation = Integer.FiveThousand,
   }: AnimationDuration): [number, number] => [
     numberOfAnimations === AnimationNumber.One ? Integer.Zero : horizontalAnimation,
     verticalAnimation,
   ];
 
   const fromTotalAnimationDuration = ({
-    animationDuration = TotalAnimationDurationValue.AnimationDuration,
-    ratio = TotalAnimationDurationValue.Ratio,
+    animationDuration = Integer.SixThousand,
+    ratio = Integer.Five / Integer.Two,
   }: TotalAnimationDuration): [number, number] => {
     const horizontalAnimationDuration: number =
       numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One);
@@ -753,13 +776,17 @@ export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimatio
     .find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
-type CubicBezier = (points: CubicBezierEasingFunction[number]) => (time: number) => number;
+type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number;
 
-type Solve = (func: (inputValue: number) => number, previousValue?: number, previousFuncResult?: number) => number;
+type UseCubicBezier = () => Solve<CubicBezierEasingFunction>;
 
-type UseCubicBezier = () => [CubicBezier, Solve];
+const useCubicBezier: UseCubicBezier = (): Solve<CubicBezierEasingFunction> => {
+  const cubicBezier =
+    ([firstPoint, secondPoint]: CubicBezierEasingFunction[number]): ((time: number) => number) =>
+    (time: number): number =>
+      Integer.Three * (firstPoint * time * (Integer.One - time) ** Integer.Two + secondPoint * (Integer.One - time) * time ** Integer.Two) +
+      time ** Integer.Three;
 
-const useCubicBezier: UseCubicBezier = (): [CubicBezier, Solve] => {
   const derivative = (func: (value: number) => number, value: number) =>
     (func(value + EquationSolver.DerivativeDelta) - func(value - EquationSolver.DerivativeDelta)) /
     (Integer.Two * EquationSolver.DerivativeDelta);
@@ -779,14 +806,41 @@ const useCubicBezier: UseCubicBezier = (): [CubicBezier, Solve] => {
     return isConvergent ? newValue : solve(func, newValue, newFuncResult);
   };
 
-  const cubicBezier =
-    ([firstPoint, secondPoint]: CubicBezierEasingFunction[number]): ((time: number) => number) =>
-    (time: number): number =>
-      Integer.Three * (firstPoint * time * (Integer.One - time) ** Integer.Two + secondPoint * (Integer.One - time) * time ** Integer.Two) +
-      time ** Integer.Three;
+  const mapCubicBezier = (accumulator: [number[], number[]], currentValue: CubicBezierEasingFunction[number]): CubicBezierEasingFunction =>
+    accumulator.map<number[], CubicBezierEasingFunction>((coordinates: number[], index: number): number[] => [
+      ...coordinates,
+      currentValue[index],
+    ]);
 
-  return [cubicBezier, (func: (value: number) => number): number => solve(func)];
+  const solveCubicBezier = (
+    outputValue: number,
+    [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number],
+  ): number => xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputValue));
+
+  return (easingFunction: CubicBezierEasingFunction, outputValue: number): number =>
+    [
+      easingFunction
+        .reduce<[number[], number[]], CubicBezierEasingFunction>(mapCubicBezier, [[], []])
+        .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier),
+    ].reduce<number>(solveCubicBezier, outputValue);
 };
+
+type UseSteps = () => Solve<StepsEasingFunction>;
+
+const useSteps: UseSteps =
+  (): Solve<StepsEasingFunction> =>
+  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number => {
+    switch (stepPosition) {
+      case StepPosition.JumpStart:
+        return Math.floor(outputValue * steps) / steps;
+      case StepPosition.JumpEnd:
+        return Math.ceil(outputValue * steps) / steps;
+      case StepPosition.JumpNone:
+        return Math.ceil(outputValue * (steps - Integer.One)) / steps;
+      case StepPosition.JumpBoth:
+        return Math.floor(outputValue * (steps + Integer.One)) / steps;
+    }
+  };
 
 interface UseNegativeElementAnimationDurationOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
@@ -801,31 +855,17 @@ export const useNegativeElementAnimationDuration: UseNegativeElementAnimationDur
   const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationDurationOptions = options;
 
   const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
-  const [cubicBezier, solve]: [CubicBezier, Solve] = useCubicBezier();
 
-  const mapAnimationTimingFunction = (
-    accumulator: [number[], number[]],
-    currentValue: CubicBezierEasingFunction[number],
-  ): CubicBezierEasingFunction =>
-    accumulator.map<number[], CubicBezierEasingFunction>((coordinates: number[], index: number): number[] => [
-      ...coordinates,
-      currentValue[index],
-    ]);
-
-  const cubicBezierEasingFunction: CubicBezierEasingFunction = Array.isArray<StepsEasingFunction, CubicBezierEasingFunction>(
-    animationTimingFunction!,
-  )
-    ? animationTimingFunction!
-    : [[...AnimationTimingFunction.Ease[Integer.Zero]], [...AnimationTimingFunction.Ease[Integer.One]]];
-
-  const [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number] = cubicBezierEasingFunction
-    .reduce<[number[], number[]], CubicBezierEasingFunction>(mapAnimationTimingFunction, [[], []])
-    .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier);
+  const solveCubicBezier: Solve<CubicBezierEasingFunction> = useCubicBezier();
+  const solveSteps: Solve<StepsEasingFunction> = useSteps();
 
   const outputAnimationProgress: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
+
   const inputAnimationProgress: number =
     negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single
-      ? xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputAnimationProgress))
+      ? Array.isArray<StepsEasingFunction, CubicBezierEasingFunction>(animationTimingFunction!)
+        ? solveCubicBezier(animationTimingFunction, outputAnimationProgress)
+        : solveSteps(animationTimingFunction!, outputAnimationProgress)
       : Integer.Zero;
 
   return (

@@ -142,16 +142,6 @@ export enum Key {
   Length = 'length',
 }
 
-export enum EquationSolver {
-  DerivativeDelta = 1e-6,
-  InitialValue = 0.5,
-}
-
-export const NumberPrecision = {
-  Value: 1_000_000_000_000_000n,
-  HalfValue: 500_000_000_000_000n,
-} as const;
-
 export const RegularExpression = {
   BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
   Digit: /^\d{1}$/,
@@ -160,6 +150,7 @@ export const RegularExpression = {
 
 export enum Character {
   Comma = ',',
+  Dot = '.',
   Empty = '',
   Minus = '-',
   Space = ' ',
@@ -174,54 +165,56 @@ export enum Integer {
   One,
   Two,
   Three,
-  Five = 5,
+  Four,
+  Five,
   Seven = 7,
   Eight,
   Nine,
   Ten,
   Fourteen = 14,
   Sixteen = 16,
+  TwentyFive = 25,
+  FortyTwo = 42,
+  FiftyEight = 58,
   OneHundred = 100,
+  TwoThousand = 2_000,
   TwoThousandFiveHundred = 2_500,
+  FiveThousand = 5_000,
+  SixThousand = 6_000,
+  OneMillion = 1_000_000,
+}
+
+export const NumberPrecision = {
+  Value: 1_000_000_000_000_000n,
+  HalfValue: 500_000_000_000_000n,
+} as const;
+
+export enum EquationSolver {
+  DerivativeDelta = Integer.One / Integer.OneMillion,
+  InitialValue = Integer.One / Integer.Two,
 }
 
 export const AnimationTimingFunction = {
   Linear: [
-    [0, 0],
-    [1, 1],
+    [Integer.Zero, Integer.Zero],
+    [Integer.One, Integer.One],
   ],
   Ease: [
-    [0.25, 0.1],
-    [0.25, 1],
+    [Integer.One / Integer.Four, Integer.One / Integer.Ten],
+    [Integer.One / Integer.Four, Integer.One],
   ],
   EaseIn: [
-    [0.42, 0],
-    [1, 1],
+    [Integer.FortyTwo / Integer.OneHundred, Integer.Zero],
+    [Integer.One, Integer.One],
   ],
   EaseOut: [
-    [0, 0],
-    [0.58, 1],
+    [Integer.Zero, Integer.Zero],
+    [Integer.FiftyEight / Integer.OneHundred, Integer.One],
   ],
   EaseInOut: [
-    [0.42, 0],
-    [0.58, 1],
+    [Integer.FortyTwo / Integer.OneHundred, Integer.Zero],
+    [Integer.FiftyEight / Integer.OneHundred, Integer.One],
   ],
+  StepStart: { steps: Integer.One, stepPosition: StepPosition.JumpStart },
+  StepEnd: { steps: Integer.One, stepPosition: StepPosition.JumpEnd },
 } as const;
-
-export enum AnimationDurationValue {
-  HorizontalAnimation = 2_000,
-  VerticalAnimation = 5_000,
-}
-
-export enum TotalAnimationDurationValue {
-  AnimationDuration = 6_000,
-  Ratio = 2.5,
-}
-
-export enum InvalidValue {
-  Value = Number.NaN,
-}
-
-export enum StorybookValue {
-  Value = 987_654_321.012_345,
-}

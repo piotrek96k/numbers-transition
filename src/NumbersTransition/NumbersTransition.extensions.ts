@@ -25,10 +25,6 @@ Array.prototype.equals = function equals<T>(array: T[]): boolean {
   return this.length === array.length && this.every((value: unknown, index: number): boolean => value === array[index]);
 };
 
-Array.prototype.invert = function invert<T>(reverse: boolean): T[] {
-  return reverse ? this.reverse() : this;
-};
-
 Array.prototype.zip = function zip<T extends unknown[], U extends unknown[]>(array: U[]): Zip<T, U> {
   return this.map<[T[number]] | [T[number], U[number]], Zip<T, U>>(
     (value: T[number], index: number): [T[number]] | [T[number], U[number]] =>

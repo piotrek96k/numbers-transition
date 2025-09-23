@@ -3,26 +3,26 @@ import { RuleSet, css } from 'styled-components';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
 import NumbersTransition from './NumbersTransition';
 import {
-  AnimationDurationValue,
   AnimationId,
   AnimationInterruptionMode,
   AnimationTimingFunction,
+  Character,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
   Integer,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
-  StorybookValue,
+  StepPosition,
   VariableName,
 } from './NumbersTransition.enums';
-import { AnimationDuration } from './NumbersTransition.hooks';
-import { Animation, AnimationFactory, CubicBezierEasingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
-import { Falsy, ReadOnly } from './NumbersTransition.types';
+import { AnimationDuration, ExtendedAnimationTimingFunction } from './NumbersTransition.hooks';
+import { Animation, AnimationFactory, EasingFunction, NumbersTransitionExecutionContext } from './NumbersTransition.styles';
+import { Falsy, OrReadOnly } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
-  ReadOnly<CubicBezierEasingFunction>,
+  OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction,
   object,
   number,
   object,
@@ -82,16 +82,13 @@ const basicEffectCss: RuleSet<object> = css<object>`
 
 const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
   initialValue: Integer.Zero,
-  value: StorybookValue.Value,
-  precision: Integer.Nine,
+  value: [...Array(Integer.Ten)].reduce<string>((str: string, _: unknown, idx: number): string => `${idx}${str}${idx}`, Character.Dot),
+  precision: Integer.Ten,
   decimalSeparator: DecimalSeparatorCharacter.Comma,
   digitGroupSeparator: DigitGroupSeparatorCharacter.Space,
   negativeCharacter: NegativeCharacter.Minus,
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode.Single,
-  animationDuration: {
-    horizontalAnimation: AnimationDurationValue.HorizontalAnimation,
-    verticalAnimation: AnimationDurationValue.VerticalAnimation,
-  },
+  animationDuration: { horizontalAnimation: Integer.TwoThousand, verticalAnimation: Integer.FiveThousand },
   animationTimingFunction: AnimationTimingFunction.Ease,
   animationInterruptionMode: AnimationInterruptionMode.Interrupt,
   optimizationStrategy: OptimizationStrategy.None,
@@ -100,6 +97,16 @@ const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
 };
 
 export const BasicEffect: Story = { argTypes, args: basicEffectArgs };
+
+const stepsArgs: ComponentProps<NumbersTransitionProps> = {
+  ...basicEffectArgs,
+  animationTimingFunction: {
+    horizontalAnimation: { steps: Integer.Five, stepPosition: StepPosition.JumpEnd },
+    verticalAnimation: { steps: Integer.TwentyFive, stepPosition: StepPosition.JumpEnd },
+  },
+};
+
+export const Steps: Story = { argTypes, args: stepsArgs };
 
 const marginCss: RuleSet<object> = css<object>`
   ${basicEffectCss};

@@ -31,7 +31,6 @@ import {
   DigitGroupSeparatorCharacter,
   ForwardProp,
   Integer,
-  InvalidValue,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
@@ -58,12 +57,12 @@ import {
   useValidation,
   useValue,
 } from './NumbersTransition.hooks';
-import { Container, CubicBezierEasingFunction, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
+import { Container, EasingFunction, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction = CubicBezierEasingFunction,
+  J extends OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction = EasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -108,7 +107,7 @@ export interface NumbersTransitionProps<
 
 const NumbersTransition = <
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<CubicBezierEasingFunction> | ExtendedAnimationTimingFunction = CubicBezierEasingFunction,
+  J extends OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction = EasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -142,7 +141,7 @@ const NumbersTransition = <
     animationTimingFunction: animationTimingFunctionInput,
     animationInterruptionMode,
     animationAlgorithm,
-    invalidValue = `${InvalidValue.Value}`,
+    invalidValue = `${Number.NaN}`,
     optimizationStrategy,
     deferChunkSize,
     view,
@@ -217,7 +216,7 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
-  const animationTimingFunction: CubicBezierEasingFunction = useAnimationTimingFunction({
+  const animationTimingFunction: EasingFunction = useAnimationTimingFunction({
     animationTimingFunction: animationTimingFunctionInput,
     animationType,
     animationDirection,

@@ -34,7 +34,6 @@ declare global {
     equals<U>(array: U[]): boolean;
     forEach(callbackfn: (value: T, index: number, array: this) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
-    invert(invert: boolean): [...this];
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: this) => U, thisArg?: unknown): V;
     reduce<U extends unknown[], V extends U>(
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: this) => U,
@@ -46,6 +45,10 @@ declare global {
 
   interface ReadonlyArray<T> {
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: readonly this) => U, thisArg?: unknown): V;
+    reduce<U extends unknown[], V extends U>(
+      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly this) => U,
+      initialValue: U,
+    ): V;
   }
 }
 

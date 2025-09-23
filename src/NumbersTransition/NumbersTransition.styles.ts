@@ -177,6 +177,7 @@ const variables = ({
     digitGroupSeparatorsLength,
     negativeCharacterLength,
     invalidLength,
+    columnLength,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableName.NumberOfAnimations}: ${numberOfAnimations};
@@ -196,6 +197,7 @@ const variables = ({
   ${VariableName.DigitGroupSeparatorsLength}: ${digitGroupSeparatorsLength};
   ${VariableName.NegativeCharacterLength}: ${negativeCharacterLength};
   ${VariableName.InvalidLength}: ${invalidLength};
+  ${columnLength && `${VariableName.ColumnLength}: ${columnLength}`};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -255,7 +257,7 @@ interface AnimationWidthProps {
 
 interface HorizontalAnimationProps extends NumbersTransitionExecutionContext, AnimationWidthProps {}
 
-export type VerticalAnimationProps = NumbersTransitionExecutionContext;
+export interface VerticalAnimationProps extends NumbersTransitionExecutionContext {}
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 
