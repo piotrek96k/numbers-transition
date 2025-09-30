@@ -878,13 +878,13 @@ const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
     ];
 
   // prettier-ignore
-  const solve = (outputValue: number): ((tuple: [[number, number], [number, number]]) => number) =>
+  const findSolutions = (outputValue: number): ((tuple: [[number, number], [number, number]]) => number) =>
     ([[firstY, firstX], [secondY, secondX]]: [[number, number], [number, number]]): number =>
       [(secondY - firstY) / (secondX - firstX)]
         .flatMap<number, [number, number]>((slope: number): number[] => [slope, firstY - slope * firstX])
-        .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) ? (outputValue - intercept) / slope : firstX));
+        .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) && slope ? (outputValue - intercept) / slope : firstX));
 
-  return (easingFunction: LinearEasingFunction, outputValue: number) =>
+  return (easingFunction: LinearEasingFunction, outputValue: number): number =>
     [
       [easingFunction[Integer.Zero], Integer.Zero],
       ...easingFunction.slice(Integer.One, Integer.MinusOne),
@@ -893,7 +893,8 @@ const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
       .flatMap<number | [number, number]>(normalize)
       .map<[number, number]>(fillProgressInput)
       .reduce<[number, number][][], [[number, number], [number, number]][]>(findIntervals(outputValue), [])
-      .map<number>(solve(outputValue))[Integer.Zero];
+      .map<number>(findSolutions(outputValue))
+      .at(Integer.Zero)!;
 };
 
 type UseCubicBezierSolver = () => Solve<CubicBezierEasingFunction>;
