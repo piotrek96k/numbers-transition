@@ -26,17 +26,22 @@ declare global {
     isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     depth<T>(array: T): number;
     toArray<T>(value: OrArray<T>): T[];
+    toArray<T, U extends T[]>(value: OrArray<T>): U;
   }
 
   interface Array<T> {
     at(index: U): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
-    forEach(callbackfn: (value: T, index: number, array: this) => unknown, thisArg?: unknown): void;
+    flatMap<U, V extends U[], W = undefined>(
+      callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
+      thisArg?: W,
+    ): V;
+    forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
-    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: this) => U, thisArg?: unknown): V;
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     reduce<U extends unknown[], V extends U>(
-      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: this) => U,
+      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U,
       initialValue: U,
     ): V;
     zip<U extends unknown[]>(array: U): Zip<this, U>;
@@ -44,9 +49,9 @@ declare global {
   }
 
   interface ReadonlyArray<T> {
-    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: readonly this) => U, thisArg?: unknown): V;
+    map<U, V extends U[]>(callbackfn: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): V;
     reduce<U extends unknown[], V extends U>(
-      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly this) => U,
+      callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly T[]) => U,
       initialValue: U,
     ): V;
   }

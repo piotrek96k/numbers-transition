@@ -153,6 +153,7 @@ export enum Character {
   Dot = '.',
   Empty = '',
   Minus = '-',
+  Percent = '%',
   Space = ' ',
   Underscore = '_',
   VerticalLine = '|',
@@ -173,7 +174,7 @@ export enum Integer {
   Ten,
   Fourteen = 14,
   Sixteen = 16,
-  TwentyFive = 25,
+  Twenty = 20,
   FortyTwo = 42,
   FiftyEight = 58,
   OneHundred = 100,
@@ -195,10 +196,7 @@ export enum EquationSolver {
 }
 
 export const AnimationTimingFunction = {
-  Linear: [
-    [Integer.Zero, Integer.Zero],
-    [Integer.One, Integer.One],
-  ],
+  Linear: [Integer.Zero, Integer.One],
   Ease: [
     [Integer.One / Integer.Four, Integer.One / Integer.Ten],
     [Integer.One / Integer.Four, Integer.One],

@@ -102,7 +102,7 @@ const stepsArgs: ComponentProps<NumbersTransitionProps> = {
   ...basicEffectArgs,
   animationTimingFunction: {
     horizontalAnimation: { steps: Integer.Five, stepPosition: StepPosition.JumpEnd },
-    verticalAnimation: { steps: Integer.TwentyFive, stepPosition: StepPosition.JumpEnd },
+    verticalAnimation: { steps: Integer.Twenty, stepPosition: StepPosition.JumpEnd },
   },
 };
 

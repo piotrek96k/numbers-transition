@@ -14,7 +14,9 @@ Array.isOfDepth = function isOfDepth<T, U extends number>(array: unknown, depth:
 };
 
 Array.depth = function depth<T>(array: T): number {
-  return Array.isArray<T>(array) ? Integer.One + Math.max(Integer.Zero, ...array.map<number>(depth)) : Integer.Zero;
+  return Array.isArray<T>(array)
+    ? Integer.One + array.map<number>(depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
+    : Integer.Zero;
 };
 
 Array.toArray = function toArray<T>(value: OrArray<T>): T[] {

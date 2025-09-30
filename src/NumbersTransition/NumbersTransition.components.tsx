@@ -19,6 +19,7 @@ import {
   AnimationDirection,
   AnimationId,
   AnimationNumber,
+  AnimationTimingFunction,
   AnimationTransition,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
@@ -27,7 +28,6 @@ import {
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
-  StepPosition,
   Styled,
 } from './NumbersTransition.enums';
 import {
@@ -243,10 +243,8 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   const theme: NumbersTransitionTheme = {
     ...restTheme,
     animationDirection,
-    animationTimingFunction: {
-      steps: Integer.One,
-      stepPosition: animationDirection === AnimationDirection.Normal ? StepPosition.JumpEnd : StepPosition.JumpStart,
-    },
+    animationTimingFunction:
+      animationDirection === AnimationDirection.Normal ? AnimationTimingFunction.StepEnd : AnimationTimingFunction.StepStart,
     animationDuration,
   };
 

@@ -27,6 +27,8 @@ import {
 import './NumbersTransition.extensions';
 import { Enum, Falsy, Optional, OrArray, OrReadOnly, TypeOf } from './NumbersTransition.types';
 
+export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
+
 export type CubicBezierEasingFunction = [[number, number], [number, number]];
 
 export interface StepsEasingFunction {
@@ -34,7 +36,7 @@ export interface StepsEasingFunction {
   stepPosition: StepPosition;
 }
 
-export type EasingFunction = CubicBezierEasingFunction | StepsEasingFunction;
+export type EasingFunction = LinearEasingFunction | CubicBezierEasingFunction | StepsEasingFunction;
 
 interface ElementsIndex {
   symbolIndex?: number;
@@ -89,13 +91,23 @@ interface EnumProperty<E extends Enum<E>> extends BaseProperty {
   initialValue: TypeOf<E>;
 }
 
-const cubicBezier = (easingFunction: OrReadOnly<CubicBezierEasingFunction>): RuleSet<object> =>
-  css<object>`cubic-bezier(${easingFunction.join()})`;
+const mapLinear = (value: LinearEasingFunction[number]): string =>
+  Array.toArray<number>(value)
+    .map<string>((value: number, index: number): string => `${value}${index ? Character.Percent : Character.Empty}`)
+    .join(Character.Space);
+
+const linear = (linear: LinearEasingFunction): RuleSet<object> => css<object>`linear(${linear.map<string>(mapLinear).join()})`;
+
+const cubicBezier = (bezier: OrReadOnly<CubicBezierEasingFunction>): RuleSet<object> => css<object>`cubic-bezier(${bezier.join()})`;
 
 const steps = ({ steps, stepPosition }: StepsEasingFunction): RuleSet<object> => css<object>`steps(${steps}, ${stepPosition})`;
 
 const easingFunction = (easingFunction: EasingFunction): RuleSet<object> =>
-  Array.isArray<StepsEasingFunction, CubicBezierEasingFunction>(easingFunction) ? cubicBezier(easingFunction) : steps(easingFunction);
+  Array.isArray<StepsEasingFunction, CubicBezierEasingFunction | LinearEasingFunction>(easingFunction)
+    ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
+      ? cubicBezier(easingFunction)
+      : linear(easingFunction)
+    : steps(easingFunction);
 
 const mapEnumProperty = ({
   enumerable,
