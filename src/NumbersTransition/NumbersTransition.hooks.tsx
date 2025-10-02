@@ -938,21 +938,21 @@ const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFu
     [number, number, number],
   ] => [coefficients, [(first / Integer.Three) ** Integer.Three + (second / Integer.Two) ** Integer.Two, first, second]];
 
-  const solveForOneRoot = ([[first, second], [discriminant, , secondDepressed]]: [number[], number[]]): number[] => [
+  const solveForOneRoot = ([first, second]: number[], [, secondDepressed]: number[], discriminant: number): number[] => [
     [Integer.MinusOne, Integer.One]
       .map<number>((multiplier: number): number => Math.cbrt(-secondDepressed / Integer.Two + multiplier * Math.sqrt(discriminant)))
       .reduce(sum) -
       second / (Integer.Three * first),
   ];
 
-  const solveForDuplicatedRoots = ([[first, second], [, firstDepressed, secondDepressed]]: [number[], number[]]): number[] =>
+  const solveForDuplicatedRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
     firstDepressed
       ? [Integer.MinusOne, Integer.MinusOne, Integer.Two].map<number>(
           (multiplier: number): number => multiplier * Math.cbrt(-secondDepressed / Integer.Two) - second / (Integer.Three * first),
         )
       : [-second / (Integer.Three * first)];
 
-  const solveForThreeRoots = ([[first, second], [, firstDepressed, secondDepressed]]: [number[], number[]]): number[] =>
+  const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
     [...Array(Integer.Three)].map(
       (_: unknown, index: number): number =>
         Integer.Two *
@@ -965,19 +965,21 @@ const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFu
         second / (Integer.Three * first),
     );
 
+  // prettier-ignore
   const solveCubicBezier = (coefficients: number[], [discriminant, ...depressedCoefficients]: number[]): number[] =>
     [
       (discriminant: number): boolean => Math.abs(discriminant) <= Integer.Ten ** Integer.MinusFifteen,
       (discriminant: number): boolean => discriminant > Integer.Zero,
       (discriminant: number): boolean => discriminant < Integer.Zero,
     ]
-      .zip<
-        TupleOfLength<(discriminant: number) => boolean, Integer.Three>,
-        TupleOfLength<(tuple: [number[], number[]]) => number[], Integer.Three>
-      >([solveForDuplicatedRoots, solveForOneRoot, solveForThreeRoots])
-      .find(([condition]: [(disc: number) => boolean, (tuple: [number[], number[]]) => number[]]): boolean => condition(discriminant))!
+      .zip<TupleOfLength<(disc: number) => boolean, Integer.Three>, TupleOfLength<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>([
+        solveForDuplicatedRoots, 
+        solveForOneRoot, 
+        solveForThreeRoots
+      ])
+      .find(([condition]: [(disc: number) => boolean, (coeffs: number[], nextCoeffs: number[], disc: number) => number[]]): boolean => condition(discriminant))!
       .at<Integer.One>(Integer.One)
-      .call<undefined, [[number[], number[]]], number[]>(undefined, [coefficients, [discriminant, ...depressedCoefficients]]);
+      .call<undefined, [number[], number[], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
 
   // prettier-ignore
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
@@ -999,8 +1001,8 @@ const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFu
 
 type UseStepsSolver = () => Solve<StepsEasingFunction>;
 
-const useStepsSolver: UseStepsSolver =
-  (): Solve<StepsEasingFunction> =>
+// prettier-ignore
+const useStepsSolver: UseStepsSolver = (): Solve<StepsEasingFunction> =>
   ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => {
     switch (stepPosition) {
       case StepPosition.JumpStart:
