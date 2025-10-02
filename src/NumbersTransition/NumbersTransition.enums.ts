@@ -161,6 +161,7 @@ export enum Character {
 
 export enum Integer {
   MinusOneHundred = -100,
+  MinusFifteen = -15,
   MinusOne = -1,
   Zero,
   One,
@@ -175,6 +176,7 @@ export enum Integer {
   Fourteen = 14,
   Sixteen = 16,
   Twenty = 20,
+  TwentySeven = 27,
   FortyTwo = 42,
   FiftyEight = 58,
   OneHundred = 100,
@@ -182,18 +184,12 @@ export enum Integer {
   TwoThousandFiveHundred = 2_500,
   FiveThousand = 5_000,
   SixThousand = 6_000,
-  OneMillion = 1_000_000,
 }
 
 export const NumberPrecision = {
   Value: 1_000_000_000_000_000n,
   HalfValue: 500_000_000_000_000n,
 } as const;
-
-export enum EquationSolver {
-  DerivativeDelta = Integer.One / Integer.OneMillion,
-  InitialValue = Integer.One / Integer.Two,
-}
 
 export const AnimationTimingFunction = {
   Linear: [Integer.Zero, Integer.One],

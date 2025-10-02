@@ -40,6 +40,9 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
+    reduce(
+      callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T extends unknown[] ? T[number][] : T,
+    ): T extends unknown[] ? T[number][] : T;
     reduce<U extends unknown[], V extends U>(
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U,
       initialValue: U,

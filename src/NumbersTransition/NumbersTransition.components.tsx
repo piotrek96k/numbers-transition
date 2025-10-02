@@ -16,10 +16,8 @@ import {
 } from 'react';
 import { ThemeProvider, useTheme } from 'styled-components';
 import {
-  AnimationDirection,
   AnimationId,
   AnimationNumber,
-  AnimationTimingFunction,
   AnimationTransition,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
@@ -40,7 +38,7 @@ import {
   useElementKeyMapper,
   useHorizontalAnimationDigits,
   useHorizontalAnimationWidths,
-  useNegativeElementAnimationDuration,
+  useNegativeElementAnimationTimingFunction,
   useNegativeElementAnimationVisibilities,
   useSymbolIndexFunctions,
   useVerticalAnimationDeferFunctions,
@@ -52,6 +50,7 @@ import {
   Digit,
   DigitGroupSeparator,
   DigitProps,
+  EasingFunction,
   HorizontalAnimation,
   Invalid,
   Negative,
@@ -221,9 +220,12 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     enclose,
   }: VerticalAnimationNegativeElementProps<T, U, V, W> = props;
 
-  const { animationDirection, ...restTheme }: NumbersTransitionTheme = useTheme();
+  const theme: NumbersTransitionTheme = useTheme();
   const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
-  const animationDuration: number = useNegativeElementAnimationDuration({ negativeCharacterAnimationMode, animationVisibilities });
+  const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({
+    negativeCharacterAnimationMode,
+    animationVisibilities,
+  });
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
@@ -240,14 +242,6 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     (visible: boolean): NegativeElementProps<T, U, V, W> => ({ negativeCharacter, visible, symbolStyledView, negativeCharacterStyledView }),
   );
 
-  const theme: NumbersTransitionTheme = {
-    ...restTheme,
-    animationDirection,
-    animationTimingFunction:
-      animationDirection === AnimationDirection.Normal ? AnimationTimingFunction.StepEnd : AnimationTimingFunction.StepStart,
-    animationDuration,
-  };
-
   const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities
     .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
     .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement);
@@ -263,7 +257,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   return (
     <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
       <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
-        <VerticalAnimation theme={theme}>
+        <VerticalAnimation theme={{ ...theme, animationTimingFunction }}>
           <div>
             <NegativeElement<T, U, V, W>
               negativeCharacter={negativeCharacter}

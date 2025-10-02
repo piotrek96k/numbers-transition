@@ -22,7 +22,6 @@ import {
   AnimationTransition,
   AnimationType,
   Character,
-  EquationSolver,
   Integer,
   Key,
   NegativeCharacterAnimationMode,
@@ -821,7 +820,7 @@ export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimatio
     .find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
-type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number;
+type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
 
 type UseLinearSolver = () => Solve<LinearEasingFunction>;
 
@@ -884,7 +883,7 @@ const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
         .flatMap<number, [number, number]>((slope: number): number[] => [slope, firstY - slope * firstX])
         .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) && slope ? (outputValue - intercept) / slope : firstX));
 
-  return (easingFunction: LinearEasingFunction, outputValue: number): number =>
+  return (easingFunction: LinearEasingFunction, outputValue: number): number[] =>
     [
       [easingFunction[Integer.Zero], Integer.Zero],
       ...easingFunction.slice(Integer.One, Integer.MinusOne),
@@ -893,106 +892,162 @@ const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
       .flatMap<number | [number, number]>(normalize)
       .map<[number, number]>(fillProgressInput)
       .reduce<[number, number][][], [[number, number], [number, number]][]>(findIntervals(outputValue), [])
-      .map<number>(findSolutions(outputValue))
-      .at(Integer.Zero)!;
+      .map<number>(findSolutions(outputValue));
 };
 
 type UseCubicBezierSolver = () => Solve<CubicBezierEasingFunction>;
 
 const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
-  const cubicBezier =
-    ([firstPoint, secondPoint]: CubicBezierEasingFunction[number]): ((time: number) => number) =>
-    (time: number): number =>
-      Integer.Three * (firstPoint * time * (Integer.One - time) ** Integer.Two + secondPoint * (Integer.One - time) * time ** Integer.Two) +
-      time ** Integer.Three;
+  const sum = (first: number, second: number): number => first + second;
 
-  const derivative = (func: (value: number) => number, value: number) =>
-    (func(value + EquationSolver.DerivativeDelta) - func(value - EquationSolver.DerivativeDelta)) /
-    (Integer.Two * EquationSolver.DerivativeDelta);
+  const mapControlPoints = (_: [number, number], index: number, array: [number, number][]): [number, number] =>
+    array.map<number, [number, number]>((tuple: [number, number]): number => tuple[index]);
 
-  const solve = (
-    func: (value: number) => number,
-    previousValue: number = EquationSolver.InitialValue,
-    previousFuncResult: number = func(previousValue),
-  ): number => {
-    const newValue: number = previousValue - previousFuncResult / derivative(func, previousValue);
-    const newFuncResult: number = func(newValue);
+  const calculateCoefficients = ([firstPoint, secondPoint]: [number, number]): [number, number, number] => [
+    Integer.Three * (firstPoint - secondPoint) + Integer.One,
+    Integer.Three * (secondPoint - Integer.Two * firstPoint),
+    Integer.Three * firstPoint,
+  ];
 
-    const isConvergent: boolean = [newValue - previousValue, newFuncResult]
-      .map<boolean>((value: number): boolean => Math.abs(value) < EquationSolver.DerivativeDelta)
-      .reduce((accumulator: boolean, currentValue: boolean): boolean => accumulator && currentValue);
+  // prettier-ignore
+  const cubicBezierFunction = (tuple: [number, number]): ((value: number) => number) =>
+    (value: number): number => calculateCoefficients(tuple)
+      .map<number>((coefficient: number, index: number, { length }: number[]): number => coefficient * value ** (length - index))
+      .reduce(sum);
 
-    return isConvergent ? newValue : solve(func, newValue, newFuncResult);
-  };
+  // prettier-ignore
+  const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => TupleOfLength<number, Integer.Four>) =>
+    (tuple: [number, number]): TupleOfLength<number, Integer.Four> => [...calculateCoefficients(tuple), -outputValue];
 
-  const mapCubicBezier = (accumulator: [number[], number[]], currentValue: CubicBezierEasingFunction[number]): CubicBezierEasingFunction =>
-    accumulator.map<number[], CubicBezierEasingFunction>((coordinates: number[], index: number): number[] => [
-      ...coordinates,
-      currentValue[index],
-    ]);
-
-  const solveCubicBezier = (
-    outputValue: number,
-    [xAxisCubicBezier, yAxisCubicBezier]: [(time: number) => number, (time: number) => number],
-  ): number => xAxisCubicBezier(solve((value: number): number => yAxisCubicBezier(value) - outputValue));
-
-  return (easingFunction: CubicBezierEasingFunction, outputValue: number): number =>
+  const calculateDepressedCoefficients = ([first, second, third, fourth]: TupleOfLength<number, Integer.Four>): [
+    TupleOfLength<number, Integer.Four>,
+    [number, number],
+  ] => [
+    [first, second, third, fourth],
     [
-      easingFunction
-        .reduce<[number[], number[]], CubicBezierEasingFunction>(mapCubicBezier, [[], []])
-        .map<(time: number) => number, [(time: number) => number, (time: number) => number]>(cubicBezier),
-    ].reduce<number>(solveCubicBezier, outputValue);
+      (Integer.Three * first * third - second ** Integer.Two) / (Integer.Three * first ** Integer.Two),
+      (Integer.Two * second ** Integer.Three -
+        Integer.Nine * first * second * third +
+        Integer.TwentySeven * first ** Integer.Two * fourth) /
+        (Integer.TwentySeven * first ** Integer.Three),
+    ],
+  ];
+
+  const calculateDiscriminant = ([coefficients, [first, second]]: [TupleOfLength<number, Integer.Four>, [number, number]]): [
+    TupleOfLength<number, Integer.Four>,
+    [number, number, number],
+  ] => [coefficients, [(first / Integer.Three) ** Integer.Three + (second / Integer.Two) ** Integer.Two, first, second]];
+
+  const solveForOneRoot = ([[first, second], [discriminant, , secondDepressed]]: [number[], number[]]): number[] => [
+    [Integer.MinusOne, Integer.One]
+      .map<number>((multiplier: number): number => Math.cbrt(-secondDepressed / Integer.Two + multiplier * Math.sqrt(discriminant)))
+      .reduce(sum) -
+      second / (Integer.Three * first),
+  ];
+
+  const solveForDuplicatedRoots = ([[first, second], [, firstDepressed, secondDepressed]]: [number[], number[]]): number[] =>
+    firstDepressed
+      ? [Integer.MinusOne, Integer.MinusOne, Integer.Two].map<number>(
+          (multiplier: number): number => multiplier * Math.cbrt(-secondDepressed / Integer.Two) - second / (Integer.Three * first),
+        )
+      : [-second / (Integer.Three * first)];
+
+  const solveForThreeRoots = ([[first, second], [, firstDepressed, secondDepressed]]: [number[], number[]]): number[] =>
+    [...Array(Integer.Three)].map(
+      (_: unknown, index: number): number =>
+        Integer.Two *
+          Math.sqrt(-firstDepressed / Integer.Three) *
+          Math.cos(
+            (Integer.One / Integer.Three) *
+              Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
+              (Integer.Two * index * Math.PI) / Integer.Three,
+          ) -
+        second / (Integer.Three * first),
+    );
+
+  const solveCubicBezier = (coefficients: number[], [discriminant, ...depressedCoefficients]: number[]): number[] =>
+    [
+      (discriminant: number): boolean => Math.abs(discriminant) <= Integer.Ten ** Integer.MinusFifteen,
+      (discriminant: number): boolean => discriminant > Integer.Zero,
+      (discriminant: number): boolean => discriminant < Integer.Zero,
+    ]
+      .zip<
+        TupleOfLength<(discriminant: number) => boolean, Integer.Three>,
+        TupleOfLength<(tuple: [number[], number[]]) => number[], Integer.Three>
+      >([solveForDuplicatedRoots, solveForOneRoot, solveForThreeRoots])
+      .find(([condition]: [(disc: number) => boolean, (tuple: [number[], number[]]) => number[]]): boolean => condition(discriminant))!
+      .at<Integer.One>(Integer.One)
+      .call<undefined, [[number[], number[]]], number[]>(undefined, [coefficients, [discriminant, ...depressedCoefficients]]);
+
+  // prettier-ignore
+  const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
+    (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
+      [yAxisPoints]
+        .map<TupleOfLength<number, Integer.Four>, [TupleOfLength<number, Integer.Four>]>(calculateCubicCoefficients(outputValue))
+        .map<number[][], [[TupleOfLength<number, Integer.Four>, [number, number]]]>(calculateDepressedCoefficients)
+        .map<number[][], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]>(calculateDiscriminant)
+        .flat<[[number[], number[]]], Integer.One>()
+        .reduce(solveCubicBezier)
+        .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
+        .sort((first: number, second: number): number => first - second)
+        .map<number>((solved: number): number => cubicBezierFunction(xAxisPoints).call<undefined, [number], number>(undefined, solved));
+
+  return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
+    easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
 };
 
 type UseStepsSolver = () => Solve<StepsEasingFunction>;
 
 const useStepsSolver: UseStepsSolver =
   (): Solve<StepsEasingFunction> =>
-  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number => {
+  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => {
     switch (stepPosition) {
       case StepPosition.JumpStart:
-        return Math.floor(outputValue * steps) / steps;
+        return [Math.floor(outputValue * steps) / steps];
       case StepPosition.JumpEnd:
-        return Math.ceil(outputValue * steps) / steps;
+        return [Math.ceil(outputValue * steps) / steps];
       case StepPosition.JumpNone:
-        return Math.ceil(outputValue * (steps - Integer.One)) / steps;
+        return [Math.ceil(outputValue * (steps - Integer.One)) / steps];
       case StepPosition.JumpBoth:
-        return Math.floor(outputValue * (steps + Integer.One)) / steps;
+        return [Math.floor(outputValue * (steps + Integer.One)) / steps];
     }
   };
 
-interface UseNegativeElementAnimationDurationOptions {
+interface UseNegativeElementAnimationTimingFunctionOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationVisibilities: boolean[];
 }
 
-type UseNegativeElementAnimationDuration = (options: UseNegativeElementAnimationDurationOptions) => number;
+type UseNegativeElementAnimationTimingFunction = (options: UseNegativeElementAnimationTimingFunctionOptions) => LinearEasingFunction;
 
-export const useNegativeElementAnimationDuration: UseNegativeElementAnimationDuration = (
-  options: UseNegativeElementAnimationDurationOptions,
-): number => {
-  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationDurationOptions = options;
+export const useNegativeElementAnimationTimingFunction: UseNegativeElementAnimationTimingFunction = (
+  options: UseNegativeElementAnimationTimingFunctionOptions,
+): LinearEasingFunction => {
+  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationTimingFunctionOptions = options;
 
-  const { animationDirection, animationDuration, animationTimingFunction }: NumbersTransitionTheme = useTheme();
+  const { animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
   const solveLinear: Solve<LinearEasingFunction> = useLinearSolver();
   const solveCubicBezier: Solve<CubicBezierEasingFunction> = useCubicBezierSolver();
   const solveSteps: Solve<StepsEasingFunction> = useStepsSolver();
 
-  const outputAnimationProgress: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
+  const solve = (input: number): number[] =>
+    Array.isArray<StepsEasingFunction, CubicBezierEasingFunction | LinearEasingFunction>(animationTimingFunction!)
+      ? Array.isOfDepth<number, Integer.Two>(animationTimingFunction, Integer.Two)
+        ? solveCubicBezier(animationTimingFunction, input)
+        : solveLinear(animationTimingFunction, input)
+      : solveSteps(animationTimingFunction!, input);
 
-  const inputAnimationProgress: number =
-    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single
-      ? Array.isArray<StepsEasingFunction, CubicBezierEasingFunction | LinearEasingFunction>(animationTimingFunction!)
-        ? Array.isOfDepth<number, Integer.Two>(animationTimingFunction, Integer.Two)
-          ? solveCubicBezier(animationTimingFunction, outputAnimationProgress)
-          : solveLinear(animationTimingFunction, outputAnimationProgress)
-        : solveSteps(animationTimingFunction!, outputAnimationProgress)
-      : Integer.Zero;
+  const mapToLinear = (solution: number, index: number): LinearEasingFunction[number][] =>
+    [...Array(Integer.Two)].map<LinearEasingFunction[number]>((_: unknown, value: number): LinearEasingFunction[number] => [
+      (index + value) % Integer.Two,
+      solution * Integer.OneHundred,
+    ]);
 
-  return (
-    animationDuration! * (animationDirection === AnimationDirection.Normal ? inputAnimationProgress : Integer.One - inputAnimationProgress)
-  );
+  const input: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
+  const solutions: number[] = negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single ? solve(input) : [Integer.Zero];
+
+  return [Integer.Zero, ...solutions.flatMap<LinearEasingFunction[number]>(mapToLinear), Integer.One];
 };
 
 interface UseHorizontalAnimationDigitsOptions {
