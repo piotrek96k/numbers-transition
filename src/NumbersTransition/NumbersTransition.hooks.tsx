@@ -990,6 +990,7 @@ const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFu
         .reduce(solveCubicBezier)
         .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
         .sort((first: number, second: number): number => first - second)
+        .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
         .map<number>((solved: number): number => cubicBezierFunction(xAxisPoints).call<undefined, [number], number>(undefined, solved));
 
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
