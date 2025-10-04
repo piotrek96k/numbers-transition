@@ -6,11 +6,12 @@
   "module": "./dist/numbers-transition.js",
   "types": "./dist/numbers-transition.d.ts",
   "scripts": {
-    "build": "tsc --noEmit && vite build",
+    "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
-    "prepare": "husky"
+    "build:plugins": "tsc -p tsconfig.plugins.json",
+    "build": "npm run build:plugins && tsc && vite build",
+    "build:storybook": "npm run build && storybook build"
   },
   "peerDependencies": {
     "react": "^19.1.1",
@@ -42,6 +43,7 @@
     "lint-staged": "^16.1.6",
     "prettier": "^3.6.2",
     "storybook": "^9.1.5",
+    "ts-patch": "^3.3.0",
     "typescript": "^5.9.2",
     "vite": "^7.1.4",
     "vite-plugin-dts": "^4.5.4"

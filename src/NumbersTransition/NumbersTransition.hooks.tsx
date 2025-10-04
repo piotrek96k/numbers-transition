@@ -366,7 +366,6 @@ const useLinearDirection: UseLinearDirection = (animationDirection: AnimationDir
   const reverseLinear = (
     _: OrReadOnly<LinearEasingFunction[number]>,
     index: number,
-    // @ts-expect-error ts(2373)
     { length, [length - index - Integer.One]: value }: OrReadOnly<OrReadOnly<LinearEasingFunction[number]>[]>,
   ): LinearEasingFunction[number] =>
     Array.isArray<number, OrReadOnly<[number, number] | [number, number, number]>>(value)

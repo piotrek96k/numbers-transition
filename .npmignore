@@ -3,6 +3,7 @@
 .storybook
 .vscode
 node_modules
+plugins
 src
 storybook-static
 .gitattributes
@@ -14,4 +15,5 @@ eslint.config.js
 package-lock.json
 tsconfig.json
 tsconfig.node.json
+tsconfig.plugins.json
 vite.config.ts
