@@ -23,8 +23,8 @@ Array.toArray = function toArray<T>(value: OrArray<T>): T[] {
   return Array.isArray<T>(value) ? value : [value];
 };
 
-Array.prototype.equals = function equals<T>(array: T[]): boolean {
-  return this.length === array.length && this.every((value: unknown, index: number): boolean => value === array[index]);
+Array.prototype.equals = function equals<T>({ length, ...array }: T[]): boolean {
+  return this.length === length && this.every((value: unknown, index: number): boolean => value === array[index]);
 };
 
 Array.prototype.zip = function zip<T extends unknown[], U extends unknown[]>(array: U[]): Zip<T, U> {

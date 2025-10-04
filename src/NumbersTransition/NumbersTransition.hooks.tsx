@@ -231,18 +231,13 @@ type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => [AnimationNu
 export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNumbersOptions): [AnimationNumber, AnimationNumber] => {
   const {
     animationTransition,
-    previousValueDigits,
-    currentValueDigits,
+    previousValueDigits: { length: previousLength },
+    currentValueDigits: { length: currentLength },
     previousValue,
     currentValue,
     hasSignChanged,
     renderAnimation,
   }: UseAnimationNumbersOptions = options;
-
-  const hasNumberOfDigitsChanged: boolean = previousValueDigits.length !== currentValueDigits.length;
-  const hasThreeAnimations: boolean =
-    (previousValueDigits.length < currentValueDigits.length && previousValue < currentValue) ||
-    (previousValueDigits.length > currentValueDigits.length && previousValue > currentValue);
 
   const animationNumber: AnimationNumber = renderAnimation
     ? animationTransition === AnimationTransition.SecondToThird
@@ -254,10 +249,10 @@ export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNu
 
   const numberOfAnimations: AnimationNumber = renderAnimation
     ? hasSignChanged
-      ? hasThreeAnimations
+      ? (previousLength < currentLength && previousValue < currentValue) || (previousLength > currentLength && previousValue > currentValue)
         ? AnimationNumber.Three
         : AnimationNumber.Two
-      : hasNumberOfDigitsChanged
+      : previousLength !== currentLength
         ? AnimationNumber.Two
         : AnimationNumber.One
     : AnimationNumber.Zero;
@@ -281,8 +276,8 @@ type UseAnimationType = (options: UseAnimationTypeOptions) => AnimationType;
 export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOptions): AnimationType => {
   const {
     animationTransition,
-    previousValueDigits,
-    currentValueDigits,
+    previousValueDigits: { length: previousLength },
+    currentValueDigits: { length: currentLength },
     previousValue,
     currentValue,
     hasSignChanged,
@@ -295,8 +290,8 @@ export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOpti
       ? previousValue > currentValue
       : previousValue < currentValue
     : animationTransition === AnimationTransition.None
-      ? previousValueDigits.length < currentValueDigits.length
-      : previousValueDigits.length > currentValueDigits.length;
+      ? previousLength < currentLength
+      : previousLength > currentLength;
 
   const renderHorizontalAnimation: boolean =
     (numberOfAnimations === AnimationNumber.Two && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
@@ -322,8 +317,8 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
   const {
     animationType,
     animationTransition,
-    previousValueDigits,
-    currentValueDigits,
+    previousValueDigits: { length: previousLength },
+    currentValueDigits: { length: currentLength },
     previousValue,
     currentValue,
     hasSignChanged,
@@ -331,8 +326,7 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
   }: UseAnimationDirectionOptions = options;
 
   const horizontalAnimationDirection: AnimationDirection =
-    (numberOfAnimations === AnimationNumber.Two &&
-      (hasSignChanged ? previousValue > currentValue : previousValueDigits.length < currentValueDigits.length)) ||
+    (numberOfAnimations === AnimationNumber.Two && (hasSignChanged ? previousValue > currentValue : previousLength < currentLength)) ||
     (numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.None)
       ? AnimationDirection.Normal
       : AnimationDirection.Reverse;
@@ -360,8 +354,8 @@ const useLinearDirection: UseLinearDirection = (animationDirection: AnimationDir
   const copyLinear = (value: OrReadOnly<LinearEasingFunction[number]>): LinearEasingFunction[number] =>
     Array.isArray<number, OrReadOnly<[number, number] | [number, number, number]>>(value) ? [...value] : value;
 
-  const reverseLinearTuple = (number: number, index: number, { length, ...array }: OrReadOnly<number[]>): number =>
-    index ? Integer.OneHundred - array[length - index] : Integer.One - number;
+  const reverseLinearTuple = (number: number, index: number, { length, [length - index]: value }: OrReadOnly<number[]>): number =>
+    index ? Integer.OneHundred - value : Integer.One - number;
 
   const reverseLinear = (
     _: OrReadOnly<LinearEasingFunction[number]>,
