@@ -117,7 +117,7 @@ const marginCss: RuleSet<object> = css<object>`
   }
   #${AnimationId.VerticalAnimation} :not(:last-child),
   :has(~ * > #${AnimationId.VerticalAnimation}) > * :not(:last-child) {
-    margin-bottom: ${Integer.Two}rem;
+    padding-bottom: ${Integer.Two}rem;
   }
 `;
 
