@@ -230,12 +230,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
     NumbersTransitionExecutionContext
-  >(
-    ThemeProvider,
-    (_: ReactElement<ChildrenProps>, rowIndex: number, { length }: ReactElement<ChildrenProps>[]): NumbersTransitionExecutionContext => ({
-      theme: { columnLength: length, rowIndex },
-    }),
-  );
+  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): NumbersTransitionExecutionContext => ({ theme: { rowIndex } }));
 
   const mapToNegativeElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeElementProps<T, U, V, W>>(
     NegativeElement<T, U, V, W>,
@@ -257,7 +252,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   return (
     <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
       <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
-        <VerticalAnimation theme={{ ...theme, animationTimingFunction }}>
+        <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Two }}>
           <div>
             <NegativeElement<T, U, V, W>
               negativeCharacter={negativeCharacter}

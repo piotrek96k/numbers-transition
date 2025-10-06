@@ -168,7 +168,7 @@ const properties: Property[] = [
 
 const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProperty);
 
-const variables = ({
+const containerVariables = ({
   theme: {
     numberOfAnimations,
     animationNumber,
@@ -189,7 +189,6 @@ const variables = ({
     digitGroupSeparatorsLength,
     negativeCharacterLength,
     invalidLength,
-    columnLength,
   },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${VariableName.NumberOfAnimations}: ${numberOfAnimations};
@@ -209,7 +208,13 @@ const variables = ({
   ${VariableName.DigitGroupSeparatorsLength}: ${digitGroupSeparatorsLength};
   ${VariableName.NegativeCharacterLength}: ${negativeCharacterLength};
   ${VariableName.InvalidLength}: ${invalidLength};
-  ${columnLength && `${VariableName.ColumnLength}: ${columnLength}`};
+`;
+
+const verticalAnimationVariables = ({
+  theme: { animationTimingFunction, columnLength },
+}: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(animationTimingFunction!)};
+  ${VariableName.ColumnLength}: ${columnLength};
 `;
 
 type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
@@ -443,7 +448,7 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   white-space: nowrap;
   overflow-y: clip;
   ${cssProperties};
-  ${variables};
+  ${containerVariables};
   ${cssFactory<Styled.Container>(Styled.Container)};
   ${animationFactory<Styled.Container>(Styled.Container)};
 `;
@@ -465,7 +470,7 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
 type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, VerticalAnimationProps>;
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
-  ${variables};
+  ${verticalAnimationVariables};
   display: inline-flex;
   flex-direction: column;
   height: inherit;
