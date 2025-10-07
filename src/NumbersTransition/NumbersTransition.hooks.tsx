@@ -344,9 +344,7 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
   }
 };
 
-type FixDirection<T extends EasingFunction> = (
-  easingFunction: T extends LinearEasingFunction ? OrReadOnly<OrReadOnly<T[number]>[]> : OrReadOnly<T>,
-) => T;
+type FixDirection<T extends EasingFunction> = (easingFunction: OrReadOnly<T>) => T;
 
 type UseLinearDirection = (animationDirection: AnimationDirection) => FixDirection<LinearEasingFunction>;
 
@@ -366,7 +364,7 @@ const useLinearDirection: UseLinearDirection = (animationDirection: AnimationDir
       ? value.map<number, [number, number] | [number, number, number]>(reverseLinearTuple)
       : Integer.One - value;
 
-  return (easingFunction: OrReadOnly<OrReadOnly<LinearEasingFunction[number]>[]>): LinearEasingFunction =>
+  return (easingFunction: OrReadOnly<LinearEasingFunction>): LinearEasingFunction =>
     easingFunction.map<LinearEasingFunction[number], LinearEasingFunction>(
       animationDirection === AnimationDirection.Normal ? copyLinear : reverseLinear,
       [],

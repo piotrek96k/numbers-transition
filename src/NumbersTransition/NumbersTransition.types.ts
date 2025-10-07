@@ -21,6 +21,10 @@ export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U exte
   ? T
   : ArrayOfDepth<T[], U, [...V, unknown]>;
 
+export type ReadOnlyArrayOfDepth<T, U extends number, V extends readonly unknown[] = readonly []> = U extends V[Key.Length]
+  ? T
+  : ReadOnlyArrayOfDepth<readonly T[], U, readonly [...V, unknown]>;
+
 export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 
 export type Every<T extends [unknown, unknown][], U, V, W extends unknown[] = []> = W[Key.Length] extends T[Key.Length]

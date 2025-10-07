@@ -1,5 +1,5 @@
 import { Integer } from './NumbersTransition.enums';
-import { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
+import { ArrayOfDepth, OrArray, ReadOnlyArrayOfDepth, Zip } from './NumbersTransition.types';
 
 String.prototype.capitalize = function capitalize(): string {
   return `${this[Integer.Zero].toUpperCase()}${this.slice(Integer.One)}`;
@@ -9,7 +9,10 @@ RegExp.prototype.testAny = function testAny<T>(unknown: unknown): unknown is T {
   return this.test(`${unknown}`);
 };
 
-Array.isOfDepth = function isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
+Array.isOfDepth = function isOfDepth<T, U extends number>(
+  array: unknown,
+  depth: U,
+): array is ArrayOfDepth<T, U> | ReadOnlyArrayOfDepth<T, U> {
   return Array.depth<unknown>(array) === depth;
 };
 
