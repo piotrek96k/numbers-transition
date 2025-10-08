@@ -142,12 +142,6 @@ export enum Key {
   Length = 'length',
 }
 
-export const RegularExpression = {
-  BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
-  Digit: /^\d{1}$/,
-  DecimalSeparator: /\.|,/,
-} as const;
-
 export enum Character {
   Comma = ',',
   Dot = '.',
@@ -185,6 +179,12 @@ export enum Integer {
   FiveThousand = 5_000,
   SixThousand = 6_000,
 }
+
+export const RegularExpression = {
+  BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
+  Digit: /^\d{1}$/,
+  DecimalSeparator: /\.|,/,
+} as const;
 
 export const NumberPrecision = {
   Value: 1_000_000_000_000_000n,
