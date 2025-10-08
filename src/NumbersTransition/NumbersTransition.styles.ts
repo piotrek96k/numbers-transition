@@ -38,6 +38,26 @@ export interface StepsEasingFunction {
 
 export type EasingFunction = LinearEasingFunction | CubicBezierEasingFunction | StepsEasingFunction;
 
+export type EasingFunctions<
+  T,
+  U extends OrReadOnly<LinearEasingFunction>,
+  V extends OrReadOnly<CubicBezierEasingFunction>,
+  W extends OrReadOnly<StepsEasingFunction>,
+  X extends unknown[],
+> = [(easingFunction: U, ...args: X) => T, (easingFunction: V, ...args: X) => T, (easingFunction: W, ...args: X) => T];
+
+export type EasingFunctionTypeMapper = <
+  T,
+  U extends OrReadOnly<LinearEasingFunction>,
+  V extends OrReadOnly<CubicBezierEasingFunction>,
+  W extends OrReadOnly<StepsEasingFunction>,
+  X extends unknown[] = [],
+>(
+  functions: EasingFunctions<T, U, V, W, X>,
+  easingFunction: U | V | W,
+  ...args: X
+) => T;
+
 interface ElementsIndex {
   symbolIndex?: number;
   digitIndex?: number;
@@ -65,6 +85,7 @@ export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
   animationNumber?: AnimationNumber;
   animationType?: AnimationType;
   animationDirection?: AnimationDirection;
+  mapEasingFunction?: EasingFunctionTypeMapper;
   animationTimingFunction?: EasingFunction;
   animationFillMode?: AnimationFillMode;
   animationDuration?: number;
@@ -102,12 +123,11 @@ const cubicBezier = (bezier: OrReadOnly<CubicBezierEasingFunction>): RuleSet<obj
 
 const steps = ({ steps, stepPosition }: StepsEasingFunction): RuleSet<object> => css<object>`steps(${steps}, ${stepPosition})`;
 
-const easingFunction = (easingFunction: EasingFunction): RuleSet<object> =>
-  Array.isArray<StepsEasingFunction, CubicBezierEasingFunction | LinearEasingFunction>(easingFunction)
-    ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
-      ? cubicBezier(easingFunction)
-      : linear(easingFunction)
-    : steps(easingFunction);
+const easingFunction = (mapEasingFunction: EasingFunctionTypeMapper, easingFunction: EasingFunction): RuleSet<object> =>
+  mapEasingFunction<RuleSet<object>, LinearEasingFunction, CubicBezierEasingFunction, StepsEasingFunction>(
+    [linear, cubicBezier, steps],
+    easingFunction,
+  );
 
 const mapEnumProperty = ({
   enumerable,
@@ -174,6 +194,7 @@ const containerVariables = ({
     animationNumber,
     animationType,
     animationDirection,
+    mapEasingFunction,
     animationTimingFunction,
     animationFillMode = animationType === AnimationType.Horizontal || animationDirection === AnimationDirection.Normal
       ? AnimationFillMode.Forwards
@@ -195,7 +216,7 @@ const containerVariables = ({
   ${VariableName.AnimationNumber}: ${animationNumber};
   ${VariableName.AnimationType}: ${animationType};
   ${VariableName.AnimationDirection}: ${animationDirection};
-  ${VariableName.AnimationTimingFunction}: ${easingFunction(animationTimingFunction!)};
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
   ${VariableName.AnimationFillMode}: ${animationFillMode};
   ${VariableName.AnimationDuration}: ${animationDuration}ms;
   ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}ms;
@@ -211,9 +232,9 @@ const containerVariables = ({
 `;
 
 const verticalAnimationVariables = ({
-  theme: { animationTimingFunction, columnLength },
+  theme: { mapEasingFunction, animationTimingFunction, columnLength },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableName.AnimationTimingFunction}: ${easingFunction(animationTimingFunction!)};
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
   ${VariableName.ColumnLength}: ${columnLength};
 `;
 

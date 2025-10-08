@@ -34,6 +34,8 @@ import {
 import {
   CubicBezierEasingFunction,
   EasingFunction,
+  EasingFunctionTypeMapper,
+  EasingFunctions,
   ElementsLength,
   LinearEasingFunction,
   NumbersTransitionTheme,
@@ -53,37 +55,25 @@ import {
   UncheckedBigDecimal,
 } from './NumbersTransition.types';
 
-type ConditionalRerenderFunction = (condition: boolean) => void;
-
-type UseConditionalRerender = () => ConditionalRerenderFunction;
-
-const useConditionalRerender: UseConditionalRerender = (): ConditionalRerenderFunction => {
+const useConditionalRerender = (): ((condition: boolean) => void) => {
   const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero);
 
   return (condition: boolean): void => (condition ? rerender() : undefined);
 };
 
-type UseValidation = (value?: UncheckedBigDecimal, validValue?: BigDecimal) => [BigDecimal, boolean];
-
-export const useValidation: UseValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
+export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   RegularExpression.BigDecimal.testAny<BigDecimal>(value)
     ? [value, true]
     : typeof value === 'number'
       ? [Number(value).toFixed(Integer.OneHundred), true]
       : [validValue, false];
 
-type UseValue = (
-  value: Optional<UncheckedBigDecimal>,
-  previousValue: BigDecimal,
-  animationInterruptionMode?: AnimationInterruptionMode,
-) => [BigDecimal, boolean];
-
-export const useValue: UseValue = (
+export const useValue = (
   value: Optional<UncheckedBigDecimal>,
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionMode = AnimationInterruptionMode.Interrupt,
 ): [BigDecimal, boolean] => {
-  const rerenderIf: ConditionalRerenderFunction = useConditionalRerender();
+  const rerenderIf: (condition: boolean) => void = useConditionalRerender();
   const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
   const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
@@ -117,9 +107,7 @@ export const useValue: UseValue = (
   return [validValue, isValueValid];
 };
 
-type UseBigDecimalParser = (precision: number) => (value: BigDecimal) => string;
-
-const useBigDecimalParser: UseBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
+const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [digits, restDigits]: [string, string] =
       precision >= Integer.Zero
@@ -158,9 +146,7 @@ interface UseAnimationValuesOptions {
 
 export type AnimationValues = [[number[], number[]], [bigint, bigint, bigint], [number, number, number]];
 
-type UseAnimationValues = (options: UseAnimationValuesOptions) => AnimationValues;
-
-export const useAnimationValues: UseAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
+export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
   const parseBigDecimal: (value: BigDecimal) => string = useBigDecimalParser(precision);
@@ -202,9 +188,7 @@ export interface AnimationLogic {
   renderAnimation: boolean;
 }
 
-type UseAnimationLogic = (options: UseAnimationLogicOptions) => AnimationLogic;
-
-export const useAnimationLogic: UseAnimationLogic = (options: UseAnimationLogicOptions): AnimationLogic => {
+export const useAnimationLogic = (options: UseAnimationLogicOptions): AnimationLogic => {
   const { previousValue, value, isValueValid, previousValueOnStart, previousValueOnEnd, currentValue }: UseAnimationLogicOptions = options;
 
   const hasValueChanged: boolean = currentValue !== previousValueOnEnd;
@@ -226,9 +210,7 @@ interface UseAnimationNumbersOptions {
   renderAnimation: boolean;
 }
 
-type UseAnimationNumbers = (options: UseAnimationNumbersOptions) => [AnimationNumber, AnimationNumber];
-
-export const useAnimationNumbers: UseAnimationNumbers = (options: UseAnimationNumbersOptions): [AnimationNumber, AnimationNumber] => {
+export const useAnimationNumbers = (options: UseAnimationNumbersOptions): [AnimationNumber, AnimationNumber] => {
   const {
     animationTransition,
     previousValueDigits: { length: previousLength },
@@ -271,9 +253,7 @@ interface UseAnimationTypeOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-type UseAnimationType = (options: UseAnimationTypeOptions) => AnimationType;
-
-export const useAnimationType: UseAnimationType = (options: UseAnimationTypeOptions): AnimationType => {
+export const useAnimationType = (options: UseAnimationTypeOptions): AnimationType => {
   const {
     animationTransition,
     previousValueDigits: { length: previousLength },
@@ -311,9 +291,7 @@ interface UseAnimationDirectionOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-type UseAnimationDirection = (options: UseAnimationDirectionOptions) => AnimationDirection;
-
-export const useAnimationDirection: UseAnimationDirection = (options: UseAnimationDirectionOptions): AnimationDirection => {
+export const useAnimationDirection = (options: UseAnimationDirectionOptions): AnimationDirection => {
   const {
     animationType,
     animationTransition,
@@ -344,11 +322,28 @@ export const useAnimationDirection: UseAnimationDirection = (options: UseAnimati
   }
 };
 
+// prettier-ignore
+export const useEasingFunctionTypeMapper = (): EasingFunctionTypeMapper =>
+  <
+    T,
+    U extends OrReadOnly<LinearEasingFunction>,
+    V extends OrReadOnly<CubicBezierEasingFunction>,
+    W extends OrReadOnly<StepsEasingFunction>,
+    X extends unknown[] = [],
+  >(
+    [linear, cubicBezier, steps]: EasingFunctions<T, U, V, W, X>,
+    easingFunction: U | V | W,
+    ...args: X
+  ): T =>
+    Array.isArray<OrReadOnly<StepsEasingFunction>, U | V>(easingFunction)
+      ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
+        ? cubicBezier(easingFunction, ...args)
+        : linear(easingFunction, ...args)
+      : steps(easingFunction, ...args);
+
 type FixDirection<T extends EasingFunction> = (easingFunction: OrReadOnly<T>) => T;
 
-type UseLinearDirection = (animationDirection: AnimationDirection) => FixDirection<LinearEasingFunction>;
-
-const useLinearDirection: UseLinearDirection = (animationDirection: AnimationDirection): FixDirection<LinearEasingFunction> => {
+const useLinearDirection = (animationDirection: AnimationDirection): FixDirection<LinearEasingFunction> => {
   const copyLinear = (value: OrReadOnly<LinearEasingFunction[number]>): LinearEasingFunction[number] =>
     Array.isArray<number, OrReadOnly<[number, number] | [number, number, number]>>(value) ? [...value] : value;
 
@@ -371,11 +366,7 @@ const useLinearDirection: UseLinearDirection = (animationDirection: AnimationDir
     );
 };
 
-type UseCubicBezierDirection = (animationDirection: AnimationDirection) => FixDirection<CubicBezierEasingFunction>;
-
-const useCubicBezierDirection: UseCubicBezierDirection = (
-  animationDirection: AnimationDirection,
-): FixDirection<CubicBezierEasingFunction> => {
+const useCubicBezierDirection = (animationDirection: AnimationDirection): FixDirection<CubicBezierEasingFunction> => {
   const copyCubicBezier = (tuple: OrReadOnly<CubicBezierEasingFunction[number]>): number[] => [...tuple];
 
   const reverseCubicBezier = (
@@ -392,9 +383,7 @@ const useCubicBezierDirection: UseCubicBezierDirection = (
     );
 };
 
-type UseStepsDirection = (animationDirection: AnimationDirection) => FixDirection<StepsEasingFunction>;
-
-const useStepsDirection: UseStepsDirection = (animationDirection: AnimationDirection): FixDirection<StepsEasingFunction> => {
+const useStepsDirection = (animationDirection: AnimationDirection): FixDirection<StepsEasingFunction> => {
   const reverseStepPosition = (stepPosition: StepPosition): StepPosition =>
     [[StepPosition.JumpStart, StepPosition.JumpEnd], [StepPosition.JumpNone], [StepPosition.JumpBoth]]
       .find((steps: StepPosition[]): boolean => steps.includes(stepPosition))!
@@ -419,15 +408,14 @@ interface UseAnimationTimingFunctionOptions {
   animationDirection: AnimationDirection;
 }
 
-type UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions) => EasingFunction;
-
-export const useAnimationTimingFunction: UseAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions): EasingFunction => {
+export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOptions): EasingFunction => {
   const {
     animationTimingFunction = AnimationTimingFunction.Ease,
     animationType,
     animationDirection,
   }: UseAnimationTimingFunctionOptions = options;
 
+  const mapEasingFunction: EasingFunctionTypeMapper = useEasingFunctionTypeMapper();
   const fixLinearDirection: FixDirection<LinearEasingFunction> = useLinearDirection(animationDirection);
   const fixCubicBezierDirection: FixDirection<CubicBezierEasingFunction> = useCubicBezierDirection(animationDirection);
   const fixStepsDirection: FixDirection<StepsEasingFunction> = useStepsDirection(animationDirection);
@@ -444,11 +432,12 @@ export const useAnimationTimingFunction: UseAnimationTimingFunction = (options: 
     ? animationTimingFunction
     : { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction };
 
-  return Array.isArray<OrReadOnly<StepsEasingFunction>, OrReadOnly<CubicBezierEasingFunction | LinearEasingFunction>>(easingFunction)
-    ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
-      ? fixCubicBezierDirection(easingFunction)
-      : fixLinearDirection(easingFunction)
-    : fixStepsDirection(easingFunction);
+  return mapEasingFunction<
+    EasingFunction,
+    OrReadOnly<LinearEasingFunction>,
+    OrReadOnly<CubicBezierEasingFunction>,
+    OrReadOnly<StepsEasingFunction>
+  >([fixLinearDirection, fixCubicBezierDirection, fixStepsDirection], easingFunction);
 };
 
 export interface AnimationDuration {
@@ -467,9 +456,7 @@ interface UseAnimationDurationOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-type UseAnimationDuration = (options: UseAnimationDurationOptions) => [number, number, number, number];
-
-export const useAnimationDuration: UseAnimationDuration = (options: UseAnimationDurationOptions): [number, number, number, number] => {
+export const useAnimationDuration = (options: UseAnimationDurationOptions): [number, number, number, number] => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
@@ -545,9 +532,7 @@ interface UseRenderNegativeCharacterOptions {
   animationType: AnimationType;
 }
 
-type UseRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions) => boolean;
-
-export const useRenderNegativeCharacter: UseRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions): boolean => {
+export const useRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions): boolean => {
   const {
     negativeCharacterAnimationMode,
     animationTransition,
@@ -659,14 +644,7 @@ export type StyledViewWithPropsTuple<
       ]
     >;
 
-// prettier-ignore
-type UseStyledView = <
-  K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
->(
-  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
-) => StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>;
-
-export const useStyledView: UseStyledView = <
+export const useStyledView = <
   K extends object,
   L,
   M extends object,
@@ -723,10 +701,8 @@ export const useStyledView: UseStyledView = <
     >(mapView);
 };
 
-type UseNumberOfDigitGroupSeparators = (precision: number) => (numberOfDigits: number) => number;
-
-const useNumberOfDigitGroupSeparators: UseNumberOfDigitGroupSeparators =
-  (precision: number): ((numberOfDigits: number) => number) =>
+// prettier-ignore
+const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: number) => number) =>
   (numberOfDigits: number): number =>
     [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
       .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
@@ -741,9 +717,7 @@ export interface SymbolIndexFunctions {
   getDigitGroupSeparatorIndex: SymbolIndexFunction;
 }
 
-type UseSymbolIndexFunctions = (precision: number) => SymbolIndexFunctions;
-
-export const useSymbolIndexFunctions: UseSymbolIndexFunctions = (precision: number): SymbolIndexFunctions => {
+export const useSymbolIndexFunctions = (precision: number): SymbolIndexFunctions => {
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
   const getIndex = (index: number, length: number): number =>
@@ -768,9 +742,7 @@ interface UseElementsLengthOptions {
   numberOfDigits: number;
 }
 
-type UseElementsLength = (options: UseElementsLengthOptions) => ElementsLength;
-
-export const useElementsLength: UseElementsLength = (options: UseElementsLengthOptions): ElementsLength => {
+export const useElementsLength = (options: UseElementsLengthOptions): ElementsLength => {
   const { precision, isValueValid, currentValue, hasSignChanged, numberOfDigits }: UseElementsLengthOptions = options;
 
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
@@ -800,10 +772,8 @@ interface UseNegativeElementAnimationVisibilitiesOptions {
   hasSignChanged: boolean;
 }
 
-type UseNegativeElementAnimationVisibilities = (options: UseNegativeElementAnimationVisibilitiesOptions) => boolean[];
-
 // prettier-ignore
-export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimationVisibilities = ({
+export const useNegativeElementAnimationVisibilities = ({
   animationDigits,
   hasSignChanged,
 }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
@@ -813,9 +783,7 @@ export const useNegativeElementAnimationVisibilities: UseNegativeElementAnimatio
 
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
 
-type UseLinearSolver = () => Solve<LinearEasingFunction>;
-
-const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
+const useLinearSolver = (): Solve<LinearEasingFunction> => {
   const normalize = (value: OrArray<number>): OrArray<number | [number, number]> =>
     Array.isArray<number>(value)
       ? [value].flatMap<[number, number]>(([first, second, third]: number[]): [number, number][] => [
@@ -886,9 +854,7 @@ const useLinearSolver: UseLinearSolver = (): Solve<LinearEasingFunction> => {
       .map<number>(findSolutions(outputValue));
 };
 
-type UseCubicBezierSolver = () => Solve<CubicBezierEasingFunction>;
-
-const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
+const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const sum = (first: number, second: number): number => first + second;
 
   const mapControlPoints = (_: [number, number], index: number, array: [number, number][]): [number, number] =>
@@ -990,10 +956,8 @@ const useCubicBezierSolver: UseCubicBezierSolver = (): Solve<CubicBezierEasingFu
     easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
 };
 
-type UseStepsSolver = () => Solve<StepsEasingFunction>;
-
 // prettier-ignore
-const useStepsSolver: UseStepsSolver = (): Solve<StepsEasingFunction> =>
+const useStepsSolver = (): Solve<StepsEasingFunction> =>
   ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => {
     switch (stepPosition) {
       case StepPosition.JumpStart:
@@ -1012,25 +976,24 @@ interface UseNegativeElementAnimationTimingFunctionOptions {
   animationVisibilities: boolean[];
 }
 
-type UseNegativeElementAnimationTimingFunction = (options: UseNegativeElementAnimationTimingFunctionOptions) => LinearEasingFunction;
-
-export const useNegativeElementAnimationTimingFunction: UseNegativeElementAnimationTimingFunction = (
+export const useNegativeElementAnimationTimingFunction = (
   options: UseNegativeElementAnimationTimingFunctionOptions,
 ): LinearEasingFunction => {
   const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationTimingFunctionOptions = options;
 
   const { animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
+  const mapEasingFunction: EasingFunctionTypeMapper = useEasingFunctionTypeMapper();
   const solveLinear: Solve<LinearEasingFunction> = useLinearSolver();
   const solveCubicBezier: Solve<CubicBezierEasingFunction> = useCubicBezierSolver();
   const solveSteps: Solve<StepsEasingFunction> = useStepsSolver();
 
   const solve = (input: number): number[] =>
-    Array.isArray<StepsEasingFunction, CubicBezierEasingFunction | LinearEasingFunction>(animationTimingFunction!)
-      ? Array.isOfDepth<number, Integer.Two>(animationTimingFunction, Integer.Two)
-        ? solveCubicBezier(animationTimingFunction, input)
-        : solveLinear(animationTimingFunction, input)
-      : solveSteps(animationTimingFunction!, input);
+    mapEasingFunction<number[], LinearEasingFunction, CubicBezierEasingFunction, StepsEasingFunction, [number]>(
+      [solveLinear, solveCubicBezier, solveSteps],
+      animationTimingFunction!,
+      input,
+    );
 
   const mapToLinear = (solution: number, index: number): LinearEasingFunction[number][] =>
     [...Array(Integer.Two)].map<LinearEasingFunction[number]>((_: unknown, value: number): LinearEasingFunction[number] => [
@@ -1053,9 +1016,7 @@ interface UseHorizontalAnimationDigitsOptions {
   numberOfDigitsDifference: number;
 }
 
-type UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions) => number[];
-
-export const useHorizontalAnimationDigits: UseHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions): number[] => {
+export const useHorizontalAnimationDigits = (options: UseHorizontalAnimationDigitsOptions): number[] => {
   const {
     animationTransition,
     previousValueDigits,
@@ -1086,11 +1047,7 @@ interface UseHorizontalAnimationWidthsOptions {
   ref: RefObject<Nullable<HTMLDivElement>>;
 }
 
-type UseHorizontalAnimationWidths = (options: UseHorizontalAnimationWidthsOptions) => [number, number];
-
-export const useHorizontalAnimationWidths: UseHorizontalAnimationWidths = (
-  options: UseHorizontalAnimationWidthsOptions,
-): [number, number] => {
+export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidthsOptions): [number, number] => {
   const {
     precision,
     animationTransition,
@@ -1156,9 +1113,7 @@ interface UseVerticalAnimationDigitsOptions {
   currentValue: bigint;
 }
 
-type UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions) => number[][];
-
-export const useVerticalAnimationDigits: UseVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
+export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
   const {
     animationAlgorithm: { incrementMaxLength = Integer.Fourteen, numberOfDigitsIncrease = Integer.Seven } = {},
     maxNumberOfDigits,
@@ -1230,11 +1185,7 @@ export interface DeferFunctions {
   onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
 }
 
-type UseVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFunctionsOptions) => DeferFunctions;
-
-export const useVerticalAnimationDeferFunctions: UseVerticalAnimationDeferFunctions = (
-  options: UseVerticalAnimationDeferFunctionsOptions,
-): DeferFunctions => {
+export const useVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFunctionsOptions): DeferFunctions => {
   const { Conditional, AnimationPlaceholder }: UseVerticalAnimationDeferFunctionsOptions = options;
   const { animationDirection }: NumbersTransitionTheme = useTheme();
 
@@ -1317,12 +1268,7 @@ export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>> = (
   children: T[],
 ) => ReactElement<ChildrenProps>;
 
-type UseElementKeyMapper = <T extends GenericReactNode<ChildrenProps>, U extends object>(
-  Component: FunctionalComponent<U>,
-  props?: U | PropsFactory<T, U>,
-) => ElementKeyMapper<T>;
-
-export const useElementKeyMapper: UseElementKeyMapper =
+export const useElementKeyMapper =
   <T extends GenericReactNode<ChildrenProps>, U extends object>(
     Component: FunctionalComponent<U>,
     props?: U | PropsFactory<T, U>,

@@ -51,13 +51,14 @@ import {
   useAnimationTimingFunction,
   useAnimationType,
   useAnimationValues,
+  useEasingFunctionTypeMapper,
   useElementsLength,
   useRenderNegativeCharacter,
   useStyledView,
   useValidation,
   useValue,
 } from './NumbersTransition.hooks';
-import { Container, EasingFunction, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
+import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
@@ -216,6 +217,8 @@ const NumbersTransition = <
     numberOfAnimations,
   });
 
+  const mapEasingFunction: EasingFunctionTypeMapper = useEasingFunctionTypeMapper();
+
   const animationTimingFunction: EasingFunction = useAnimationTimingFunction({
     animationTimingFunction: animationTimingFunctionInput,
     animationType,
@@ -310,6 +313,7 @@ const NumbersTransition = <
     animationNumber,
     animationType,
     animationDirection,
+    mapEasingFunction,
     animationTimingFunction,
     animationDuration,
     horizontalAnimationDuration,
