@@ -5,7 +5,6 @@ import {
   ReactElement,
   RefObject,
   SetStateAction,
-  isValidElement,
   useEffect,
   useLayoutEffect,
   useReducer,
@@ -324,16 +323,8 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
 
 // prettier-ignore
 export const useEasingFunctionTypeMapper = (): EasingFunctionTypeMapper =>
-  <
-    T,
-    U extends OrReadOnly<LinearEasingFunction>,
-    V extends OrReadOnly<CubicBezierEasingFunction>,
-    W extends OrReadOnly<StepsEasingFunction>,
-    X extends unknown[] = [],
-  >(
-    [linear, cubicBezier, steps]: EasingFunctions<T, U, V, W, X>,
-    easingFunction: U | V | W,
-    ...args: X
+  <T, U extends OrReadOnly<LinearEasingFunction>, V extends OrReadOnly<CubicBezierEasingFunction>, W extends OrReadOnly<StepsEasingFunction>, X extends unknown[] = []>(
+    [linear, cubicBezier, steps]: EasingFunctions<T, U, V, W, X>, easingFunction: U | V | W, ...args: X
   ): T =>
     Array.isArray<OrReadOnly<StepsEasingFunction>, U | V>(easingFunction)
       ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
@@ -1167,90 +1158,6 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 export interface ChildrenProps {
   children?: GenericReactNode<ChildrenProps>;
 }
-
-interface ConditionalProps {
-  condition: boolean;
-  children: [GenericReactNode<ChildrenProps>, GenericReactNode<ChildrenProps>];
-}
-
-interface UseVerticalAnimationDeferFunctionsOptions {
-  Conditional: FC<ConditionalProps>;
-  AnimationPlaceholder: FC<ChildrenProps>;
-}
-
-export interface DeferFunctions {
-  countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
-  onPartialMount: (child: ReactElement<ChildrenProps>, elementsToMount: number) => GenericReactNode<ChildrenProps>;
-  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
-}
-
-export const useVerticalAnimationDeferFunctions = (options: UseVerticalAnimationDeferFunctionsOptions): DeferFunctions => {
-  const { Conditional, AnimationPlaceholder }: UseVerticalAnimationDeferFunctionsOptions = options;
-  const { animationDirection }: NumbersTransitionTheme = useTheme();
-
-  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
-    isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
-
-  const getLastNestedOrUndefined = (child: GenericReactNode<ChildrenProps>): Optional<ReactElement<ChildrenProps>> =>
-    isValidElement(child) ? getLastNestedElement(child) : undefined;
-
-  const countElements = (child: ReactElement<ChildrenProps>): number => {
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = getLastNestedElement(child);
-
-    return Array.isArray<GenericReactNode<ChildrenProps>>(children) ? children.length : Integer.One;
-  };
-
-  const onElementMount = (
-    child: ReactElement<ChildrenProps>,
-    fromArray: (array: GenericReactNode<ChildrenProps>[]) => GenericReactNode<ChildrenProps>,
-  ): GenericReactNode<ChildrenProps> => {
-    const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = element;
-
-    return (
-      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
-        {fromArray(Array.toArray<GenericReactNode<ChildrenProps>>(children))}
-        {element}
-      </Conditional>
-    );
-  };
-
-  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
-        array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne),
-    );
-
-  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-        <AnimationPlaceholder>
-          {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
-        </AnimationPlaceholder>
-      ),
-    );
-
-  const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
-    <Conditional condition={!index && child === getLastNestedElement(child)}>
-      {Array.toArray<GenericReactNode<ChildrenProps>>(
-        getLastNestedOrUndefined(Array.toArray<GenericReactNode<ChildrenProps>>(child.props.children)[Integer.One])?.props.children,
-      ).at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne)}
-      {onElementMount(
-        child,
-        (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-          <AnimationPlaceholder>{array}</AnimationPlaceholder>
-        ),
-      )}
-    </Conditional>
-  );
-
-  return { countElements, onBeforeMount, onPartialMount, onAfterMount };
-};
 
 interface KeyProps {
   key?: string;
