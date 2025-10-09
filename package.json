@@ -2,7 +2,7 @@
   "name": "numbers-transition",
   "version": "1.0.0",
   "type": "module",
-  "main": "./dist/numbers-transition.js",
+  "main": "./dist/numbers-transition.cjs",
   "module": "./dist/numbers-transition.js",
   "types": "./dist/numbers-transition.d.ts",
   "scripts": {

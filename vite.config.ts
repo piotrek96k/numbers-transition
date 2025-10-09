@@ -7,6 +7,6 @@ export default defineConfig({
   plugins: [react(), dts({ rollupTypes: true })],
   build: {
     lib: { entry: resolve(__dirname, 'src/index.ts'), name: 'numbers-transition' },
-    rollupOptions: { external: ['react', 'react-dom', 'styled-components'], output: [{ format: 'es' }] },
+    rollupOptions: { external: ['react', 'react-dom', 'styled-components'], output: [{ format: 'es' }, { format: 'cjs' }] },
   },
 });
