@@ -5,6 +5,13 @@
   "main": "./dist/numbers-transition.cjs",
   "module": "./dist/numbers-transition.js",
   "types": "./dist/numbers-transition.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/numbers-transition.js",
+      "require": "./dist/numbers-transition.cjs",
+      "types": "./dist/numbers-transition.d.ts"
+    }
+  },
   "scripts": {
     "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
