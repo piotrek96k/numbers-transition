@@ -1073,16 +1073,14 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
         .map<number>(parseFloat),
     ].reduce((first: number, second: number): number => first + second);
 
-  useLayoutEffect(
-    (): void =>
-      setAnimationStartWidth(
-        [...(ref.current?.children ?? [])].reduce<number>(
-          (sum: number, child: Element, index: number) => (animationStartIndex <= index ? sum + getElementWidth(child) : Integer.Zero),
-          Integer.Zero,
-        ),
-      ),
-    [animationStartIndex, ref],
-  );
+  useLayoutEffect((): void => {
+    const animationStartWidth: number = [...(ref.current?.children ?? [])].reduce<number>(
+      (sum: number, child: Element, index: number) => (animationStartIndex <= index ? sum + getElementWidth(child) : Integer.Zero),
+      Integer.Zero,
+    );
+
+    setAnimationStartWidth(animationStartWidth);
+  }, [animationStartIndex, ref]);
 
   return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
 };
