@@ -9,8 +9,8 @@ export default defineConfig({
   build: {
     lib: { entry: resolve(dirname(fileURLToPath(import.meta.url)), 'src/index.ts'), name: 'numbers-transition' },
     rollupOptions: {
-      external: ['react', 'react-dom', 'styled-components'],
-      output: [{ format: 'es' }, { format: 'cjs', exports: 'named' }],
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'styled-components'],
+      output: [{ format: 'es' }, { format: 'cjs', exports: 'named', interop: 'auto' }],
     },
   },
 });
