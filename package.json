@@ -7,9 +7,9 @@
   "types": "./dist/numbers-transition.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/numbers-transition.d.ts",
       "import": "./dist/numbers-transition.js",
-      "require": "./dist/numbers-transition.cjs",
-      "types": "./dist/numbers-transition.d.ts"
+      "require": "./dist/numbers-transition.cjs"
     }
   },
   "scripts": {
