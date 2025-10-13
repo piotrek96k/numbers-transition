@@ -21,7 +21,6 @@ import {
   AnimationTimingFunction,
   AnimationTransition,
   AnimationType,
-  Character,
   Integer,
   Key,
   NegativeCharacterAnimationMode,
@@ -29,6 +28,7 @@ import {
   RegularExpression,
   StepPosition,
   Styled,
+  Text,
   ViewKey,
 } from './NumbersTransition.enums';
 import {
@@ -111,10 +111,10 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [digits, restDigits]: [string, string] =
       precision >= Integer.Zero
-        ? [`${integer.replace(Character.Minus, Character.Empty)}${fraction.slice(Integer.Zero, precision)}`, `${fraction.slice(precision)}`]
+        ? [`${integer.replace(Text.Minus, Text.Empty)}${fraction.slice(Integer.Zero, precision)}`, `${fraction.slice(precision)}`]
         : [
-            `${integer.replace(Character.Minus, Character.Empty).slice(Integer.Zero, precision)}`,
-            `${integer.replace(Character.Minus, Character.Empty).slice(precision)}${fraction}`,
+            `${integer.replace(Text.Minus, Text.Empty).slice(Integer.Zero, precision)}`,
+            `${integer.replace(Text.Minus, Text.Empty).slice(precision)}${fraction}`,
           ];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
@@ -126,14 +126,12 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
 
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
 
-    return [...(integer.match(Character.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(
-      Character.Empty,
-    );
+    return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
 
   return (value: BigDecimal): string =>
     [`${value}`.split(RegularExpression.DecimalSeparator)]
-      .reduce<string[]>((_: string[], [integer, fraction = Character.Empty]: string[]): string[] => [integer, fraction], [])
+      .reduce<string[]>((_: string[], [integer, fraction = Text.Empty]: string[]): string[] => [integer, fraction], [])
       .reduce(reduceFloatingPoint);
 };
 
@@ -572,7 +570,7 @@ type StyledViewTypes<
   K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z
 > = [
   [Styled.Container, K, L],
-  [Styled.Symbol, M, N],
+  [Styled.Character, M, N],
   [Styled.Digit, O, P],
   [Styled.Separator, Q, R],
   [Styled.DecimalSeparator, S, T],
@@ -700,16 +698,16 @@ const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: n
       .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
       .reduce((first: number, second: number): number => first + second);
 
-type SymbolIndexFunction = (index: number, length: number) => number;
+type CharacterIndexFunction = (index: number, length: number) => number;
 
-export interface SymbolIndexFunctions {
-  getSymbolIndex: SymbolIndexFunction;
-  getCharacterSeparatorIndex: SymbolIndexFunction;
-  getSeparatorIndex: SymbolIndexFunction;
-  getDigitGroupSeparatorIndex: SymbolIndexFunction;
+export interface CharacterIndexFunctions {
+  getCharacterIndex: CharacterIndexFunction;
+  getCharacterSeparatorIndex: CharacterIndexFunction;
+  getSeparatorIndex: CharacterIndexFunction;
+  getDigitGroupSeparatorIndex: CharacterIndexFunction;
 }
 
-export const useSymbolIndexFunctions = (precision: number): SymbolIndexFunctions => {
+export const useCharacterIndexFunctions = (precision: number): CharacterIndexFunctions => {
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
   const getIndex = (index: number, length: number): number =>
@@ -717,13 +715,13 @@ export const useSymbolIndexFunctions = (precision: number): SymbolIndexFunctions
       (index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three,
     );
 
-  const getSymbolIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
-  const getCharacterSeparatorIndex = (index: number, length: number): number => getSymbolIndex(index, length) - Integer.One;
+  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
+  const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Integer.One;
   const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Integer.One;
   const getDigitGroupSeparatorIndex = (index: number, length: number): number =>
     getSeparatorIndex(index, length) - (length - index < precision ? Integer.One : Integer.Zero);
 
-  return { getSymbolIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
+  return { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
 };
 
 interface UseElementsLengthOptions {
@@ -746,10 +744,10 @@ export const useElementsLength = (options: UseElementsLengthOptions): ElementsLe
   const decimalSeparatorLength: number = isValueValid && precision > Integer.Zero ? Integer.One : Integer.Zero;
   const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
   const digitsLength: number = isValueValid ? numberOfDigits : Integer.Zero;
-  const symbolsLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
+  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
 
   return {
-    symbolsLength,
+    charactersLength,
     digitsLength,
     separatorsLength,
     decimalSeparatorLength,

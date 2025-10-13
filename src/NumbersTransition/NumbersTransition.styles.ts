@@ -16,11 +16,11 @@ import {
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
-  Character,
   HTMLElement,
   Integer,
   StepPosition,
   Styled,
+  Text,
   VariableName,
   ViewKey,
 } from './NumbersTransition.enums';
@@ -59,7 +59,7 @@ export type EasingFunctionTypeMapper = <
 ) => T;
 
 interface ElementsIndex {
-  symbolIndex?: number;
+  characterIndex?: number;
   digitIndex?: number;
   separatorIndex?: number;
   decimalSeparatorIndex?: number;
@@ -70,7 +70,7 @@ interface ElementsIndex {
 }
 
 export interface ElementsLength {
-  symbolsLength?: number;
+  charactersLength?: number;
   digitsLength?: number;
   separatorsLength?: number;
   decimalSeparatorLength?: number;
@@ -114,8 +114,8 @@ interface EnumProperty<E extends Enum<E>> extends BaseProperty {
 
 const mapLinear = (value: LinearEasingFunction[number]): string =>
   Array.toArray<number>(value)
-    .map<string>((value: number, index: number): string => `${value}${index ? Character.Percent : Character.Empty}`)
-    .join(Character.Space);
+    .map<string>((value: number, index: number): string => `${value}${index ? Text.Percent : Text.Empty}`)
+    .join(Text.Space);
 
 const linear = (linear: LinearEasingFunction): RuleSet<object> => css<object>`linear(${linear.map<string>(mapLinear).join()})`;
 
@@ -134,7 +134,7 @@ const mapEnumProperty = ({
   ...restProperty
 }: EnumProperty<typeof AnimationType> | EnumProperty<typeof AnimationDirection> | EnumProperty<typeof AnimationFillMode>): Property => ({
   ...restProperty,
-  syntax: Object.values<string | number>(enumerable).join(`${Character.Space}${Character.VerticalLine}${Character.Space}`),
+  syntax: Object.values<string | number>(enumerable).join(`${Text.Space}${Text.VerticalLine}${Text.Space}`),
 });
 
 const mapTimeProperty = (name: VariableName): Property => ({ name, syntax: '<time>', initialValue: `${Integer.Zero}ms` });
@@ -169,7 +169,7 @@ const timeProperties: VariableName[] = [
 const integerProperties: VariableName[] = [
   VariableName.NumberOfAnimations,
   VariableName.AnimationNumber,
-  VariableName.SymbolsLength,
+  VariableName.CharactersLength,
   VariableName.DigitsLength,
   VariableName.SeparatorsLength,
   VariableName.DecimalSeparatorLength,
@@ -203,7 +203,7 @@ const containerVariables = ({
     horizontalAnimationDuration,
     verticalAnimationDuration,
     totalAnimationDuration,
-    symbolsLength,
+    charactersLength,
     digitsLength,
     separatorsLength,
     decimalSeparatorLength,
@@ -222,7 +222,7 @@ const containerVariables = ({
   ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}ms;
   ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}ms;
   ${VariableName.TotalAnimationDuration}: ${totalAnimationDuration}ms;
-  ${VariableName.SymbolsLength}: ${symbolsLength};
+  ${VariableName.CharactersLength}: ${charactersLength};
   ${VariableName.DigitsLength}: ${digitsLength};
   ${VariableName.SeparatorsLength}: ${separatorsLength};
   ${VariableName.DecimalSeparatorLength}: ${decimalSeparatorLength};
@@ -382,7 +382,7 @@ const classNameFactory = <T extends Styled, U extends object, V>(
   Array.toArray<Optional<string | ClassNameFactory<U>>>(className)
     .map<string | Falsy>(createViewFactoryMapper<T, U, string, AttributesOmittedKeys<T, U>>(props))
     .filter<string>((className: string | Falsy): className is string => !!className)
-    .join(Character.Space);
+    .join(Text.Space);
 
 const toCssArray = <T extends object>(cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>): Optional<CssRule<T> | CssRuleFactory<T>>[] =>
   Array.isArray<Optional<CssRule<T> | CssRuleFactory<T>>>(cssStyle) &&
@@ -407,7 +407,7 @@ const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progre
   keyframeFunction && keyframes && createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
 const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Optional<Keyframes>, index: number) => css<object>`
-  ${accumulator}${index ? Character.Comma : Character.Empty}${currentValue ?? AnimationType.None}
+  ${accumulator}${index ? Text.Comma : Text.Empty}${currentValue ?? AnimationType.None}
 `;
 
 const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
@@ -445,7 +445,7 @@ const attributesFactory =
     style: { ...style, ...styleFactory(styleView, restProps) },
     className: [className, classNameFactory(classNameView, restProps)]
       .filter<string>((className: Optional<string>): className is string => !!className)
-      .join(Character.Space),
+      .join(Text.Space),
   });
 
 interface VisibilityProps {
@@ -521,21 +521,23 @@ export const AnimationPlaceholder: AnimationPlaceholderStyledComponent = styled.
   }
 `;
 
-interface SymbolProps<T extends object, U> extends StyledView<Styled.Symbol, T, U> {}
+interface CharacterProps<T extends object, U> extends StyledView<Styled.Character, T, U> {}
 
-type SymbolStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, SymbolProps<any, any>>;
+type CharacterStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
-const Symbol: SymbolStyledComponent = styled.div.attrs<SymbolProps<any, any>>(attributesFactory<Styled.Symbol>(Styled.Symbol))`
+const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
+  attributesFactory<Styled.Character>(Styled.Character),
+)`
   display: inline-block;
-  ${cssFactory<Styled.Symbol>(Styled.Symbol)};
-  ${animationFactory<Styled.Symbol>(Styled.Symbol)};
+  ${cssFactory<Styled.Character>(Styled.Character)};
+  ${animationFactory<Styled.Character>(Styled.Character)};
 `;
 
-export interface DigitProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Digit, V, W> {}
+export interface DigitProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Digit, V, W> {}
 
-type DigitStyledComponent = AttributesStyledComponent<SymbolStyledComponent, SymbolStyledComponent, DigitProps<any, any, any, any>>;
+type DigitStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, DigitProps<any, any, any, any>>;
 
-export const Digit: DigitStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<DigitProps<any, any, any, any>>(
+export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(
   attributesFactory<Styled.Digit>(Styled.Digit),
 )`
   min-width: ${Integer.One}ch;
@@ -543,11 +545,15 @@ export const Digit: DigitStyledComponent = styled<SymbolStyledComponent>(Symbol)
   ${animationFactory<Styled.Digit>(Styled.Digit)};
 `;
 
-interface SeparatorProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Separator, V, W> {}
+interface SeparatorProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Separator, V, W> {}
 
-type SeparatorStyledComponent = AttributesStyledComponent<SymbolStyledComponent, SymbolStyledComponent, SeparatorProps<any, any, any, any>>;
+type SeparatorStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  SeparatorProps<any, any, any, any>
+>;
 
-const Separator: SeparatorStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<SeparatorProps<any, any, any, any>>(
+const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
   attributesFactory<Styled.Separator>(Styled.Separator),
 )`
   white-space: pre;
@@ -591,12 +597,16 @@ export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<Se
 
 interface NegativeProps<T extends object, U, V extends object, W>
   extends VisibilityProps,
-    SymbolProps<T, U>,
+    CharacterProps<T, U>,
     StyledView<Styled.Negative, V, W> {}
 
-type NegativeStyledComponent = AttributesStyledComponent<SymbolStyledComponent, SymbolStyledComponent, NegativeProps<any, any, any, any>>;
+type NegativeStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  NegativeProps<any, any, any, any>
+>;
 
-export const Negative: NegativeStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<NegativeProps<any, any, any, any>>(
+export const Negative: NegativeStyledComponent = styled<CharacterStyledComponent>(Character).attrs<NegativeProps<any, any, any, any>>(
   attributesFactory<Styled.Negative>(Styled.Negative),
 )`
   ${visibility};
@@ -604,11 +614,15 @@ export const Negative: NegativeStyledComponent = styled<SymbolStyledComponent>(S
   ${animationFactory<Styled.Negative>(Styled.Negative)};
 `;
 
-interface InvalidProps<T extends object, U, V extends object, W> extends SymbolProps<T, U>, StyledView<Styled.Invalid, V, W> {}
+interface InvalidProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Invalid, V, W> {}
 
-type InvalidStyledComponent = AttributesStyledComponent<SymbolStyledComponent, SymbolStyledComponent, InvalidProps<any, any, any, any>>;
+type InvalidStyledComponent = AttributesStyledComponent<
+  CharacterStyledComponent,
+  CharacterStyledComponent,
+  InvalidProps<any, any, any, any>
+>;
 
-export const Invalid: InvalidStyledComponent = styled<SymbolStyledComponent>(Symbol).attrs<InvalidProps<any, any, any, any>>(
+export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(
   attributesFactory<Styled.Invalid>(Styled.Invalid),
 )`
   ${cssFactory<Styled.Invalid>(Styled.Invalid)};

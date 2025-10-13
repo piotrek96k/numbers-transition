@@ -96,7 +96,7 @@ export interface NumbersTransitionProps<
   optimizationStrategy?: OptimizationStrategy;
   deferChunkSize?: number;
   view?: View<K, L>;
-  symbolView?: View<M, N>;
+  characterView?: View<M, N>;
   digitView?: View<O, P>;
   separatorView?: View<Q, R>;
   decimalSeparatorView?: View<S, T>;
@@ -146,7 +146,7 @@ const NumbersTransition = <
     optimizationStrategy,
     deferChunkSize,
     view,
-    symbolView,
+    characterView,
     digitView,
     separatorView,
     decimalSeparatorView,
@@ -244,7 +244,7 @@ const NumbersTransition = <
   // prettier-ignore
   const [
     styledView,
-    symbolStyledView,
+    characterStyledView,
     digitStyledView,
     separatorStyledView,
     decimalSeparatorStyledView,
@@ -253,7 +253,7 @@ const NumbersTransition = <
     invalidStyledView,
   ]: StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = useStyledView<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>([
     view,
-    symbolView,
+    characterView,
     digitView,
     separatorView,
     decimalSeparatorView,
@@ -325,7 +325,7 @@ const NumbersTransition = <
     <Optional condition={renderNegativeCharacter}>
       <NegativeElement<M, N, W, X>
         negativeCharacter={negativeCharacter}
-        symbolStyledView={symbolStyledView}
+        characterStyledView={characterStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
       />
     </Optional>
@@ -336,7 +336,7 @@ const NumbersTransition = <
       precision={precision}
       decimalSeparator={decimalSeparator}
       digitGroupSeparator={digitGroupSeparator}
-      symbolStyledView={symbolStyledView}
+      characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
       decimalSeparatorStyledView={decimalSeparatorStyledView}
@@ -361,7 +361,7 @@ const NumbersTransition = <
       maxNumberOfDigits={maxNumberOfDigits}
       numberOfDigitsDifference={numberOfDigitsDifference}
       hasSignChanged={hasSignChanged}
-      symbolStyledView={symbolStyledView}
+      characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
       decimalSeparatorStyledView={decimalSeparatorStyledView}
@@ -384,7 +384,7 @@ const NumbersTransition = <
       currentValue={valueBigInt}
       maxNumberOfDigits={maxNumberOfDigits}
       hasSignChanged={hasSignChanged}
-      symbolStyledView={symbolStyledView}
+      characterStyledView={characterStyledView}
       digitStyledView={digitStyledView}
       separatorStyledView={separatorStyledView}
       decimalSeparatorStyledView={decimalSeparatorStyledView}
@@ -403,7 +403,11 @@ const NumbersTransition = <
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
       {numberElement}
-      <InvalidElement<M, N, Y, Z> invalidValue={invalidValue} symbolStyledView={symbolStyledView} invalidStyledView={invalidStyledView} />
+      <InvalidElement<M, N, Y, Z>
+        invalidValue={invalidValue}
+        characterStyledView={characterStyledView}
+        invalidStyledView={invalidStyledView}
+      />
     </Conditional>
   );
 

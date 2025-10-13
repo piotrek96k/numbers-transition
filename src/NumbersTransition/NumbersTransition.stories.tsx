@@ -9,7 +9,6 @@ import {
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
-  Character,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
   Integer,
@@ -17,6 +16,7 @@ import {
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
   StepPosition,
+  Text,
   VariableName,
 } from './NumbersTransition.enums';
 import { AnimationDuration, ExtendedAnimationTimingFunction } from './NumbersTransition.hooks';
@@ -92,7 +92,7 @@ const basicEffectCss: RuleSet<object> = css<object>`
 
 const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
   initialValue: Integer.Zero,
-  value: [...Array(Integer.Ten)].reduce<string>((str: string, _: unknown, idx: number): string => `${idx}${str}${idx}`, Character.Dot),
+  value: [...Array(Integer.Ten)].reduce<string>((text: string, _: unknown, index: number): string => `${index}${text}${index}`, Text.Dot),
   precision: Integer.Ten,
   decimalSeparator: DecimalSeparatorCharacter.Comma,
   digitGroupSeparator: DigitGroupSeparatorCharacter.Space,

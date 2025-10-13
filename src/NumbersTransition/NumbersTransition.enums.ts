@@ -16,7 +16,7 @@ export enum ForwardProp {
 
 export enum Styled {
   Container = 'container',
-  Symbol = 'symbol',
+  Character = 'character',
   Digit = 'digit',
   Separator = 'separator',
   DecimalSeparator = 'decimalSeparator',
@@ -43,7 +43,7 @@ export enum VariableName {
   HorizontalAnimationDuration = '--horizontal-animation-duration',
   VerticalAnimationDuration = '--vertical-animation-duration',
   TotalAnimationDuration = '--total-animation-duration',
-  SymbolsLength = '--symbols-length',
+  CharactersLength = '--characters-length',
   DigitsLength = '--digits-length',
   SeparatorsLength = '--separators-length',
   DecimalSeparatorLength = '--decimal-separator-length',
@@ -142,7 +142,7 @@ export enum Key {
   Length = 'length',
 }
 
-export enum Character {
+export enum Text {
   Comma = ',',
   Dot = '.',
   Empty = '',

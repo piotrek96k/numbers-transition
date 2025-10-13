@@ -1,5 +1,5 @@
 import { ReactElement, ReactNode, SyntheticEvent } from 'react';
-import { Character, Integer, Key } from './NumbersTransition.enums';
+import { Integer, Key, Text } from './NumbersTransition.enums';
 
 export type TypeOf<T> = T[keyof T];
 
@@ -41,7 +41,7 @@ export type Zip<T extends unknown[], U extends unknown[]> = Every<
 
 export type Falsy =
   | false
-  | `${Character.Empty}`
+  | `${Text.Empty}`
   | (`${Integer.Zero}` extends `${infer T extends number}` ? T : never)
   | (`${Integer.Zero}` extends `${infer T extends bigint}` ? T : never)
   | null
