@@ -5,6 +5,7 @@ import {
   ReactElement,
   RefObject,
   SetStateAction,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useReducer,
@@ -1058,31 +1059,35 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
       ? minNumberOfDigits
       : maxNumberOfDigits;
 
-  const animationStartIndex: number = [
+  const startIndex: number = [
     ref.current?.children.length ?? Integer.Zero,
     numberOfDigits,
     calculateNumberOfDigitGroupSeparators(numberOfDigits),
     precision > Integer.Zero ? Integer.One : Integer.Zero,
   ].reduce((first: number, second: number): number => first - second);
 
-  const getElementWidth = (element: Element): number =>
-    [
-      element.getBoundingClientRect().width,
-      ...[getComputedStyle(element)]
+  const sum = (first: number, second: number): number => first + second;
+
+  const getElementWidth = useCallback<(element: HTMLElement) => number>(
+    (element: HTMLElement): number =>
+      element.offsetWidth +
+      [getComputedStyle(element)]
         .flatMap<string>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
-        .map<number>(parseFloat),
-    ].reduce((first: number, second: number): number => first + second);
+        .map<number>(parseFloat)
+        .reduce(sum),
+    [],
+  );
 
   useLayoutEffect((): void => {
-    const animationStartWidth: number = [...(ref.current?.children ?? [])].reduce<number>(
-      (sum: number, child: Element, index: number) => (animationStartIndex <= index ? sum + getElementWidth(child) : Integer.Zero),
-      Integer.Zero,
-    );
+    const animationStartWidth: number = [...(ref.current?.children ?? [])]
+      .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
+      .map<number>(getElementWidth)
+      .reduce(sum);
 
     setAnimationStartWidth(animationStartWidth);
-  }, [animationStartIndex, ref]);
+  }, [ref, startIndex, getElementWidth]);
 
-  return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
+  return [animationStartWidth, ref.current?.offsetWidth ?? Integer.Zero];
 };
 
 export interface AnimationAlgorithm {
