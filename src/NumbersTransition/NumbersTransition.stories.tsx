@@ -185,12 +185,13 @@ const getVerticalRotateKeyframes = ({
   horizontalAnimationDuration,
   verticalAnimationDuration,
   totalAnimationDuration,
-}: NumbersTransitionTheme): number[] => [
-  animationNumber === AnimationNumber.One ? Integer.Zero : horizontalAnimationDuration! / totalAnimationDuration!,
+}: NumbersTransitionTheme): number[] =>
   animationNumber === AnimationNumber.One
-    ? verticalAnimationDuration! / totalAnimationDuration!
-    : (horizontalAnimationDuration! + verticalAnimationDuration!) / totalAnimationDuration!,
-];
+    ? [Integer.Zero, verticalAnimationDuration! / totalAnimationDuration!]
+    : [
+        horizontalAnimationDuration! / totalAnimationDuration!,
+        (horizontalAnimationDuration! + verticalAnimationDuration!) / totalAnimationDuration!,
+      ];
 
 const mapVerticalRotateKeyframes =
   ({ animationDirection, columnLength, rowIndex }: NumbersTransitionTheme): ((value: number) => number) =>
@@ -223,9 +224,9 @@ const getInitialRotation = ({
     case AnimationNumber.Three:
       return (horizontalAnimationDuration! + verticalAnimationDuration!) / totalAnimationDuration!;
     case AnimationNumber.Two:
-      return animationType === AnimationType.Horizontal
-        ? verticalAnimationDuration! / totalAnimationDuration!
-        : horizontalAnimationDuration! / totalAnimationDuration!;
+      return (
+        (animationType === AnimationType.Horizontal ? verticalAnimationDuration! : horizontalAnimationDuration!) / totalAnimationDuration!
+      );
     default:
       return Integer.Zero;
   }

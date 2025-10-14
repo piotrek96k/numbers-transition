@@ -118,12 +118,10 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
           ];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
-
     const increase: number =
       BigInt(restDigits) < BigInt(`${Integer.Five}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Integer.Zero}`))
         ? Integer.Zero
         : Integer.One;
-
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
 
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
@@ -892,7 +890,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       second / (Integer.Three * first),
   ];
 
-  const solveForDuplicatedRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
+  const solveForRepeatedRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
     firstDepressed
       ? [Integer.MinusOne, Integer.MinusOne, Integer.Two].map<number>(
           (multiplier: number): number => multiplier * Math.cbrt(-secondDepressed / Integer.Two) - second / (Integer.Three * first),
@@ -920,7 +918,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       (discriminant: number): boolean => discriminant < Integer.Zero,
     ]
       .zip<TupleOfLength<(disc: number) => boolean, Integer.Three>, TupleOfLength<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>([
-        solveForDuplicatedRoots, 
+        solveForRepeatedRoots, 
         solveForOneRoot, 
         solveForThreeRoots
       ])

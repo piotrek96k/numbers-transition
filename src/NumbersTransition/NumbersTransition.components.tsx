@@ -126,11 +126,11 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     FragmentProps
   >(Fragment);
 
+  // prettier-ignore
   useEffect(
-    (): void =>
-      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
-        .filter((): boolean => mountedElements < aggregatedSums.at(Integer.MinusOne)!)
-        .forEach((callback: () => unknown): unknown => callback()),
+    (): void => [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
+      .filter((): boolean => mountedElements < aggregatedSums.at(Integer.MinusOne)!)
+      .forEach((callback: () => unknown): unknown => callback()),
     [chunkSize, mountedElements, aggregatedSums],
   );
 
@@ -287,7 +287,7 @@ interface NumberElementProps<Q extends object, R, S extends object, T, U extends
   decimalSeparatorStyledView: StyledViewWithProps<Styled.DecimalSeparator, W, X>;
   digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, Y, Z>;
   mapToElement?: ElementKeyMapper<ReactElement<ChildrenProps>>[];
-  children: number[] | number[][];
+  children: OrArray<number[]>;
   enclose?: (children: ReactElement<ChildrenProps>[]) => ReactNode;
 }
 
