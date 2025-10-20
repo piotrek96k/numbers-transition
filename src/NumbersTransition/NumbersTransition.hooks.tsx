@@ -91,12 +91,14 @@ export const useValue = (
 
   useEffect(
     (): void =>
-      [validValue === previousValue || !isValueValid]
-        .filter((condition: boolean): boolean => condition)
-        .flatMap<() => unknown>((): (() => unknown)[] => [
+      [
+        [
           (): unknown => (values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates)),
           (): unknown => values.current.length && rerender(),
-        ])
+        ],
+      ]
+        .filter((): boolean => validValue === previousValue || !isValueValid)
+        .flat<(() => void)[][], Integer.One>()
         .forEach((callback: () => unknown): unknown => callback()),
     [rerender, previousValue, validValue, isValueValid],
   );
