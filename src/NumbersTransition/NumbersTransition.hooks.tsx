@@ -56,7 +56,7 @@ import {
 } from './NumbersTransition.types';
 
 const useRerender = (): ActionDispatch<[]> =>
-  useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
+  useReducer<number, []>((value: number): number => ++value, Integer.Zero).at<Integer.One>(Integer.One);
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   RegularExpression.BigDecimal.testAny<BigDecimal>(value)
