@@ -108,9 +108,9 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
   const reduceFloatingPoint = (integer: string, fraction: string): string => {
     const [digits, restDigits]: [string, string] =
       precision >= Integer.Zero
-        ? [`${integer.replace(Text.Minus, Text.Empty)}${fraction.slice(Integer.Zero, precision)}`, `${fraction.slice(precision)}`]
+        ? [`${integer.replace(Text.Minus, Text.Empty)}${fraction.slice(Integer.Zero, precision)}`, fraction.slice(precision)]
         : [
-            `${integer.replace(Text.Minus, Text.Empty).slice(Integer.Zero, precision)}`,
+            integer.replace(Text.Minus, Text.Empty).slice(Integer.Zero, precision),
             `${integer.replace(Text.Minus, Text.Empty).slice(precision)}${fraction}`,
           ];
 
