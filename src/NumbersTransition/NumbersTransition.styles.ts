@@ -25,7 +25,7 @@ import {
   ViewKey,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { Enum, Falsy, Optional, OrArray, OrReadOnly, TypeOf } from './NumbersTransition.types';
+import { Enum, Falsy, Optional, OrArray, OrReadOnly, ValueOf } from './NumbersTransition.types';
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 
@@ -109,7 +109,7 @@ interface Property extends BaseProperty {
 
 interface EnumProperty<E extends Enum<E>> extends BaseProperty {
   enumerable: E;
-  initialValue: TypeOf<E>;
+  initialValue: ValueOf<E>;
 }
 
 const mapLinear = (value: LinearEasingFunction[number]): string =>

@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode, SyntheticEvent } from 'react';
 import { Integer, Key, Text } from './NumbersTransition.enums';
 
-export type TypeOf<T> = T[keyof T];
+export type ValueOf<T> = T[keyof T];
 
 export type Enum<E> = Record<keyof E, string | number> & { [key: number]: string };
 

@@ -51,8 +51,8 @@ import {
   OrReadOnly,
   Slice,
   TupleOfLength,
-  TypeOf,
   UncheckedBigDecimal,
+  ValueOf,
 } from './NumbersTransition.types';
 
 const useConditionalRerender = (): ((condition: boolean) => void) => {
@@ -660,17 +660,17 @@ export const useStyledView = <
       Styled,
     ] = viewWithStyledComponent;
 
-    const mapEntry = ([key, value]: [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
+    const mapEntry = ([key, value]: [string, ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
-      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
+      ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
     ] => [`${styledComponent}${key.capitalize()}`, value];
 
     const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
       keyof StyledViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
+      ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
     >(
-      Object.entries<TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
-        [string, TypeOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
+      Object.entries<ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
+        [string, ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
       >(mapEntry),
     );
 
