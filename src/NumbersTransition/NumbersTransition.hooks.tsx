@@ -55,11 +55,8 @@ import {
   ValueOf,
 } from './NumbersTransition.types';
 
-const useConditionalRerender = (): ((condition: boolean) => void) => {
-  const [, rerender]: [number, ActionDispatch<[]>] = useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero);
-
-  return (condition: boolean): void => (condition ? rerender() : undefined);
-};
+const useRerender = (): ActionDispatch<[]> =>
+  useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   RegularExpression.BigDecimal.testAny<BigDecimal>(value)
@@ -73,7 +70,7 @@ export const useValue = (
   previousValue: BigDecimal,
   animationInterruptionMode: AnimationInterruptionMode = AnimationInterruptionMode.Interrupt,
 ): [BigDecimal, boolean] => {
-  const rerenderIf: (condition: boolean) => void = useConditionalRerender();
+  const rerender: ActionDispatch<[]> = useRerender();
   const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
   const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
@@ -98,10 +95,10 @@ export const useValue = (
         .filter((condition: boolean): boolean => condition)
         .flatMap<() => unknown>((): (() => unknown)[] => [
           (): unknown => (values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates)),
-          (): unknown => rerenderIf(!!values.current.length),
+          (): unknown => values.current.length && rerender(),
         ])
         .forEach((callback: () => unknown): unknown => callback()),
-    [rerenderIf, previousValue, validValue, isValueValid],
+    [rerender, previousValue, validValue, isValueValid],
   );
 
   return [validValue, isValueValid];
