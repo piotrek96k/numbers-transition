@@ -16,13 +16,22 @@ import {
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
+  CssSyntax,
+  CssUnit,
+  Display,
+  FlexDirection,
+  Float,
   HTMLElement,
   Integer,
+  Overflow,
+  Position,
+  Size,
   StepPosition,
   Styled,
   Text,
   VariableName,
   ViewKey,
+  WhiteSpace,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
 import { Enum, Falsy, Optional, OrArray, OrReadOnly, ValueOf } from './NumbersTransition.types';
@@ -114,7 +123,7 @@ interface EnumProperty<E extends Enum<E>> extends BaseProperty {
 
 const mapLinear = (value: LinearEasingFunction[number]): string =>
   Array.toArray<number>(value)
-    .map<string>((value: number, index: number): string => `${value}${index ? Text.Percent : Text.Empty}`)
+    .map<string>((value: number, index: number): string => `${value}${index ? CssUnit.Percent : Text.Empty}`)
     .join(Text.Space);
 
 const linear = (linear: LinearEasingFunction): RuleSet<object> => css<object>`linear(${linear.map<string>(mapLinear).join()})`;
@@ -137,9 +146,13 @@ const mapEnumProperty = ({
   syntax: Object.values<string | number>(enumerable).join(`${Text.Space}${Text.VerticalLine}${Text.Space}`),
 });
 
-const mapTimeProperty = (name: VariableName): Property => ({ name, syntax: '<time>', initialValue: `${Integer.Zero}ms` });
+const mapTimeProperty = (name: VariableName): Property => ({
+  name,
+  syntax: CssSyntax.Time,
+  initialValue: `${Integer.Zero}${CssUnit.Millisecond}`,
+});
 
-const mapIntegerProperty = (name: VariableName): Property => ({ name, syntax: '<integer>', initialValue: Integer.Zero });
+const mapIntegerProperty = (name: VariableName): Property => ({ name, syntax: CssSyntax.Integer, initialValue: Integer.Zero });
 
 const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> => css<object>`
   @property ${name} {
@@ -183,7 +196,7 @@ const properties: Property[] = [
   ...enumProperties.map<Property>(mapEnumProperty),
   ...timeProperties.map<Property>(mapTimeProperty),
   ...integerProperties.map<Property>(mapIntegerProperty),
-  { name: VariableName.AnimationTimingFunction, syntax: '*', initialValue: cubicBezier(AnimationTimingFunction.Ease) },
+  { name: VariableName.AnimationTimingFunction, syntax: CssSyntax.Universal, initialValue: cubicBezier(AnimationTimingFunction.Ease) },
 ];
 
 const cssProperties: RuleSet<object>[] = properties.map<RuleSet<object>>(mapProperty);
@@ -218,10 +231,10 @@ const containerVariables = ({
   ${VariableName.AnimationDirection}: ${animationDirection};
   ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
   ${VariableName.AnimationFillMode}: ${animationFillMode};
-  ${VariableName.AnimationDuration}: ${animationDuration}ms;
-  ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}ms;
-  ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}ms;
-  ${VariableName.TotalAnimationDuration}: ${totalAnimationDuration}ms;
+  ${VariableName.AnimationDuration}: ${animationDuration}${CssUnit.Millisecond};
+  ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}${CssUnit.Millisecond};
+  ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}${CssUnit.Millisecond};
+  ${VariableName.TotalAnimationDuration}: ${totalAnimationDuration}${CssUnit.Millisecond};
   ${VariableName.CharactersLength}: ${charactersLength};
   ${VariableName.DigitsLength}: ${digitsLength};
   ${VariableName.SeparatorsLength}: ${separatorsLength};
@@ -302,7 +315,7 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 const createAnimationKeyframeMapper =
   <T extends object, U>(map: KeyframeFunction<T, U>): ((val: [U] | [U, number], index: number, arr: ([U] | [U, number])[]) => RuleSet<T>) =>
   ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
-    ${progress ?? (index * Integer.OneHundred) / (length - Integer.One)}% {
+    ${progress ?? (index * Integer.OneHundred) / (length - Integer.One)}${CssUnit.Percent} {
       ${map(value)};
     }
   `;
@@ -324,11 +337,11 @@ const createAnimationKeyframes = <T extends object, U>(
 `;
 
 const horizontalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeValue: number): RuleSet<object> => css<object>`
-  width: ${keyframeValue}px;
+  width: ${keyframeValue}${CssUnit.Pixel};
 `;
 
 const verticalAnimationKeyframe: KeyframeFunction<object, number> = (keyframeValue: number): RuleSet<object> => css<object>`
-  transform: translateY(${keyframeValue}%);
+  transform: translateY(${keyframeValue}${CssUnit.Percent});
 `;
 
 const horizontalAnimation = ({ animationStartWidth, animationEndWidth }: AnimationWidthProps): Keyframes =>
@@ -463,11 +476,11 @@ type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLD
 export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(
   attributesFactory<Styled.Container>(Styled.Container),
 )`
-  max-width: ${Integer.OneHundred}%;
-  width: fit-content;
-  height: ${Integer.One}lh;
-  white-space: nowrap;
-  overflow-y: clip;
+  max-width: ${Integer.OneHundred}${CssUnit.Percent};
+  width: ${Size.FitContent};
+  height: ${Integer.One}${CssUnit.LineHeight};
+  white-space: ${WhiteSpace.NoWrap};
+  overflow-y: ${Overflow.Clip};
   ${cssProperties};
   ${containerVariables};
   ${cssFactory<Styled.Container>(Styled.Container)};
@@ -480,11 +493,11 @@ export const HorizontalAnimation: HorizontalAnimationStyledComponent = styled.di
   ${animation};
   &,
   :has(~ &):not(:has(:first-child)) {
-    display: inline-block;
-    overflow-x: hidden;
+    display: ${Display.InlineBlock};
+    overflow-x: ${Overflow.Hidden};
   }
   :only-child {
-    float: right;
+    float: ${Float.Right};
   }
 `;
 
@@ -492,32 +505,32 @@ type VerticalAnimationStyledComponent = StyledComponent<HTMLDivElement, Vertical
 
 export const VerticalAnimation: VerticalAnimationStyledComponent = styled.div<VerticalAnimationProps>`
   ${verticalAnimationVariables};
-  display: inline-flex;
-  flex-direction: column;
-  height: inherit;
-  overflow-y: hidden;
+  display: ${Display.InlineFlex};
+  flex-direction: ${FlexDirection.Column};
+  height: ${Size.Inherit};
+  overflow-y: ${Overflow.Hidden};
   > :only-child:has(:not(:only-child)) {
     ${animation};
-    position: relative;
+    position: ${Position.Relative};
   }
   :last-child:not(:only-child) {
-    position: absolute;
-    top: ${Integer.OneHundred}%;
+    position: ${Position.Absolute};
+    top: ${Integer.OneHundred}${CssUnit.Percent};
   }
   :only-child > * {
-    display: block;
+    display: ${Display.Block};
   }
 `;
 
 type AnimationPlaceholderStyledComponent = StyledComponent<HTMLDivElement, BaseObject>;
 
 export const AnimationPlaceholder: AnimationPlaceholderStyledComponent = styled.div<BaseObject>`
-  display: inline-flex;
-  flex-direction: ${({ theme: { animationDirection } }: NumbersTransitionExecutionContext): string =>
-    animationDirection === AnimationDirection.Normal ? 'column' : 'column-reverse'};
-  height: inherit;
+  display: ${Display.InlineFlex};
+  flex-direction: ${({ theme: { animationDirection } }: NumbersTransitionExecutionContext): FlexDirection =>
+    animationDirection === AnimationDirection.Normal ? FlexDirection.Column : FlexDirection.ColumnReverse};
+  height: ${Size.Inherit};
   > * {
-    display: block;
+    display: ${Display.Block};
   }
 `;
 
@@ -528,7 +541,7 @@ type CharacterStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLD
 const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
   attributesFactory<Styled.Character>(Styled.Character),
 )`
-  display: inline-block;
+  display: ${Display.InlineBlock};
   ${cssFactory<Styled.Character>(Styled.Character)};
   ${animationFactory<Styled.Character>(Styled.Character)};
 `;
@@ -540,7 +553,7 @@ type DigitStyledComponent = AttributesStyledComponent<CharacterStyledComponent, 
 export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(
   attributesFactory<Styled.Digit>(Styled.Digit),
 )`
-  min-width: ${Integer.One}ch;
+  min-width: ${Integer.One}${CssUnit.Character};
   ${cssFactory<Styled.Digit>(Styled.Digit)};
   ${animationFactory<Styled.Digit>(Styled.Digit)};
 `;
@@ -556,7 +569,7 @@ type SeparatorStyledComponent = AttributesStyledComponent<
 const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
   attributesFactory<Styled.Separator>(Styled.Separator),
 )`
-  white-space: pre;
+  white-space: ${WhiteSpace.Pre};
   ${cssFactory<Styled.Separator>(Styled.Separator)};
   ${animationFactory<Styled.Separator>(Styled.Separator)};
 `;

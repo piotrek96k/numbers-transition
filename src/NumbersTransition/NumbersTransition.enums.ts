@@ -53,6 +53,61 @@ export enum VariableName {
   ColumnLength = '--column-length',
 }
 
+export enum CssSyntax {
+  Integer = '<integer>',
+  Time = '<time>',
+  Universal = '*',
+}
+
+export enum CssUnit {
+  Character = 'ch',
+  LineHeight = 'lh',
+  Millisecond = 'ms',
+  Percent = '%',
+  Pixel = 'px',
+  Rem = 'rem',
+  Turn = 'turn',
+}
+
+export enum Size {
+  FitContent = 'fit-content',
+  Inherit = 'inherit',
+}
+
+export enum Position {
+  Absolute = 'absolute',
+  Relative = 'relative',
+}
+
+export enum Display {
+  Block = 'block',
+  InlineBlock = 'inline-block',
+  InlineFlex = 'inline-flex',
+}
+
+export enum Float {
+  Right = 'right',
+}
+
+export enum FlexDirection {
+  Column = 'column',
+  ColumnReverse = 'column-reverse',
+}
+
+export enum Overflow {
+  Clip = 'clip',
+  Hidden = 'hidden',
+}
+
+export enum WhiteSpace {
+  NoWrap = 'nowrap',
+  Pre = 'pre',
+}
+
+export enum Color {
+  Yellow = '#f0ff95',
+}
+
 export enum AnimationFillMode {
   Forwards = 'forwards',
   Backwards = 'backwards',
@@ -95,9 +150,10 @@ export enum AnimationTransition {
 }
 
 export enum AnimationDirection {
+  Alternate = 'alternate',
+  None = 'none',
   Normal = 'normal',
   Reverse = 'reverse',
-  None = 'none',
 }
 
 export enum AnimationInterruptionMode {
@@ -147,7 +203,6 @@ export enum Text {
   Dot = '.',
   Empty = '',
   Minus = '-',
-  Percent = '%',
   Space = ' ',
   Underscore = '_',
   VerticalLine = '|',

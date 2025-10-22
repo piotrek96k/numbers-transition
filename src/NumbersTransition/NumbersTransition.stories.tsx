@@ -4,11 +4,14 @@ import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDirection,
+  AnimationFillMode,
   AnimationId,
   AnimationInterruptionMode,
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
+  Color,
+  CssUnit,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
   Integer,
@@ -86,8 +89,8 @@ const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
 const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
 
 const basicEffectCss: RuleSet<object> = css<object>`
-  font-size: ${Integer.Three}rem;
-  color: #f0ff95;
+  font-size: ${Integer.Three}${CssUnit.Rem};
+  color: ${Color.Yellow};
 `;
 
 const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
@@ -120,14 +123,14 @@ export const Steps: Story = { argTypes, args: stepsArgs };
 
 const marginCss: RuleSet<object> = css<object>`
   ${basicEffectCss};
-  margin: ${Integer.One}rem;
+  margin: ${Integer.One}${CssUnit.Rem};
   > :not(:last-child),
   #${AnimationId.HorizontalAnimation} > * :not(:last-child) {
-    margin-right: ${Integer.Five / Integer.Sixteen}rem;
+    margin-right: ${Integer.Five / Integer.Sixteen}${CssUnit.Rem};
   }
   #${AnimationId.VerticalAnimation} :not(:last-child),
   :has(~ * > #${AnimationId.VerticalAnimation}) > * :not(:last-child) {
-    padding-bottom: ${Integer.Two}rem;
+    padding-bottom: ${Integer.Two}${CssUnit.Rem};
   }
 `;
 
@@ -150,8 +153,8 @@ const opacityAnimationFactory: AnimationFactory<object, number> = ({
 
 const opacityAnimationCss: RuleSet<object> = css<object>`
   ${basicEffectCss};
-  animation-direction: alternate;
-  animation-fill-mode: forwards;
+  animation-direction: ${AnimationDirection.Alternate};
+  animation-fill-mode: ${AnimationFillMode.Forwards};
   animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
   animation-iteration-count: ${Integer.Two};
 `;
@@ -164,7 +167,7 @@ const opacityAnimationArgs: ComponentProps<NumbersTransitionProps> = {
 export const OpacityAnimation: Story = { argTypes, args: opacityAnimationArgs };
 
 const rotateKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
-  transform: rotateY(${keyframeValue}turn);
+  transform: rotateY(${keyframeValue}${CssUnit.Turn});
 `;
 
 const getHorizontalRotateKeyframes = ({ animationNumber, animationDuration, totalAnimationDuration }: NumbersTransitionTheme): number[] =>
@@ -234,8 +237,8 @@ const getInitialRotation = ({
 
 const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${rotateKeyframeFunction(getInitialRotation(theme) / Integer.Two)};
-  animation-direction: normal;
-  animation-fill-mode: forwards;
+  animation-direction: ${AnimationDirection.Normal};
+  animation-fill-mode: ${AnimationFillMode.Forwards};
   animation-duration: var(${VariableName.AnimationDuration});
   animation-iteration-count: ${Integer.One};
 `;
