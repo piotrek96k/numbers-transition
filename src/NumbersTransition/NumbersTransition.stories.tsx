@@ -150,7 +150,7 @@ const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<
 
 const opacityAnimation: Animation<object, number> = {
   keyframeFunction: opacityKeyframeFunction,
-  keyframes: [Integer.One, Integer.One / Integer.Ten],
+  keyframes: [Integer.One, Integer.One / Integer.Ten, Integer.One],
 };
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
@@ -159,10 +159,9 @@ const opacityAnimationFactory: AnimationFactory<object, number> = ({
 
 const opacityAnimationCss: RuleSet<object> = css<object>`
   ${basicEffectCss};
-  animation-direction: ${AnimationDirection.Alternate};
   animation-fill-mode: ${AnimationFillMode.Forwards};
-  animation-duration: calc(var(${VariableName.TotalAnimationDuration}) / ${Integer.Two});
-  animation-iteration-count: ${Integer.Two};
+  animation-duration: var(${VariableName.TotalAnimationDuration});
+  animation-iteration-count: ${Integer.One};
 `;
 
 const opacityAnimationArgs: ComponentProps<NumbersTransitionProps> = {

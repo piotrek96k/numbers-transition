@@ -150,7 +150,6 @@ export enum AnimationTransition {
 }
 
 export enum AnimationDirection {
-  Alternate = 'alternate',
   None = 'none',
   Normal = 'normal',
   Reverse = 'reverse',
