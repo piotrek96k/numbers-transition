@@ -34,7 +34,7 @@ import {
   WhiteSpace,
 } from './NumbersTransition.enums';
 import './NumbersTransition.extensions';
-import { Enum, Falsy, Optional, OrArray, OrReadOnly, ValueOf } from './NumbersTransition.types';
+import { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly } from './NumbersTransition.types';
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 
@@ -118,8 +118,10 @@ interface Property extends BaseProperty {
 
 interface EnumProperty<E extends Enum<E>> extends BaseProperty {
   enumerable: E;
-  initialValue: ValueOf<E>;
+  initialValue: EnumValue<E>;
 }
+
+type EnumerableProperty<E extends Enum<E>> = E extends unknown ? EnumProperty<E> : never;
 
 const mapLinear = (value: LinearEasingFunction[number]): string =>
   Array.toArray<number>(value)
@@ -138,10 +140,7 @@ const easingFunction = (mapEasingFunction: EasingFunctionTypeMapper, easingFunct
     easingFunction,
   );
 
-const mapEnumProperty = ({
-  enumerable,
-  ...restProperty
-}: EnumProperty<typeof AnimationType> | EnumProperty<typeof AnimationDirection> | EnumProperty<typeof AnimationFillMode>): Property => ({
+const mapEnumProperty = <E extends Enum<E>>({ enumerable, ...restProperty }: EnumerableProperty<E>): Property => ({
   ...restProperty,
   syntax: Object.values<string | number>(enumerable).join(`${Text.Space}${Text.VerticalLine}${Text.Space}`),
 });
@@ -162,11 +161,7 @@ const mapProperty = ({ name, syntax, initialValue }: Property): RuleSet<object> 
   }
 `;
 
-const enumProperties: [
-  EnumProperty<typeof AnimationType>,
-  EnumProperty<typeof AnimationDirection>,
-  EnumProperty<typeof AnimationFillMode>,
-] = [
+const enumProperties: EnumerableProperty<typeof AnimationType | typeof AnimationDirection | typeof AnimationFillMode>[] = [
   { name: VariableName.AnimationType, enumerable: AnimationType, initialValue: AnimationType.None },
   { name: VariableName.AnimationDirection, enumerable: AnimationDirection, initialValue: AnimationDirection.None },
   { name: VariableName.AnimationFillMode, enumerable: AnimationFillMode, initialValue: AnimationFillMode.Forwards },
@@ -193,7 +188,7 @@ const integerProperties: VariableName[] = [
 ];
 
 const properties: Property[] = [
-  ...enumProperties.map<Property>(mapEnumProperty),
+  ...enumProperties.map<Property>(mapEnumProperty<typeof AnimationType | typeof AnimationDirection | typeof AnimationFillMode>),
   ...timeProperties.map<Property>(mapTimeProperty),
   ...integerProperties.map<Property>(mapIntegerProperty),
   { name: VariableName.AnimationTimingFunction, syntax: CssSyntax.Universal, initialValue: cubicBezier(AnimationTimingFunction.Ease) },

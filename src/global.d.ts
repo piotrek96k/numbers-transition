@@ -7,7 +7,6 @@ declare global {
 
   interface ObjectConstructor {
     assign<T extends object, U, V extends Partial<T> & Partial<U>>(target: T, source: U): V;
-    fromEntries<T extends string, U>(entries: Iterable<readonly [PropertyKey, U]>): { [key: T]: U };
     values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
     values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
   }

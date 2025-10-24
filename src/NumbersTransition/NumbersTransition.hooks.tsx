@@ -577,21 +577,6 @@ type StyledViewTypes<
 ];
 
 // prettier-ignore
-type StyledViewTuple<
-  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
-> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
-  ? Z
-  : StyledViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
-        ...Z,
-        StyledView<
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Zero],
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
-        >,
-      ]
-    >;
-
-// prettier-ignore
 type ViewTuple<
   J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
 > = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
@@ -651,21 +636,16 @@ export const useStyledView = <
 >(
   options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
-  const mapView = (
-    viewWithStyledComponent: [UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Styled],
-  ): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
-    const [{ viewProps, ...restView } = {}, styledComponent]: [
-      UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      Styled,
-    ] = viewWithStyledComponent;
-
+  const mapView = ([{ viewProps, ...restView } = {}, styledComponent]: [
+    UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+    Styled,
+  ]): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
     const mapEntry = ([key, value]: [string, ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
       string,
       ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
     ] => [`${styledComponent}${key.capitalize()}`, value];
 
     const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
-      keyof StyledViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
       ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
     >(
       Object.entries<ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<

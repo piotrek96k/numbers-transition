@@ -5,6 +5,10 @@ export type ValueOf<T> = T[keyof T];
 
 export type Enum<E> = Record<keyof E, string | number> & { [key: number]: string };
 
+export type EnumValue<E extends Enum<E>> = E extends unknown ? ValueOf<E> : never;
+
+export type EnumType<E extends Enum<E>, V extends EnumValue<E>> = E extends unknown ? (V extends ValueOf<E> ? E : never) : never;
+
 export type Optional<T> = T | undefined;
 
 export type Nullable<T> = T | null;
@@ -24,6 +28,8 @@ export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U exte
 export type ReadOnlyArrayOfDepth<T, U extends number, V extends readonly unknown[] = readonly []> = U extends V[Key.Length]
   ? T
   : ReadOnlyArrayOfDepth<readonly T[], U, readonly [...V, unknown]>;
+
+export type Select<T, U> = Pick<T, ValueOf<{ [K in keyof T]: T[K] extends U ? K : never }>>;
 
 export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 

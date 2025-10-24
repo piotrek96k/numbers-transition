@@ -1,6 +1,7 @@
 import { ComponentProps } from 'react';
 import { RuleSet, css } from 'styled-components';
 import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
+import { InputType } from 'storybook/internal/types';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDirection,
@@ -31,7 +32,7 @@ import {
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
-import { Falsy, OrReadOnly } from './NumbersTransition.types';
+import { EnumType, EnumValue, Falsy, OrReadOnly, Select } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
@@ -62,31 +63,36 @@ type SelectType =
   | typeof AnimationInterruptionMode
   | typeof OptimizationStrategy;
 
-type ComponentArgTypes = Partial<ArgTypes<ComponentProps<typeof NumbersTransition>>>;
+type SelectTypes = {
+  [K in keyof Select<Required<ComponentProps<NumbersTransitionProps>>, EnumValue<SelectType>>]: EnumType<
+    SelectType,
+    Required<ComponentProps<NumbersTransitionProps>>[K]
+  >;
+};
+
+type ComponentArgTypes = Partial<ArgTypes<ComponentProps<NumbersTransitionProps>>>;
 
 type Story = StoryObj<NumbersTransitionProps>;
 
-const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
-
-const mapInputType = ([fieldName, enumObject]: [keyof ComponentArgTypes, SelectType]): ComponentArgTypes => ({
-  [fieldName]: { options: Object.keys(enumObject), mapping: enumObject, control: { type: 'select' } },
-});
-
-const reduceArgTypes = (accumulator: ComponentArgTypes, currentValue: ComponentArgTypes): ComponentArgTypes => ({
-  ...accumulator,
-  ...currentValue,
-});
-
-const inputTypes: [keyof ComponentArgTypes, SelectType][] = [
-  ['digitGroupSeparator', DigitGroupSeparatorCharacter],
-  ['decimalSeparator', DecimalSeparatorCharacter],
-  ['negativeCharacter', NegativeCharacter],
-  ['negativeCharacterAnimationMode', NegativeCharacterAnimationMode],
-  ['animationInterruptionMode', AnimationInterruptionMode],
-  ['optimizationStrategy', OptimizationStrategy],
+const mapInputType = ([fieldName, enumObject]: [string, SelectType]): [string, InputType] => [
+  fieldName,
+  { options: Object.keys(enumObject ?? {}), mapping: enumObject, control: { type: 'select' } },
 ];
 
-const argTypes: ComponentArgTypes = inputTypes.map<ComponentArgTypes>(mapInputType).reduce(reduceArgTypes);
+const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
+
+const inputTypes: SelectTypes = {
+  digitGroupSeparator: DigitGroupSeparatorCharacter,
+  decimalSeparator: DecimalSeparatorCharacter,
+  negativeCharacter: NegativeCharacter,
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode,
+  animationInterruptionMode: AnimationInterruptionMode,
+  optimizationStrategy: OptimizationStrategy,
+};
+
+const argTypes: ComponentArgTypes = Object.fromEntries<InputType>(
+  Object.entries<SelectType>(inputTypes).map<[string, InputType]>(mapInputType),
+);
 
 const basicEffectCss: RuleSet<object> = css<object>`
   font-size: ${Integer.Three}${CssUnit.Rem};
