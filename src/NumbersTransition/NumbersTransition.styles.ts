@@ -96,7 +96,6 @@ export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
   animationDirection?: AnimationDirection;
   mapEasingFunction?: EasingFunctionTypeMapper;
   animationTimingFunction?: EasingFunction;
-  animationFillMode?: AnimationFillMode;
   animationDuration?: number;
   horizontalAnimationDuration?: number;
   verticalAnimationDuration?: number;
@@ -139,6 +138,11 @@ const easingFunction = (mapEasingFunction: EasingFunctionTypeMapper, easingFunct
     [linear, cubicBezier, steps],
     easingFunction,
   );
+
+const animationFillMode = (animationType: AnimationType, animationDirection: AnimationDirection): AnimationFillMode =>
+  animationType === AnimationType.Horizontal || animationDirection === AnimationDirection.Normal
+    ? AnimationFillMode.Forwards
+    : AnimationFillMode.Backwards;
 
 const mapEnumProperty = <E extends Enum<E>>({ enumerable, ...restProperty }: EnumerableProperty<E>): Property => ({
   ...restProperty,
@@ -204,9 +208,6 @@ const containerVariables = ({
     animationDirection,
     mapEasingFunction,
     animationTimingFunction,
-    animationFillMode = animationType === AnimationType.Horizontal || animationDirection === AnimationDirection.Normal
-      ? AnimationFillMode.Forwards
-      : AnimationFillMode.Backwards,
     animationDuration,
     horizontalAnimationDuration,
     verticalAnimationDuration,
@@ -225,7 +226,7 @@ const containerVariables = ({
   ${VariableName.AnimationType}: ${animationType};
   ${VariableName.AnimationDirection}: ${animationDirection};
   ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
-  ${VariableName.AnimationFillMode}: ${animationFillMode};
+  ${VariableName.AnimationFillMode}: ${animationFillMode(animationType!, animationDirection!)};
   ${VariableName.AnimationDuration}: ${animationDuration}${CssUnit.Millisecond};
   ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}${CssUnit.Millisecond};
   ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}${CssUnit.Millisecond};

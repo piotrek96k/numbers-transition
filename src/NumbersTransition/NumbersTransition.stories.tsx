@@ -242,7 +242,6 @@ const getInitialRotation = ({
 
 const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${rotateKeyframeFunction(getInitialRotation(theme) / Integer.Two)};
-  animation-direction: ${AnimationDirection.Normal};
   animation-fill-mode: ${AnimationFillMode.Forwards};
   animation-duration: var(${VariableName.AnimationDuration});
   animation-iteration-count: ${Integer.One};
