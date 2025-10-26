@@ -378,7 +378,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     { length }: ReactElement<ChildrenProps>[],
   ): ReactElement<ChildrenProps>[] => [
     ...accumulator,
-    ...(!!index && !((length - index - Math.max(precision, Integer.Zero)) % Integer.Three) ? [getSeparatorElement(index, length)] : []),
+    ...(index && !((length - index - Math.max(precision, Integer.Zero)) % Integer.Three) ? [getSeparatorElement(index, length)] : []),
     currentValue,
   ];
 
