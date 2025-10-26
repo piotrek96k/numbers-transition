@@ -348,7 +348,7 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Integer.MinusOneHundred,
 ]);
 
-const animationName = ({ theme: { animationType }, ...restProps }: NumbersTransitionExecutionContext): Optional<Keyframes> => {
+const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Optional<Keyframes> => {
   switch (animationType) {
     case AnimationType.Horizontal:
       return horizontalAnimation(<HorizontalAnimationProps>restProps);
