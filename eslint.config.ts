@@ -1,20 +1,21 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
+import type { Linter } from 'eslint';
 import _import from 'eslint-plugin-import';
 import reactRefresh from 'eslint-plugin-react-refresh';
 import globals from 'globals';
-import tsParser from '@typescript-eslint/parser';
-import js from '@eslint/js';
+import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
 import { FlatCompat } from '@eslint/eslintrc';
+import js from '@eslint/js';
+import tsParser from '@typescript-eslint/parser';
 
-const compat = new FlatCompat({
+const compat: FlatCompat = new FlatCompat({
   baseDirectory: dirname(fileURLToPath(import.meta.url)),
   recommendedConfig: js.configs.recommended,
   allConfig: js.configs.all,
 });
 
-export default [
+const config: Linter.Config[] = [
   { ignores: ['**/dist', '**/storybook-static'] },
   ...fixupConfigRules(
     compat.extends(
@@ -55,3 +56,5 @@ export default [
     },
   },
 ];
+
+export default config;
