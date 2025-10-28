@@ -1,8 +1,9 @@
-import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes } from 'react';
+import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes, ReactElement, ReactNode } from 'react';
 import { IStyledComponent } from 'styled-components';
 import { BaseObject as BaseObjectImport, Keyframes as KeyframesImport, KnownTarget, Substitute } from 'styled-components/dist/types';
 import { Runtime } from './NumbersTransition/NumbersTransition.enums';
 import { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
+import { Nullable } from './NumbersTransition/NumbersTransition.types';
 
 declare module 'styled-components' {
   export interface DefaultTheme extends NumbersTransitionTheme {}
@@ -20,13 +21,10 @@ declare module 'styled-components' {
     Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
   >;
 
-  type ThemeFn = (outerTheme?: Partial<DefaultTheme>) => Partial<DefaultTheme>;
-  type ThemeArgument = Partial<DefaultTheme> | ThemeFn;
-
   export interface ThemeProviderProps {
-    children?: React.ReactNode;
-    theme: ThemeArgument;
+    children?: ReactNode;
+    theme: Partial<DefaultTheme> | ((outerTheme?: Partial<DefaultTheme>) => Partial<DefaultTheme>);
   }
 
-  export function ThemeProvider(props: ThemeProviderProps): React.JSX.Element | null;
+  export function ThemeProvider(props: ThemeProviderProps): Nullable<ReactElement>;
 }
