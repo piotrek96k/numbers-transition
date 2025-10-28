@@ -15,7 +15,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { ThemeProvider, useTheme } from 'styled-components';
+import { ThemeProvider, ThemeProviderProps, useTheme } from 'styled-components';
 import {
   AnimationDirection,
   AnimationId,
@@ -54,7 +54,6 @@ import {
   HorizontalAnimation,
   Invalid,
   Negative,
-  NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
   VerticalAnimation,
   VerticalAnimationProps,
@@ -233,8 +232,8 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
-    NumbersTransitionExecutionContext
-  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): NumbersTransitionExecutionContext => ({ theme: { rowIndex } }));
+    ThemeProviderProps
+  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }));
 
   const mapToNegativeElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeElementProps<T, U, V, W>>(
     NegativeElement<T, U, V, W>,
@@ -318,20 +317,20 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
 
   const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = useElementKeyMapper<
     OrArray<ReactElement<ChildrenProps>>,
-    NumbersTransitionExecutionContext
+    ThemeProviderProps
   >(
     ThemeProvider,
     (
       _: OrArray<ReactElement<ChildrenProps>>,
       digitIndex: number,
       { length }: OrArray<ReactElement<ChildrenProps>>[],
-    ): NumbersTransitionExecutionContext => ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
+    ): ThemeProviderProps => ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
   );
 
   const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
-    NumbersTransitionExecutionContext
-  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): NumbersTransitionExecutionContext => ({ theme: { rowIndex } }));
+    ThemeProviderProps
+  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }));
 
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, {
     ...characterStyledView,
@@ -341,7 +340,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
     numbers.map<ReactElement<ChildrenProps>>(mapToDigitElement).map<ReactElement<ChildrenProps>>(mapToDigitsThemeProviderElement);
 
-  const getSeparatorTheme = (partialTheme: Partial<NumbersTransitionTheme>, index: number, length: number): NumbersTransitionTheme => ({
+  const getSeparatorTheme = (
+    partialTheme: Partial<NumbersTransitionTheme>,
+    index: number,
+    length: number,
+  ): Partial<NumbersTransitionTheme> => ({
     ...partialTheme,
     characterIndex: getCharacterSeparatorIndex(index, length),
     separatorIndex: getSeparatorIndex(index, length),
@@ -589,12 +592,10 @@ export const VerticalAnimationElement = <
 
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
     ReactElement<ChildrenProps>,
-    NumbersTransitionExecutionContext
+    ThemeProviderProps
   >(
     ThemeProvider,
-    (_: ReactElement<ChildrenProps>, index: number): NumbersTransitionExecutionContext => ({
-      theme: { columnLength: animationDigits[index].length },
-    }),
+    (_: ReactElement<ChildrenProps>, index: number): ThemeProviderProps => ({ theme: { columnLength: animationDigits[index].length } }),
   );
 
   const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<

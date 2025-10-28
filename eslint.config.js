@@ -1,5 +1,5 @@
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
 import _import from 'eslint-plugin-import';
 import reactRefresh from 'eslint-plugin-react-refresh';
@@ -28,7 +28,11 @@ export default [
   ),
   {
     plugins: { import: fixupPluginRules(_import), 'react-refresh': reactRefresh },
-    languageOptions: { globals: { ...globals.browser }, parser: tsParser },
+    languageOptions: {
+      globals: { ...globals.browser },
+      parser: tsParser,
+      parserOptions: { project: './tsconfig.eslint.json', tsconfigRootDir: dirname(fileURLToPath(import.meta.url)) },
+    },
     rules: {
       quotes: ['error', 'single', { avoidEscape: true }],
       'prettier/prettier': ['error', {}, { usePrettierrc: true }],
@@ -44,6 +48,7 @@ export default [
       'prefer-spread': 'error',
       'react-refresh/only-export-components': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
+      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
       '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',

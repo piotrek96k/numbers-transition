@@ -19,4 +19,14 @@ declare module 'styled-components' {
   export type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
     Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
   >;
+
+  type ThemeFn = (outerTheme?: Partial<DefaultTheme>) => Partial<DefaultTheme>;
+  type ThemeArgument = Partial<DefaultTheme> | ThemeFn;
+
+  export interface ThemeProviderProps {
+    children?: React.ReactNode;
+    theme: ThemeArgument;
+  }
+
+  export function ThemeProvider(props: ThemeProviderProps): React.JSX.Element | null;
 }

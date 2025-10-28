@@ -32,7 +32,7 @@ import {
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
-import { EnumType, EnumValue, Falsy, OrReadOnly, Select } from './NumbersTransition.types';
+import { EnumType, EnumValue, Falsy, OrReadOnly, Remove, Select } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,
@@ -175,10 +175,14 @@ const rotateKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<o
   transform: rotateY(${keyframeValue}${CssUnit.Turn});
 `;
 
-const getHorizontalRotateKeyframes = ({ animationNumber, animationDuration, totalAnimationDuration }: NumbersTransitionTheme): number[] =>
+const getHorizontalRotateKeyframes = ({
+  animationNumber,
+  animationDuration,
+  totalAnimationDuration,
+}: Remove<NumbersTransitionTheme, AnimationType>): number[] =>
   animationNumber === AnimationNumber.One
-    ? [Integer.Zero, animationDuration! / totalAnimationDuration! / Integer.Two]
-    : [(Integer.One + (totalAnimationDuration! - animationDuration!) / totalAnimationDuration!) / Integer.Two, Integer.One];
+    ? [Integer.Zero, animationDuration / totalAnimationDuration / Integer.Two]
+    : [(Integer.One + (totalAnimationDuration - animationDuration) / totalAnimationDuration) / Integer.Two, Integer.One];
 
 const horizontalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, ...restTheme },
@@ -193,16 +197,16 @@ const getVerticalRotateKeyframes = ({
   horizontalAnimationDuration,
   verticalAnimationDuration,
   totalAnimationDuration,
-}: NumbersTransitionTheme): number[] =>
+}: Remove<NumbersTransitionTheme, AnimationType>): number[] =>
   animationNumber === AnimationNumber.One
-    ? [Integer.Zero, verticalAnimationDuration! / totalAnimationDuration!]
+    ? [Integer.Zero, verticalAnimationDuration / totalAnimationDuration]
     : [
-        horizontalAnimationDuration! / totalAnimationDuration!,
-        (horizontalAnimationDuration! + verticalAnimationDuration!) / totalAnimationDuration!,
+        horizontalAnimationDuration / totalAnimationDuration,
+        (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
       ];
 
 const mapVerticalRotateKeyframes =
-  ({ animationDirection, columnLength, rowIndex }: NumbersTransitionTheme): ((value: number) => number) =>
+  ({ animationDirection, columnLength, rowIndex }: Remove<NumbersTransitionTheme, AnimationType>): ((value: number) => number) =>
   (value: number): number =>
     value +
     (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
@@ -228,12 +232,12 @@ const getInitialRotation = ({
   verticalAnimationDuration,
   totalAnimationDuration,
 }: NumbersTransitionTheme): number => {
-  switch (animationNumber!) {
+  switch (animationNumber) {
     case AnimationNumber.Three:
-      return (horizontalAnimationDuration! + verticalAnimationDuration!) / totalAnimationDuration!;
+      return (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration;
     case AnimationNumber.Two:
       return (
-        (animationType === AnimationType.Horizontal ? verticalAnimationDuration! : horizontalAnimationDuration!) / totalAnimationDuration!
+        (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration
       );
     default:
       return Integer.Zero;

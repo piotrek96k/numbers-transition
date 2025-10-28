@@ -79,27 +79,27 @@ interface ElementsIndex {
 }
 
 export interface ElementsLength {
-  charactersLength?: number;
-  digitsLength?: number;
-  separatorsLength?: number;
-  decimalSeparatorLength?: number;
-  digitGroupSeparatorsLength?: number;
-  negativeCharacterLength?: number;
-  invalidLength?: number;
+  charactersLength: number;
+  digitsLength: number;
+  separatorsLength: number;
+  decimalSeparatorLength: number;
+  digitGroupSeparatorsLength: number;
+  negativeCharacterLength: number;
+  invalidLength: number;
   columnLength?: number;
 }
 
 export interface NumbersTransitionTheme extends ElementsLength, ElementsIndex {
-  numberOfAnimations?: AnimationNumber;
-  animationNumber?: AnimationNumber;
-  animationType?: AnimationType;
-  animationDirection?: AnimationDirection;
-  mapEasingFunction?: EasingFunctionTypeMapper;
-  animationTimingFunction?: EasingFunction;
-  animationDuration?: number;
-  horizontalAnimationDuration?: number;
-  verticalAnimationDuration?: number;
-  totalAnimationDuration?: number;
+  numberOfAnimations: AnimationNumber;
+  animationNumber: AnimationNumber;
+  animationType: AnimationType;
+  animationDirection: AnimationDirection;
+  mapEasingFunction: EasingFunctionTypeMapper;
+  animationTimingFunction: EasingFunction;
+  animationDuration: number;
+  horizontalAnimationDuration: number;
+  verticalAnimationDuration: number;
+  totalAnimationDuration: number;
 }
 
 export interface NumbersTransitionExecutionContext extends ExecutionProps {
@@ -225,8 +225,8 @@ const containerVariables = ({
   ${VariableName.AnimationNumber}: ${animationNumber};
   ${VariableName.AnimationType}: ${animationType};
   ${VariableName.AnimationDirection}: ${animationDirection};
-  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
-  ${VariableName.AnimationFillMode}: ${animationFillMode(animationType!, animationDirection!)};
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction, animationTimingFunction)};
+  ${VariableName.AnimationFillMode}: ${animationFillMode(animationType, animationDirection)};
   ${VariableName.AnimationDuration}: ${animationDuration}${CssUnit.Millisecond};
   ${VariableName.HorizontalAnimationDuration}: ${horizontalAnimationDuration}${CssUnit.Millisecond};
   ${VariableName.VerticalAnimationDuration}: ${verticalAnimationDuration}${CssUnit.Millisecond};
@@ -243,7 +243,7 @@ const containerVariables = ({
 const verticalAnimationVariables = ({
   theme: { mapEasingFunction, animationTimingFunction, columnLength },
 }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
-  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction!, animationTimingFunction!)};
+  ${VariableName.AnimationTimingFunction}: ${easingFunction(mapEasingFunction, animationTimingFunction)};
   ${VariableName.ColumnLength}: ${columnLength};
 `;
 

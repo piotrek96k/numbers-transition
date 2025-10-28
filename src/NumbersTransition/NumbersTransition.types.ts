@@ -29,15 +29,17 @@ export type ReadOnlyArrayOfDepth<T, U extends number, V extends readonly unknown
   ? T
   : ReadOnlyArrayOfDepth<readonly T[], U, readonly [...V, unknown]>;
 
-export type Select<T, U> = Pick<T, ValueOf<{ [K in keyof T]: T[K] extends U ? K : never }>>;
+export type Remove<T, U> = { [K in keyof T as T[K] extends U ? never : K]: T[K] };
+
+export type Select<T, U> = { [K in keyof T as T[K] extends U ? K : never]: T[K] };
 
 export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
 
-export type Every<T extends [unknown, unknown][], U, V, W extends unknown[] = []> = W[Key.Length] extends T[Key.Length]
-  ? U
-  : T[W[Key.Length]][Integer.Zero] extends T[W[Key.Length]][Integer.One]
-    ? Every<T, U, V, [...W, unknown]>
-    : V;
+export type Every<T extends [unknown, unknown][], U, V> = T extends [[infer W, infer X], ...infer Y extends [unknown, unknown][]]
+  ? [W] extends [X]
+    ? Every<Y, U, V>
+    : V
+  : U;
 
 export type Zip<T extends unknown[], U extends unknown[]> = Every<
   [[`${Integer.Zero}`, keyof T], [`${Integer.Zero}`, keyof U], [keyof T, keyof U]],

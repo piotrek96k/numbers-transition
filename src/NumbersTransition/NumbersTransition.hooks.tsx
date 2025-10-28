@@ -578,17 +578,12 @@ type StyledViewTypes<
 
 // prettier-ignore
 type ViewTuple<
-  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
-> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
-  ? Z
-  : ViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
-        ...Z,
-        View<
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
-        >,
-      ]
-    >;
+  H extends object, I, J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends unknown[] = [],
+> = X[Key.Length] extends StyledViewTypes<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W>[Key.Length]
+  ? X
+  : StyledViewTypes<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W>[X[Key.Length]] extends [unknown, infer Y extends object, infer Z]
+    ? ViewTuple<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, [...X, View<Y, Z>]>
+    : never;
 
 // prettier-ignore
 type UseStyledViewOptions<
@@ -603,18 +598,12 @@ type UseStyledViewOptions<
 
 // prettier-ignore
 export type StyledViewWithPropsTuple<
-  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
-> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
-  ? Z
-  : StyledViewWithPropsTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
-        ...Z,
-        StyledViewWithProps<
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Zero],
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.One],
-          StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]][Integer.Two]
-        >,
-      ]
-    >;
+  G extends object, H, I extends object, J, K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends unknown[] = [],
+> = W[Key.Length] extends StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[Key.Length]
+  ? W
+  : StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[W[Key.Length]] extends [infer X extends Styled, infer Y extends object, infer Z]
+    ? StyledViewWithPropsTuple<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, [...W, StyledViewWithProps<X, Y, Z>]>
+    : never;
 
 export const useStyledView = <
   K extends object,
@@ -692,7 +681,7 @@ export const useCharacterIndexFunctions = (precision: number): CharacterIndexFun
       (index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three,
     );
 
-  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength! + index + getIndex(index, length);
+  const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength + index + getIndex(index, length);
   const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Integer.One;
   const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Integer.One;
   const getDigitGroupSeparatorIndex = (index: number, length: number): number =>
@@ -958,7 +947,7 @@ export const useNegativeElementAnimationTimingFunction = (
   const solve = (input: number): number[] =>
     mapEasingFunction<number[], LinearEasingFunction, CubicBezierEasingFunction, StepsEasingFunction, [number]>(
       [solveLinear, solveCubicBezier, solveSteps],
-      animationTimingFunction!,
+      animationTimingFunction,
       input,
     );
 
