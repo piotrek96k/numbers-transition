@@ -53,6 +53,7 @@ const config: Linter.Config[] = [
       '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
+      'react-hooks/refs': 'off',
     },
   },
 ];
