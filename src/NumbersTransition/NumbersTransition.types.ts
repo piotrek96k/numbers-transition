@@ -23,11 +23,7 @@ export type TupleOfLength<T, U extends number, V extends T[] = []> = V[Key.Lengt
 
 export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U extends V[Key.Length]
   ? T
-  : ArrayOfDepth<T[], U, [...V, unknown]>;
-
-export type ReadOnlyArrayOfDepth<T, U extends number, V extends readonly unknown[] = readonly []> = U extends V[Key.Length]
-  ? T
-  : ReadOnlyArrayOfDepth<readonly T[], U, readonly [...V, unknown]>;
+  : ArrayOfDepth<T[] | readonly T[], U, [...V, unknown]>;
 
 export type Remove<T, U> = { [K in keyof T as T[K] extends U ? never : K]: T[K] };
 

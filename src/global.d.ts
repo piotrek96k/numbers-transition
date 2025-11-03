@@ -1,4 +1,4 @@
-import { ArrayOfDepth, Optional, OrArray, ReadOnlyArrayOfDepth, Zip } from './NumbersTransition/NumbersTransition.types';
+import { ArrayOfDepth, Optional, OrArray, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
   interface Number {
@@ -22,7 +22,7 @@ declare global {
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
-    isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> | ReadOnlyArrayOfDepth<T, U>;
+    isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     depth<T>(array: T): number;
     toArray<T>(value: OrArray<T>): T[];
     toArray<T, U extends T[]>(value: OrArray<T>): U;
