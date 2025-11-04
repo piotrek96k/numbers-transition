@@ -522,6 +522,8 @@ export const HorizontalAnimationElement = <
   );
 };
 
+type VerticalAnimationChildMapper = (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>;
+
 interface VerticalAnimationElementProps<
   O extends object,
   P,
@@ -657,23 +659,20 @@ export const VerticalAnimationElement = <
   );
 
   const onAfterMountMapper =
-    (at: number): ((child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>) =>
+    (at: number): VerticalAnimationChildMapper =>
     (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
       Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
 
   const onAfterMountReducer =
-    (
-      accumulatedCallback: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>,
-      callback: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>,
-    ): ((child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>) =>
+    (accumulatedCallback: VerticalAnimationChildMapper, callback: VerticalAnimationChildMapper): VerticalAnimationChildMapper =>
     (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
       callback(getLastNestedOptionalElement(accumulatedCallback(child)));
 
-  const onAfterMountFunction: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps> = [
+  const onAfterMountFunction: VerticalAnimationChildMapper = [
     Integer.One,
     animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne,
   ]
-    .map<(child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>>(onAfterMountMapper)
+    .map<VerticalAnimationChildMapper>(onAfterMountMapper)
     .reduce(onAfterMountReducer);
 
   const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
