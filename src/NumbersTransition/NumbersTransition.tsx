@@ -17,7 +17,7 @@ import {
   InvalidElement,
   NegativeElement,
   NumberElement,
-  Optional,
+  Show,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
 import {
@@ -322,13 +322,13 @@ const NumbersTransition = <
   };
 
   const negativeElement: ReactElement = (
-    <Optional condition={renderNegativeCharacter}>
+    <Show condition={renderNegativeCharacter}>
       <NegativeElement<M, N, W, X>
         negativeCharacter={negativeCharacter}
         characterStyledView={characterStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
       />
-    </Optional>
+    </Show>
   );
 
   const numberElement: ReactElement = (

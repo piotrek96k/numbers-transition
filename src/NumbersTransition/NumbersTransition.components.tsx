@@ -58,7 +58,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import { GenericReactNode, Nullable, OrArray } from './NumbersTransition.types';
+import { GenericReactNode, Nullable, Optional, OrArray } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -68,12 +68,12 @@ interface ConditionalProps {
 export const Conditional: FC<ConditionalProps> = ({ children: [onTrue, onFalse], condition }: ConditionalProps): ReactNode =>
   condition ? onTrue : onFalse;
 
-interface OptionalProps {
+interface ShowProps {
   children: ReactNode;
   condition: boolean;
 }
 
-export const Optional: FC<OptionalProps> = ({ children, condition }: OptionalProps): ReactNode => (
+export const Show: FC<ShowProps> = ({ children, condition }: ShowProps): ReactNode => (
   <Conditional condition={condition}>
     {children}
     {undefined}
@@ -82,12 +82,12 @@ export const Optional: FC<OptionalProps> = ({ children, condition }: OptionalPro
 
 interface EncloseProps<T extends GenericReactNode<ChildrenProps>> {
   children: T;
-  condition?: boolean;
+  condition?: boolean | ((children: T) => boolean);
   enclose?: (children: T) => ReactNode;
 }
 
 const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose, condition = !!enclose }: EncloseProps<T>): ReactNode => (
-  <Conditional condition={condition}>
+  <Conditional condition={typeof condition === 'function' ? condition(children) : condition}>
     {(enclose ?? ((children: T): ReactNode => <>{children}</>))(children)}
     {children}
   </Conditional>
@@ -493,13 +493,13 @@ export const HorizontalAnimationElement = <
       previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
 
   const negativeElement: ReactElement = (
-    <Optional condition={renderNegativeCharacter}>
+    <Show condition={renderNegativeCharacter}>
       <HorizontalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
         characterStyledView={characterStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
       />
-    </Optional>
+    </Show>
   );
 
   const numberElement: ReactElement = (
@@ -619,60 +619,67 @@ export const VerticalAnimationElement = <
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
     isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
 
-  const getLastNestedNullableElement = (child: GenericReactNode<ChildrenProps>): Nullable<ReactElement<ChildrenProps>> =>
-    isValidElement(child) ? getLastNestedElement(child) : null;
+  const getLastNestedOptionalElement = (child: GenericReactNode<ChildrenProps>): Optional<ReactElement<ChildrenProps>> =>
+    isValidElement(child) ? getLastNestedElement(child) : undefined;
 
-  const countElements = (child: ReactElement<ChildrenProps>): number => {
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = getLastNestedElement(child);
+  const countElements = (child: ReactElement<ChildrenProps>): number =>
+    Array.toArray<GenericReactNode<ChildrenProps>>(getLastNestedElement(child).props.children).length;
 
-    return Array.isArray<GenericReactNode<ChildrenProps>>(children) ? children.length : Integer.One;
-  };
+  const onElementMount =
+    <T extends unknown[] = []>(
+      encloseFactory: (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>,
+    ): ((child: ReactElement<ChildrenProps>, ...args: T) => GenericReactNode<ChildrenProps>) =>
+    (child: ReactElement<ChildrenProps>, ...args: T) => {
+      const condition = ({ props: { children } }: ReactElement<ChildrenProps>): boolean =>
+        Array.isArray<GenericReactNode<ChildrenProps>>(children);
 
-  const onElementMount = (
-    child: ReactElement<ChildrenProps>,
-    fromArray: (array: GenericReactNode<ChildrenProps>[]) => GenericReactNode<ChildrenProps>,
-  ): GenericReactNode<ChildrenProps> => {
-    const element: ReactElement<ChildrenProps> = getLastNestedElement(child);
-    // prettier-ignore
-    const { props: { children } }: ReactElement<ChildrenProps> = element;
+      const enclose = ({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
+        encloseFactory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
 
-    return (
-      <Conditional condition={Array.isArray<GenericReactNode<ChildrenProps>>(children)}>
-        {fromArray(Array.toArray<GenericReactNode<ChildrenProps>>(children))}
-        {element}
-      </Conditional>
-    );
-  };
+      return (
+        <Enclose<ReactElement<ChildrenProps>> condition={condition} enclose={enclose}>
+          {getLastNestedElement(child)}
+        </Enclose>
+      );
+    };
 
-  const onBeforeMount = (child: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
-        array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne),
-    );
+  const onBeforeElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
+    array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne);
 
-  const onPartialMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
-    onElementMount(
-      child,
-      (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-        <AnimationPlaceholder>
-          {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
-        </AnimationPlaceholder>
-      ),
-    );
+  const onPartialElementMount = (array: GenericReactNode<ChildrenProps>[], numberOfElements: number): GenericReactNode<ChildrenProps> => (
+    <AnimationPlaceholder>
+      {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
+    </AnimationPlaceholder>
+  );
+
+  const onAfterElementMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps> = onElementMount<[]>(
+    (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <AnimationPlaceholder>{array}</AnimationPlaceholder>,
+  );
+
+  const onAfterMountMapper =
+    (at: number): ((child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>) =>
+    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
+      Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
+
+  const onAfterMountReducer =
+    (
+      accumulatedCallback: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>,
+      callback: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>,
+    ): ((child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>) =>
+    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
+      callback(getLastNestedOptionalElement(accumulatedCallback(child)));
+
+  const onAfterMountFunction: (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps> = [
+    Integer.One,
+    animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne,
+  ]
+    .map<(child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>>(onAfterMountMapper)
+    .reduce(onAfterMountReducer);
 
   const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
     <Conditional condition={!index && child === getLastNestedElement(child)}>
-      {Array.toArray<GenericReactNode<ChildrenProps>>(
-        getLastNestedNullableElement(Array.toArray<GenericReactNode<ChildrenProps>>(child.props.children)[Integer.One])?.props.children,
-      ).at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne)}
-      {onElementMount(
-        child,
-        (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-          <AnimationPlaceholder>{array}</AnimationPlaceholder>
-        ),
-      )}
+      {onAfterMountFunction(child)}
+      {onAfterElementMount(child)}
     </Conditional>
   );
 
@@ -680,8 +687,8 @@ export const VerticalAnimationElement = <
     <Defer
       chunkSize={deferChunkSize}
       countElements={countElements}
-      onBeforeMount={onBeforeMount}
-      onPartialMount={onPartialMount}
+      onBeforeMount={onElementMount<[]>(onBeforeElementMount)}
+      onPartialMount={onElementMount<[number]>(onPartialElementMount)}
       {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
     >
       {children}
