@@ -288,9 +288,9 @@ const NumbersTransition = <
   const shouldForwardProp = (prop: string): boolean =>
     [Object.values<ForwardProp>(ForwardProp), forwardProps].some((forwardProps: string[]): boolean => forwardProps.includes<string>(prop));
 
-  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = (event: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
+  const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
-      (): boolean => !Object.values<AnimationId>(AnimationId).includes<string>(event.target.id),
+      (): boolean => !Object.values<AnimationId>(AnimationId).includes<string>(id),
       (): boolean => numberOfAnimations === AnimationNumber.One,
       (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
       (): boolean => animationTransition !== AnimationTransition.None,
