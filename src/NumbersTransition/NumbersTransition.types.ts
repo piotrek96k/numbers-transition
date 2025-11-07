@@ -1,7 +1,7 @@
 import { ReactElement, ReactNode, SyntheticEvent } from 'react';
 import { Integer, Key, Text } from './NumbersTransition.enums';
 
-export type ValueOf<T> = T[keyof T];
+export type ValueOf<T> = T extends unknown ? T[keyof T] : never;
 
 export type Enum<E> = Record<keyof E, string | number> & { [key: number]: string };
 
@@ -36,6 +36,21 @@ export type Every<T extends [unknown, unknown][], U, V> = T extends [[infer W, i
     ? Every<Y, U, V>
     : V
   : U;
+
+export type First<T extends [unknown, unknown, unknown][], U> = T extends [
+  [infer V, infer W, infer X],
+  ...infer Y extends [unknown, unknown, unknown][],
+]
+  ? V extends W
+    ? X
+    : First<Y, U>
+  : U;
+
+export type Switch<T, U extends [unknown, unknown][]> = U extends [[infer V, infer W], ...infer X extends [unknown, unknown][]]
+  ? Every<[[[T], [V]], [[V], [T]]], W, Switch<T, X>>
+  : never;
+
+export type UnionProduct<T, U> = First<[[T, undefined, U], [U, undefined, T]], Every<[[T, unknown], [U, unknown]], T & U, never>>;
 
 export type Zip<T extends unknown[], U extends unknown[]> = Every<
   [[`${Integer.Zero}`, keyof T], [`${Integer.Zero}`, keyof U], [keyof T, keyof U]],

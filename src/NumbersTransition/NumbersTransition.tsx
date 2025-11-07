@@ -34,6 +34,7 @@ import {
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
+  ViewType,
 } from './NumbersTransition.enums';
 import {
   AnimationAlgorithm,
@@ -41,9 +42,9 @@ import {
   AnimationLogic,
   AnimationValues,
   ExtendedAnimationTimingFunction,
-  StyledViewWithPropsTuple,
   TotalAnimationDuration,
   View,
+  ViewTuple,
   useAnimationDirection,
   useAnimationDuration,
   useAnimationLogic,
@@ -251,7 +252,7 @@ const NumbersTransition = <
     digitGroupSeparatorStyledView,
     negativeCharacterStyledView,
     invalidStyledView,
-  ]: StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = useStyledView<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>([
+  ]: ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = useStyledView<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>([
     view,
     characterView,
     digitView,

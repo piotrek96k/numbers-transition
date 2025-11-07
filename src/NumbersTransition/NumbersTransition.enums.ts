@@ -32,6 +32,13 @@ export enum ViewKey {
   Animation = 'animation',
 }
 
+export enum ViewType {
+  BaseView,
+  View,
+  StyledView,
+  StyledViewWithProps,
+}
+
 export enum VariableName {
   AnimationType = '--animation-type',
   AnimationDirection = '--animation-direction',

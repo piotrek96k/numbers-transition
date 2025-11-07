@@ -30,6 +30,7 @@ import {
   Styled,
   Text,
   ViewKey,
+  ViewType,
 } from './NumbersTransition.enums';
 import {
   CubicBezierEasingFunction,
@@ -50,8 +51,10 @@ import {
   OrArray,
   OrReadOnly,
   Slice,
+  Switch,
   TupleOfLength,
   UncheckedBigDecimal,
+  UnionProduct,
   ValueOf,
 } from './NumbersTransition.types';
 
@@ -550,13 +553,13 @@ export const useRenderNegativeCharacter = (options: UseRenderNegativeCharacterOp
   return renderNegativeCharacter;
 };
 
-type MappedView<T extends object = object, U = unknown> = {
+type BaseView<T extends object = object, U = unknown> = {
   [K in keyof StyledView<Styled, T, U> as Uncapitalize<
     Slice<K, Styled> extends Capitalize<ViewKey> ? Slice<K, Styled> : never
   >]: StyledView<Styled, T, U>[K];
 };
 
-export interface View<T extends object = object, U = unknown> extends MappedView<T, U> {
+export interface View<T extends object = object, U = unknown> extends BaseView<T, U> {
   viewProps?: T;
 }
 
@@ -576,33 +579,23 @@ type StyledViewTypes<
   [Styled.Invalid, Y, Z],
 ];
 
-// prettier-ignore
-type ViewTuple<
-  H extends object, I, J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends unknown[] = [],
-> = X[Key.Length] extends StyledViewTypes<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W>[Key.Length]
-  ? X
-  : StyledViewTypes<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W>[X[Key.Length]] extends [unknown, infer Y extends object, infer Z]
-    ? ViewTuple<H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, [...X, View<Y, Z>]>
-    : never;
+type ViewTypeMap<T extends ViewType, U extends Styled, V extends object, W> = Switch<
+  T,
+  [
+    [ViewType.BaseView, BaseView<V, W>],
+    [ViewType.View, Optional<View<V, W>>],
+    [ViewType.StyledView, StyledView<U, V, W>],
+    [ViewType.StyledViewWithProps, StyledViewWithProps<U, V, W>],
+  ]
+>;
 
 // prettier-ignore
-type UseStyledViewOptions<
-  J extends object, K, L extends object, M, N extends object, O, P extends object, Q, R extends object, S, T extends object, U, V extends object, W, X extends object, Y, Z extends unknown[] = [],
-> = Z[Key.Length] extends StyledViewTypes<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Key.Length]
-  ? Z
-  : UseStyledViewOptions<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, [
-        ...Z,
-        Optional<ViewTuple<J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y>[Z[Key.Length]]>
-      ]
-    >;
-
-// prettier-ignore
-export type StyledViewWithPropsTuple<
-  G extends object, H, I extends object, J, K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends unknown[] = [],
+export type ViewTuple<
+  F extends ViewType, G extends object, H, I extends object, J, K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends unknown[] = [],
 > = W[Key.Length] extends StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[Key.Length]
   ? W
   : StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[W[Key.Length]] extends [infer X extends Styled, infer Y extends object, infer Z]
-    ? StyledViewWithPropsTuple<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, [...W, StyledViewWithProps<X, Y, Z>]>
+    ? ViewTuple<F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, [...W, ViewTypeMap<F, X, Y, Z>]>
     : never;
 
 export const useStyledView = <
@@ -623,37 +616,42 @@ export const useStyledView = <
   Y extends object,
   Z,
 >(
-  options: UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
-): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
+  options: ViewTuple<ViewType.View, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+): ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
   const mapView = ([{ viewProps, ...restView } = {}, styledComponent]: [
-    UseStyledViewOptions<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+    ViewTuple<ViewType.View, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
     Styled,
-  ]): StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] => {
-    const mapEntry = ([key, value]: [string, ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]): [
+  ]): UnionProduct<
+    ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+    Optional<K | M | O | Q | S | U | W | Y>
+  > => {
+    const mapEntry = ([key, value]: [
       string,
-      ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
-    ] => [`${styledComponent}${key.capitalize()}`, value];
+      ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
+    ]): [string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>] => [
+      `${styledComponent}${key.capitalize()}`,
+      value,
+    ];
 
-    const styledView: ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
-      ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
+    const styledView: ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
+      ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
     >(
-      Object.entries<ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
-        [string, ValueOf<ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
+      Object.entries<ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
+        [string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
       >(mapEntry),
     );
 
-    return Object.assign<
-      Partial<U | V>,
-      ViewTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]
-    >(viewProps ?? {}, styledView);
+    return { ...styledView, ...viewProps };
   };
 
   return options
     .zip<TupleOfLength<Styled, Integer.Eight>>(Object.values<Styled, TupleOfLength<Styled, Integer.Eight>>(Styled))
     .map<
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-      StyledViewWithPropsTuple<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
+      UnionProduct<
+        ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
+        Optional<K | M | O | Q | S | U | W | Y>
+      >,
+      ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
     >(mapView);
 };
 
@@ -1079,7 +1077,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     currentValue,
   }: UseVerticalAnimationDigitsOptions = options;
 
-  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: undefined, index: number): [DigitValues[], DigitValues[]] => {
+  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: unknown, index: number): [DigitValues[], DigitValues[]] => {
     const [start, end]: bigint[] = [previousValue, currentValue]
       .map<bigint>((number: bigint): bigint => number / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero));
@@ -1093,12 +1091,12 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
 
   const incrementValues = ({ start, end }: DigitValues): number[] =>
-    [...Array(Number(end - start) + Integer.One)].map<number>((_: undefined, index: number): number => getDigit(start + BigInt(index)));
+    [...Array(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => getDigit(start + BigInt(index)));
 
   const generateValues = (values: DigitValues, index: number): number[] => {
     const { start, end }: DigitValues = values;
 
-    const calculate = (_: undefined, index: number, { length }: number[]): bigint =>
+    const calculate = (_: unknown, index: number, { length }: number[]): bigint =>
       (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
     const round = (value: bigint): bigint =>
