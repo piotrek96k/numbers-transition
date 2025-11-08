@@ -125,11 +125,11 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     FragmentProps
   >(Fragment);
 
-  // prettier-ignore
   useEffect(
-    (): void => [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
-      .filter((): boolean => mountedElements < aggregatedSums.at(Integer.MinusOne)!)
-      .forEach((callback: () => unknown): unknown => callback()),
+    (): void =>
+      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
+        .filter((): boolean => mountedElements < aggregatedSums.at(Integer.MinusOne)!)
+        .forEach((callback: () => unknown): unknown => callback()),
     [chunkSize, mountedElements, aggregatedSums],
   );
 

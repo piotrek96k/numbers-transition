@@ -231,9 +231,10 @@ const NumbersTransition = <
     animationDirection,
   });
 
-  // prettier-ignore
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: [number, number, number, number] =
-    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: TupleOfLength<
+    number,
+    Integer.Four
+  > = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
     negativeCharacterAnimationMode,
@@ -276,9 +277,8 @@ const NumbersTransition = <
     numberOfDigits: maxNumberOfDigits,
   });
 
-  // prettier-ignore
   useEffect(
-    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach((callback: () => void): void => callback()),
+    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach((c: () => void): void => c()),
     [validValue, omitAnimation],
   );
 

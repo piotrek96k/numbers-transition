@@ -446,7 +446,7 @@ interface UseAnimationDurationOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-export const useAnimationDuration = (options: UseAnimationDurationOptions): [number, number, number, number] => {
+export const useAnimationDuration = (options: UseAnimationDurationOptions): TupleOfLength<number, Integer.Four> => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
