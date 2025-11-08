@@ -131,11 +131,11 @@ const marginCss: RuleSet<object> = css<object>`
   ${basicEffectCss};
   margin: ${Integer.One}${CssUnit.Rem};
   > :not(:last-child),
-  #${AnimationId.HorizontalAnimation} > * :not(:last-child) {
+  [id^=${AnimationId.HorizontalAnimation}] > * :not(:last-child) {
     margin-right: ${Integer.Five / Integer.Sixteen}${CssUnit.Rem};
   }
-  #${AnimationId.VerticalAnimation} :not(:last-child),
-  :has(~ * > #${AnimationId.VerticalAnimation}) > * :not(:last-child) {
+  [id^=${AnimationId.VerticalAnimation}] :not(:last-child),
+  :has(~ * > [id^=${AnimationId.VerticalAnimation}]) > * :not(:last-child) {
     padding-bottom: ${Integer.Two}${CssUnit.Rem};
   }
 `;

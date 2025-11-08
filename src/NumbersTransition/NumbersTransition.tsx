@@ -7,16 +7,20 @@ import {
   RefObject,
   SetStateAction,
   useEffect,
+  useId,
   useRef,
   useState,
 } from 'react';
 import { StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
+  AnimationProps,
   Conditional,
   HorizontalAnimationElement,
   InvalidElement,
   NegativeElement,
+  NegativeProps,
   NumberElement,
+  NumberProps,
   Show,
   VerticalAnimationElement,
 } from './NumbersTransition.components';
@@ -165,6 +169,7 @@ const NumbersTransition = <
 
   const [animationTransition, setAnimationTransition]: [AnimationTransition, Dispatch<SetStateAction<AnimationTransition>>] =
     useState<AnimationTransition>(AnimationTransition.None);
+  const componentId: string = useId();
 
   const [
     [previousValueOnEndDigits, valueDigits],
@@ -291,7 +296,7 @@ const NumbersTransition = <
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
-      (): boolean => !Object.values<AnimationId>(AnimationId).includes<string>(id),
+      (): boolean => !Object.values<AnimationId>(AnimationId).some((animId: AnimationId): boolean => `${animId}${componentId}` === id),
       (): boolean => numberOfAnimations === AnimationNumber.One,
       (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
       (): boolean => animationTransition !== AnimationTransition.None,
@@ -322,75 +327,47 @@ const NumbersTransition = <
     totalAnimationDuration,
   };
 
-  const negativeElement: ReactElement = (
-    <Show condition={renderNegativeCharacter}>
-      <NegativeElement<M, N, W, X>
-        negativeCharacter={negativeCharacter}
-        characterStyledView={characterStyledView}
-        negativeCharacterStyledView={negativeCharacterStyledView}
-      />
-    </Show>
-  );
+  const negativeProps: NegativeProps<W, X> = { negativeCharacter, negativeCharacterStyledView };
 
-  const numberElement: ReactElement = (
-    <NumberElement<M, N, O, P, Q, R, S, T, U, V>
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      characterStyledView={characterStyledView}
-      digitStyledView={digitStyledView}
-      separatorStyledView={separatorStyledView}
-      decimalSeparatorStyledView={decimalSeparatorStyledView}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-    >
-      {previousValueOnEndDigits}
-    </NumberElement>
-  );
+  const numberProps: NumberProps<M, N, O, P, Q, R, S, T, U, V> = {
+    precision,
+    decimalSeparator,
+    digitGroupSeparator,
+    characterStyledView,
+    digitStyledView,
+    separatorStyledView,
+    decimalSeparatorStyledView,
+    digitGroupSeparatorStyledView,
+  };
+
+  const animationProps: AnimationProps<M, N, O, P, Q, R, S, T, U, V, W, X> = {
+    ...negativeProps,
+    ...numberProps,
+    componentId,
+    previousValue: previousValueOnEndBigInt,
+    currentValue: valueBigInt,
+    maxNumberOfDigits,
+    hasSignChanged,
+  };
 
   const horizontalAnimationElement: ReactElement = (
     <HorizontalAnimationElement<M, N, O, P, Q, R, S, T, U, V, W, X>
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      negativeCharacter={negativeCharacter}
+      {...animationProps}
       animationTransition={animationTransition}
       previousValueDigits={previousValueOnEndDigits}
       currentValueDigits={valueDigits}
-      previousValue={previousValueOnEndBigInt}
-      currentValue={valueBigInt}
       minNumberOfDigits={minNumberOfDigits}
-      maxNumberOfDigits={maxNumberOfDigits}
       numberOfDigitsDifference={numberOfDigitsDifference}
-      hasSignChanged={hasSignChanged}
-      characterStyledView={characterStyledView}
-      digitStyledView={digitStyledView}
-      separatorStyledView={separatorStyledView}
-      decimalSeparatorStyledView={decimalSeparatorStyledView}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-      negativeCharacterStyledView={negativeCharacterStyledView}
     />
   );
 
   const verticalAnimationElement: ReactElement = (
     <VerticalAnimationElement<M, N, O, P, Q, R, S, T, U, V, W, X>
-      precision={precision}
-      decimalSeparator={decimalSeparator}
-      digitGroupSeparator={digitGroupSeparator}
-      negativeCharacter={negativeCharacter}
+      {...animationProps}
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationAlgorithm={animationAlgorithm}
       optimizationStrategy={optimizationStrategy}
       deferChunkSize={deferChunkSize}
-      previousValue={previousValueOnEndBigInt}
-      currentValue={valueBigInt}
-      maxNumberOfDigits={maxNumberOfDigits}
-      hasSignChanged={hasSignChanged}
-      characterStyledView={characterStyledView}
-      digitStyledView={digitStyledView}
-      separatorStyledView={separatorStyledView}
-      decimalSeparatorStyledView={decimalSeparatorStyledView}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-      negativeCharacterStyledView={negativeCharacterStyledView}
     />
   );
 
@@ -403,7 +380,7 @@ const NumbersTransition = <
 
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
-      {numberElement}
+      <NumberElement<M, N, O, P, Q, R, S, T, U, V> {...numberProps}>{previousValueOnEndDigits}</NumberElement>
       <InvalidElement<M, N, Y, Z>
         invalidValue={invalidValue}
         characterStyledView={characterStyledView}
@@ -414,7 +391,9 @@ const NumbersTransition = <
 
   const containerElement: ReactElement = (
     <Container {...styledView} onAnimationEnd={onAnimationEnd}>
-      {negativeElement}
+      <Show condition={renderNegativeCharacter}>
+        <NegativeElement<M, N, W, X> {...negativeProps} characterStyledView={characterStyledView} />
+      </Show>
       <Conditional condition={renderAnimation}>
         {animationElement}
         {valueElement}
