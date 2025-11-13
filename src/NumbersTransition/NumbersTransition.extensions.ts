@@ -1,35 +1,35 @@
 import { Integer } from './NumbersTransition.enums';
 import { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
-String.prototype.capitalize = function capitalize(): string {
-  return `${this[Integer.Zero].toUpperCase()}${this.slice(Integer.One)}`;
-};
+class GenericExt<T> {
+  public constructor(protected readonly value: T) {}
+}
 
-RegExp.prototype.testAny = function testAny<T>(unknown: unknown): unknown is T {
-  return this.test(`${unknown}`);
-};
+export class StringExt extends GenericExt<string> {
+  public readonly capitalize = (): string => `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
+}
 
-Array.isOfDepth = function isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
-  return Array.depth<unknown>(array) === depth;
-};
+export class RegExpExt extends GenericExt<RegExp> {
+  public readonly testAny = <T>(unknown: unknown): unknown is T => this.value.test(`${unknown}`);
+}
 
-Array.depth = function depth<T>(array: T): number {
-  return Array.isArray<T>(array)
-    ? Integer.One + array.map<number>(depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
-    : Integer.Zero;
-};
+export class ArrayExt<T> extends GenericExt<T[]> {
+  public static readonly isOfDepth = <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> =>
+    this.depth<unknown>(array) === depth;
 
-Array.toArray = function toArray<T>(value: OrArray<T>): T[] {
-  return Array.isArray<T>(value) ? value : [value];
-};
+  public static readonly depth = <T>(array: T): number =>
+    Array.isArray<T>(array)
+      ? Integer.One +
+        array.map<number>(this.depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
+      : Integer.Zero;
 
-Array.prototype.equals = function equals<T>({ length, ...array }: T[]): boolean {
-  return this.length === length && this.every((value: unknown, index: number): boolean => value === array[index]);
-};
+  public static readonly toArray = <T>(value: OrArray<T>): T[] => (Array.isArray<T>(value) ? value : [value]);
 
-Array.prototype.zip = function zip<T extends unknown[], U extends unknown[]>(array: U): Zip<T, U> {
-  return this.map<[T[number]] | [T[number], U[number]], Zip<T, U>>(
-    (value: T[number], index: number): [T[number]] | [T[number], U[number]] =>
+  public readonly equals = <U extends T>({ length, ...array }: U[]): boolean =>
+    this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
+
+  public readonly zip = <U extends unknown[]>(array: U): Zip<T[], U> =>
+    this.value.map<[T] | [T, U[number]], Zip<T[], U>>((value: T, index: number): [T] | [T, U[number]] =>
       array[index] === undefined ? [value] : [value, array[index]],
-  );
-};
+    );
+}

@@ -11,8 +11,10 @@ storybook-static
 .huskyrc.json
 .lintstagedrc.json
 .prettierrc.json
-eslint.config.js
+eslint.config.ts
+extensions.config.json
 package-lock.json
+tsconfig.eslint.json
 tsconfig.json
 tsconfig.node.json
 tsconfig.plugins.json

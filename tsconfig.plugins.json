@@ -6,7 +6,8 @@
     "moduleResolution": "bundler",
     "strict": true,
     "noImplicitAny": true,
-    "outDir": "plugins/dist"
+    "outDir": "plugins/dist",
+    "types": ["node"]
   },
   "include": ["plugins"],
   "references": [{ "path": "./tsconfig.node.json" }]

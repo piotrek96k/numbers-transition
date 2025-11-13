@@ -8,7 +8,7 @@ const Decorator: DecoratorFunction<ReactRenderer> = (
   const [timedOut, setTimedOut]: [boolean, Dispatch<SetStateAction<boolean>>] = useState<boolean>(false);
 
   useEffect((): (() => void) => {
-    const timeout: number = setTimeout((): void => setTimedOut(true), 250);
+    const timeout: NodeJS.Timeout = setTimeout((): void => setTimedOut(true), 250);
     return (): void => clearTimeout(timeout);
   });
 
