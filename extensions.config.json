@@ -1,8 +1,0 @@
-{
-  "extensionsFilePath": "src/NumbersTransition/NumbersTransition.extensions.ts",
-  "extensions": {
-    "StringExt": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
-    "RegExpExt": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
-    "ArrayExt": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" }
-  }
-}

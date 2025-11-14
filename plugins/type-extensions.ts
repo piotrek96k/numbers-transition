@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { dirname, relative, resolve } from 'path';
-import { Plugin, TransformHook, TransformResult } from 'rollup';
+import { cwd } from 'process';
+import { TransformHook, TransformResult } from 'rollup';
 import {
   CallExpression,
   ClassDeclaration,
@@ -27,6 +28,7 @@ import {
   createPrinter,
   createSourceFile,
   factory,
+  findConfigFile,
   isArrowFunction,
   isCallExpression,
   isClassDeclaration,
@@ -40,8 +42,12 @@ import {
   isPropertyAccessExpression,
   isPropertyDeclaration,
   isStringLiteral,
+  parseJsonConfigFileContent,
+  readConfigFile,
+  sys,
   visitEachChild,
 } from 'typescript';
+import { Plugin } from 'vite';
 
 enum Encoding {
   Utf8 = 'utf-8',
@@ -87,7 +93,8 @@ interface TypeExtension extends Extension {
   methods: Method[];
 }
 
-interface TypeExtensionsPluginOptions {
+export interface TypeExtensionsOptions {
+  tsConfig: string;
   extensionsFilePath: string;
   extensions: Record<string, Extension>;
 }
@@ -110,6 +117,15 @@ const isMethod = (member: ClassElement): member is FunctionDeclaration =>
 
 const isCallableNode = (node: Node): node is CallableNode =>
   isCallExpression(node) && (isPropertyAccessExpression(node.expression) || isPropertyAccessChain(node.expression));
+
+const getAllowedFiles = (tsConfig: string): Set<string> =>
+  new Set<string>(
+    parseJsonConfigFileContent(
+      readConfigFile(findConfigFile(cwd(), sys.fileExists, tsConfig)!, sys.readFile).config,
+      sys,
+      cwd(),
+    ).fileNames.map<string>((file: string): string => resolve(file)),
+  );
 
 const mapMethod = ({ name: { text }, modifiers }: FunctionDeclaration): Method => ({
   name: text,
@@ -243,51 +259,59 @@ const buildExtensionsImport = (importPath: string, usedExtensions: Set<string>):
     factory.createStringLiteral(importPath),
   );
 
-const buildTransformer =
-  (extensionsFilePath: string, extensionsMap: Map<string, TypeExtension>): TransformHook =>
-  (originalCode: string, id: string): TransformResult => {
-    const importPath: string = relative(dirname(id), extensionsFilePath)
-      .replace(/\\/g, '/')
-      .replace(/^(?!\.{1,2}\/)(\/?)/, './')
-      .replace(/\.[a-z]+$/, '');
+const transformCode = (
+  extensionsFilePath: string,
+  extensionsMap: Map<string, TypeExtension>,
+  originalCode: string,
+  id: string,
+): TransformResult => {
+  const importPath: string = relative(dirname(id), extensionsFilePath)
+    .replace(/\\/g, '/')
+    .replace(/^(?!\.{1,2}\/)(\/?)/, './')
+    .replace(/\.[a-z]+$/, '');
 
-    const sourceFile: SourceFile = createSourceFile(id, originalCode, ScriptTarget.ESNext, true);
+  const sourceFile: SourceFile = createSourceFile(id, originalCode, ScriptTarget.ESNext, true);
 
-    const [imports, restSource]: [ImportDeclaration[], Statement[]] = sourceFile.statements.reduce<[ImportDeclaration[], Statement[]]>(
-      ([imports, restSource]: [ImportDeclaration[], Statement[]], statement: Statement): [ImportDeclaration[], Statement[]] =>
-        isImportDeclaration(statement) ? [[...imports, statement], restSource] : [imports, [...restSource, statement]],
-      [[], []],
-    );
+  const [imports, restSource]: [ImportDeclaration[], Statement[]] = sourceFile.statements.reduce<[ImportDeclaration[], Statement[]]>(
+    ([imports, restSource]: [ImportDeclaration[], Statement[]], statement: Statement): [ImportDeclaration[], Statement[]] =>
+      isImportDeclaration(statement) ? [[...imports, statement], restSource] : [imports, [...restSource, statement]],
+    [[], []],
+  );
 
-    const [extensionImport, restImports]: [ImportDeclaration[], ImportDeclaration[]] = imports.reduce<
-      [ImportDeclaration[], ImportDeclaration[]]
-    >(
-      (
-        [extensionImport, restImports]: [ImportDeclaration[], ImportDeclaration[]],
-        importDeclaration: ImportDeclaration,
-      ): [ImportDeclaration[], ImportDeclaration[]] =>
-        isStringLiteral(importDeclaration.moduleSpecifier) && importDeclaration.moduleSpecifier.text === importPath
-          ? [[importDeclaration], restImports]
-          : [extensionImport, [...restImports, importDeclaration]],
-      [[], []],
-    );
+  const [extensionImport, restImports]: [ImportDeclaration[], ImportDeclaration[]] = imports.reduce<
+    [ImportDeclaration[], ImportDeclaration[]]
+  >(
+    (
+      [extensionImport, restImports]: [ImportDeclaration[], ImportDeclaration[]],
+      importDeclaration: ImportDeclaration,
+    ): [ImportDeclaration[], ImportDeclaration[]] =>
+      isStringLiteral(importDeclaration.moduleSpecifier) && importDeclaration.moduleSpecifier.text === importPath
+        ? [[importDeclaration], restImports]
+        : [extensionImport, [...restImports, importDeclaration]],
+    [[], []],
+  );
 
-    const usedExtensions: Set<string> = readUsedExtensions(extensionImport);
+  const usedExtensions: Set<string> = readUsedExtensions(extensionImport);
 
-    const { statements }: SourceFile = visitEachChild<SourceFile>(
-      factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
-      buildVisitor(sourceFile, extensionsMap, usedExtensions),
-      undefined,
-    );
+  const { statements }: SourceFile = visitEachChild<SourceFile>(
+    factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
+    buildVisitor(sourceFile, extensionsMap, usedExtensions),
+    undefined,
+  );
 
-    return {
-      code: createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
-        factory.updateSourceFile(sourceFile, [...restImports, buildExtensionsImport(importPath, usedExtensions), ...statements]),
-      ),
-    };
+  return {
+    code: createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
+      factory.updateSourceFile(sourceFile, [...restImports, buildExtensionsImport(importPath, usedExtensions), ...statements]),
+    ),
   };
+};
 
-export default ({ extensionsFilePath, extensions }: TypeExtensionsPluginOptions): Plugin => ({
+const buildTransformer =
+  (allowedFiles: Set<string>, extensionsFilePath: string, extensionsMap: Map<string, TypeExtension>): TransformHook =>
+  (originalCode: string, id: string): TransformResult =>
+    allowedFiles.has(resolve(id)) ? transformCode(extensionsFilePath, extensionsMap, originalCode, id) : null;
+
+export default ({ tsConfig, extensionsFilePath, extensions }: TypeExtensionsOptions): Plugin => ({
   name: 'type-extensions-plugin',
-  transform: buildTransformer(extensionsFilePath, buildExtensionsMap(extensionsFilePath, extensions)),
+  transform: buildTransformer(getAllowedFiles(tsConfig), extensionsFilePath, buildExtensionsMap(extensionsFilePath, extensions)),
 });
