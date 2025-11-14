@@ -47,7 +47,7 @@ import {
   sys,
   visitEachChild,
 } from 'typescript';
-import { Plugin } from 'vite';
+import { HmrContext, Plugin } from 'vite';
 
 enum Encoding {
   Utf8 = 'utf-8',
@@ -79,6 +79,11 @@ interface CallableNode extends CallExpression {
   expression: PropertyAccessExpression;
 }
 
+interface InternalConfig {
+  allowedFiles: Set<string>;
+  extensionsMap: Map<string, TypeExtension>;
+}
+
 interface Method {
   name: string;
   isStatic: boolean;
@@ -93,7 +98,7 @@ interface TypeExtension extends Extension {
   methods: Method[];
 }
 
-export interface TypeExtensionsOptions {
+interface TypeExtensionsConfig {
   tsConfig: string;
   extensionsFilePath: string;
   extensions: Record<string, Extension>;
@@ -118,6 +123,8 @@ const isMethod = (member: ClassElement): member is FunctionDeclaration =>
 const isCallableNode = (node: Node): node is CallableNode =>
   isCallExpression(node) && (isPropertyAccessExpression(node.expression) || isPropertyAccessChain(node.expression));
 
+const readConfig = (configPath: string): TypeExtensionsConfig => JSON.parse(readFileSync(resolve(configPath), Encoding.Utf8));
+
 const getAllowedFiles = (tsConfig: string): Set<string> =>
   new Set<string>(
     parseJsonConfigFileContent(
@@ -129,7 +136,7 @@ const getAllowedFiles = (tsConfig: string): Set<string> =>
 
 const mapMethod = ({ name: { text }, modifiers }: FunctionDeclaration): Method => ({
   name: text,
-  isStatic: modifiers!.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword),
+  isStatic: !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword),
 });
 
 const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> =>
@@ -151,6 +158,30 @@ const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<strin
         map.set(className, { type: extensions[className].type, typeCheck: extensions[className].typeCheck, methods }),
       new Map<string, TypeExtension>(),
     );
+
+const buildInternalConfig = ({ tsConfig, extensionsFilePath, extensions }: TypeExtensionsConfig): InternalConfig => ({
+  allowedFiles: getAllowedFiles(tsConfig),
+  extensionsMap: buildExtensionsMap(extensionsFilePath, extensions),
+});
+
+const buildHotUpdateHandler =
+  (configPath: string, config: TypeExtensionsConfig, internalConfig: InternalConfig): ((context: HmrContext) => void) =>
+  ({ file, server }: HmrContext): void => {
+    switch (resolve(file)) {
+      case resolve(configPath):
+        return (
+          Object.assign<TypeExtensionsConfig, TypeExtensionsConfig>(config, readConfig(configPath)) &&
+          Object.assign<InternalConfig, InternalConfig>(internalConfig, buildInternalConfig(config)) &&
+          server.moduleGraph.invalidateAll()
+        );
+      case resolve(config.extensionsFilePath):
+        return (
+          Object.assign<InternalConfig, InternalConfig>(internalConfig, buildInternalConfig(config)) && server.moduleGraph.invalidateAll()
+        );
+      default:
+        Object.assign<InternalConfig, Partial<InternalConfig>>(internalConfig, { allowedFiles: getAllowedFiles(config.tsConfig) });
+    }
+  };
 
 const readUsedExtensions = (extensionImport: ImportDeclaration[]): Set<string> =>
   extensionImport
@@ -307,11 +338,19 @@ const transformCode = (
 };
 
 const buildTransformer =
-  (allowedFiles: Set<string>, extensionsFilePath: string, extensionsMap: Map<string, TypeExtension>): TransformHook =>
+  (config: TypeExtensionsConfig, internalConfig: InternalConfig): TransformHook =>
   (originalCode: string, id: string): TransformResult =>
-    allowedFiles.has(resolve(id)) ? transformCode(extensionsFilePath, extensionsMap, originalCode, id) : null;
+    internalConfig.allowedFiles.has(resolve(id))
+      ? transformCode(config.extensionsFilePath, internalConfig.extensionsMap, originalCode, id)
+      : null;
 
-export default ({ tsConfig, extensionsFilePath, extensions }: TypeExtensionsOptions): Plugin => ({
-  name: 'type-extensions-plugin',
-  transform: buildTransformer(getAllowedFiles(tsConfig), extensionsFilePath, buildExtensionsMap(extensionsFilePath, extensions)),
-});
+export default (configPath: string): Plugin => {
+  const config: TypeExtensionsConfig = readConfig(configPath);
+  const internalConfig: InternalConfig = buildInternalConfig(config);
+
+  return {
+    name: 'type-extensions-plugin',
+    handleHotUpdate: buildHotUpdateHandler(configPath, config, internalConfig),
+    transform: buildTransformer(config, internalConfig),
+  };
+};

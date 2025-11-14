@@ -1,5 +1,6 @@
 .github
 .husky
+.idea
 .storybook
 .vscode
 node_modules
