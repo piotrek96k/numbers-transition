@@ -14,6 +14,8 @@ export class RegExpExt extends GenericExt<RegExp> {
 }
 
 export class ArrayExt<T> extends GenericExt<T[]> {
+  public static readonly toArray = <T>(value: OrArray<T>): T[] => (Array.isArray<T>(value) ? value : [value]);
+
   public static readonly isOfDepth = <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> =>
     this.depth<unknown>(array) === depth;
 
@@ -22,8 +24,6 @@ export class ArrayExt<T> extends GenericExt<T[]> {
       ? Integer.One +
         array.map<number>(this.depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
       : Integer.Zero;
-
-  public static readonly toArray = <T>(value: OrArray<T>): T[] => (Array.isArray<T>(value) ? value : [value]);
 
   public readonly equals = <U extends T>({ length, ...array }: U[]): boolean =>
     this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
