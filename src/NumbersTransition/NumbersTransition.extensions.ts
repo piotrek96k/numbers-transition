@@ -28,8 +28,8 @@ export class ArrayExt<T> extends GenericExt<T[]> {
   public readonly equals = <U extends T>({ length, ...array }: U[]): boolean =>
     this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
 
-  public readonly zip = <U extends unknown[]>(array: U): Zip<T[], U> =>
-    this.value.map<[T] | [T, U[number]], Zip<T[], U>>((value: T, index: number): [T] | [T, U[number]] =>
+  public readonly zip = <U>(array: U[]): Zip<T[], U[]> =>
+    this.value.map<[T] | [T, U], Zip<T[], U[]>>((value: T, index: number): [T] | [T, U] =>
       array[index] === undefined ? [value] : [value, array[index]],
     );
 }
