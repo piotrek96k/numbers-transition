@@ -29,7 +29,9 @@ import {
   createSourceFile,
   factory,
   findConfigFile,
+  isArrayLiteralExpression,
   isArrowFunction,
+  isBigIntLiteral,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
@@ -38,10 +40,14 @@ import {
   isImportDeclaration,
   isMethodDeclaration,
   isNamedImports,
+  isNewExpression,
+  isNumericLiteral,
   isPropertyAccessChain,
   isPropertyAccessExpression,
   isPropertyDeclaration,
+  isRegularExpressionLiteral,
   isStringLiteral,
+  isTemplateLiteral,
   parseJsonConfigFileContent,
   readConfigFile,
   sys,
@@ -51,6 +57,16 @@ import { HmrContext, Plugin } from 'vite';
 
 enum Encoding {
   Utf8 = 'utf-8',
+}
+
+enum JsType {
+  Boolean = 'Boolean',
+  Number = 'Number',
+  BigInt = 'BigInt',
+  String = 'String',
+  RegExp = 'RegExp',
+  Object = 'Object',
+  Array = 'Array',
 }
 
 enum TempSourceFile {
@@ -104,6 +120,33 @@ interface TypeExtensionsConfig {
   extensions: Record<string, Extension>;
 }
 
+const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsType, ((node: Node) => boolean)[]>([
+  [
+    JsType.Boolean,
+    [(node: Node): boolean => [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((kind: SyntaxKind): boolean => kind === node.kind)],
+  ],
+  [JsType.Number, [isNumericLiteral]],
+  [JsType.BigInt, [isBigIntLiteral]],
+  [JsType.String, [isStringLiteral, isTemplateLiteral]],
+  [JsType.RegExp, [isRegularExpressionLiteral]],
+  [JsType.Array, [isArrayLiteralExpression]],
+]);
+
+const isConstructorCall = (node: Node, type: JsType): boolean =>
+  (isCallExpression(node) || isNewExpression(node)) && isIdentifier(node.expression) && node.expression.text === type;
+
+const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsType, (node: Node) => boolean>(
+  [...literalChecksMap].map<[JsType, (node: Node) => boolean]>(([jsType, checks]: [JsType, ((node: Node) => boolean)[]]) => [
+    jsType,
+    checks.reduce(
+      (accumulatedCheck: (node: Node) => boolean, check: (node: Node) => boolean): ((node: Node) => boolean) =>
+        (node: Node) =>
+          accumulatedCheck(node) || check(node),
+      (node: Node): boolean => isConstructorCall(node, jsType),
+    ),
+  ]),
+);
+
 const isExported = ({ modifiers }: ClassDeclaration): boolean =>
   !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.ExportKeyword);
 
@@ -122,6 +165,18 @@ const isMethod = (member: ClassElement): member is FunctionDeclaration =>
 
 const isCallableNode = (node: Node): node is CallableNode =>
   isCallExpression(node) && (isPropertyAccessExpression(node.expression) || isPropertyAccessChain(node.expression));
+
+const isStaticMethod =
+  (expression: Expression, methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
+  ([, { type, methods }]: [string, TypeExtension]): boolean =>
+    isIdentifier(expression) &&
+    type === expression.text &&
+    methods.some(({ name, isStatic }: Method): boolean => name === methodName && isStatic);
+
+const isObjectMethod =
+  (methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
+  ([, { methods }]: [string, TypeExtension]): boolean =>
+    methods.some(({ name, isStatic }: Method): boolean => name === methodName && !isStatic);
 
 const readConfig = (configPath: string): TypeExtensionsConfig => JSON.parse(readFileSync(resolve(configPath), Encoding.Utf8));
 
@@ -198,13 +253,8 @@ const buildStaticCallExpressions = (
   usedExtensions: Set<string>,
   { expression: { expression, name: methodName }, arguments: args }: CallableNode,
 ): (() => Expression)[] =>
-  [...extensionsMap.entries()]
-    .filter(
-      ([, { type, methods }]: [string, TypeExtension]): boolean =>
-        isIdentifier(expression) &&
-        type === expression.text &&
-        methods.some(({ name, isStatic }: Method): boolean => name === methodName.text && isStatic),
-    )
+  [...extensionsMap]
+    .filter(isStaticMethod(expression, methodName.text))
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
     .map<() => Expression>(
       (className: string): (() => Expression) =>
@@ -216,32 +266,58 @@ const buildStaticCallExpressions = (
           ),
     );
 
+const buildLiteralCallExpressions = (
+  extensionsMap: Map<string, TypeExtension>,
+  usedExtensions: Set<string>,
+  { expression: { expression, name: methodName }, arguments: args }: CallableNode,
+) =>
+  [...extensionsMap]
+    .filter(isObjectMethod(methodName.text))
+    .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
+    .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
+    .map<() => Expression>(
+      (className: string): (() => Expression) =>
+        () =>
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(
+              factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
+              methodName.text,
+            ),
+            undefined,
+            args,
+          ),
+    );
+
+const replaceValuePlaceholder = <T extends Node>(node: T, replacement: Expression): T =>
+  visitEachChild<T>(
+    node,
+    (child: Node): Node =>
+      isIdentifier(child) && child.text === ValuePlaceholder.Placeholder ? replacement : replaceValuePlaceholder<Node>(child, replacement),
+    undefined,
+  );
+
 const buildConditionalExpressions = (
-  sourceFile: SourceFile,
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Set<string>,
   { expression: { expression, name: methodName }, arguments: args }: CallableNode,
 ): ((expression: Expression) => Expression)[] =>
-  [...extensionsMap.entries()]
-    .filter(([, { methods }]: [string, TypeExtension]): boolean =>
-      methods.some(({ name, isStatic }: Method): boolean => name === methodName.text && !isStatic),
-    )
+  [...extensionsMap]
+    .filter(isObjectMethod(methodName.text))
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
-    .map<[Expression, string]>((className: string): [Expression, string] => [
+    .map<[Expression, Statement]>((className: string): [Expression, Statement] => [
       factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
-      extensionsMap
-        .get(className)!
-        .typeCheck.replace(new RegExp(String.raw`\b${ValuePlaceholder.Placeholder}\b`, 'g'), expression.getFullText(sourceFile)),
+      createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, true, ScriptKind.TS)
+        .statements[0],
     ])
-    .map<[Expression, Statement]>(([newInstance, rawCheck]: [Expression, string]): [Expression, Statement] => [
+    .map<[Expression, Expression]>(([newInstance, checkStatement]: [Expression, Statement]): [Expression, Expression] => [
       factory.createCallExpression(factory.createPropertyAccessExpression(newInstance, methodName.text), undefined, args),
-      createSourceFile(TempSourceFile.Name, rawCheck, ScriptTarget.ESNext, false, ScriptKind.JS).statements[0],
+      isExpressionStatement(checkStatement) ? replaceValuePlaceholder(checkStatement.expression, expression) : expression,
     ])
     .map<(expression: Expression) => Expression>(
-      ([newCall, checkStatement]: [Expression, Statement]): ((expression: Expression) => Expression) =>
+      ([newCall, checkStatement]: [Expression, Expression]): ((expression: Expression) => Expression) =>
         (expression: Expression): Expression =>
           isExpressionStatement(checkStatement)
-            ? factory.createConditionalExpression(checkStatement.expression, undefined, newCall, undefined, expression)
+            ? factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression)
             : newCall,
     );
 
@@ -250,28 +326,31 @@ const buildPropertyAccessChainExpression = ({ expression }: CallableNode, builtE
     ? factory.createConditionalExpression(expression.expression, undefined, builtExpression, undefined, factory.createVoidZero())
     : builtExpression;
 
-const buildVisitor = (sourceFile: SourceFile, extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>): Visitor => {
-  const visitor: Visitor = (node: Node): Node =>
-    [node]
-      .filter<CallableNode>(isCallableNode)
-      .flatMap<[CallableNode, ((expression: Expression) => Expression)[]]>(
-        (node: CallableNode): [CallableNode, ((expression: Expression) => Expression)[]][] => [
-          [node, buildStaticCallExpressions(extensionsMap, usedExtensions, node)],
-          [node, buildConditionalExpressions(sourceFile, extensionsMap, usedExtensions, node)],
-        ],
-      )
-      .filter(([, { length }]: [CallableNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
-      .map<Expression>(
-        ([node, callbacks]: [CallableNode, ((expression: Expression) => Expression)[]]): Expression =>
-          buildPropertyAccessChainExpression(
+const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>, node: Node): Node =>
+  [node]
+    .filter<CallableNode>(isCallableNode)
+    .flatMap<[CallableNode, ((expression: Expression) => Expression)[]]>(
+      (node: CallableNode): [CallableNode, ((expression: Expression) => Expression)[]][] => [
+        [node, buildStaticCallExpressions(extensionsMap, usedExtensions, node)],
+        [node, buildLiteralCallExpressions(extensionsMap, usedExtensions, node)],
+        [node, buildConditionalExpressions(extensionsMap, usedExtensions, node)],
+      ],
+    )
+    .filter(([, { length }]: [CallableNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
+    .map<Expression>(
+      ([node, callbacks]: [CallableNode, ((expression: Expression) => Expression)[]]): Expression =>
+        buildPropertyAccessChainExpression(
+          node,
+          callbacks.reduce<Expression>(
+            (expression: Expression, callback: (expression: Expression) => Expression): Expression => callback(expression),
             node,
-            callbacks.reduce<Expression>(
-              (expression: Expression, callback: (expression: Expression) => Expression): Expression => callback(expression),
-              node,
-            ),
           ),
-      )
-      .at(0) ?? visitEachChild<Node>(node, visitor, undefined);
+        ),
+    )
+    .at(0) ?? node;
+
+const buildVisitor = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>): Visitor => {
+  const visitor: Visitor = (node: Node): Node => modifyNode(extensionsMap, usedExtensions, visitEachChild<Node>(node, visitor, undefined));
 
   return visitor;
 };
@@ -326,7 +405,7 @@ const transformCode = (
 
   const { statements }: SourceFile = visitEachChild<SourceFile>(
     factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
-    buildVisitor(sourceFile, extensionsMap, usedExtensions),
+    buildVisitor(extensionsMap, usedExtensions),
     undefined,
   );
 
