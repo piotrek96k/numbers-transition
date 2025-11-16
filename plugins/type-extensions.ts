@@ -306,7 +306,7 @@ const buildConditionalExpressions = (
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
     .map<[Expression, Statement]>((className: string): [Expression, Statement] => [
       factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
-      createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, true, ScriptKind.TS)
+      createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, false, ScriptKind.TS)
         .statements[0],
     ])
     .map<[Expression, Expression]>(([newInstance, checkStatement]: [Expression, Statement]): [Expression, Expression] => [
@@ -316,9 +316,7 @@ const buildConditionalExpressions = (
     .map<(expression: Expression) => Expression>(
       ([newCall, checkStatement]: [Expression, Expression]): ((expression: Expression) => Expression) =>
         (expression: Expression): Expression =>
-          isExpressionStatement(checkStatement)
-            ? factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression)
-            : newCall,
+          factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression),
     );
 
 const buildPropertyAccessChainExpression = ({ expression }: CallableNode, builtExpression: Expression): Expression =>
