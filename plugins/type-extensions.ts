@@ -262,6 +262,13 @@ const readUsedExtensions = (extensionImport: ImportDeclaration[]): Set<string> =
     .flat<string[][], 1>()
     .reduce<Set<string>>((set: Set<string>, extension: string): Set<string> => set.add(extension), new Set<string>());
 
+const mapToPropertyOrCallNode = (node: PropertyOrCallNode): PropertyOrCallTuple => [
+  node,
+  ...(isCallNode(node)
+    ? ([node.expression, node.arguments] satisfies [PropertyAccessExpression, NodeArray<Expression>])
+    : ([node] satisfies [PropertyAccessExpression])),
+];
+
 const createOptionalCallExpression = (expression: Expression, args?: NodeArray<Expression>): Expression =>
   args ? factory.createCallExpression(expression, undefined, args) : expression;
 
@@ -334,6 +341,17 @@ const buildConditionalExpressions = (
           factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression),
     );
 
+const flatMapExpressionsBuilders =
+  (
+    extensionsMap: Map<string, TypeExtension>,
+    usedExtensions: Set<string>,
+  ): (([node, expression, args]: PropertyOrCallTuple) => [PropertyOrCallNode, ((expression: Expression) => Expression)[]][]) =>
+  ([node, expression, args]: PropertyOrCallTuple): [PropertyOrCallNode, ((expression: Expression) => Expression)[]][] => [
+    [node, buildStaticExpressions(extensionsMap, usedExtensions, expression, args)],
+    [node, buildLiteralExpressions(extensionsMap, usedExtensions, expression, args)],
+    [node, buildConditionalExpressions(extensionsMap, usedExtensions, expression, args)],
+  ];
+
 const buildPropertyAccessChainExpression = ({ expression }: PropertyOrCallNode, builtExpression: Expression): Expression =>
   isPropertyAccessChain(expression)
     ? factory.createConditionalExpression(
@@ -345,38 +363,22 @@ const buildPropertyAccessChainExpression = ({ expression }: PropertyOrCallNode, 
       )
     : builtExpression;
 
+const reduceExpressionsCallbacks = ([node, callbacks]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): Expression =>
+  buildPropertyAccessChainExpression(
+    node,
+    callbacks.reduce<Expression>(
+      (expression: Expression, callback: (expression: Expression) => Expression): Expression => callback(expression),
+      node,
+    ),
+  );
+
 const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>, node: Node): Node =>
   [node]
     .filter<PropertyOrCallNode>(isPropertyOrCallNode)
-    .map<PropertyOrCallTuple>(
-      (node: PropertyOrCallNode): PropertyOrCallTuple => [
-        node,
-        ...(isCallNode(node)
-          ? ([node.expression, node.arguments] satisfies [PropertyAccessExpression, NodeArray<Expression>])
-          : ([node] satisfies [PropertyAccessExpression])),
-      ],
-    )
-    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(
-      ([node, expression, args]: PropertyOrCallTuple): [
-        CallNode | PropertyAccessExpression,
-        ((expression: Expression) => Expression)[],
-      ][] => [
-        [node, buildStaticExpressions(extensionsMap, usedExtensions, expression, args)],
-        [node, buildLiteralExpressions(extensionsMap, usedExtensions, expression, args)],
-        [node, buildConditionalExpressions(extensionsMap, usedExtensions, expression, args)],
-      ],
-    )
+    .map<PropertyOrCallTuple>(mapToPropertyOrCallNode)
+    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(flatMapExpressionsBuilders(extensionsMap, usedExtensions))
     .filter(([, { length }]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
-    .map<Expression>(
-      ([node, callbacks]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): Expression =>
-        buildPropertyAccessChainExpression(
-          node,
-          callbacks.reduce<Expression>(
-            (expression: Expression, callback: (expression: Expression) => Expression): Expression => callback(expression),
-            node,
-          ),
-        ),
-    )
+    .map<Expression>(reduceExpressionsCallbacks)
     .at(0) ?? node;
 
 const buildVisitor = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>): Visitor => {
