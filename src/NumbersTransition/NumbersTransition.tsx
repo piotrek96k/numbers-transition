@@ -278,7 +278,7 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach((c: () => void): void => c()),
+    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach(Function.invoke<() => void>),
     [validValue, omitAnimation],
   );
 
@@ -286,7 +286,7 @@ const NumbersTransition = <
     [[() => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]]
       .filter((): boolean => restartAnimation)
       .flat<(() => void)[][], Integer.One>()
-      .forEach((callback: () => void): void => callback());
+      .forEach(Function.invoke<() => void>);
 
     previousValueOnStart.current = validValue;
   }, [validValue, restartAnimation]);
@@ -310,7 +310,7 @@ const NumbersTransition = <
       ])
       .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())!
       .at<Integer.One>(Integer.One)
-      .forEach((callback: () => void): void => callback());
+      .forEach(Function.invoke<() => void>);
 
   const theme: NumbersTransitionTheme = {
     ...elementsLength,

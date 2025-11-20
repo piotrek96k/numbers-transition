@@ -33,3 +33,13 @@ export class ArrayExt<T> extends GenericExt<T[]> {
       array[index] === undefined ? [value] : [value, array[index]],
     );
 }
+
+export class FunctionExt extends GenericExt<(...args: unknown[]) => unknown> {
+  public static readonly invoke = <T extends () => any>(callback: T): ReturnType<T> => callback();
+
+  public static readonly optionalCall: {
+    <T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T>;
+    <T>(callback: T): T;
+  } = <T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> =>
+    typeof callback === 'function' ? callback(...args) : callback;
+}

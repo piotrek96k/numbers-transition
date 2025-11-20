@@ -102,7 +102,7 @@ export const useValue = (
       ]
         .filter((): boolean => validValue === previousValue || !isValueValid)
         .flat<(() => void)[][], Integer.One>()
-        .forEach((callback: () => unknown): unknown => callback()),
+        .forEach(Function.invoke<() => unknown>),
     [rerender, previousValue, validValue, isValueValid],
   );
 
@@ -1148,7 +1148,7 @@ export const useElementKeyMapper =
   (child: T, index: number, { length, ...array }: T[]): ReactElement<ChildrenProps> => (
     <Component
       key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${length}`.length, `${Integer.Zero}`)}`}
-      {...(typeof props === 'function' ? props(child, index, { ...array, length }) : props)}
+      {...Function.optionalCall<PropsFactory<T, U>, Optional<U>>(props, child, index, { ...array, length })}
     >
       {child}
     </Component>

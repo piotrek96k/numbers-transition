@@ -16,6 +16,7 @@ import {
   NamedImports,
   NewLineKind,
   Node,
+  NodeArray,
   NodeFlags,
   PropertyAccessExpression,
   PropertyDeclaration,
@@ -32,6 +33,7 @@ import {
   isArrayLiteralExpression,
   isArrowFunction,
   isBigIntLiteral,
+  isCallChain,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
@@ -91,9 +93,15 @@ interface IdentifierPropertyDeclaration extends PropertyDeclaration {
 
 type FunctionDeclaration = IdentifierMethodDeclaration | IdentifierPropertyDeclaration;
 
-interface CallableNode extends CallExpression {
+interface CallNode extends CallExpression {
   expression: PropertyAccessExpression;
 }
+
+type PropertyOrCallNode = CallNode | PropertyAccessExpression;
+
+type PropertyOrCallTuple =
+  | [PropertyOrCallNode, PropertyAccessExpression, NodeArray<Expression>]
+  | [PropertyOrCallNode, PropertyAccessExpression];
 
 interface InternalConfig {
   allowedFiles: Set<string>;
@@ -163,8 +171,14 @@ const isPropertyFunction = (member: ClassElement): member is PropertyDeclaration
 const isMethod = (member: ClassElement): member is FunctionDeclaration =>
   (isMethodDeclaration(member) || isPropertyFunction(member)) && isIdentifier(member.name) && isPublic(member);
 
-const isCallableNode = (node: Node): node is CallableNode =>
-  isCallExpression(node) && (isPropertyAccessExpression(node.expression) || isPropertyAccessChain(node.expression));
+const isAccessNode = (node: Node): node is PropertyAccessExpression => isPropertyAccessExpression(node) || isPropertyAccessChain(node);
+
+const isCallNode = (node: Node): node is CallNode => (isCallExpression(node) || isCallChain(node)) && isAccessNode(node.expression);
+
+const isPropertyAccessNode = (node: Node): node is PropertyAccessExpression =>
+  isAccessNode(node) && (!node.parent || !isCallNode(node.parent) || node.parent.arguments.includes(node));
+
+const isPropertyOrCallNode = (node: Node): node is PropertyOrCallNode => isPropertyAccessNode(node) || isCallNode(node);
 
 const isStaticMethod =
   (expression: Expression, methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
@@ -248,42 +262,42 @@ const readUsedExtensions = (extensionImport: ImportDeclaration[]): Set<string> =
     .flat<string[][], 1>()
     .reduce<Set<string>>((set: Set<string>, extension: string): Set<string> => set.add(extension), new Set<string>());
 
-const buildStaticCallExpressions = (
+const createOptionalCallExpression = (expression: Expression, args?: NodeArray<Expression>): Expression =>
+  args ? factory.createCallExpression(expression, undefined, args) : expression;
+
+const buildStaticExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Set<string>,
-  { expression: { expression, name: methodName }, arguments: args }: CallableNode,
+  { expression, name: { text } }: PropertyAccessExpression,
+  args?: NodeArray<Expression>,
 ): (() => Expression)[] =>
   [...extensionsMap]
-    .filter(isStaticMethod(expression, methodName.text))
+    .filter(isStaticMethod(expression, text))
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
-          factory.createCallExpression(
-            factory.createPropertyAccessExpression(factory.createIdentifier(className), methodName.text),
-            undefined,
-            args,
-          ),
+          createOptionalCallExpression(factory.createPropertyAccessExpression(factory.createIdentifier(className), text), args),
     );
 
-const buildLiteralCallExpressions = (
+const buildLiteralExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Set<string>,
-  { expression: { expression, name: methodName }, arguments: args }: CallableNode,
+  { expression, name: { text } }: PropertyAccessExpression,
+  args?: NodeArray<Expression>,
 ) =>
   [...extensionsMap]
-    .filter(isObjectMethod(methodName.text))
+    .filter(isObjectMethod(text))
     .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
-          factory.createCallExpression(
+          createOptionalCallExpression(
             factory.createPropertyAccessExpression(
               factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
-              methodName.text,
+              text,
             ),
-            undefined,
             args,
           ),
     );
@@ -299,10 +313,11 @@ const replaceValuePlaceholder = <T extends Node>(node: T, replacement: Expressio
 const buildConditionalExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Set<string>,
-  { expression: { expression, name: methodName }, arguments: args }: CallableNode,
+  { expression, name: { text } }: PropertyAccessExpression,
+  args?: NodeArray<Expression>,
 ): ((expression: Expression) => Expression)[] =>
   [...extensionsMap]
-    .filter(isObjectMethod(methodName.text))
+    .filter(isObjectMethod(text))
     .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
     .map<[Expression, Statement]>((className: string): [Expression, Statement] => [
       factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
@@ -310,7 +325,7 @@ const buildConditionalExpressions = (
         .statements[0],
     ])
     .map<[Expression, Expression]>(([newInstance, checkStatement]: [Expression, Statement]): [Expression, Expression] => [
-      factory.createCallExpression(factory.createPropertyAccessExpression(newInstance, methodName.text), undefined, args),
+      createOptionalCallExpression(factory.createPropertyAccessExpression(newInstance, text), args),
       isExpressionStatement(checkStatement) ? replaceValuePlaceholder(checkStatement.expression, expression) : expression,
     ])
     .map<(expression: Expression) => Expression>(
@@ -319,24 +334,41 @@ const buildConditionalExpressions = (
           factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression),
     );
 
-const buildPropertyAccessChainExpression = ({ expression }: CallableNode, builtExpression: Expression): Expression =>
+const buildPropertyAccessChainExpression = ({ expression }: PropertyOrCallNode, builtExpression: Expression): Expression =>
   isPropertyAccessChain(expression)
-    ? factory.createConditionalExpression(expression.expression, undefined, builtExpression, undefined, factory.createVoidZero())
+    ? factory.createConditionalExpression(
+        factory.createBinaryExpression(expression.expression, SyntaxKind.EqualsEqualsToken, factory.createVoidZero()),
+        undefined,
+        expression.expression,
+        undefined,
+        builtExpression,
+      )
     : builtExpression;
 
 const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>, node: Node): Node =>
   [node]
-    .filter<CallableNode>(isCallableNode)
-    .flatMap<[CallableNode, ((expression: Expression) => Expression)[]]>(
-      (node: CallableNode): [CallableNode, ((expression: Expression) => Expression)[]][] => [
-        [node, buildStaticCallExpressions(extensionsMap, usedExtensions, node)],
-        [node, buildLiteralCallExpressions(extensionsMap, usedExtensions, node)],
-        [node, buildConditionalExpressions(extensionsMap, usedExtensions, node)],
+    .filter<PropertyOrCallNode>(isPropertyOrCallNode)
+    .map<PropertyOrCallTuple>(
+      (node: PropertyOrCallNode): PropertyOrCallTuple => [
+        node,
+        ...(isCallNode(node)
+          ? ([node.expression, node.arguments] satisfies [PropertyAccessExpression, NodeArray<Expression>])
+          : ([node] satisfies [PropertyAccessExpression])),
       ],
     )
-    .filter(([, { length }]: [CallableNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
+    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(
+      ([node, expression, args]: PropertyOrCallTuple): [
+        CallNode | PropertyAccessExpression,
+        ((expression: Expression) => Expression)[],
+      ][] => [
+        [node, buildStaticExpressions(extensionsMap, usedExtensions, expression, args)],
+        [node, buildLiteralExpressions(extensionsMap, usedExtensions, expression, args)],
+        [node, buildConditionalExpressions(extensionsMap, usedExtensions, expression, args)],
+      ],
+    )
+    .filter(([, { length }]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
     .map<Expression>(
-      ([node, callbacks]: [CallableNode, ((expression: Expression) => Expression)[]]): Expression =>
+      ([node, callbacks]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): Expression =>
         buildPropertyAccessChainExpression(
           node,
           callbacks.reduce<Expression>(

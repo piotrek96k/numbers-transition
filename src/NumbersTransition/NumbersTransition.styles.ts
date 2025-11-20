@@ -369,7 +369,7 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
 const createViewFactoryMapper =
   <T extends Styled, U extends object, V, W extends string>(props: Omit<Props<T, U, V>, W>): ((value?: V | Factory<U, V>) => V | Falsy) =>
   (value?: V | Factory<U, V>): V | Falsy =>
-    typeof value === 'function' ? (<Factory<U, V>>value)(<U & NumbersTransitionExecutionContext>props) : value;
+    Function.optionalCall<Factory<U, V>, Optional<V>>(value, <U & NumbersTransitionExecutionContext>props);
 
 const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
   ...accumulator,

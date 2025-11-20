@@ -5,11 +5,6 @@ declare global {
     toFixed(fractionDigits?: number): `${number}`;
   }
 
-  interface ObjectConstructor {
-    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
-    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
-  }
-
   interface String {
     capitalize(): string;
   }
@@ -18,6 +13,10 @@ declare global {
     testAny<T>(unknown: unknown): unknown is T;
   }
 
+  interface ObjectConstructor {
+    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
+    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
+  }
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
@@ -55,6 +54,11 @@ declare global {
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly T[]) => U,
       initialValue: U,
     ): V;
+  }
+
+  interface FunctionConstructor {
+    invoke<T extends () => unknown>(callback: T): ReturnType<T>;
+    optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
   }
 }
 

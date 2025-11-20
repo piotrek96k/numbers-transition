@@ -4,6 +4,7 @@
   "extensions": {
     "StringExt": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
     "RegExpExt": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
-    "ArrayExt": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" }
+    "ArrayExt": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" },
+    "FunctionExt": { "type": "Function", "typeCheck": "typeof VALUE === 'function'" }
   }
 }
