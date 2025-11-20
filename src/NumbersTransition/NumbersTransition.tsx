@@ -283,9 +283,8 @@ const NumbersTransition = <
   );
 
   useEffect((): void => {
-    [[() => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]]
-      .filter((): boolean => restartAnimation)
-      .flat<(() => void)[][], Integer.One>()
+    [() => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
+      .filterAll((): boolean => restartAnimation)
       .forEach(Function.invoke<() => void>);
 
     previousValueOnStart.current = validValue;

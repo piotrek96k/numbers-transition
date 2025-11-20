@@ -79,7 +79,7 @@ export const useValue = (
 
   values.current =
     animationInterruptionMode === AnimationInterruptionMode.Continue
-      ? values.current.length && values.current.at(Integer.MinusOne)?.equals(validationTuple)
+      ? values.current.at(Integer.MinusOne)?.equals(validationTuple)
         ? values.current
         : [...values.current, validationTuple]
       : [validationTuple];
@@ -95,13 +95,10 @@ export const useValue = (
   useEffect(
     (): void =>
       [
-        [
-          (): unknown => (values.current = values.current.slice(Integer.One).filter(filterInvalidValues).filter(filterDuplicates)),
-          (): unknown => values.current.length && rerender(),
-        ],
+        (): unknown => (values.current = values.current.slice(Integer.One).filterMulti([filterInvalidValues, filterDuplicates])),
+        (): unknown => values.current.length && rerender(),
       ]
-        .filter((): boolean => validValue === previousValue || !isValueValid)
-        .flat<(() => void)[][], Integer.One>()
+        .filterAll((): boolean => validValue === previousValue || !isValueValid)
         .forEach(Function.invoke<() => unknown>),
     [rerender, previousValue, validValue, isValueValid],
   );
@@ -464,14 +461,14 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   const fromTotalAnimationDuration = ({
     animationDuration = Integer.SixThousand,
     ratio = Integer.Five / Integer.Two,
-  }: TotalAnimationDuration): [number, number] => {
-    const horizontalAnimationDuration: number =
-      numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One);
-    const verticalAnimationDuration: number =
-      ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One);
-
-    return [horizontalAnimationDuration, verticalAnimationDuration];
-  };
+  }: TotalAnimationDuration): [number, number] =>
+    [numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)].flatMap<
+      number,
+      [number, number]
+    >((horizontalAnimationDuration: number): [number, number] => [
+      horizontalAnimationDuration,
+      ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
+    ]);
 
   const mapAnimationDuration:
     | ((animationDuration: AnimationDuration) => [number, number])
