@@ -30,7 +30,7 @@ declare global {
     at(index: U): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
-    filterAll(predicate: (array: T[]) => boolean): T[];
+    filterAll(boolean): T[];
     filterMulti(predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,

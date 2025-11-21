@@ -443,7 +443,11 @@ const transformCode = (
 
   return {
     code: createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
-      factory.updateSourceFile(sourceFile, [...restImports, buildExtensionsImport(importPath, usedExtensions), ...statements]),
+      factory.updateSourceFile(sourceFile, [
+        ...restImports,
+        ...(resolve(id) === resolve(extensionsFilePath) ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
+        ...statements,
+      ]),
     ),
   };
 };

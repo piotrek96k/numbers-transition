@@ -98,7 +98,7 @@ export const useValue = (
         (): unknown => (values.current = values.current.slice(Integer.One).filterMulti([filterInvalidValues, filterDuplicates])),
         (): unknown => values.current.length && rerender(),
       ]
-        .filterAll((): boolean => validValue === previousValue || !isValueValid)
+        .filterAll(validValue === previousValue || !isValueValid)
         .forEach(Function.invoke<() => unknown>),
     [rerender, previousValue, validValue, isValueValid],
   );

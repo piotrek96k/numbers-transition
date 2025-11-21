@@ -278,13 +278,13 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => [(): void => setPreviousValueOnEnd(validValue)].filter((): boolean => omitAnimation).forEach(Function.invoke<() => void>),
+    (): void => [(): void => setPreviousValueOnEnd(validValue)].filterAll(omitAnimation).forEach(Function.invoke<() => void>),
     [validValue, omitAnimation],
   );
 
   useEffect((): void => {
     [() => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
-      .filterAll((): boolean => restartAnimation)
+      .filterAll(restartAnimation)
       .forEach(Function.invoke<() => void>);
 
     previousValueOnStart.current = validValue;
