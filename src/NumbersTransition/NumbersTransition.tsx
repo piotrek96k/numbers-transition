@@ -282,13 +282,17 @@ const NumbersTransition = <
     [validValue, omitAnimation],
   );
 
-  useEffect((): void => {
-    [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
-      .filterAll(restartAnimation)
-      .forEach(Function.invoke<() => void>);
-
-    previousValueOnStart.current = validValue;
-  }, [validValue, restartAnimation]);
+  useEffect(
+    (): void =>
+      [
+        (): void => setPreviousValueOnEnd(previousValueOnStart.current),
+        (): void => setAnimationTransition(AnimationTransition.None),
+        (): unknown => (previousValueOnStart.current = validValue),
+      ]
+        .filter((_: () => void, index: number, { length }: (() => void)[]): boolean => index === length - Integer.One || restartAnimation)
+        .forEach(Function.invoke<() => void>),
+    [validValue, restartAnimation],
+  );
 
   const shouldForwardProp = (prop: string): boolean => [...Object.values<ForwardProp>(ForwardProp), ...forwardProps].includes<string>(prop);
 
