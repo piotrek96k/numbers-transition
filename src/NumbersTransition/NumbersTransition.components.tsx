@@ -415,7 +415,7 @@ export interface AnimationProps<
   Z,
 > extends NegativeProps<Y, Z>,
     NumberProps<O, P, Q, R, S, T, U, V, W, X> {
-  componentId: string;
+  identifier: string;
   previousValue: bigint;
   currentValue: bigint;
   maxNumberOfDigits: number;
@@ -460,7 +460,7 @@ export const HorizontalAnimationElement = <
   props: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ReactNode => {
   const {
-    componentId,
+    identifier,
     precision,
     negativeCharacter,
     animationTransition,
@@ -524,7 +524,7 @@ export const HorizontalAnimationElement = <
     <HorizontalAnimation
       animationStartWidth={animationStartWidth}
       animationEndWidth={animationEndWidth}
-      id={`${AnimationId.HorizontalAnimation}${componentId}`}
+      id={`${AnimationId.HorizontalAnimation}${identifier}`}
     >
       <div ref={ref}>
         {negativeElement}
@@ -573,7 +573,7 @@ export const VerticalAnimationElement = <
   props: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ReactNode => {
   const {
-    componentId,
+    identifier,
     negativeCharacter,
     negativeCharacterAnimationMode,
     animationAlgorithm,
@@ -610,7 +610,7 @@ export const VerticalAnimationElement = <
   >(
     HTMLElement.Div,
     (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElement.Div> => ({
-      ...(index === length - Integer.One && { id: `${AnimationId.VerticalAnimation}${componentId}` }),
+      ...(index === length - Integer.One && { id: `${AnimationId.VerticalAnimation}${identifier}` }),
     }),
   );
 

@@ -169,7 +169,7 @@ const NumbersTransition = <
 
   const [animationTransition, setAnimationTransition]: [AnimationTransition, Dispatch<SetStateAction<AnimationTransition>>] =
     useState<AnimationTransition>(AnimationTransition.None);
-  const componentId: string = useId();
+  const identifier: string = useId();
 
   const [
     [previousValueOnEndDigits, valueDigits],
@@ -298,7 +298,7 @@ const NumbersTransition = <
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
-      (): boolean => !Object.values<AnimationId>(AnimationId).some((animId: AnimationId): boolean => `${animId}${componentId}` === id),
+      (): boolean => !Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id),
       (): boolean => numberOfAnimations === AnimationNumber.One,
       (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
       (): boolean => animationTransition !== AnimationTransition.None,
@@ -345,7 +345,7 @@ const NumbersTransition = <
   const animationProps: AnimationProps<M, N, O, P, Q, R, S, T, U, V, W, X> = {
     ...negativeProps,
     ...numberProps,
-    componentId,
+    identifier,
     previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     maxNumberOfDigits,
