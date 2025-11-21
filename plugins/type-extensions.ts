@@ -148,7 +148,7 @@ const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsTy
     jsType,
     checks.reduce(
       (accumulatedCheck: (node: Node) => boolean, check: (node: Node) => boolean): ((node: Node) => boolean) =>
-        (node: Node) =>
+        (node: Node): boolean =>
           accumulatedCheck(node) || check(node),
       (node: Node): boolean => isConstructorCall(node, jsType),
     ),
