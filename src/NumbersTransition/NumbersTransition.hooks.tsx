@@ -1035,14 +1035,16 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     [],
   );
 
-  useLayoutEffect((): void => {
-    const animationStartWidth: number = [...(ref.current?.children ?? [])]
-      .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
-      .map<number>(getElementWidth)
-      .reduce(sum);
+  const calculateAnimationStartWidth = useCallback<() => number>(
+    (): number =>
+      [...(ref.current?.children ?? [])]
+        .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
+        .map<number>(getElementWidth)
+        .reduce(sum),
+    [ref, startIndex, getElementWidth],
+  );
 
-    setAnimationStartWidth(animationStartWidth);
-  }, [ref, startIndex, getElementWidth]);
+  useLayoutEffect((): void => setAnimationStartWidth(calculateAnimationStartWidth()), [calculateAnimationStartWidth]);
 
   return [animationStartWidth, ref.current?.offsetWidth ?? Integer.Zero];
 };
