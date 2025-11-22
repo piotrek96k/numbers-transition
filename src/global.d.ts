@@ -27,7 +27,7 @@ declare global {
   }
 
   interface Array<T> {
-    at(index: U): Optional<T>;
+    at(index: number): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
     filterAll(predicate: boolean): T[];
