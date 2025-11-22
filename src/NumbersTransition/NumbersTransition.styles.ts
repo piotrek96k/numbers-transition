@@ -434,7 +434,9 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
 
 // prettier-ignore
 const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
-  [css<object>`animation-name: ${animationsKeyframes};`].filterAll(!!animationsKeyframes)[Integer.Zero];
+  [css<object>`animation-name: ${animationsKeyframes};`]
+    .filterAll(!!animationsKeyframes)
+    .at(Integer.Zero);
 
 const animationFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
@@ -465,7 +467,9 @@ interface VisibilityProps {
 
 // prettier-ignore
 const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
-  [css<object>`opacity: ${Integer.Zero};`].filterAll(!visible)[Integer.Zero];
+  [css<object>`opacity: ${Integer.Zero};`]
+    .filterAll(!visible)
+    .at(Integer.Zero);
 
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 
