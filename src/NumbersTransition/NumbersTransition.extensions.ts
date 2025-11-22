@@ -36,6 +36,8 @@ export class ArrayExt<T> extends GenericExt<T[]> {
       this.value,
     );
 
+  public readonly mapAll = <U>(mapper: (array: T[]) => U): U => mapper(this.value);
+
   public readonly mapMulti = (mappers: ((value: T, index: number, array: T[]) => T)[]): T[] =>
     mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map(mapper), this.value);
 

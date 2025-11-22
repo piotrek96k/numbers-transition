@@ -1052,11 +1052,6 @@ export interface AnimationAlgorithm {
   numberOfDigitsIncrease?: number;
 }
 
-interface DigitValues {
-  start: bigint;
-  end: bigint;
-}
-
 interface UseVerticalAnimationDigitsOptions {
   animationAlgorithm?: AnimationAlgorithm;
   maxNumberOfDigits: number;
@@ -1072,46 +1067,44 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     currentValue,
   }: UseVerticalAnimationDigitsOptions = options;
 
-  const createDigitValues = (accumulator: [DigitValues[], DigitValues[]], _: unknown, index: number): [DigitValues[], DigitValues[]] => {
-    const [start, end]: bigint[] = [previousValue, currentValue]
-      .map<bigint>((number: bigint): bigint => number / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
-      .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero));
+  const createDigitValues = (
+    [first, second]: [[bigint, bigint][], [bigint, bigint][]],
+    _: unknown,
+    index: number,
+  ): [[bigint, bigint][], [bigint, bigint][]] =>
+    [previousValue, currentValue]
+      .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
+      .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero))
+      .mapAll<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
+        end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
+      );
 
-    const accumulatorIndex: number = end - start < incrementMaxLength ? Integer.Zero : Integer.One;
-    accumulator[accumulatorIndex] = [...accumulator[accumulatorIndex], { start, end }];
+  const calculate =
+    (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
+    (_: unknown, index: number, { length }: unknown[]): bigint =>
+      (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
-    return accumulator;
-  };
+  const round = (value: bigint): bigint =>
+    value / NumberPrecision.Value +
+    BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
 
   const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
 
-  const incrementValues = ({ start, end }: DigitValues): number[] =>
+  const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
     [...Array(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => getDigit(start + BigInt(index)));
 
-  const generateValues = (values: DigitValues, index: number): number[] => {
-    const { start, end }: DigitValues = values;
+  const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
+    [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
+      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, getDigit])
+      .mapAll<
+        number[]
+      >((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)]));
 
-    const calculate = (_: unknown, index: number, { length }: number[]): bigint =>
-      (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
-
-    const round = (value: bigint): bigint =>
-      value / NumberPrecision.Value +
-      BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
-
-    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)].mapMulti<[bigint, bigint, number]>([
-      calculate,
-      round,
-      getDigit,
-    ]);
-
-    return numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
-  };
-
-  const mapDigitValues = (algorithmValuesArray: DigitValues[], index: number): number[][] =>
+  const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
   return [...Array(maxNumberOfDigits)]
-    .reduce<[DigitValues[], DigitValues[]]>(createDigitValues, [[], []])
+    .reduce<[[bigint, bigint][], [bigint, bigint][]]>(createDigitValues, [[], []])
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();
 };
