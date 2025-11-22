@@ -1,4 +1,4 @@
-import { ArrayOfDepth, Optional, OrArray, Zip } from './NumbersTransition/NumbersTransition.types';
+import { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
   interface Number {
@@ -39,6 +39,14 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
+    mapMulti(mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
+    mapMulti<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(mappers: {
+      [I in keyof U]: (
+        value: PreviousElement<V, this, I> extends Array<infer W> ? W : never,
+        index: number,
+        array: PreviousElement<V, this, I>,
+      ) => U[I];
+    }): V extends [...unknown[], infer W] ? W : never;
     reduce(
       callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T extends unknown[] ? T[number][] : T,
     ): T extends unknown[] ? T[number][] : T;

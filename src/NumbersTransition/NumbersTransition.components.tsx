@@ -146,7 +146,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   return (
     <Conditional condition={mountedElements < aggregatedSums.at(Integer.MinusOne)! || !onAfterMount}>
-      {children.map<GenericReactNode<ChildrenProps>>(mapChildren).map<ReactElement<ChildrenProps>>(mapToFragmentElement)}
+      {children.mapMulti<[GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>]>([mapChildren, mapToFragmentElement])}
       {children}
     </Conditional>
   );
@@ -244,9 +244,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities
-    .map<ReactElement<ChildrenProps>>(mapToNegativeElement)
-    .map<ReactElement<ChildrenProps>>(mapToThemeProviderElement);
+  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapMulti<
+    [ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]
+  >([mapToNegativeElement, mapToThemeProviderElement]);
 
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
     <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
@@ -341,7 +341,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   });
 
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
-    numbers.map<ReactElement<ChildrenProps>>(mapToDigitElement).map<ReactElement<ChildrenProps>>(mapToDigitsThemeProviderElement);
+    numbers.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>([mapToDigitElement, mapToDigitsThemeProviderElement]);
 
   const getSeparatorTheme = (
     partialTheme: Partial<NumbersTransitionTheme>,
@@ -372,11 +372,6 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const getSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> =>
     (length - index === precision ? getDecimalSeparatorElement : getDigitGroupSeparatorElement)(index, length);
 
-  const reduceToElements = (
-    previousMapped: ReactElement<ChildrenProps>[],
-    mapToElement: ElementKeyMapper<ReactElement<ChildrenProps>>,
-  ): ReactElement<ChildrenProps>[] => previousMapped.map<ReactElement<ChildrenProps>>(mapToElement);
-
   const reduceToNumber = (
     accumulator: ReactElement<ChildrenProps>[],
     currentValue: ReactElement<ChildrenProps>,
@@ -389,11 +384,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   ];
 
   const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
-    ? children.map<ReactElement<ChildrenProps>>(mapToDigitElement).map<ReactElement<ChildrenProps>>(mapToDigitThemeProviderElement)
-    : children.map<ReactElement<ChildrenProps>[]>(mapToDigitsElement).map<ReactElement<ChildrenProps>>(mapToDigitThemeProviderElement);
+    ? children.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>([mapToDigitElement, mapToDigitThemeProviderElement])
+    : children.mapMulti<[ReactElement<ChildrenProps>[], ReactElement<ChildrenProps>]>([mapToDigitsElement, mapToDigitThemeProviderElement]);
 
-  const number: ReactElement<ChildrenProps>[] = mapToElement
-    .reduce<ReactElement<ChildrenProps>[]>(reduceToElements, mappedChildren)
+  const number: ReactElement<ChildrenProps>[] = mappedChildren
+    .mapMulti(mapToElement)
     .reduce<ReactElement<ChildrenProps>[]>(reduceToNumber, [])
     .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
 

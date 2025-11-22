@@ -893,9 +893,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
       [yAxisPoints]
-        .map<TupleOfLength<number, Integer.Four>, [TupleOfLength<number, Integer.Four>]>(calculateCubicCoefficients(outputValue))
-        .map<number[][], [[TupleOfLength<number, Integer.Four>, [number, number]]]>(calculateDepressedCoefficients)
-        .map<number[][], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]>(calculateDiscriminant)
+        .mapMulti<[TupleOfLength<number, Integer.Four>, number[][], number[][]], [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]>([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
         .flat<[[number[], number[]]], Integer.One>()
         .reduce(solveCubicBezier)
         .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
@@ -1100,10 +1098,11 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
       value / NumberPrecision.Value +
       BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
 
-    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
-      .map<bigint>(calculate)
-      .map<bigint>(round)
-      .map<number>(getDigit);
+    const numbers: number[] = [...Array(incrementMaxLength + numberOfDigitsIncrease * index)].mapMulti<[bigint, bigint, number]>([
+      calculate,
+      round,
+      getDigit,
+    ]);
 
     return numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)];
   };

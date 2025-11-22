@@ -25,6 +25,10 @@ export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U exte
   ? T
   : ArrayOfDepth<T[] | readonly T[], U, [...V, unknown]>;
 
+export type PreviousElement<T extends unknown[], U, V extends number | `${number}`> = T extends [...infer W, unknown]
+  ? [U, ...W][V extends `${infer X extends number}` ? X : V]
+  : never;
+
 export type Remove<T, U> = { [K in keyof T as T[K] extends U ? never : K]: T[K] };
 
 export type Select<T, U> = { [K in keyof T as T[K] extends U ? K : never]: T[K] };

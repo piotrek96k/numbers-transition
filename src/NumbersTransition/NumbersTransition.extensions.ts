@@ -36,6 +36,9 @@ export class ArrayExt<T> extends GenericExt<T[]> {
       this.value,
     );
 
+  public readonly mapMulti = (mappers: ((value: T, index: number, array: T[]) => T)[]): T[] =>
+    mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map(mapper), this.value);
+
   public readonly zip = <U>(array: U[]): Zip<T[], U[]> =>
     this.value.map<[T] | [T, U], Zip<T[], U[]>>((value: T, index: number): [T] | [T, U] =>
       array[index] === undefined ? [value] : [value, array[index]],
