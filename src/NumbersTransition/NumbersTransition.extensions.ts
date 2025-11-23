@@ -1,19 +1,19 @@
 import { Integer } from './NumbersTransition.enums';
 import { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
-class GenericExt<T> {
+class Value<T> {
   public constructor(protected readonly value: T) {}
 }
 
-export class StringExt extends GenericExt<string> {
+export class CharSequence extends Value<string> {
   public readonly capitalize = (): string => `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
 }
 
-export class RegExpExt extends GenericExt<RegExp> {
+export class Pattern extends Value<RegExp> {
   public readonly testAny = <T>(unknown: unknown): unknown is T => this.value.test(`${unknown}`);
 }
 
-export class ArrayExt<T> extends GenericExt<T[]> {
+export class List<T> extends Value<T[]> {
   public static readonly toArray = <T>(value: OrArray<T>): T[] => (Array.isArray<T>(value) ? value : [value]);
 
   public static readonly isOfDepth = <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> =>
@@ -47,7 +47,7 @@ export class ArrayExt<T> extends GenericExt<T[]> {
     );
 }
 
-export class FunctionExt extends GenericExt<(...args: unknown[]) => unknown> {
+export class Method extends Value<(...args: unknown[]) => unknown> {
   public static readonly invoke = <T extends () => any>(callback: T): ReturnType<T> => callback();
 
   public static readonly optionalCall = <T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> =>

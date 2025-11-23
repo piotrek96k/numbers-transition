@@ -2,9 +2,9 @@
   "tsConfig": "tsconfig.json",
   "extensionsFilePath": "src/NumbersTransition/NumbersTransition.extensions.ts",
   "extensions": {
-    "StringExt": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
-    "RegExpExt": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
-    "ArrayExt": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" },
-    "FunctionExt": { "type": "Function", "typeCheck": "typeof VALUE === 'function'" }
+    "CharSequence": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
+    "Pattern": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
+    "List": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" },
+    "Method": { "type": "Function", "typeCheck": "typeof VALUE === 'function'" }
   }
 }
