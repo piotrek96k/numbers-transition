@@ -161,6 +161,8 @@ const NumbersTransition = <
     forwardProps = [],
   }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const identifier: string = useId();
+
   const [validInitialValue]: [BigDecimal, boolean] = useValidation(initialValue);
   const previousValueOnStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
   const [previousValueOnEnd, setPreviousValueOnEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
@@ -169,7 +171,6 @@ const NumbersTransition = <
 
   const [animationTransition, setAnimationTransition]: [AnimationTransition, Dispatch<SetStateAction<AnimationTransition>>] =
     useState<AnimationTransition>(AnimationTransition.None);
-  const identifier: string = useId();
 
   const [
     [previousValueOnEndDigits, valueDigits],
