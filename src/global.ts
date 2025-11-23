@@ -72,5 +72,3 @@ declare global {
     optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
   }
 }
-
-export {};
