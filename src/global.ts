@@ -17,6 +17,7 @@ declare global {
     values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
     values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
   }
+
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
