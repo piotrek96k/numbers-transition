@@ -437,6 +437,10 @@ export interface TotalAnimationDuration {
   ratio?: number;
 }
 
+type AnimationDurationMapper =
+  | ((animationDuration: AnimationDuration) => [number, number])
+  | ((animationDuration: TotalAnimationDuration) => [number, number]);
+
 interface UseAnimationDurationOptions {
   animationType: AnimationType;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
@@ -470,9 +474,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
     ]);
 
-  const mapAnimationDuration:
-    | ((animationDuration: AnimationDuration) => [number, number])
-    | ((animationDuration: TotalAnimationDuration) => [number, number]) = isAnimationDuration(animationDuration)
+  const mapAnimationDuration: AnimationDurationMapper = isAnimationDuration(animationDuration)
     ? fromAnimationDuration
     : fromTotalAnimationDuration;
 
