@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { dirname, relative, resolve } from 'path';
 import { cwd } from 'process';
@@ -59,6 +60,11 @@ import { HmrContext, Plugin } from 'vite';
 
 enum Encoding {
   Utf8 = 'utf-8',
+  Hex = 'hex',
+}
+
+enum HashAlgorithm {
+  Sha256 = 'sha256',
 }
 
 enum JsType {
@@ -252,15 +258,29 @@ const buildHotUpdateHandler =
     }
   };
 
-const readUsedExtensions = (extensionImport: ImportDeclaration[]): Set<string> =>
+const readUsedExtensions = (extensionImport: ImportDeclaration[]): Map<string, string> =>
   extensionImport
     .map<NamedImportBindings | undefined>(
       ({ importClause }: ImportDeclaration): NamedImportBindings | undefined => importClause?.namedBindings,
     )
     .filter((bindings: NamedImportBindings | undefined): bindings is NamedImports => !!bindings && isNamedImports(bindings))
-    .map<string[]>(({ elements }: NamedImports): string[] => elements.map<string>(({ name: { text } }: ImportSpecifier): string => text))
-    .flat<string[][], 1>()
-    .reduce<Set<string>>((set: Set<string>, extension: string): Set<string> => set.add(extension), new Set<string>());
+    .map<[string, string][]>(({ elements }: NamedImports): [string, string][] =>
+      elements.map<[string, string]>(({ propertyName, name }: ImportSpecifier): [string, string] => [
+        propertyName?.text ?? name.text,
+        name.text,
+      ]),
+    )
+    .flat<[string, string][][], 1>()
+    .reduce<Map<string, string>>(
+      (map: Map<string, string>, [key, value]: [string, string]): Map<string, string> => map.set(key, value),
+      new Map<string, string>(),
+    );
+
+const generateAlias = (className: string, { pos, end }: Node): string =>
+  `${className}_${createHash(HashAlgorithm.Sha256).update(`${pos}|${className}|${end}`).digest(Encoding.Hex).slice(0, 8)}`;
+
+const readClassName = (className: string, usedExtensions: Map<string, string>, node: Node): string =>
+  usedExtensions.get(className) ?? (usedExtensions.set(className, generateAlias(className, node)) && usedExtensions.get(className)!);
 
 const mapToPropertyOrCallNode = (node: PropertyOrCallNode): PropertyOrCallTuple => [
   node,
@@ -274,13 +294,13 @@ const createOptionalCallExpression = (expression: Expression, args?: NodeArray<E
 
 const buildStaticExpressions = (
   extensionsMap: Map<string, TypeExtension>,
-  usedExtensions: Set<string>,
+  usedExtensions: Map<string, string>,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ): (() => Expression)[] =>
   [...extensionsMap]
     .filter(isStaticMethod(expression, text))
-    .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
+    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
@@ -289,14 +309,14 @@ const buildStaticExpressions = (
 
 const buildLiteralExpressions = (
   extensionsMap: Map<string, TypeExtension>,
-  usedExtensions: Set<string>,
+  usedExtensions: Map<string, string>,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ) =>
   [...extensionsMap]
     .filter(isObjectMethod(text))
     .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
-    .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
+    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
@@ -319,15 +339,14 @@ const replaceValuePlaceholder = <T extends Node>(node: T, replacement: Expressio
 
 const buildConditionalExpressions = (
   extensionsMap: Map<string, TypeExtension>,
-  usedExtensions: Set<string>,
+  usedExtensions: Map<string, string>,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ): ((expression: Expression) => Expression)[] =>
   [...extensionsMap]
     .filter(isObjectMethod(text))
-    .map<string>(([className]: [string, TypeExtension]): string => usedExtensions.add(className) && className)
-    .map<[Expression, Statement]>((className: string): [Expression, Statement] => [
-      factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
+    .map<[Expression, Statement]>(([className]: [string, TypeExtension]): [Expression, Statement] => [
+      factory.createNewExpression(factory.createIdentifier(readClassName(className, usedExtensions, expression)), undefined, [expression]),
       createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, false, ScriptKind.TS)
         .statements[0],
     ])
@@ -344,7 +363,7 @@ const buildConditionalExpressions = (
 const flatMapExpressionsBuilders =
   (
     extensionsMap: Map<string, TypeExtension>,
-    usedExtensions: Set<string>,
+    usedExtensions: Map<string, string>,
   ): (([node, expression, args]: PropertyOrCallTuple) => [PropertyOrCallNode, ((expression: Expression) => Expression)[]][]) =>
   ([node, expression, args]: PropertyOrCallTuple): [PropertyOrCallNode, ((expression: Expression) => Expression)[]][] => [
     [node, buildStaticExpressions(extensionsMap, usedExtensions, expression, args)],
@@ -372,7 +391,7 @@ const reduceExpressionsCallbacks = ([node, callbacks]: [PropertyOrCallNode, ((ex
     ),
   );
 
-const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>, node: Node): Node =>
+const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Map<string, string>, node: Node): Node =>
   [node]
     .filter<PropertyOrCallNode>(isPropertyOrCallNode)
     .map<PropertyOrCallTuple>(mapToPropertyOrCallNode)
@@ -381,16 +400,20 @@ const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: S
     .map<Expression>(reduceExpressionsCallbacks)
     .at(0) ?? node;
 
-const buildVisitor = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Set<string>): Visitor => {
+const buildVisitor = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Map<string, string>): Visitor => {
   const visitor: Visitor = (node: Node): Node => modifyNode(extensionsMap, usedExtensions, visitEachChild<Node>(node, visitor, undefined));
 
   return visitor;
 };
 
-const mapExtensionImport = (name: string): ImportSpecifier =>
-  factory.createImportSpecifier(false, undefined, factory.createIdentifier(name));
+const mapExtensionImport = ([original, local]: [string, string]): ImportSpecifier =>
+  factory.createImportSpecifier(
+    false,
+    original === local ? undefined : factory.createIdentifier(original),
+    factory.createIdentifier(local),
+  );
 
-const buildExtensionsImport = (importPath: string, usedExtensions: Set<string>): ImportDeclaration =>
+const buildExtensionsImport = (importPath: string, usedExtensions: Map<string, string>): ImportDeclaration =>
   factory.createImportDeclaration(
     undefined,
     factory.createImportClause(
@@ -433,7 +456,7 @@ const transformCode = (
     [[], []],
   );
 
-  const usedExtensions: Set<string> = readUsedExtensions(extensionImport);
+  const usedExtensions: Map<string, string> = readUsedExtensions(extensionImport);
 
   const { statements }: SourceFile = visitEachChild<SourceFile>(
     factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
