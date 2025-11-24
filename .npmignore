@@ -20,3 +20,4 @@ tsconfig.json
 tsconfig.node.json
 tsconfig.plugins.json
 vite.config.ts
+vite.plugins.ts

@@ -16,7 +16,7 @@
     "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "storybook": "npm run build:plugins && storybook dev -p 6006",
-    "build:plugins": "tsc -p tsconfig.plugins.json",
+    "build:plugins": "tsc -p tsconfig.plugins.json && vite build -c vite.plugins.ts",
     "build": "npm run build:plugins && tsc && vite build",
     "build:storybook": "npm run build && storybook build"
   },

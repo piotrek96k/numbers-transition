@@ -2,7 +2,7 @@ import { createHash } from 'crypto';
 import { readFileSync } from 'fs';
 import { dirname, relative, resolve } from 'path';
 import { cwd } from 'process';
-import { TransformHook, TransformResult } from 'rollup';
+import type { TransformHook, TransformResult } from 'rollup';
 import {
   CallExpression,
   ClassDeclaration,
@@ -56,7 +56,7 @@ import {
   sys,
   visitEachChild,
 } from 'typescript';
-import { HmrContext, Plugin } from 'vite';
+import type { HmrContext, Plugin } from 'vite';
 
 enum Encoding {
   Utf8 = 'utf-8',
@@ -482,7 +482,7 @@ const buildTransformer =
       ? transformCode(config.extensionsFilePath, internalConfig.extensionsMap, originalCode, id)
       : null;
 
-export default (configPath: string): Plugin => {
+const typeExtensions = (configPath: string): Plugin => {
   const config: TypeExtensionsConfig = readConfig(configPath);
   const internalConfig: InternalConfig = buildInternalConfig(config);
 
@@ -492,3 +492,5 @@ export default (configPath: string): Plugin => {
     transform: buildTransformer(config, internalConfig),
   };
 };
+
+export default typeExtensions;

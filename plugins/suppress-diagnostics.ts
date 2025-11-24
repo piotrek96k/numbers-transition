@@ -4,7 +4,7 @@ interface SuppressDiagnosticsConfig extends PluginConfig {
   codes?: number[];
 }
 
-export default (
+const suppressDiagnostics = (
   { getSemanticDiagnostics, ...restProgram }: Program,
   _: CompilerHost | undefined,
   { codes = [] }: SuppressDiagnosticsConfig,
@@ -13,3 +13,5 @@ export default (
   getSemanticDiagnostics: (...args: [SourceFile, CancellationToken]): readonly Diagnostic[] =>
     getSemanticDiagnostics(...args).filter(({ code }: Diagnostic): boolean => !codes.includes(code)),
 });
+
+export default suppressDiagnostics;
