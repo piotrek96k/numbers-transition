@@ -290,7 +290,7 @@ const NumbersTransition = <
         (): void => setAnimationTransition(AnimationTransition.None),
         (): unknown => (previousValueOnStart.current = validValue),
       ]
-        .filter((_: () => void, index: number, { length }: (() => void)[]): boolean => index === length - Integer.One || restartAnimation)
+        .filter((_: () => void, index: number, { length }: (() => void)[]): boolean => restartAnimation || index === length - Integer.One)
         .forEach(Function.invoke<() => void>),
     [validValue, restartAnimation],
   );
