@@ -427,7 +427,7 @@ const buildExtensionsImport = (importPath: string, usedExtensions: Map<string, s
 const transformCode = (
   extensionsFilePath: string,
   extensionsMap: Map<string, TypeExtension>,
-  originalCode: string,
+  code: string,
   id: string,
 ): TransformResult => {
   const importPath: string = relative(dirname(id), extensionsFilePath)
@@ -435,7 +435,7 @@ const transformCode = (
     .replace(/^(?!\.{1,2}\/)(\/?)/, './')
     .replace(/\.[a-z]+$/, '');
 
-  const sourceFile: SourceFile = createSourceFile(id, originalCode, ScriptTarget.ESNext, true);
+  const sourceFile: SourceFile = createSourceFile(id, code, ScriptTarget.ESNext, true);
 
   const [imports, restSource]: [ImportDeclaration[], Statement[]] = sourceFile.statements.reduce<[ImportDeclaration[], Statement[]]>(
     ([imports, restSource]: [ImportDeclaration[], Statement[]], statement: Statement): [ImportDeclaration[], Statement[]] =>
