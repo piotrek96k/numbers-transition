@@ -1,4 +1,4 @@
-import { CSSProperties, HTMLAttributes } from 'react';
+import type { CSSProperties, HTMLAttributes } from 'react';
 import styled, {
   AttributesStyledComponent,
   BaseObject,
@@ -33,8 +33,7 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import './NumbersTransition.extensions';
-import { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly } from './NumbersTransition.types';
+import type { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly } from './NumbersTransition.types';
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 

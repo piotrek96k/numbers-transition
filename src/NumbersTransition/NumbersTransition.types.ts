@@ -1,5 +1,5 @@
-import { ReactElement, ReactNode, SyntheticEvent } from 'react';
-import { Integer, Key, Text } from './NumbersTransition.enums';
+import type { ReactElement, ReactNode, SyntheticEvent } from 'react';
+import type { Integer, Key, Text } from './NumbersTransition.enums';
 
 export type ValueOf<T> = T extends unknown ? T[keyof T] : never;
 

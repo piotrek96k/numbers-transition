@@ -1,4 +1,4 @@
-import { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
+import type { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
   interface Number {

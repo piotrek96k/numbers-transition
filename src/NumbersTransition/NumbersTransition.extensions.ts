@@ -1,5 +1,5 @@
 import { Integer } from './NumbersTransition.enums';
-import { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
 class Value<T> {
   public constructor(protected readonly value: T) {}

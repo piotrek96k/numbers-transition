@@ -35,10 +35,11 @@ import {
   StepsEasingFunction,
   StyleFactory,
 } from './NumbersTransition/NumbersTransition.styles';
-import { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
+import type { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationDirection,
+  AnimationId,
   AnimationInterruptionMode,
   AnimationNumber,
   AnimationTimingFunction,
@@ -56,7 +57,6 @@ export type {
   AnimationAlgorithm,
   AnimationDuration,
   AnimationFactory,
-  AnimationId,
   BigDecimal,
   ClassNameFactory,
   CssRule,

@@ -1,7 +1,7 @@
-import { ComponentProps } from 'react';
+import type { ComponentProps } from 'react';
 import { RuleSet, css } from 'styled-components';
-import { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
-import { InputType } from 'storybook/internal/types';
+import type { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
+import type { InputType } from 'storybook/internal/types';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDirection,
@@ -23,8 +23,8 @@ import {
   Text,
   VariableName,
 } from './NumbersTransition.enums';
-import { AnimationDuration, ExtendedAnimationTimingFunction } from './NumbersTransition.hooks';
-import {
+import type { AnimationDuration, ExtendedAnimationTimingFunction } from './NumbersTransition.hooks';
+import type {
   Animation,
   AnimationFactory,
   CssRuleFactory,
@@ -32,7 +32,7 @@ import {
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
-import { EnumType, EnumValue, Falsy, OrReadOnly, Remove, Select } from './NumbersTransition.types';
+import type { EnumType, EnumValue, Falsy, OrReadOnly, Remove, Select } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
   AnimationDuration,

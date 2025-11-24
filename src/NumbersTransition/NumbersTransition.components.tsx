@@ -58,7 +58,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import { GenericReactNode, Nullable, Optional, OrArray } from './NumbersTransition.types';
+import type { GenericReactNode, Nullable, Optional, OrArray } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];

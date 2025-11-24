@@ -64,7 +64,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import type { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,

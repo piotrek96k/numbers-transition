@@ -43,7 +43,7 @@ import {
   StepsEasingFunction,
   StyledView,
 } from './NumbersTransition.styles';
-import {
+import type {
   BigDecimal,
   GenericReactNode,
   Nullable,

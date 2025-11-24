@@ -1,9 +1,9 @@
-import { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes, ReactElement, ReactNode } from 'react';
-import { IStyledComponent } from 'styled-components';
-import { BaseObject as BaseObjectImport, Keyframes as KeyframesImport, KnownTarget, Substitute } from 'styled-components/dist/types';
-import { Runtime } from './NumbersTransition/NumbersTransition.enums';
-import { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
-import { Nullable } from './NumbersTransition/NumbersTransition.types';
+import type { ComponentPropsWithRef, DetailedHTMLProps, HTMLAttributes, ReactElement, ReactNode } from 'react';
+import type { IStyledComponent } from 'styled-components';
+import type { BaseObject as BaseObjectImport, Keyframes as KeyframesImport, KnownTarget, Substitute } from 'styled-components/dist/types';
+import type { Runtime } from './NumbersTransition/NumbersTransition.enums';
+import type { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
+import type { Nullable } from './NumbersTransition/NumbersTransition.types';
 
 declare module 'styled-components' {
   export interface DefaultTheme extends NumbersTransitionTheme {}
