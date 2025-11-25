@@ -23,20 +23,16 @@ import {
   Text,
   VariableName,
 } from './NumbersTransition.enums';
-import type { AnimationDuration, ExtendedAnimationTimingFunction } from './NumbersTransition.hooks';
 import type {
   Animation,
   AnimationFactory,
   CssRuleFactory,
-  EasingFunction,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
 } from './NumbersTransition.styles';
-import type { EnumType, EnumValue, Falsy, OrReadOnly, Remove, Select } from './NumbersTransition.types';
+import type { EnumType, EnumValue, Falsy, Remove, Select } from './NumbersTransition.types';
 
 type NumbersTransitionProps = typeof NumbersTransition<
-  AnimationDuration,
-  OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction,
   object,
   number,
   object,

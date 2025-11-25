@@ -67,8 +67,6 @@ import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, Nu
 import type { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
-  I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction = EasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -93,8 +91,8 @@ export interface NumbersTransitionProps<
   digitGroupSeparator?: DigitGroupSeparatorCharacter;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
-  animationDuration?: I;
-  animationTimingFunction?: J;
+  animationDuration?: AnimationDuration | TotalAnimationDuration;
+  animationTimingFunction?: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
   animationInterruptionMode?: AnimationInterruptionMode;
   animationAlgorithm?: AnimationAlgorithm;
   invalidValue?: string;
@@ -112,8 +110,6 @@ export interface NumbersTransitionProps<
 }
 
 const NumbersTransition = <
-  I extends AnimationDuration | TotalAnimationDuration = AnimationDuration,
-  J extends OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction = EasingFunction,
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -131,7 +127,7 @@ const NumbersTransition = <
   Y extends object = object,
   Z = unknown,
 >(
-  props: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
+  props: NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ReactNode => {
   const {
     initialValue,
@@ -159,7 +155,7 @@ const NumbersTransition = <
     negativeCharacterView,
     invalidView,
     forwardProps = [],
-  }: NumbersTransitionProps<I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
+  }: NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const identifier: string = useId();
 
