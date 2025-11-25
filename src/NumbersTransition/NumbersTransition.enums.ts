@@ -172,11 +172,6 @@ export enum NegativeCharacterAnimationMode {
   Multi = 'multi',
 }
 
-export enum DecimalSeparatorCharacter {
-  Comma = ',',
-  Dot = '.',
-}
-
 export enum DigitGroupSeparatorCharacter {
   None = '',
   Comma = ',',
@@ -185,6 +180,11 @@ export enum DigitGroupSeparatorCharacter {
   Space = ' ',
   Underscore = '_',
   Apostrophe = "'",
+}
+
+export enum DecimalSeparatorCharacter {
+  Comma = ',',
+  Dot = '.',
 }
 
 export enum NegativeCharacter {

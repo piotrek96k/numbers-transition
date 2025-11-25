@@ -277,8 +277,8 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
 
 export interface NumberProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> {
   precision: number;
-  decimalSeparator: DecimalSeparatorCharacter;
   digitGroupSeparator: DigitGroupSeparatorCharacter;
+  decimalSeparator: DecimalSeparatorCharacter;
   characterStyledView: StyledViewWithProps<Styled.Character, Q, R>;
   digitStyledView: StyledViewWithProps<Styled.Digit, S, T>;
   separatorStyledView: StyledViewWithProps<Styled.Separator, U, V>;
@@ -298,8 +298,8 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
 ): ReactNode => {
   const {
     precision,
-    decimalSeparator,
     digitGroupSeparator,
+    decimalSeparator,
     characterStyledView,
     digitStyledView,
     separatorStyledView,

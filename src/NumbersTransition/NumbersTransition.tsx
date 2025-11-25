@@ -87,8 +87,8 @@ export interface NumbersTransitionProps<
   initialValue?: UncheckedBigDecimal | BigDecimal;
   value?: UncheckedBigDecimal | BigDecimal;
   precision?: number;
-  decimalSeparator?: DecimalSeparatorCharacter;
   digitGroupSeparator?: DigitGroupSeparatorCharacter;
+  decimalSeparator?: DecimalSeparatorCharacter;
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
@@ -330,8 +330,8 @@ const NumbersTransition = <
 
   const numberProps: NumberProps<M, N, O, P, Q, R, S, T, U, V> = {
     precision,
-    decimalSeparator,
     digitGroupSeparator,
+    decimalSeparator,
     characterStyledView,
     digitStyledView,
     separatorStyledView,
