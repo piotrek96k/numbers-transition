@@ -539,7 +539,7 @@ interface CharacterProps<T extends object, U> extends StyledView<Styled.Characte
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
-const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
+export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
   attributesFactory<Styled.Character>(Styled.Character),
 )`
   display: ${Display.InlineBlock};
@@ -567,7 +567,7 @@ type SeparatorStyledComponent = AttributesStyledComponent<
   SeparatorProps<any, any, any, any>
 >;
 
-const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
+export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
   attributesFactory<Styled.Separator>(Styled.Separator),
 )`
   white-space: ${WhiteSpace.Pre};
