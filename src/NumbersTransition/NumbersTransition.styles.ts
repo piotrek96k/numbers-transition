@@ -392,19 +392,13 @@ const classNameFactory = <T extends Styled, U extends object, V>(
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Text.Space);
 
-const toCssArray = <T extends object>(cssStyle?: OrArray<CssRule<T> | CssRuleFactory<T>>): Optional<CssRule<T> | CssRuleFactory<T>>[] =>
-  Array.isArray<Optional<CssRule<T> | CssRuleFactory<T>>>(cssStyle) &&
-  Array.isOfDepth<CssRule<T> | CssRuleFactory<T>, Integer.Two>(cssStyle, Integer.Two)
-    ? cssStyle
-    : [<Optional<CssRule<T> | CssRuleFactory<T>>>cssStyle];
-
 const cssFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
   <U extends object, V>({
     [<keyof CssView<T, U>>`${styledComponent}${ViewKey.Css.capitalize()}`]: cssStyle,
     ...restProps
   }: Props<T, U, V>): CssRule<U>[] =>
-    toCssArray<U>(cssStyle)
+    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(cssStyle)
       .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
 
