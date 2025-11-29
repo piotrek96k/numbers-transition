@@ -290,12 +290,6 @@ type Props<T extends Styled, U extends object, V> = U &
   NumbersTransitionExecutionContext &
   StyledView<T, U, V>;
 
-type AttributesOmittedKeys<T extends Styled, U extends object> =
-  | keyof StyleView<T, U>
-  | keyof ClassNameView<T, U>
-  | `${ViewKey.Style}`
-  | `${ViewKey.ClassName}`;
-
 interface AnimationWidthProps {
   animationStartWidth: number;
   animationEndWidth: number;
@@ -366,9 +360,9 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const createViewFactoryMapper =
-  <T extends Styled, U extends object, V, W extends string>(props: Omit<Props<T, U, V>, W>): ((value?: V | Factory<U, V>) => V | Falsy) =>
+  <T extends Styled, U extends object, V>(props: Props<T, U, V>): ((value?: V | Factory<U, V>) => V | Falsy) =>
   (value?: V | Factory<U, V>): V | Falsy =>
-    Function.optionalCall<Factory<U, V>, Optional<V>>(value, <U & NumbersTransitionExecutionContext>props);
+    Function.optionalCall<Factory<U, V>, Optional<V>>(value, props);
 
 const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
   ...accumulator,
@@ -377,29 +371,26 @@ const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | 
 
 const styleFactory = <T extends Styled, U extends object, V>(
   style: Optional<OrArray<CSSProperties | StyleFactory<U>>>,
-  props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
+  props: Props<T, U, V>,
 ): CSSProperties =>
   Array.toArray<Optional<CSSProperties | StyleFactory<U>>>(style)
-    .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties, AttributesOmittedKeys<T, U>>(props))
+    .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties>(props))
     .reduce<CSSProperties>(reduceStyles, {});
 
 const classNameFactory = <T extends Styled, U extends object, V>(
   className: Optional<OrArray<string | ClassNameFactory<U>>>,
-  props: Omit<Props<T, U, V>, AttributesOmittedKeys<T, U>>,
+  props: Props<T, U, V>,
 ): Optional<string> =>
   Array.toArray<Optional<string | ClassNameFactory<U>>>(className)
-    .map<string | Falsy>(createViewFactoryMapper<T, U, string, AttributesOmittedKeys<T, U>>(props))
+    .map<string | Falsy>(createViewFactoryMapper<T, U, string>(props))
     .filter<string>((className: string | Falsy): className is string => !!className)
     .join(Text.Space);
 
 const cssFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
-  <U extends object, V>({
-    [<keyof CssView<T, U>>`${styledComponent}${ViewKey.Css.capitalize()}`]: cssStyle,
-    ...restProps
-  }: Props<T, U, V>): CssRule<U>[] =>
-    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(cssStyle)
-      .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>, keyof CssView<T, U>>(restProps))
+  <U extends object, V>(props: Props<T, U, V>): CssRule<U>[] =>
+    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(props[<keyof CssView<T, U>>`${styledComponent}${ViewKey.Css.capitalize()}`])
+      .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>>(props))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
 
 const mapAnimationFalsyValue = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): Optional<Partial<Animation<T, U>>> =>
@@ -413,13 +404,13 @@ const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: O
 `;
 
 const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
-  props: Omit<Props<T, U, V>, keyof AnimationView<T, U, V>>,
+  props: Props<T, U, V>,
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): Optional<RuleSet<object>> =>
   Array.toArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation)
     .filterAll(!!(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation))
     .mapMulti<[Partial<Animation<U, V>> | Falsy, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>([
-      createViewFactoryMapper<T, U, Animation<U, V>, keyof AnimationView<T, U, V>>(props),
+      createViewFactoryMapper<T, U, Animation<U, V>>(props),
       mapAnimationFalsyValue<U, V>,
       mapAnimation<U, V>,
     ])
@@ -433,23 +424,19 @@ const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>)
 
 const animationFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
-  <U extends object, V>({
-    [<keyof AnimationView<T, U, V>>`${styledComponent}${ViewKey.Animation.capitalize()}`]: animation,
-    ...restProps
-  }: Props<T, U, V>): Optional<RuleSet<U>> =>
-    createOptionalAnimation(createAnimationsKeyframes<T, U, V>(restProps, animation));
+  <U extends object, V>(props: Props<T, U, V>): Optional<RuleSet<U>> =>
+    createOptionalAnimation(
+      createAnimationsKeyframes<T, U, V>(props, props[<keyof AnimationView<T, U, V>>`${styledComponent}${ViewKey.Animation.capitalize()}`]),
+    );
 
 const attributesFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => HTMLAttributes<HTMLDivElement>) =>
-  <U extends object, V>({
-    style,
-    className,
-    [<keyof StyleView<T, U>>`${styledComponent}${ViewKey.Style.capitalize()}`]: styleView,
-    [<keyof ClassNameView<T, U>>`${styledComponent}${ViewKey.ClassName.capitalize()}`]: classNameView,
-    ...restProps
-  }: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
-    style: { ...style, ...styleFactory(styleView, restProps) },
-    className: [className, classNameFactory(classNameView, restProps)]
+  <U extends object, V>(props: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
+    style: { ...props.style, ...styleFactory(props[<keyof StyleView<T, U>>`${styledComponent}${ViewKey.Style.capitalize()}`], props) },
+    className: [
+      props.className,
+      classNameFactory(props[<keyof ClassNameView<T, U>>`${styledComponent}${ViewKey.ClassName.capitalize()}`], props),
+    ]
       .filter<string>((className: Optional<string>): className is string => !!className)
       .join(Text.Space),
   });
