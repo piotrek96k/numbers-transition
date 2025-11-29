@@ -7,6 +7,7 @@ declare global {
 
   interface String {
     capitalize(): string;
+    capitalize<T extends string>(this: T): Capitalize<T>;
   }
 
   interface RegExp {

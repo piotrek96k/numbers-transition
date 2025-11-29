@@ -389,7 +389,7 @@ const classNameFactory = <T extends Styled, U extends object, V>(
 const cssFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
   <U extends object, V>(props: Props<T, U, V>): CssRule<U>[] =>
-    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(props[<keyof CssView<T, U>>`${styledComponent}${ViewKey.Css.capitalize()}`])
+    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(props[`${styledComponent}${ViewKey.Css.capitalize<ViewKey.Css>()}`])
       .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>>(props))
       .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
 
@@ -426,17 +426,14 @@ const animationFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
   <U extends object, V>(props: Props<T, U, V>): Optional<RuleSet<U>> =>
     createOptionalAnimation(
-      createAnimationsKeyframes<T, U, V>(props, props[<keyof AnimationView<T, U, V>>`${styledComponent}${ViewKey.Animation.capitalize()}`]),
+      createAnimationsKeyframes<T, U, V>(props, props[`${styledComponent}${ViewKey.Animation.capitalize<ViewKey.Animation>()}`]),
     );
 
 const attributesFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => HTMLAttributes<HTMLDivElement>) =>
   <U extends object, V>(props: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
-    style: { ...props.style, ...styleFactory(props[<keyof StyleView<T, U>>`${styledComponent}${ViewKey.Style.capitalize()}`], props) },
-    className: [
-      props.className,
-      classNameFactory(props[<keyof ClassNameView<T, U>>`${styledComponent}${ViewKey.ClassName.capitalize()}`], props),
-    ]
+    style: { ...props.style, ...styleFactory(props[`${styledComponent}${ViewKey.Style.capitalize<ViewKey.Style>()}`], props) },
+    className: [props.className, classNameFactory(props[`${styledComponent}${ViewKey.ClassName.capitalize<ViewKey.ClassName>()}`], props)]
       .filter<string>((className: Optional<string>): className is string => !!className)
       .join(Text.Space),
   });
