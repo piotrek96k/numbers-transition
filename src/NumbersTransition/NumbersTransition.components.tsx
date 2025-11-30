@@ -472,6 +472,7 @@ export const HorizontalAnimationElement = <
     ...restProps
   }: HorizontalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const id: string = `${AnimationId.HorizontalAnimation}${identifier}`;
   const ref: RefObject<Nullable<HTMLDivElement>> = useRef<HTMLDivElement>(null);
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
 
@@ -516,11 +517,7 @@ export const HorizontalAnimationElement = <
   );
 
   return (
-    <HorizontalAnimation
-      animationStartWidth={animationStartWidth}
-      animationEndWidth={animationEndWidth}
-      id={`${AnimationId.HorizontalAnimation}${identifier}`}
-    >
+    <HorizontalAnimation animationStartWidth={animationStartWidth} animationEndWidth={animationEndWidth} id={id}>
       <div ref={ref}>
         {negativeElement}
         {numberElement}
@@ -583,6 +580,7 @@ export const VerticalAnimationElement = <
     ...restProps
   }: VerticalAnimationElementProps<O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
+  const id: string = `${AnimationId.VerticalAnimation}${identifier}`;
   const { animationDirection }: NumbersTransitionTheme = useTheme();
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
@@ -605,7 +603,7 @@ export const VerticalAnimationElement = <
   >(
     HTMLElement.Div,
     (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElement.Div> => ({
-      ...(index === length - Integer.One && { id: `${AnimationId.VerticalAnimation}${identifier}` }),
+      ...(index === length - Integer.One && { id }),
     }),
   );
 
