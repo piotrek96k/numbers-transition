@@ -277,10 +277,11 @@ const readUsedExtensions = (extensionImport: ImportDeclaration[]): Map<string, s
     );
 
 const generateAlias = (className: string, { pos, end }: Node): string =>
-  `${className}_${createHash(HashAlgorithm.Sha256).update(`${pos}|${className}|${end}`).digest(Encoding.Hex).slice(0, 8)}`;
+  `${className}${createHash(HashAlgorithm.Sha256).update(`${pos}${className}${end}`).digest(Encoding.Hex)}`;
 
-const readClassName = (className: string, usedExtensions: Map<string, string>, node: Node): string =>
-  usedExtensions.get(className) ?? (usedExtensions.set(className, generateAlias(className, node)) && usedExtensions.get(className)!);
+const readClassName = (className: string, usedExtensions: Map<string, string>, isExtensionsFile: boolean, node: Node): string =>
+  usedExtensions.get(className) ??
+  (usedExtensions.set(className, isExtensionsFile ? className : generateAlias(className, node)) && usedExtensions.get(className)!);
 
 const mapToPropertyOrCallNode = (node: PropertyOrCallNode): PropertyOrCallTuple => [
   node,
@@ -295,12 +296,13 @@ const createOptionalCallExpression = (expression: Expression, args?: NodeArray<E
 const buildStaticExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ): (() => Expression)[] =>
   [...extensionsMap]
     .filter(isStaticMethod(expression, text))
-    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
@@ -310,13 +312,14 @@ const buildStaticExpressions = (
 const buildLiteralExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ) =>
   [...extensionsMap]
     .filter(isObjectMethod(text))
     .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
-    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
@@ -340,13 +343,18 @@ const replaceValuePlaceholder = <T extends Node>(node: T, replacement: Expressio
 const buildConditionalExpressions = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
   args?: NodeArray<Expression>,
 ): ((expression: Expression) => Expression)[] =>
   [...extensionsMap]
     .filter(isObjectMethod(text))
     .map<[Expression, Statement]>(([className]: [string, TypeExtension]): [Expression, Statement] => [
-      factory.createNewExpression(factory.createIdentifier(readClassName(className, usedExtensions, expression)), undefined, [expression]),
+      factory.createNewExpression(
+        factory.createIdentifier(readClassName(className, usedExtensions, isExtensionsFile, expression)),
+        undefined,
+        [expression],
+      ),
       createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, false, ScriptKind.TS)
         .statements[0],
     ])
@@ -364,11 +372,12 @@ const flatMapExpressionsBuilders =
   (
     extensionsMap: Map<string, TypeExtension>,
     usedExtensions: Map<string, string>,
+    isExtensionsFile: boolean,
   ): (([node, expression, args]: PropertyOrCallTuple) => [PropertyOrCallNode, ((expression: Expression) => Expression)[]][]) =>
   ([node, expression, args]: PropertyOrCallTuple): [PropertyOrCallNode, ((expression: Expression) => Expression)[]][] => [
-    [node, buildStaticExpressions(extensionsMap, usedExtensions, expression, args)],
-    [node, buildLiteralExpressions(extensionsMap, usedExtensions, expression, args)],
-    [node, buildConditionalExpressions(extensionsMap, usedExtensions, expression, args)],
+    [node, buildStaticExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
+    [node, buildLiteralExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
+    [node, buildConditionalExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
   ];
 
 const buildPropertyAccessChainExpression = ({ expression }: PropertyOrCallNode, builtExpression: Expression): Expression =>
@@ -391,17 +400,29 @@ const reduceExpressionsCallbacks = ([node, callbacks]: [PropertyOrCallNode, ((ex
     ),
   );
 
-const modifyNode = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Map<string, string>, node: Node): Node =>
+const modifyNode = (
+  extensionsMap: Map<string, TypeExtension>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  node: Node,
+): Node =>
   [node]
     .filter<PropertyOrCallNode>(isPropertyOrCallNode)
     .map<PropertyOrCallTuple>(mapToPropertyOrCallNode)
-    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(flatMapExpressionsBuilders(extensionsMap, usedExtensions))
+    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(
+      flatMapExpressionsBuilders(extensionsMap, usedExtensions, isExtensionsFile),
+    )
     .filter(([, { length }]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
     .map<Expression>(reduceExpressionsCallbacks)
     .at(0) ?? node;
 
-const buildVisitor = (extensionsMap: Map<string, TypeExtension>, usedExtensions: Map<string, string>): Visitor => {
-  const visitor: Visitor = (node: Node): Node => modifyNode(extensionsMap, usedExtensions, visitEachChild<Node>(node, visitor, undefined));
+const buildVisitor = (
+  extensionsMap: Map<string, TypeExtension>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+): Visitor => {
+  const visitor: Visitor = (node: Node): Node =>
+    modifyNode(extensionsMap, usedExtensions, isExtensionsFile, visitEachChild<Node>(node, visitor, undefined));
 
   return visitor;
 };
@@ -457,10 +478,11 @@ const transformCode = (
   );
 
   const usedExtensions: Map<string, string> = readUsedExtensions(extensionImport);
+  const isExtensionsFile: boolean = resolve(id) === resolve(extensionsFilePath);
 
   const { statements }: SourceFile = visitEachChild<SourceFile>(
     factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
-    buildVisitor(extensionsMap, usedExtensions),
+    buildVisitor(extensionsMap, usedExtensions, isExtensionsFile),
     undefined,
   );
 
@@ -468,7 +490,7 @@ const transformCode = (
     code: createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
       factory.updateSourceFile(sourceFile, [
         ...restImports,
-        ...(resolve(id) === resolve(extensionsFilePath) ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
+        ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
         ...statements,
       ]),
     ),
