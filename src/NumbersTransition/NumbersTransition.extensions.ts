@@ -48,7 +48,7 @@ export class List<T> extends Value<T[]> {
     ]);
 }
 
-export class Method extends Value<(...args: unknown[]) => unknown> {
+export class Method<T extends (...args: unknown[]) => unknown> extends Value<T> {
   public static readonly invoke = <T extends () => any>(callback: T): ReturnType<T> => callback();
 
   public static readonly optionalCall = <T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> =>
