@@ -488,7 +488,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
         ? verticalAnimationDuration
         : Integer.Zero;
 
-  const totalANimationDuration: number = Object.values<AnimationNumber>(AnimationNumber)
+  const totalAnimationDuration: number = [AnimationNumber.Zero, AnimationNumber.One, AnimationNumber.Two, AnimationNumber.Three]
     .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>([
       Integer.Zero,
       verticalAnimationDuration,
@@ -498,7 +498,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
     .find(([animations]: [AnimationNumber, number]): boolean => animations === numberOfAnimations)!
     .at<Integer.One>(Integer.One);
 
-  return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalANimationDuration];
+  return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration];
 };
 
 interface UseRenderNegativeCharacterOptions {

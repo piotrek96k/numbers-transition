@@ -15,8 +15,8 @@ declare global {
   }
 
   interface ObjectConstructor {
-    values<T>(o: { [s: string]: T | string } | ArrayLike<T>): T[];
-    values<T, U extends T[]>(o: { [s: string]: T | string } | ArrayLike<T>): U;
+    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
+    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
   }
 
   interface ArrayConstructor {
