@@ -33,7 +33,7 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import type { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly } from './NumbersTransition.types';
+import type { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly, Remove } from './NumbersTransition.types';
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 
@@ -341,13 +341,14 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Integer.MinusOneHundred,
 ]);
 
-const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Optional<Keyframes> =>
-  Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Optional<Keyframes>>(
+// prettier-ignore
+const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Keyframes =>
+  Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]>(
     [AnimationType.Horizontal, AnimationType.Vertical]
       .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
-      .find(([type]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => type === animationType)
-      ?.at<Integer.One>(Integer.One),
-    <AnimationWidthProps>restProps,
+      .find(([type]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => type === animationType)!
+      .at<Integer.One>(Integer.One),
+    restProps,
   );
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
