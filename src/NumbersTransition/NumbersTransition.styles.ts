@@ -346,7 +346,7 @@ const animationName = ({ theme: { animationType }, ...restProps }: AnimationProp
   Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]>(
     [AnimationType.Horizontal, AnimationType.Vertical]
       .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
-      .find(([type]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => type === animationType)!
+      .find(([animation]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => animation === animationType)!
       .at<Integer.One>(Integer.One),
     restProps,
   );

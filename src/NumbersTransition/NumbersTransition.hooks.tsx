@@ -313,7 +313,7 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
       horizontalAnimationDirection,
       verticalAnimationDirection,
     ])
-    .find(([type]: [AnimationType, AnimationDirection]): boolean => type === animationType)!
+    .find(([animation]: [AnimationType, AnimationDirection]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One);
 };
 
@@ -481,12 +481,14 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   const [horizontalAnimationDuration, verticalAnimationDuration] =
     numberOfAnimations === AnimationNumber.Zero ? [Integer.Zero, Integer.Zero] : mapAnimationDuration(animationDuration);
 
-  const currentAnimationDuration: number =
-    animationType === AnimationType.Horizontal
-      ? horizontalAnimationDuration
-      : animationType === AnimationType.Vertical
-        ? verticalAnimationDuration
-        : Integer.Zero;
+  const currentAnimationDuration: number = Object.values<AnimationType>(AnimationType)
+    .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>([
+      Integer.Zero,
+      horizontalAnimationDuration,
+      verticalAnimationDuration,
+    ])
+    .find(([animation]: [AnimationType, number]): boolean => animation === animationType)!
+    .at<Integer.One>(Integer.One);
 
   const totalAnimationDuration: number = [AnimationNumber.Zero, AnimationNumber.One, AnimationNumber.Two, AnimationNumber.Three]
     .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>([
@@ -495,7 +497,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       horizontalAnimationDuration + verticalAnimationDuration,
       Integer.Two * horizontalAnimationDuration + verticalAnimationDuration,
     ])
-    .find(([animations]: [AnimationNumber, number]): boolean => animations === numberOfAnimations)!
+    .find(([animationNumber]: [AnimationNumber, number]): boolean => animationNumber === numberOfAnimations)!
     .at<Integer.One>(Integer.One);
 
   return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration];
