@@ -855,7 +855,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       : [-second / (Integer.Three * first)];
 
   const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
-    [...Array(Integer.Three)].map(
+    [...Array<unknown>(Integer.Three)].map(
       (_: unknown, index: number): number =>
         Integer.Two *
           Math.sqrt(-firstDepressed / Integer.Three) *
@@ -938,7 +938,7 @@ export const useNegativeElementAnimationTimingFunction = (
     );
 
   const mapToLinear = (solution: number, index: number): LinearEasingFunction[number][] =>
-    [...Array(Integer.Two)].map<LinearEasingFunction[number]>((_: unknown, value: number): LinearEasingFunction[number] => [
+    [...Array<unknown>(Integer.Two)].map<LinearEasingFunction[number]>((_: unknown, value: number): LinearEasingFunction[number] => [
       (index + value) % Integer.Two,
       solution * Integer.OneHundred,
     ]);
@@ -974,7 +974,7 @@ export const useHorizontalAnimationDigits = (options: UseHorizontalAnimationDigi
     numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
   return [
-    ...(fillZeros ? Array(numberOfDigitsDifference).fill(Integer.Zero) : []),
+    ...(fillZeros ? Array<number>(numberOfDigitsDifference).fill(Integer.Zero) : []),
     ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
   ];
 };
@@ -1086,10 +1086,12 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => getDigit(start + BigInt(index)));
+    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number =>
+      getDigit(start + BigInt(index)),
+    );
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
-    [...Array(incrementMaxLength + numberOfDigitsIncrease * index)]
+    [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
       .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, getDigit])
       .mapAll<
         number[]
@@ -1098,7 +1100,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
-  return [...Array(maxNumberOfDigits)]
+  return [...Array<unknown>(maxNumberOfDigits)]
     .reduce<[[bigint, bigint][], [bigint, bigint][]]>(createDigitValues, [[], []])
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();
