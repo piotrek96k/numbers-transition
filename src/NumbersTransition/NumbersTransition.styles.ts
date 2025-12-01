@@ -341,14 +341,14 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Integer.MinusOneHundred,
 ]);
 
-const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Optional<Keyframes> => {
-  switch (animationType) {
-    case AnimationType.Horizontal:
-      return horizontalAnimation(<HorizontalAnimationProps>restProps);
-    case AnimationType.Vertical:
-      return verticalAnimation;
-  }
-};
+const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Optional<Keyframes> =>
+  Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Optional<Keyframes>>(
+    [AnimationType.Horizontal, AnimationType.Vertical]
+      .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
+      .find(([type]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => type === animationType)
+      ?.at<Integer.One>(Integer.One),
+    <AnimationWidthProps>restProps,
+  );
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${animationName};

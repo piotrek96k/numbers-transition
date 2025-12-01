@@ -307,14 +307,14 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
   const verticalAnimationDirection: AnimationDirection =
     previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
 
-  switch (animationType) {
-    case AnimationType.Horizontal:
-      return horizontalAnimationDirection;
-    case AnimationType.Vertical:
-      return verticalAnimationDirection;
-    case AnimationType.None:
-      return AnimationDirection.None;
-  }
+  return Object.values<AnimationType>(AnimationType)
+    .zip<TupleOfLength<AnimationType, Integer.Three>, TupleOfLength<AnimationDirection, Integer.Three>>([
+      AnimationDirection.None,
+      horizontalAnimationDirection,
+      verticalAnimationDirection,
+    ])
+    .find(([type]: [AnimationType, AnimationDirection]): boolean => type === animationType)!
+    .at<Integer.One>(Integer.One);
 };
 
 // prettier-ignore
@@ -478,19 +478,6 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
     ? fromAnimationDuration
     : fromTotalAnimationDuration;
 
-  const calculateTotalAnimationDuration = (horizontalAnimationDuration: number, verticalAnimationDuration: number): number => {
-    switch (numberOfAnimations) {
-      case AnimationNumber.Zero:
-        return Integer.Zero;
-      case AnimationNumber.One:
-        return verticalAnimationDuration;
-      case AnimationNumber.Two:
-        return horizontalAnimationDuration + verticalAnimationDuration;
-      case AnimationNumber.Three:
-        return Integer.Two * horizontalAnimationDuration + verticalAnimationDuration;
-    }
-  };
-
   const [horizontalAnimationDuration, verticalAnimationDuration] =
     numberOfAnimations === AnimationNumber.Zero ? [Integer.Zero, Integer.Zero] : mapAnimationDuration(animationDuration);
 
@@ -501,12 +488,17 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
         ? verticalAnimationDuration
         : Integer.Zero;
 
-  return [
-    currentAnimationDuration,
-    horizontalAnimationDuration,
-    verticalAnimationDuration,
-    calculateTotalAnimationDuration(horizontalAnimationDuration, verticalAnimationDuration),
-  ];
+  const totalANimationDuration: number = Object.values<AnimationNumber>(AnimationNumber)
+    .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>([
+      Integer.Zero,
+      verticalAnimationDuration,
+      horizontalAnimationDuration + verticalAnimationDuration,
+      Integer.Two * horizontalAnimationDuration + verticalAnimationDuration,
+    ])
+    .find(([animations]: [AnimationNumber, number]): boolean => animations === numberOfAnimations)!
+    .at<Integer.One>(Integer.One);
+
+  return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalANimationDuration];
 };
 
 interface UseRenderNegativeCharacterOptions {
@@ -909,18 +901,17 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 
 // prettier-ignore
 const useStepsSolver = (): Solve<StepsEasingFunction> =>
-  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => {
-    switch (stepPosition) {
-      case StepPosition.JumpStart:
-        return [Math.floor(outputValue * steps) / steps];
-      case StepPosition.JumpEnd:
-        return [Math.ceil(outputValue * steps) / steps];
-      case StepPosition.JumpNone:
-        return [Math.ceil(outputValue * (steps - Integer.One)) / steps];
-      case StepPosition.JumpBoth:
-        return [Math.floor(outputValue * (steps + Integer.One)) / steps];
-    }
-  };
+  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
+    Object.values<StepPosition>(StepPosition)
+      .zip<TupleOfLength<StepPosition, Integer.Four>, TupleOfLength<number, Integer.Four>>([
+        Math.floor(outputValue * steps) / steps,
+        Math.ceil(outputValue * steps) / steps,
+        Math.ceil(outputValue * (steps - Integer.One)) / steps,
+        Math.floor(outputValue * (steps + Integer.One)) / steps,
+      ])
+      .find(([position]: [StepPosition, number]): boolean => position === stepPosition)!
+      .at<Integer.One>(Integer.One),
+  ];
 
 interface UseNegativeElementAnimationTimingFunctionOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;

@@ -42,9 +42,10 @@ export class List<T> extends Value<T[]> {
     mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map(mapper), this.value);
 
   public readonly zip = <U>(array: U[]): Zip<T[], U[]> =>
-    this.value.map<[T] | [T, U], Zip<T[], U[]>>((value: T, index: number): [T] | [T, U] =>
-      array[index] === undefined ? [value] : [value, array[index]],
-    );
+    this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
+      ...Array.toArray<T>(value),
+      ...((array[index] === undefined ? [] : [array[index]]) satisfies [] | [U]),
+    ]);
 }
 
 export class Method extends Value<(...args: unknown[]) => unknown> {

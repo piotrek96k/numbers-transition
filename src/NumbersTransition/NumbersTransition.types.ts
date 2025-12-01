@@ -58,7 +58,7 @@ export type UnionProduct<T, U> = First<[[T, undefined, U], [U, undefined, T]], E
 
 export type Zip<T extends unknown[], U extends unknown[]> = Every<
   [[`${Integer.Zero}`, keyof T], [`${Integer.Zero}`, keyof U], [keyof T, keyof U]],
-  TupleOfLength<[T[number], U[number]], T[Key.Length]>,
+  TupleOfLength<T[number] extends Array<unknown> ? [...T[number], U[number]] : [T[number], U[number]], T[Key.Length]>,
   ([T[number]] | [T[number], U[number]])[]
 >;
 
