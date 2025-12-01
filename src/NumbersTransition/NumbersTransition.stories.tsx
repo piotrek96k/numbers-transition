@@ -228,18 +228,14 @@ const getInitialRotation = ({
   horizontalAnimationDuration,
   verticalAnimationDuration,
   totalAnimationDuration,
-}: NumbersTransitionTheme): number => {
-  switch (animationNumber) {
-    case AnimationNumber.Three:
-      return (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration;
-    case AnimationNumber.Two:
-      return (
-        (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration
-      );
-    default:
-      return Integer.Zero;
-  }
-};
+}: NumbersTransitionTheme): number =>
+  [AnimationNumber.Three, AnimationNumber.Two]
+    .zip<[AnimationNumber, AnimationNumber], [number, number]>([
+      (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
+      (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration,
+    ])
+    .find(([animation]: [AnimationNumber, number]): boolean => animation === animationNumber)
+    ?.at<Integer.One>(Integer.One) ?? Integer.Zero;
 
 const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${rotateKeyframeFunction(getInitialRotation(theme) / Integer.Two)};
