@@ -16,14 +16,14 @@
   - [Installation](#installation)
 - [Usage](#usage)
 - [Props](#props)
-  - [initialValue](#initial-value)
+  - [initialValue](#initialvalue)
   - [value](#value)
   - [precision](#precision)
-  - [digitGroupSeparator](#digit-group-separator)
-  - [decimalSeparator](#decimal-separator)
-  - [negativeCharacter](#negative-character)
-  - [negativeCharacterAnimationMode](#negative-character-animation-mode)
-  - [animationDuration](#animation-duration)
+  - [digitGroupSeparator](#digitgroupseparator)
+  - [decimalSeparator](#decimalseparator)
+  - [negativeCharacter](#negativecharacter)
+  - [negativeCharacterAnimationMode](#negativecharacteranimationmode)
+  - [animationDuration](#animationduration)
 - [Types](#types)
   - [UncheckedBigDecimal](#unchecked-big-decimal)
   - [BigDecimal](#big-decimal)
@@ -39,8 +39,7 @@
 
 ## Introduction
 
-**numbers-transition** is a TypeScript/React library that provides **NumbersTransition** component for smooth transition
-animations between numbers.
+**numbers-transition** is a TypeScript/React library that provides the **NumbersTransition** component for smooth transition animations between numbers.
 
 ---
 
@@ -71,7 +70,8 @@ yarn add numbers-transition
 
 ## Usage
 
-The trigger for the transition is [value](#value) prop change. The minimal configuration for component to work is:
+The transition is triggered by a change of the [value](#value) prop.
+The minimal configuration required for the component to work is:
 
 ```tsx
 import NumbersTransition from 'numbers-transition';
@@ -92,16 +92,61 @@ const Example: FC = () => {
 
 ## Props
 
-|                                     Prop                                      | Type                                                                                                                                        | Default                                                                                                                                           | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| :---------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------------------------------------------------------------------------------------------------------------------------------ | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|                    <a id="initial-value"/>**initialValue**                    | \|&nbsp;[UncheckedBigDecimal](#unchecked-big-decimal)<br/>\|&nbsp;[BigDecimal](#big-decimal)<br/>\|&nbsp;undefined                          | 0                                                                                                                                                 | Initial value of [value](#value) prop to trigger transition on first render. If [initialValue](#initial-value) matches [value](#value) no initial animation is displayed.                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-|                           <a id="value"/>**value**                            | \|&nbsp;[UncheckedBigDecimal](#unchecked-big-decimal)<br/>\|&nbsp;[BigDecimal](#big-decimal)<br/>\|&nbsp;undefined                          | 0                                                                                                                                                 | Value to display, its change is a trigger to start transition between previous and new value.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-|                       <a id="precision"/>**precision**                        | number&nbsp;\|&nbsp;undefined                                                                                                               | 0                                                                                                                                                 | Precision of the number to display, If precision is greater than zero then equals number of digits after decimal point. For negative values equals number of decimal places.                                                                                                                                                                                                                                                                                                                                                                                                                                            |
-|            <a id="digit-group-separator"/>**digitGroupSeparator**             | \|&nbsp;[DigitGroupSeparatorCharacter](#digit-group-separator-character)<br/>\|&nbsp;undefined                                              | [DigitGroupSeparatorCharacter](#digit-group-separator-character).Space                                                                            | Digit group separator character to display.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-|                <a id="decimal-separator"/>**decimalSeparator**                | \|&nbsp;[DecimalSeparatorCharacter](#decimal-separator-character)<br/>\|&nbsp;undefined                                                     | \|&nbsp;[DecimalSeparatorCharacter](#decimal-separator-character).Dot<br/>\|&nbsp;[DecimalSeparatorCharacter](#decimal-separator-character).Comma | Decimal separator character to display.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-|               <a id="negative-character"/>**negativeCharacter**               | \|&nbsp;[NegativeCharacter](#negative-character-type)<br/>\|&nbsp;undefined                                                                 | [NegativeCharacter](#negative-character-type).Minus                                                                                               | Negative character to display.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| <a id="negative-character-animation-mode"/>**negativeCharacterAnimationMode** | \|&nbsp;[NegativeCharacterAnimationMode](#negative-character-animation-mode-type)<br/>\|&nbsp;undefined                                     | [NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Single                                                                  | Controls negative character animation. [NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Single displays only one negative character that moves with the rest of the animation. [NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Multi displays multiple negative characters, each for moving digit on the right.                                                                                                                                                                                                                                                      |
-|               <a id="animation-duration"/>**animationDuration**               | \|&nbsp;[AnimationDuration](#animation-duration-type)<br/>\|&nbsp;[TotalAnimationDuration](#total-animation-duration)<br/>\|&nbsp;undefined | {<br/>&nbsp;&nbsp;&nbsp;&nbsp;horizontalAnimation:&nbsp;2000,<br/>&nbsp;&nbsp;&nbsp;&nbsp;verticalAnimation:&nbsp;5000<br/>}                      | Animation duration time in milliseconds. When passed object is of type [AnimationDuration](#animation-duration-type) sets horizontal and vertical animation durations (if duration is zero, then no animation is played). When passed object is of type [TotalAnimationDuration](#total-animation-duration) sets total animation duration (duration of all animations either one, two or three) and ratio, which is a ratio of vertical animation duration to horizontal animation duration (when ratio is zero, then no vertical animation is played, when ratio is infinity, then no horizontal animation is played). |
+### `initialValue`
+
+- **Type:** <code>[UncheckedBigDecimal](#unchecked-big-decimal) | [BigDecimal](#big-decimal) | undefined</code>
+- **Default:** `0`
+- **Description:** Initial value of <code>[value](#value)</code> prop to trigger transition on first render. If <code>[initialValue](#initialvalue)</code> matches <code>[value](#value)</code>, no initial animation is displayed.
+
+### `value`
+
+- **Type**: <code>[UncheckedBigDecimal](#unchecked-big-decimal) | [BigDecimal](#big-decimal) | undefined</code>
+- **Default:** `0`
+- **Description:** The value to display. Its change triggers the transition between the previous and new value.
+
+### `precision`
+
+- **Type:** `number | undefined`
+- **Default:** `0`
+- **Description:** Precision of the displayed number.
+  - If precision is greater than zero, it represents the number of digits after the decimal point.
+  - If precision is negative, it represents the number of decimal places to round to.
+
+### `digitGroupSeparator`
+
+- **Type:** <code>[DigitGroupSeparatorCharacter](#digit-group-separator-character) | undefined</code>
+- **Default:** <code>[DigitGroupSeparatorCharacter](#digit-group-separator-character).Space</code>
+- **Description:** The digit group separator character to display.
+
+### `decimalSeparator`
+
+- **Type:** <code>[DecimalSeparatorCharacter](#decimal-separator-character) | undefined</code>
+- **Default:** The default <code>[decimalSeparator](#decimalseparator)</code> is determined based on <code>[digitGroupSeparator](#digitgroupseparator)</code>.
+  - If <code>[digitGroupSeparator](#digitgroupseparator)</code> is <code>[DigitGroupSeparatorCharacter](#digit-group-separator-character).Comma</code>, then the <code>[decimalSeparator](#decimalseparator)</code> defaults to <code>[DecimalSeparatorCharacter](#decimal-separator-character).Dot</code>.
+  - Otherwise, it defaults to <code>[DecimalSeparatorCharacter](#decimal-separator-character).Comma</code>.
+- **Description**: The decimal separator character to display.
+
+### `negativeCharacter`
+
+- **Type:** <code>[NegativeCharacter](#negative-character-type) | undefined</code>
+- **Default:** <code>[NegativeCharacter](#negative-character-type).Minus</code>
+- **Description:** Negative character to display.
+
+### `negativeCharacterAnimationMode`
+
+- **Type:** <code>[NegativeCharacterAnimationMode](#negative-character-animation-mode-type) | undefined</code>
+- **Default:** <code>[NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Single</code>
+- **Description:** Controls how the negative character is animated.
+  - <code>[NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Single</code> displays one negative character that moves together with the rest of the animation.
+  - <code>[NegativeCharacterAnimationMode](#negative-character-animation-mode-type).Multi</code> displays multiple negative characters — one for each moving digit on the right.
+
+### `animationDuration`
+
+- **Type:** <code>[AnimationDuration](#animation-duration-type) | [TotalAnimationDuration](#total-animation-duration) | undefined</code>
+- **Default:** `{ horizontalAnimation: 2000, verticalAnimation: 5000 }`
+- **Description:** Animation duration in milliseconds.
+  - If the provided object is of type <code>[AnimationDuration](#animation-duration-type)</code>, it sets the horizontal and vertical animation durations (if a duration is zero, that animation is skipped).
+  - If the provided object is of type <code>[TotalAnimationDuration](#total-animation-duration)</code>, it sets the total duration of all animations and a ratio, which is the ratio of vertical animation duration to horizontal animation duration (ratio = 0 disables vertical animation; ratio = ∞ disables horizontal animation).
 
 ---
 
