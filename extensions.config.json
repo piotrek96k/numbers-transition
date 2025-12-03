@@ -2,6 +2,7 @@
   "tsConfig": "tsconfig.json",
   "extensionsFilePath": "src/NumbersTransition/NumbersTransition.extensions.ts",
   "extensions": {
+    "Double": { "type": "Number", "typeCheck": "typeof VALUE === 'number' || VALUE instanceof Number" },
     "CharSequence": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
     "Pattern": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
     "List": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" },

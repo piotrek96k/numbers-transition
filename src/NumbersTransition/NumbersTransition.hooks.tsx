@@ -160,7 +160,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   const numbersOfDigits: [number, number, number] = digits
     .map<number, [number, number]>(({ length }: number[]): number => length)
-    .sort((first: number, second: number): number => first - second)
+    .sort(Number.subtract)
     .reduce<[number[]], [[number, number]]>(([accumulator]: [number[]], value: number): [number[]] => [[...accumulator, value]], [[]])
     .reduce<number[], [number, number, number]>((_: number[], [min, max]: [number, number]): number[] => [min, max, max - min], []);
 
@@ -653,7 +653,7 @@ const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: n
   (numberOfDigits: number): number =>
     [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
       .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
-      .reduce((first: number, second: number): number => first + second);
+      .reduce(Number.sum);
 
 type CharacterIndexFunction = (index: number, length: number) => number;
 
@@ -693,15 +693,14 @@ export const useElementsLength = (options: UseElementsLengthOptions): ElementsLe
   const { precision, isValueValid, currentValue, hasSignChanged, numberOfDigits }: UseElementsLengthOptions = options;
 
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
-  const sum = (first: number, second: number): number => first + second;
 
   const invalidLength: number = isValueValid ? Integer.Zero : Integer.One;
   const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Integer.Zero) ? Integer.One : Integer.Zero;
   const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Integer.Zero;
   const decimalSeparatorLength: number = isValueValid && precision > Integer.Zero ? Integer.One : Integer.Zero;
-  const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(sum);
+  const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(Number.sum);
   const digitsLength: number = isValueValid ? numberOfDigits : Integer.Zero;
-  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(sum);
+  const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(Number.sum);
 
   return {
     charactersLength,
@@ -763,7 +762,6 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
       : [value, [array.findLastIndex(findPrevious(index)), array.findIndex(findNext(index))].reduce(calculateProgressInput(index, array))];
 
   const getValue = ([value]: [number, number]): number => value;
-  const sort = (first: number, second: number): number => first - second;
 
   // prettier-ignore
   const isInInterval = (index: number, outputValue: number): ((tuple: number[]) => boolean) =>
@@ -773,7 +771,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
   // prettier-ignore
   const findInterval = (index: number, outputValue: number): ((_: [number, number][][], array: [number, number][]) => [number, number][][]) =>
     (_: [number, number][][], array: [number, number][]): [number, number][][] =>
-      index && [array.map<number>(getValue).sort(sort)].every(isInInterval(index, outputValue)) ? [array] : [];
+      index && [array.map<number>(getValue).sort(Number.subtract)].every(isInInterval(index, outputValue)) ? [array] : [];
 
   // prettier-ignore
   const findIntervals = (outputValue: number): ((acc: [number, number][][], tuple: [number, number], index: number, array: [number, number][]) => [number, number][][]) =>
@@ -802,8 +800,6 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
 };
 
 const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
-  const sum = (first: number, second: number): number => first + second;
-
   const mapControlPoints = (_: [number, number], index: number, array: [number, number][]): [number, number] =>
     array.map<number, [number, number]>((tuple: [number, number]): number => tuple[index]);
 
@@ -817,7 +813,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const cubicBezierFunction = (tuple: [number, number]): ((value: number) => number) =>
     (value: number): number => calculateCoefficients(tuple)
       .map<number>((coefficient: number, index: number, { length }: number[]): number => coefficient * value ** (length - index))
-      .reduce(sum);
+      .reduce(Number.sum);
 
   // prettier-ignore
   const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => TupleOfLength<number, Integer.Four>) =>
@@ -845,7 +841,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const solveForOneRoot = ([first, second]: number[], [, secondDepressed]: number[], discriminant: number): number[] => [
     [Integer.MinusOne, Integer.One]
       .map<number>((multiplier: number): number => Math.cbrt(-secondDepressed / Integer.Two + multiplier * Math.sqrt(discriminant)))
-      .reduce(sum) -
+      .reduce(Number.sum) -
       second / (Integer.Three * first),
   ];
 
@@ -893,7 +889,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
         .flat<[[number[], number[]]], Integer.One>()
         .reduce(solveCubicBezier)
         .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
-        .sort((first: number, second: number): number => first - second)
+        .sort(Number.subtract)
         .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
         .map<number>((solved: number): number => cubicBezierFunction(xAxisPoints).call<undefined, [number], number>(undefined, solved));
 
@@ -1016,9 +1012,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     numberOfDigits,
     calculateNumberOfDigitGroupSeparators(numberOfDigits),
     precision > Integer.Zero ? Integer.One : Integer.Zero,
-  ].reduce((first: number, second: number): number => first - second);
-
-  const sum = (first: number, second: number): number => first + second;
+  ].reduce(Number.subtract);
 
   const getElementWidth = useCallback<(element: HTMLElement) => number>(
     (element: HTMLElement): number =>
@@ -1026,7 +1020,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
       [getComputedStyle(element)]
         .flatMap<string>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
         .map<number>(parseFloat)
-        .reduce(sum),
+        .reduce(Number.sum),
     [],
   );
 
@@ -1035,7 +1029,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
       [...(ref.current?.children ?? [])]
         .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
         .map<number>(getElementWidth)
-        .reduce(sum),
+        .reduce(Number.sum),
     [ref, startIndex, getElementWidth],
   );
 

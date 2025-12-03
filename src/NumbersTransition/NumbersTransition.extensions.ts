@@ -5,6 +5,12 @@ class Value<T> {
   public constructor(protected readonly value: T) {}
 }
 
+export class Double extends Value<number> {
+  public static readonly subtract = (first: number, second: number): number => first - second;
+
+  public static readonly sum = (first: number, second: number): number => first + second;
+}
+
 export class CharSequence extends Value<string> {
   public readonly capitalize = (): string => `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
 }

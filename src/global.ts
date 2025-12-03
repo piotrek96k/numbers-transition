@@ -1,6 +1,11 @@
 import type { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
+  interface NumberConstructor {
+    subtract(first: number, second: number): number;
+    sum(first: number, second: number): number;
+  }
+
   interface Number {
     toFixed(fractionDigits?: number): `${number}`;
   }
