@@ -25,6 +25,8 @@
   - [negativeCharacterAnimationMode](#negativecharacteranimationmode)
   - [animationDuration](#animationduration)
   - [animationTimingFunction](#animationtimingfunction)
+- [Constants](#constants)
+  - [AnimationTimingFunction](#animationtimingfunction-1)
 - [Types](#types)
   - [UncheckedBigDecimal](#uncheckedbigdecimal)
   - [BigDecimal](#bigdecimal)
@@ -164,6 +166,43 @@ const Example: FC = () => {
 - **Default:** <code>[AnimationTimingFunction](#animationtimingfunction-1).Ease</code>
 
 ---
+
+## Constants
+
+### `AnimationTimingFunction`
+
+- ```ts
+  const AnimationTimingFunction = {
+    Linear: [0, 1],
+    Ease: [
+      [0.25, 0.1],
+      [0.25, 1],
+    ],
+    EaseIn: [
+      [0.42, 0],
+      [1, 1],
+    ],
+    EaseOut: [
+      [0, 0],
+      [0.58, 1],
+    ],
+    EaseInOut: [
+      [0.42, 0],
+      [0.58, 1],
+    ],
+    StepStart: { steps: 1, stepPosition: StepPosition.JumpStart },
+    StepEnd: { steps: 1, stepPosition: StepPosition.JumpEnd },
+  } as const;
+  ```
+- **Description:** <code>[AnimationTimingFunction](#animationtimingfunction-1)</code> is a predefined collection of standard CSS easing presets:
+  - `Linear` – Equivalent to CSS `linear`.
+  - `Ease` – Equivalent to CSS `ease`.
+  - `EaseIn` – Equivalent to CSS `ease-in`.
+  - `EaseOut` – Equivalent to `ease-out`.
+  - `EaseInOut` – Equivalent to `ease-in-out`.
+  - `StepStart` – Equivalent to CSS `step-start`.
+  - `StepEnd` – Equivalent to CSS `step-end`.
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
 
 ## Types
 
@@ -332,9 +371,9 @@ const Example: FC = () => {
   type EasingFunction = LinearEasingFunction | CubicBezierEasingFunction | StepsEasingFunction;
   ```
 - **Description:** A union representing any supported CSS easing function:
-  - `linear()` → <code>[LinearEasingFunction](#lineareasingfunction)</code>
-  - `cubic-bezier()` → <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code>
-  - `steps()` → <code>[StepsEasingFunction](#stepseasingfunction)</code>
+  - <code>[LinearEasingFunction](#lineareasingfunction)</code> → `linear()`
+  - <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> → `cubic-bezier()`
+  - <code>[StepsEasingFunction](#stepseasingfunction)</code> → `steps()`
 - **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
 
 ### `ExtendedAnimationTimingFunction`
