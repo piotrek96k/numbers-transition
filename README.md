@@ -24,6 +24,7 @@
   - [negativeCharacter](#negativecharacter)
   - [negativeCharacterAnimationMode](#negativecharacteranimationmode)
   - [animationDuration](#animationduration)
+  - [animationTimingFunction](#animationtimingfunction)
 - [Types](#types)
   - [UncheckedBigDecimal](#uncheckedbigdecimal)
   - [BigDecimal](#bigdecimal)
@@ -33,6 +34,14 @@
   - [NegativeCharacterAnimationMode](#negativecharacteranimationmode-1)
   - [AnimationDuration](#animationduration-1)
   - [TotalAnimationDuration](#totalanimationduration)
+  - [ReadOnly<T>](#readonlyt)
+  - [OrReadOnly<T>](#orreadonlyt)
+  - [StepPosition](#stepposition)
+  - [LinearEasingFunction](#lineareasingfunction)
+  - [CubicBezierEasingFunction](#cubicbeziereasingfunction)
+  - [StepsEasingFunction](#stepseasingfunction)
+  - [EasingFunction](#easingfunction)
+  - [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)
 - [License](#license)
 
 ---
@@ -149,82 +158,195 @@ const Example: FC = () => {
   - If the provided object is of type <code>[AnimationDuration](#animationduration-1)</code>, it sets the horizontal and vertical animation durations (if a duration is zero, that animation is skipped).
   - If the provided object is of type <code>[TotalAnimationDuration](#totalanimationduration)</code>, it sets the total duration of all animations and a ratio, which is the ratio of vertical animation duration to horizontal animation duration (ratio = 0 disables vertical animation; ratio = ∞ disables horizontal animation).
 
+### `animationTimingFunction`
+
+- **Type:** <code>[OrReadOnly](#orreadonlyt)<[EasingFunction](#easingfunction)> | [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+- **Default:** <code>[AnimationTimingFunction](#animationtimingfunction-1).Ease</code>
+
 ---
 
 ## Types
 
 ### `UncheckedBigDecimal`
 
-```ts
-type UncheckedBigDecimal = number | bigint | string;
-```
+- ```ts
+  type UncheckedBigDecimal = number | bigint | string;
+  ```
+- **Description:** Primitive numeric input accepted by the component without validation.
+- **See also:** <code>[initialValue](#initialvalue)</code> <code>[value](#value)</code> <code>[BigDecimal](#bigdecimal)</code>
 
 ### `BigDecimal`
 
-```ts
-type BigDecimal = number | bigint | `${number}`;
-```
+- ```ts
+  type BigDecimal = number | bigint | `${number}`;
+  ```
+- **Description:** A strictly validated numeric type.
+- **See also:** <code>[initialValue](#initialvalue)</code> <code>[value](#value)</code> <code>[UncheckedBigDecimal](#uncheckedbigdecimal)</code>
 
 ### `DigitGroupSeparatorCharacter`
 
-```ts
-enum DigitGroupSeparatorCharacter {
-  None = '',
-  Comma = ',', // \u002C
-  Dot = '.', // \u002E
-  ThinSpace = ' ', // \u2009
-  Space = ' ', // \u0020
-  Underscore = '_', // \u005F
-  Apostrophe = "'", // \u0027
-}
-```
+- ```ts
+  enum DigitGroupSeparatorCharacter {
+    None = '',
+    Comma = ',', // \u002C
+    Dot = '.', // \u002E
+    ThinSpace = ' ', // \u2009
+    Space = ' ', // \u0020
+    Underscore = '_', // \u005F
+    Apostrophe = "'", // \u0027
+  }
+  ```
+- **Description:** Enum of allowed digit-group separators for formatting large numbers. Controls how thousands/millions/etc. are visually separated.
+- **See also:** <code>[digitGroupSeparator](#digitgroupseparator)</code> <code>[decimalSeparator](#decimalseparator)</code> <code>[DecimalSeparatorCharacter](#decimalseparatorcharacter)</code>
 
 ### `DecimalSeparatorCharacter`
 
-```ts
-enum DecimalSeparatorCharacter {
-  Comma = ',', // \u002C
-  Dot = '.', // \u002E
-}
-```
+- ```ts
+  enum DecimalSeparatorCharacter {
+    Comma = ',', // \u002C
+    Dot = '.', // \u002E
+  }
+  ```
+- **Description:** Enum of characters that can be used as the decimal separator.
+- **See also:** <code>[decimalSeparator](#decimalseparator)</code> <code>[digitGroupSeparator](#digitgroupseparator)</code> <code>[DigitGroupSeparatorCharacter](#digitgroupseparatorcharacter)</code>
 
 ### `NegativeCharacter`
 
-```ts
-enum NegativeCharacter {
-  Hyphen = '-', // \u002D
-  HyphenMinus = '﹣', // \uFE63
-  Minus = '−', // \u2212
-  Dash = '–', // \u2013
-}
-```
+- ```ts
+  enum NegativeCharacter {
+    Hyphen = '-', // \u002D
+    HyphenMinus = '﹣', // \uFE63
+    Minus = '−', // \u2212
+    Dash = '–', // \u2013
+  }
+  ```
+- **Description:** Enum of available glyphs for representing negative numbers. Allows using stylistically different minus/hyphen characters.
+- **See also:** <code>[negativeCharacter](#negativecharacter)</code> <code>[negativeCharacterAnimationMode](#negativecharacteranimationmode)</code> <code>[NegativeCharacterAnimationMode](#negativecharacteranimationmode-1)</code>
 
 ### `NegativeCharacterAnimationMode`
 
-```ts
-enum NegativeCharacterAnimationMode {
-  Single = 'single',
-  Multi = 'multi',
-}
-```
+- ```ts
+  enum NegativeCharacterAnimationMode {
+    Single = 'single',
+    Multi = 'multi',
+  }
+  ```
+- **Description:** Controls whether the negative symbol is animated once (`Single`) or duplicated per digit (`Multi`).
+- **See also:** <code>[negativeCharacterAnimationMode](#negativecharacteranimationmode)</code> <code>[negativeCharacter](#negativecharacter)</code> <code>[NegativeCharacter](#negativecharacter-1)</code>
 
 ### `AnimationDuration`
 
-```ts
-interface AnimationDuration {
-  horizontalAnimation?: number;
-  verticalAnimation?: number;
-}
-```
+- ```ts
+  interface AnimationDuration {
+    horizontalAnimation?: number;
+    verticalAnimation?: number;
+  }
+  ```
+- **Description:** Configures per-axis animation duration. If a value is `0`, that axis animation is skipped.
+- **See also:** <code>[animationDuration](#animationduration)</code> <code>[TotalAnimationDuration](#totalanimationduration)</code>
 
 ### `TotalAnimationDuration`
 
-```ts
-interface TotalAnimationDuration {
-  animationDuration?: number;
-  ratio?: number;
-}
-```
+- ```ts
+  interface TotalAnimationDuration {
+    animationDuration?: number;
+    ratio?: number;
+  }
+  ```
+- **Description:** Alternative duration configuration defining:
+  - total animation time
+  - vertical-to-horizontal duration ratio
+
+  This allows proportional timing without specifying each axis directly.
+
+- **See also:** <code>[animationDuration](#animationduration)</code> <code>[AnimationDuration](#animationduration-1)</code>
+
+### `ReadOnly<T>`
+
+- ```ts
+  type ReadOnly<T> = { +readonly [K in keyof T]: ReadOnly<T[K]> };
+  ```
+- **Description:** Utility type that recursively sets all properties of `T` as readonly.
+- **See also:** <code>[OrReadOnly<T>](#orreadonlyt)</code>
+
+### `OrReadOnly<T>`
+
+- ```ts
+  type OrReadOnly<T> = T | ReadOnly<T>;
+  ```
+- **Description:** Utility type which represents either a mutable or a deeply readonly version of type T.
+- **See also:** <code>[ReadOnly<T>](#readonlyt)</code>
+
+### `StepPosition`
+
+- ```ts
+  export enum StepPosition {
+    JumpStart = 'jump-start',
+    JumpEnd = 'jump-end',
+    JumpNone = 'jump-none',
+    JumpBoth = 'jump-both',
+  }
+  ```
+- **Description:** Represents the `step-position` argument of the CSS `steps()` easing function.
+- **See also:** <code>[StepsEasingFunction](#stepseasingfunction)</code>
+
+### `LinearEasingFunction`
+
+- ```ts
+  type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
+  ```
+- **Description:** Represents the CSS `linear()` easing function with one or more interpolation stops:
+  - The first and last elements are numbers — these correspond to the starting and ending output values of the easing curve (0–1 range in CSS).
+  - Each inner element represents a stop. It can be:
+    - `number` → Value-only stop (implies evenly spaced position).
+    - `[number, number]` → `[value, percentage]`
+    - `[number, number, number]` → `[value, percentage, percentage]`
+  - **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+
+### `CubicBezierEasingFunction`
+
+- ```ts
+  type CubicBezierEasingFunction = [[number, number], [number, number]];
+  ```
+- **Description:** Represents the CSS `cubic-bezier(x1, y1, x2, y2)` easing function. The cubic Bézier function has four control points, but CSS exposes only the two inner points. Those are split into two tuples:
+  - First tuple → Control point 1: `[x1, y1]`
+  - Second tuple → Control point 2: `[x2, y2]`
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+
+### `StepsEasingFunction`
+
+- ```ts
+  interface StepsEasingFunction {
+    steps: number;
+    stepPosition: StepPosition;
+  }
+  ```
+- **Description:** Represents the CSS `steps()` easing function.
+  - `steps`: The number of discrete steps (must be ≥ 1 in CSS).
+  - `stepPosition`: Controls when within each step the output jumps, using the <code>[StepPosition](#stepposition)</code> enum.
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[StepPosition](#stepposition)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+
+### `EasingFunction`
+
+- ```ts
+  type EasingFunction = LinearEasingFunction | CubicBezierEasingFunction | StepsEasingFunction;
+  ```
+- **Description:** A union representing any supported CSS easing function:
+  - `linear()` → <code>[LinearEasingFunction](#lineareasingfunction)</code>
+  - `cubic-bezier()` → <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code>
+  - `steps()` → <code>[StepsEasingFunction](#stepseasingfunction)</code>
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+
+### `ExtendedAnimationTimingFunction`
+
+- ```ts
+  export interface ExtendedAnimationTimingFunction {
+    horizontalAnimation: OrReadOnly<EasingFunction>;
+    verticalAnimation: OrReadOnly<EasingFunction>;
+  }
+  ```
+- **Description:** Specifies separate easing functions for horizontal and vertical animations. Each accepts both mutable and readonly versions of <code>[EasingFunction](#easingfunction)</code>.
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code>
 
 ---
 
