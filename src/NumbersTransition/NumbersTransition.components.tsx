@@ -500,27 +500,19 @@ export const HorizontalAnimationElement = <
     (numberOfAnimations === AnimationNumber.Two ||
       previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
 
-  const negativeElement: ReactElement = (
-    <Show condition={renderNegativeCharacter}>
-      <HorizontalAnimationNegativeElement<O, P, Y, Z>
-        negativeCharacter={negativeCharacter}
-        characterStyledView={characterStyledView}
-        negativeCharacterStyledView={negativeCharacterStyledView}
-      />
-    </Show>
-  );
-
-  const numberElement: ReactElement = (
-    <NumberElement<O, P, Q, R, S, T, U, V, W, X> {...restProps} precision={precision} characterStyledView={characterStyledView}>
-      {animationDigits}
-    </NumberElement>
-  );
-
   return (
     <HorizontalAnimation animationStartWidth={animationStartWidth} animationEndWidth={animationEndWidth} id={id}>
       <div ref={ref}>
-        {negativeElement}
-        {numberElement}
+        <Show condition={renderNegativeCharacter}>
+          <HorizontalAnimationNegativeElement<O, P, Y, Z>
+            negativeCharacter={negativeCharacter}
+            characterStyledView={characterStyledView}
+            negativeCharacterStyledView={negativeCharacterStyledView}
+          />
+        </Show>
+        <NumberElement<O, P, Q, R, S, T, U, V, W, X> {...restProps} precision={precision} characterStyledView={characterStyledView}>
+          {animationDigits}
+        </NumberElement>
       </div>
     </HorizontalAnimation>
   );
