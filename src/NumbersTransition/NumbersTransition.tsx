@@ -95,10 +95,9 @@ export interface NumbersTransitionProps<
   animationTimingFunction?: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
   animationInterruptionMode?: AnimationInterruptionMode;
   animationAlgorithm?: AnimationAlgorithm;
-  invalidValue?: string;
   optimizationStrategy?: OptimizationStrategy;
   deferChunkSize?: number;
-  forwardProps?: string[];
+  invalidValue?: string;
   view?: View<K, L>;
   characterView?: View<M, N>;
   digitView?: View<O, P>;
@@ -107,6 +106,7 @@ export interface NumbersTransitionProps<
   digitGroupSeparatorView?: View<U, V>;
   negativeCharacterView?: View<W, X>;
   invalidView?: View<Y, Z>;
+  forwardProps?: string[];
 }
 
 const NumbersTransition = <
@@ -143,10 +143,9 @@ const NumbersTransition = <
     animationTimingFunction: animationTimingFunctionInput,
     animationInterruptionMode,
     animationAlgorithm,
-    invalidValue = `${Number.NaN}`,
     optimizationStrategy,
     deferChunkSize,
-    forwardProps = [],
+    invalidValue = `${Number.NaN}`,
     view,
     characterView,
     digitView,
@@ -155,6 +154,7 @@ const NumbersTransition = <
     digitGroupSeparatorView,
     negativeCharacterView,
     invalidView,
+    forwardProps = [],
   }: NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const identifier: string = useId();

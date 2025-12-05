@@ -25,6 +25,7 @@
   - [negativeCharacterAnimationMode](#negativecharacteranimationmode)
   - [animationDuration](#animationduration)
   - [animationTimingFunction](#animationtimingfunction)
+  - [animationInterruptionMode](#animationinterruptionmode)
 - [Constants](#constants)
   - [AnimationTimingFunction](#animationtimingfunction-1)
 - [Types](#types)
@@ -167,6 +168,14 @@ const Example: FC = () => {
 - **Description:** Controls the easing curve used for the number transition animation. This prop accepts either:
   - A single easing function of <code>[EasingFunction](#easingfunction)</code> type, which is applied to horizontal/vertical animations.
   - Separate easing functions per axis using <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+
+### `animationInterruptionMode`
+
+- **Type:** <code>[AnimationInterruptionMode](#animationinterruptionmode-1) | undefined</code>
+- **Default:** <code>[AnimationInterruptionMode](#animationinterruptionmode-1).Interrupt</code>
+- **Description:** Controls how the component behaves when the value changes while an animation is still in progress. There are two modes:
+  - <code>[AnimationInterruptionMode](#animationinterruptionmode-1).Interrupt</code> Immediately stops the current animation, forces it to finish, and starts a new one from the final state. This makes transitions more responsive when values update rapidly.
+  - <code>[AnimationInterruptionMode](#animationinterruptionmode-1).Continue</code> Lets the current animation(s) finish before starting the next update. If multiple value changes occur during this time, they are queued. This preserves smooth, sequential transitions at the cost of responsiveness.
 
 ---
 
@@ -389,6 +398,17 @@ const Example: FC = () => {
   ```
 - **Description:** Specifies separate easing functions for horizontal and vertical animations. Each accepts both mutable and readonly versions of <code>[EasingFunction](#easingfunction)</code>.
 - **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code>
+
+### `AnimationInterruptionMode`
+
+- ```ts
+  enum AnimationInterruptionMode {
+    Interrupt = 'interrupt',
+    Continue = 'continue',
+  }
+  ```
+- **Description:** Defines how the component handles new updates while an animation is still running.
+- **See also:** <code>[animationInterruptionMode](#animationinterruptionmode)</code>
 
 ---
 
