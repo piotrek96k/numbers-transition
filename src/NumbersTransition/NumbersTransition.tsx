@@ -58,7 +58,7 @@ import {
   useAnimationValues,
   useEasingFunctionTypeMapper,
   useElementsLength,
-  useRenderNegativeCharacter,
+  useRenderNegativeElement,
   useStyledView,
   useValidation,
   useValue,
@@ -233,7 +233,7 @@ const NumbersTransition = <
     Integer.Four
   > = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
-  const renderNegativeCharacter: boolean = useRenderNegativeCharacter({
+  const renderNegativeElement: boolean = useRenderNegativeElement({
     negativeCharacterAnimationMode,
     animationTransition,
     previousValue: previousValueOnEndBigInt,
@@ -390,7 +390,7 @@ const NumbersTransition = <
 
   const containerElement: ReactElement = (
     <Container {...styledView} onAnimationEnd={onAnimationEnd}>
-      <Show condition={renderNegativeCharacter}>
+      <Show condition={renderNegativeElement}>
         <NegativeElement<M, N, W, X> {...negativeProps} characterStyledView={characterStyledView} />
       </Show>
       <Conditional condition={renderAnimation}>

@@ -19,7 +19,6 @@ import { ThemeProvider, ThemeProviderProps, useTheme } from 'styled-components';
 import {
   AnimationDirection,
   AnimationId,
-  AnimationNumber,
   AnimationTransition,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
@@ -42,6 +41,8 @@ import {
   useHorizontalAnimationWidths,
   useNegativeElementAnimationTimingFunction,
   useNegativeElementAnimationVisibilities,
+  useRenderHorizontalAnimationNegativeElement,
+  useRenderVerticalAnimationNegativeElement,
   useVerticalAnimationDigits,
 } from './NumbersTransition.hooks';
 import {
@@ -495,15 +496,18 @@ export const HorizontalAnimationElement = <
     ref,
   });
 
-  const renderNegativeCharacter: boolean =
-    hasSignChanged &&
-    (numberOfAnimations === AnimationNumber.Two ||
-      previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
+  const renderNegativeElement: boolean = useRenderHorizontalAnimationNegativeElement({
+    animationTransition,
+    previousValue,
+    currentValue,
+    hasSignChanged,
+    numberOfAnimations,
+  });
 
   return (
     <HorizontalAnimation animationStartWidth={animationStartWidth} animationEndWidth={animationEndWidth} id={id}>
       <div ref={ref}>
-        <Show condition={renderNegativeCharacter}>
+        <Show condition={renderNegativeElement}>
           <HorizontalAnimationNegativeElement<O, P, Y, Z>
             negativeCharacter={negativeCharacter}
             characterStyledView={characterStyledView}
@@ -599,8 +603,11 @@ export const VerticalAnimationElement = <
     }),
   );
 
-  const renderNegativeCharacter: boolean =
-    hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);
+  const renderNegativeElement: boolean = useRenderVerticalAnimationNegativeElement({
+    negativeCharacterAnimationMode,
+    currentValue,
+    hasSignChanged,
+  });
 
   const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
     isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
@@ -685,7 +692,7 @@ export const VerticalAnimationElement = <
   );
 
   const encloseNumber = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
-    <Conditional condition={renderNegativeCharacter}>
+    <Conditional condition={renderNegativeElement}>
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
         negativeCharacterAnimationMode={negativeCharacterAnimationMode}

@@ -503,7 +503,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration];
 };
 
-interface UseRenderNegativeCharacterOptions {
+interface UseRenderNegativeElementOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationTransition: AnimationTransition;
   previousValue: bigint;
@@ -515,7 +515,7 @@ interface UseRenderNegativeCharacterOptions {
   animationType: AnimationType;
 }
 
-export const useRenderNegativeCharacter = (options: UseRenderNegativeCharacterOptions): boolean => {
+export const useRenderNegativeElement = (options: UseRenderNegativeElementOptions): boolean => {
   const {
     negativeCharacterAnimationMode,
     animationTransition,
@@ -526,7 +526,7 @@ export const useRenderNegativeCharacter = (options: UseRenderNegativeCharacterOp
     renderAnimation,
     numberOfAnimations,
     animationType,
-  }: UseRenderNegativeCharacterOptions = options;
+  }: UseRenderNegativeElementOptions = options;
 
   const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
     renderAnimation &&
@@ -539,12 +539,44 @@ export const useRenderNegativeCharacter = (options: UseRenderNegativeCharacterOp
     numberOfAnimations === AnimationNumber.Three &&
     previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
-  const renderNegativeCharacter: boolean =
+  const renderNegativeElement: boolean =
     (isValueValid && !hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
     renderNegativeElementWhenNumberOfAnimationsIsThree;
 
-  return renderNegativeCharacter;
+  return renderNegativeElement;
 };
+
+interface UseRenderHorizontalAnimationNegativeElementOptions {
+  animationTransition: AnimationTransition;
+  previousValue: bigint;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+  numberOfAnimations: AnimationNumber;
+}
+
+export const useRenderHorizontalAnimationNegativeElement = ({
+  animationTransition,
+  previousValue,
+  currentValue,
+  hasSignChanged,
+  numberOfAnimations,
+}: UseRenderHorizontalAnimationNegativeElementOptions): boolean =>
+  hasSignChanged &&
+  (numberOfAnimations === AnimationNumber.Two ||
+    previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
+
+interface UseRenderVerticalAnimationNegativeElementOptions {
+  negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
+  currentValue: bigint;
+  hasSignChanged: boolean;
+}
+
+export const useRenderVerticalAnimationNegativeElement = ({
+  negativeCharacterAnimationMode,
+  currentValue,
+  hasSignChanged,
+}: UseRenderVerticalAnimationNegativeElementOptions): boolean =>
+  hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);
 
 type BaseView<T extends object = object, U = unknown> = {
   [K in keyof StyledView<Styled, T, U> as Uncapitalize<
