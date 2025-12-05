@@ -108,13 +108,13 @@ const Example: FC = () => {
 
 - **Type:** <code>[UncheckedBigDecimal](#uncheckedbigdecimal) | [BigDecimal](#bigdecimal) | undefined</code>
 - **Default:** `0`
-- **Description:** Initial value of <code>[value](#value)</code> prop to trigger transition on first render. If <code>[initialValue](#initialvalue)</code> matches <code>[value](#value)</code>, no initial animation is displayed.
+- **Description:** Initial value of the <code>[value](#value)</code> prop used to trigger a transition on first render. If <code>[initialValue](#initialvalue)</code> matches <code>[value](#value)</code>, no initial animation is displayed.
 
 ### `value`
 
 - **Type**: <code>[UncheckedBigDecimal](#uncheckedbigdecimal) | [BigDecimal](#bigdecimal) | undefined</code>
 - **Default:** `0`
-- **Description:** The value to display. Its change triggers the transition between the previous and new value.
+- **Description:** The value to display. When it changes, the component animates the transition from the previous value to the new one.
 
 ### `precision`
 
@@ -164,6 +164,9 @@ const Example: FC = () => {
 
 - **Type:** <code>[OrReadOnly](#orreadonlyt)<[EasingFunction](#easingfunction)> | [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
 - **Default:** <code>[AnimationTimingFunction](#animationtimingfunction-1).Ease</code>
+- **Description:** Controls the easing curve used for the number transition animation. This prop accepts either:
+  - A single easing function of <code>[EasingFunction](#easingfunction)</code> type, which is applied to horizontal/vertical animations.
+  - Separate easing functions per axis using <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
 
 ---
 
