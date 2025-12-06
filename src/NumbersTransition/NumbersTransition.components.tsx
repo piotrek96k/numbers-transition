@@ -116,15 +116,11 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [countElements],
   );
 
-  const aggregatedSums = useMemo<number[]>(
-    (): number[] => children.reduce<number[]>(countAggregatedSums, []),
-    [children, countAggregatedSums],
-  );
+  // prettier-ignore
+  const aggregatedSums = useMemo<number[]>((): number[] => children.reduce<number[]>(countAggregatedSums, []), [children, countAggregatedSums]);
 
-  const mapToFragmentElement: ElementKeyMapper<GenericReactNode<ChildrenProps>> = useElementKeyMapper<
-    GenericReactNode<ChildrenProps>,
-    FragmentProps
-  >(Fragment);
+  // prettier-ignore
+  const mapToFragmentElement: ElementKeyMapper<GenericReactNode<ChildrenProps>> = useElementKeyMapper<GenericReactNode<ChildrenProps>, FragmentProps>(Fragment);
 
   useEffect(
     (): void =>
@@ -225,15 +221,14 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
 
   const theme: NumbersTransitionTheme = useTheme();
   const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
-  const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({
-    negativeCharacterAnimationMode,
-    animationVisibilities,
-  });
+  // prettier-ignore
+  const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({ negativeCharacterAnimationMode, animationVisibilities });
 
-  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    ThemeProviderProps
-  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }));
+  // prettier-ignore
+  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
+    ThemeProvider, 
+    (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
+  );
 
   const mapToNegativeElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeElementProps<T, U, V, W>>(
     NegativeElement<T, U, V, W>,
@@ -245,9 +240,10 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapMulti<
-    [ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]
-  >([mapToNegativeElement, mapToThemeProviderElement]);
+  // prettier-ignore
+  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(
+    [mapToNegativeElement, mapToThemeProviderElement],
+  );
 
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
     <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
@@ -311,35 +307,26 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     enclose,
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex }: CharacterIndexFunctions =
-    useCharacterIndexFunctions(precision);
+  // prettier-ignore
+  const { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex }: CharacterIndexFunctions = useCharacterIndexFunctions(precision);
+  // prettier-ignore
+  const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, FragmentProps>(Fragment);
 
-  const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    FragmentProps
-  >(Fragment);
-
-  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = useElementKeyMapper<
-    OrArray<ReactElement<ChildrenProps>>,
-    ThemeProviderProps
-  >(
+  // prettier-ignore
+  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = useElementKeyMapper<OrArray<ReactElement<ChildrenProps>>, ThemeProviderProps>(
     ThemeProvider,
-    (
-      _: OrArray<ReactElement<ChildrenProps>>,
-      digitIndex: number,
-      { length }: OrArray<ReactElement<ChildrenProps>>[],
-    ): ThemeProviderProps => ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
+    (_: OrArray<ReactElement<ChildrenProps>>, digitIndex: number, { length }: OrArray<ReactElement<ChildrenProps>>[]): ThemeProviderProps => 
+      ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
   );
 
-  const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    ThemeProviderProps
-  >(ThemeProvider, (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }));
+  // prettier-ignore
+  const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
+    ThemeProvider, 
+    (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
+  );
 
-  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, {
-    ...characterStyledView,
-    ...digitStyledView,
-  });
+  // prettier-ignore
+  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, { ...characterStyledView, ...digitStyledView });
 
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
     numbers.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>([mapToDigitElement, mapToDigitsThemeProviderElement]);
@@ -580,23 +567,19 @@ export const VerticalAnimationElement = <
   const { animationDirection }: NumbersTransitionTheme = useTheme();
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    ThemeProviderProps
-  >(
+  // prettier-ignore
+  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
     ThemeProvider,
     (_: ReactElement<ChildrenProps>, index: number): ThemeProviderProps => ({ theme: { columnLength: animationDigits[index].length } }),
   );
 
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    VerticalAnimationProps
-  >(VerticalAnimation);
+  // prettier-ignore
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, VerticalAnimationProps>(
+    VerticalAnimation,
+  );
 
-  const mapToDivElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<
-    ReactElement<ChildrenProps>,
-    HTMLAttributes<HTMLElement.Div>
-  >(
+  // prettier-ignore
+  const mapToDivElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, HTMLAttributes<HTMLElement.Div>>(
     HTMLElement.Div,
     (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElement.Div> => ({
       ...(index === length - Integer.One && { id }),
@@ -649,15 +632,13 @@ export const VerticalAnimationElement = <
     (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <AnimationPlaceholder>{array}</AnimationPlaceholder>,
   );
 
-  const onAfterMountMapper =
-    (at: number): VerticalAnimationChildMapper =>
-    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
-      Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
+  // prettier-ignore
+  const onAfterMountMapper = (at: number): VerticalAnimationChildMapper =>
+    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> => Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
 
-  const onAfterMountReducer =
-    (accumulatedCallback: VerticalAnimationChildMapper, callback: VerticalAnimationChildMapper): VerticalAnimationChildMapper =>
-    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
-      callback(getLastNestedOptionalElement(accumulatedCallback(child)));
+  // prettier-ignore
+  const onAfterMountReducer = (accumulatedCallback: VerticalAnimationChildMapper, callback: VerticalAnimationChildMapper): VerticalAnimationChildMapper =>
+    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
 
   const onAfterMountFunction: VerticalAnimationChildMapper = [
     Integer.One,
