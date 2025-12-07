@@ -601,23 +601,19 @@ export const VerticalAnimationElement = <
   const countElements = (child: ReactElement<ChildrenProps>): number =>
     Array.toArray<GenericReactNode<ChildrenProps>>(getLastNestedElement(child).props.children).length;
 
+  // prettier-ignore
   const onElementMount =
     <T extends unknown[] = []>(
-      encloseFactory: (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>,
+      factory: (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>,
     ): ((child: ReactElement<ChildrenProps>, ...args: T) => GenericReactNode<ChildrenProps>) =>
-    (child: ReactElement<ChildrenProps>, ...args: T) => {
-      const condition = ({ props: { children } }: ReactElement<ChildrenProps>): boolean =>
-        Array.isArray<GenericReactNode<ChildrenProps>>(children);
-
-      const enclose = ({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-        encloseFactory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
-
-      return (
-        <Enclose<ReactElement<ChildrenProps>> condition={condition} enclose={enclose}>
-          {getLastNestedElement(child)}
-        </Enclose>
-      );
-    };
+    (child: ReactElement<ChildrenProps>, ...args: T) => (
+      <Enclose<ReactElement<ChildrenProps>>
+        condition={({ props: { children } }: ReactElement<ChildrenProps>): boolean => Array.isArray<GenericReactNode<ChildrenProps>>(children)}
+        enclose={({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args)}
+      >
+        {getLastNestedElement(child)}
+      </Enclose>
+    );
 
   const onBeforeElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
     array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne);
