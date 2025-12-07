@@ -233,18 +233,6 @@ const NumbersTransition = <
     Integer.Four
   > = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
-  const renderNegativeElement: boolean = useRenderNegativeElement({
-    negativeCharacterAnimationMode,
-    animationTransition,
-    previousValue: previousValueOnEndBigInt,
-    currentValue: valueBigInt,
-    isValueValid,
-    hasSignChanged,
-    renderAnimation,
-    numberOfAnimations,
-    animationType,
-  });
-
   // prettier-ignore
   const [
     styledView,
@@ -272,6 +260,18 @@ const NumbersTransition = <
     currentValue: valueBigInt,
     hasSignChanged,
     numberOfDigits: maxNumberOfDigits,
+  });
+
+  const renderNegativeElement: boolean = useRenderNegativeElement({
+    negativeCharacterAnimationMode,
+    animationTransition,
+    previousValue: previousValueOnEndBigInt,
+    currentValue: valueBigInt,
+    isValueValid,
+    hasSignChanged,
+    renderAnimation,
+    numberOfAnimations,
+    animationType,
   });
 
   useEffect(
