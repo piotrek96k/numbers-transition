@@ -4,7 +4,8 @@ import { dirname, relative, resolve } from 'path';
 import { cwd } from 'process';
 import type { TransformHook, TransformResult } from 'rollup';
 import {
-  CallExpression,
+  ArrayLiteralExpression,
+  ArrowFunction,
   ClassDeclaration,
   ClassElement,
   Expression,
@@ -17,15 +18,19 @@ import {
   NamedImports,
   NewLineKind,
   Node,
-  NodeArray,
   NodeFlags,
+  ParameterDeclaration,
   PropertyAccessExpression,
   PropertyDeclaration,
+  ReturnStatement,
   ScriptKind,
   ScriptTarget,
   SourceFile,
   Statement,
+  StringLiteral,
   SyntaxKind,
+  VariableDeclaration,
+  VariableStatement,
   Visitor,
   createPrinter,
   createSourceFile,
@@ -34,7 +39,6 @@ import {
   isArrayLiteralExpression,
   isArrowFunction,
   isBigIntLiteral,
-  isCallChain,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
@@ -85,6 +89,28 @@ enum ValuePlaceholder {
   Placeholder = 'VALUE',
 }
 
+enum ClassName {
+  Map = 'Map',
+}
+
+enum FunctionName {
+  Get = 'get',
+  Find = 'find',
+}
+
+enum ConstName {
+  Proxy = 'proxy',
+  Type = 'type',
+  TypeMap = 'typeMap',
+  TypeCheckMap = 'typeCheckMap',
+}
+
+enum ArgName {
+  Cls = 'cls',
+  Classes = 'classes',
+  Value = 'value',
+}
+
 interface NamedClassDeclaration extends ClassDeclaration {
   name: Identifier;
 }
@@ -99,19 +125,10 @@ interface IdentifierPropertyDeclaration extends PropertyDeclaration {
 
 type FunctionDeclaration = IdentifierMethodDeclaration | IdentifierPropertyDeclaration;
 
-interface CallNode extends CallExpression {
-  expression: PropertyAccessExpression;
-}
-
-type PropertyOrCallNode = CallNode | PropertyAccessExpression;
-
-type PropertyOrCallTuple =
-  | [PropertyOrCallNode, PropertyAccessExpression, NodeArray<Expression>]
-  | [PropertyOrCallNode, PropertyAccessExpression];
-
 interface InternalConfig {
   allowedFiles: Set<string>;
   extensionsMap: Map<string, TypeExtension>;
+  constAliases: Map<string, string>;
 }
 
 interface Method {
@@ -177,15 +194,6 @@ const isPropertyFunction = (member: ClassElement): member is PropertyDeclaration
 const isMethod = (member: ClassElement): member is FunctionDeclaration =>
   (isMethodDeclaration(member) || isPropertyFunction(member)) && isIdentifier(member.name) && isPublic(member);
 
-const isAccessNode = (node: Node): node is PropertyAccessExpression => isPropertyAccessExpression(node) || isPropertyAccessChain(node);
-
-const isCallNode = (node: Node): node is CallNode => (isCallExpression(node) || isCallChain(node)) && isAccessNode(node.expression);
-
-const isPropertyAccessNode = (node: Node): node is PropertyAccessExpression =>
-  isAccessNode(node) && (!node.parent || !isCallNode(node.parent) || node.parent.arguments.includes(node));
-
-const isPropertyOrCallNode = (node: Node): node is PropertyOrCallNode => isPropertyAccessNode(node) || isCallNode(node);
-
 const isStaticMethod =
   (expression: Expression, methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
   ([, { type, methods }]: [string, TypeExtension]): boolean =>
@@ -197,6 +205,11 @@ const isObjectMethod =
   (methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
   ([, { methods }]: [string, TypeExtension]): boolean =>
     methods.some(({ name, isStatic }: Method): boolean => name === methodName && !isStatic);
+
+const generateAlias = (name: string, node: Node | string): string =>
+  `${name}${createHash(HashAlgorithm.Sha256)
+    .update(typeof node === 'string' ? `${node}${name}` : `${node.pos}${name}${node.end}`)
+    .digest(Encoding.Hex)}`;
 
 const readConfig = (configPath: string): TypeExtensionsConfig => JSON.parse(readFileSync(resolve(configPath), Encoding.Utf8));
 
@@ -234,9 +247,145 @@ const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<strin
       new Map<string, TypeExtension>(),
     );
 
+const generateMap = (name: string, entries: ArrayLiteralExpression[]): VariableDeclaration =>
+  factory.createVariableDeclaration(
+    factory.createIdentifier(name),
+    undefined,
+    undefined,
+    factory.createNewExpression(factory.createIdentifier(ClassName.Map), undefined, [factory.createArrayLiteralExpression(entries)]),
+  );
+
+const generateTypeMap = (extensionsMap: Map<string, TypeExtension>, constAliases: Map<string, string>): VariableDeclaration =>
+  generateMap(
+    constAliases.get(ConstName.TypeMap)!,
+    [...extensionsMap].map<ArrayLiteralExpression>(
+      ([className, { type }]: [string, TypeExtension]): ArrayLiteralExpression =>
+        factory.createArrayLiteralExpression([factory.createStringLiteral(type), factory.createIdentifier(className)]),
+    ),
+  );
+
+const generateTypeCheckMap = (extensionsMap: Map<string, TypeExtension>, constAliases: Map<string, string>): VariableDeclaration =>
+  generateMap(
+    constAliases.get(ConstName.TypeCheckMap)!,
+    [...extensionsMap]
+      .map<
+        [string, Statement]
+      >(([, { type, typeCheck }]: [string, TypeExtension]): [string, Statement] => [type, createSourceFile(TempSourceFile.Name, typeCheck.replace(new RegExp(ValuePlaceholder.Placeholder, 'g'), ArgName.Value), ScriptTarget.ESNext, false, ScriptKind.TS).statements[0]])
+      .map<ArrayLiteralExpression>(
+        ([type, typeCheck]: [string, Statement]): ArrayLiteralExpression =>
+          factory.createArrayLiteralExpression([
+            factory.createStringLiteral(type),
+            factory.createArrowFunction(
+              undefined,
+              undefined,
+              [factory.createParameterDeclaration(undefined, undefined, ArgName.Value)],
+              undefined,
+              factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+              isExpressionStatement(typeCheck) ? typeCheck.expression : factory.createVoidZero(),
+            ),
+          ]),
+      ),
+  );
+
+const generateProxyFindFunction = (constAliases: Map<string, string>): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [factory.createParameterDeclaration(undefined, undefined, ArgName.Cls)],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createCallExpression(
+      factory.createCallExpression(
+        factory.createPropertyAccessExpression(factory.createIdentifier(constAliases.get(ConstName.TypeCheckMap)!), FunctionName.Get),
+        undefined,
+        [factory.createIdentifier(ArgName.Cls)],
+      ),
+      undefined,
+      [factory.createIdentifier(ArgName.Value)],
+    ),
+  );
+
+const generateProxyFindExpression = (constAliases: Map<string, string>): VariableStatement =>
+  factory.createVariableStatement(
+    undefined,
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          ConstName.Type,
+          undefined,
+          undefined,
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Classes), FunctionName.Find),
+            undefined,
+            [generateProxyFindFunction(constAliases)],
+          ),
+        ),
+      ],
+      NodeFlags.Const,
+    ),
+  );
+
+const generateProxyResult = (constAliases: Map<string, string>): ReturnStatement =>
+  factory.createReturnStatement(
+    factory.createConditionalExpression(
+      factory.createIdentifier(ConstName.Type),
+      factory.createToken(SyntaxKind.QuestionToken),
+      factory.createNewExpression(
+        factory.createParenthesizedExpression(
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier(constAliases.get(ConstName.TypeMap)!), FunctionName.Get),
+            undefined,
+            [factory.createIdentifier(ConstName.Type)],
+          ),
+        ),
+        undefined,
+        [factory.createIdentifier(ArgName.Value)],
+      ),
+      factory.createToken(SyntaxKind.ColonToken),
+      factory.createIdentifier(ArgName.Value),
+    ),
+  );
+
+const generateProxyFunction = (constAliases: Map<string, string>): VariableDeclaration =>
+  factory.createVariableDeclaration(
+    factory.createIdentifier(constAliases.get(ConstName.Proxy)!),
+    undefined,
+    undefined,
+    factory.createArrowFunction(
+      undefined,
+      undefined,
+      [ArgName.Value, ArgName.Classes].map<ParameterDeclaration>(
+        (param: string): ParameterDeclaration => factory.createParameterDeclaration(undefined, undefined, param),
+      ),
+      undefined,
+      factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+      factory.createBlock([generateProxyFindExpression(constAliases), generateProxyResult(constAliases)]),
+    ),
+  );
+
+const generateRuntimeProxy = (extensionsMap: Map<string, TypeExtension>, constAliases: Map<string, string>): Statement[] => [
+  factory.createVariableStatement(
+    undefined,
+    factory.createVariableDeclarationList(
+      [generateTypeMap(extensionsMap, constAliases), generateTypeCheckMap(extensionsMap, constAliases)],
+      NodeFlags.Const,
+    ),
+  ),
+  factory.createVariableStatement(
+    [factory.createModifier(SyntaxKind.ExportKeyword)],
+    factory.createVariableDeclarationList([generateProxyFunction(constAliases)], NodeFlags.Const),
+  ),
+];
+
 const buildInternalConfig = ({ tsConfig, extensionsFilePath, extensions }: TypeExtensionsConfig): InternalConfig => ({
   allowedFiles: getAllowedFiles(tsConfig),
   extensionsMap: buildExtensionsMap(extensionsFilePath, extensions),
+  constAliases: new Map<string, string>(
+    Object.values<ConstName>(ConstName).map<[string, string]>((value: ConstName): [string, string] => [
+      value,
+      generateAlias(value, extensionsFilePath),
+    ]),
+  ),
 });
 
 const buildHotUpdateHandler =
@@ -276,153 +425,111 @@ const readUsedExtensions = (extensionImport: ImportDeclaration[]): Map<string, s
       new Map<string, string>(),
     );
 
-const generateAlias = (className: string, { pos, end }: Node): string =>
-  `${className}${createHash(HashAlgorithm.Sha256).update(`${pos}${className}${end}`).digest(Encoding.Hex)}`;
+const readImportName = (importName: string, usedExtensions: Map<string, string>, isExtensionsFile: boolean, node: Node): string =>
+  usedExtensions.get(importName) ??
+  (usedExtensions.set(importName, isExtensionsFile ? importName : generateAlias(importName, node)) && usedExtensions.get(importName)!);
 
-const readClassName = (className: string, usedExtensions: Map<string, string>, isExtensionsFile: boolean, node: Node): string =>
-  usedExtensions.get(className) ??
-  (usedExtensions.set(className, isExtensionsFile ? className : generateAlias(className, node)) && usedExtensions.get(className)!);
-
-const mapToPropertyOrCallNode = (node: PropertyOrCallNode): PropertyOrCallTuple => [
-  node,
-  ...(isCallNode(node)
-    ? ([node.expression, node.arguments] satisfies [PropertyAccessExpression, NodeArray<Expression>])
-    : ([node] satisfies [PropertyAccessExpression])),
-];
-
-const createOptionalCallExpression = (expression: Expression, args?: NodeArray<Expression>): Expression =>
-  args ? factory.createCallExpression(expression, undefined, args) : expression;
-
-const buildStaticExpressions = (
+const buildStaticExpression = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
-  args?: NodeArray<Expression>,
-): (() => Expression)[] =>
+): (() => Expression) | undefined =>
   [...extensionsMap]
     .filter(isStaticMethod(expression, text))
-    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, isExtensionsFile, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
-          createOptionalCallExpression(factory.createPropertyAccessExpression(factory.createIdentifier(className), text), args),
-    );
+          factory.createPropertyAccessExpression(factory.createIdentifier(className), text),
+    )
+    .at(0);
 
-const buildLiteralExpressions = (
+const buildLiteralExpression = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
-  args?: NodeArray<Expression>,
-) =>
+): (() => Expression) | undefined =>
   [...extensionsMap]
     .filter(isObjectMethod(text))
     .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
-    .map<string>(([className]: [string, TypeExtension]): string => readClassName(className, usedExtensions, isExtensionsFile, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
-          createOptionalCallExpression(
-            factory.createPropertyAccessExpression(
-              factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
-              text,
-            ),
-            args,
+          factory.createPropertyAccessExpression(
+            factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
+            text,
           ),
-    );
+    )
+    .at(0);
 
-const replaceValuePlaceholder = <T extends Node>(node: T, replacement: Expression): T =>
-  visitEachChild<T>(
-    node,
-    (child: Node): Node =>
-      isIdentifier(child) && child.text === ValuePlaceholder.Placeholder ? replacement : replaceValuePlaceholder<Node>(child, replacement),
-    undefined,
-  );
-
-const buildConditionalExpressions = (
+const buildProxiedExpression = (
   extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
-  { expression, name: { text } }: PropertyAccessExpression,
-  args?: NodeArray<Expression>,
-): ((expression: Expression) => Expression)[] =>
-  [...extensionsMap]
-    .filter(isObjectMethod(text))
-    .map<[Expression, Statement]>(([className]: [string, TypeExtension]): [Expression, Statement] => [
-      factory.createNewExpression(
-        factory.createIdentifier(readClassName(className, usedExtensions, isExtensionsFile, expression)),
-        undefined,
-        [expression],
-      ),
-      createSourceFile(TempSourceFile.Name, extensionsMap.get(className)!.typeCheck, ScriptTarget.ESNext, false, ScriptKind.TS)
-        .statements[0],
-    ])
-    .map<[Expression, Expression]>(([newInstance, checkStatement]: [Expression, Statement]): [Expression, Expression] => [
-      createOptionalCallExpression(factory.createPropertyAccessExpression(newInstance, text), args),
-      isExpressionStatement(checkStatement) ? replaceValuePlaceholder(checkStatement.expression, expression) : expression,
-    ])
-    .map<(expression: Expression) => Expression>(
-      ([newCall, checkStatement]: [Expression, Expression]): ((expression: Expression) => Expression) =>
-        (expression: Expression): Expression =>
-          factory.createConditionalExpression(checkStatement, undefined, newCall, undefined, expression),
-    );
+  access: PropertyAccessExpression,
+): (() => Expression) | undefined =>
+  [
+    [...extensionsMap]
+      .filter(isObjectMethod(access.name.text))
+      .map<StringLiteral>(([, { type }]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(type)),
+  ]
+    .filter(({ length }: StringLiteral[]): boolean => !!length)
+    .map<() => Expression>(
+      (classes: StringLiteral[]): (() => Expression) =>
+        (): Expression =>
+          factory.createPropertyAccessChain(
+            factory.createCallExpression(
+              factory.createIdentifier(
+                readImportName(constAliases.get(ConstName.Proxy)!, usedExtensions, isExtensionsFile, access.expression),
+              ),
+              undefined,
+              [access.expression, factory.createArrayLiteralExpression(classes)],
+            ),
+            isPropertyAccessChain(access) ? factory.createToken(SyntaxKind.QuestionDotToken) : undefined,
+            access.name.text,
+          ),
+    )
+    .at(0);
 
 const flatMapExpressionsBuilders =
   (
     extensionsMap: Map<string, TypeExtension>,
+    constAliases: Map<string, string>,
     usedExtensions: Map<string, string>,
     isExtensionsFile: boolean,
-  ): (([node, expression, args]: PropertyOrCallTuple) => [PropertyOrCallNode, ((expression: Expression) => Expression)[]][]) =>
-  ([node, expression, args]: PropertyOrCallTuple): [PropertyOrCallNode, ((expression: Expression) => Expression)[]][] => [
-    [node, buildStaticExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
-    [node, buildLiteralExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
-    [node, buildConditionalExpressions(extensionsMap, usedExtensions, isExtensionsFile, expression, args)],
+  ): ((node: PropertyAccessExpression) => ((() => Expression) | undefined)[]) =>
+  (node: PropertyAccessExpression): ((() => Expression) | undefined)[] => [
+    buildStaticExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
+    buildLiteralExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
+    buildProxiedExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
   ];
-
-const buildPropertyAccessChainExpression = ({ expression }: PropertyOrCallNode, builtExpression: Expression): Expression =>
-  isPropertyAccessChain(expression)
-    ? factory.createConditionalExpression(
-        factory.createBinaryExpression(expression.expression, SyntaxKind.EqualsEqualsToken, factory.createVoidZero()),
-        undefined,
-        expression.expression,
-        undefined,
-        builtExpression,
-      )
-    : builtExpression;
-
-const reduceExpressionsCallbacks = ([node, callbacks]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): Expression =>
-  buildPropertyAccessChainExpression(
-    node,
-    callbacks.reduce<Expression>(
-      (expression: Expression, callback: (expression: Expression) => Expression): Expression => callback(expression),
-      node,
-    ),
-  );
 
 const modifyNode = (
   extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   node: Node,
 ): Node =>
   [node]
-    .filter<PropertyOrCallNode>(isPropertyOrCallNode)
-    .map<PropertyOrCallTuple>(mapToPropertyOrCallNode)
-    .flatMap<[PropertyOrCallNode, ((expression: Expression) => Expression)[]]>(
-      flatMapExpressionsBuilders(extensionsMap, usedExtensions, isExtensionsFile),
-    )
-    .filter(([, { length }]: [PropertyOrCallNode, ((expression: Expression) => Expression)[]]): boolean => !!length)
-    .map<Expression>(reduceExpressionsCallbacks)
-    .at(0) ?? node;
+    .filter<PropertyAccessExpression>(isPropertyAccessExpression)
+    .flatMap<(() => Expression) | undefined>(flatMapExpressionsBuilders(extensionsMap, constAliases, usedExtensions, isExtensionsFile))
+    .filter((expression: (() => Expression) | undefined): boolean => !!expression)
+    .at(0)
+    ?.call(undefined) ?? node;
 
 const buildVisitor = (
   extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
 ): Visitor => {
   const visitor: Visitor = (node: Node): Node =>
-    modifyNode(extensionsMap, usedExtensions, isExtensionsFile, visitEachChild<Node>(node, visitor, undefined));
+    modifyNode(extensionsMap, constAliases, usedExtensions, isExtensionsFile, visitEachChild<Node>(node, visitor, undefined));
 
   return visitor;
 };
@@ -448,6 +555,7 @@ const buildExtensionsImport = (importPath: string, usedExtensions: Map<string, s
 const transformCode = (
   extensionsFilePath: string,
   extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
   code: string,
   id: string,
 ): TransformResult => {
@@ -482,7 +590,7 @@ const transformCode = (
 
   const { statements }: SourceFile = visitEachChild<SourceFile>(
     factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
-    buildVisitor(extensionsMap, usedExtensions, isExtensionsFile),
+    buildVisitor(extensionsMap, constAliases, usedExtensions, isExtensionsFile),
     undefined,
   );
 
@@ -492,6 +600,7 @@ const transformCode = (
         ...restImports,
         ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
         ...statements,
+        ...(isExtensionsFile ? generateRuntimeProxy(extensionsMap, constAliases) : []),
       ]),
     ),
   };
@@ -501,7 +610,7 @@ const buildTransformer =
   (config: TypeExtensionsConfig, internalConfig: InternalConfig): TransformHook =>
   (originalCode: string, id: string): TransformResult =>
     internalConfig.allowedFiles.has(resolve(id))
-      ? transformCode(config.extensionsFilePath, internalConfig.extensionsMap, originalCode, id)
+      ? transformCode(config.extensionsFilePath, internalConfig.extensionsMap, internalConfig.constAliases, originalCode, id)
       : null;
 
 const typeExtensions = (configPath: string): Plugin => {
