@@ -12,6 +12,7 @@ const config: UserConfig = {
       external: ['react', 'react-dom', 'react/jsx-runtime', 'styled-components'],
       output: [{ format: 'es' }, { format: 'cjs', exports: 'named', interop: 'auto' }],
     },
+    minify: 'terser',
   },
 };
 

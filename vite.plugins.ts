@@ -11,6 +11,7 @@ const config: UserConfig = {
     },
     rollupOptions: { external: ['crypto', 'fs', 'path', 'process', 'typescript'] },
     outDir: resolve('plugins', 'dist'),
+    minify: 'terser',
   },
 };
 
