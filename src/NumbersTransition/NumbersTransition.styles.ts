@@ -409,7 +409,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): Optional<RuleSet<object>> =>
   Array.toArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation)
-    .filterAll(!!(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation))
+    .filterAll(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation)
     .mapMulti<[Partial<Animation<U, V>> | Falsy, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>([
       createViewFactoryMapper<T, U, Animation<U, V>>(props),
       mapAnimationFalsyValue<U, V>,
@@ -420,7 +420,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
 // prettier-ignore
 const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
   [css<object>`animation-name: ${animationsKeyframes};`]
-    .filterAll(!!animationsKeyframes)
+    .filterAll(animationsKeyframes)
     .at(Integer.Zero);
 
 const animationFactory =
