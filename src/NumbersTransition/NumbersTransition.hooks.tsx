@@ -371,12 +371,11 @@ const useCubicBezierDirection = (animationDirection: AnimationDirection): FixDir
 };
 
 const useStepsDirection = (animationDirection: AnimationDirection): FixDirection<StepsEasingFunction> => {
+  // prettier-ignore
   const reverseStepPosition = (stepPosition: StepPosition): StepPosition =>
     [[StepPosition.JumpStart, StepPosition.JumpEnd], [StepPosition.JumpNone], [StepPosition.JumpBoth]]
       .find((steps: StepPosition[]): boolean => steps.includes(stepPosition))!
-      .find(
-        (step: StepPosition, _: number, steps: StepPosition[]): boolean => step === steps.at(steps.indexOf(stepPosition) - Integer.One),
-      )!;
+      .find((step: StepPosition, _: number, steps: StepPosition[]): boolean => step === steps.at(steps.indexOf(stepPosition) - Integer.One))!;
 
   return ({ steps, stepPosition }: OrReadOnly<StepsEasingFunction>): StepsEasingFunction => ({
     steps,
@@ -419,12 +418,11 @@ export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOp
     ? animationTimingFunction
     : { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction };
 
-  return mapEasingFunction<
-    EasingFunction,
-    OrReadOnly<LinearEasingFunction>,
-    OrReadOnly<CubicBezierEasingFunction>,
-    OrReadOnly<StepsEasingFunction>
-  >([fixLinearDirection, fixCubicBezierDirection, fixStepsDirection], easingFunction);
+  // prettier-ignore
+  return mapEasingFunction<EasingFunction, OrReadOnly<LinearEasingFunction>, OrReadOnly<CubicBezierEasingFunction>, OrReadOnly<StepsEasingFunction>>(
+    [fixLinearDirection, fixCubicBezierDirection, fixStepsDirection], 
+    easingFunction,
+  );
 };
 
 export interface AnimationDuration {
@@ -462,14 +460,14 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
     verticalAnimation,
   ];
 
+  // prettier-ignore
   const fromTotalAnimationDuration = ({
     animationDuration = Integer.SixThousand,
     ratio = Integer.Five / Integer.Two,
   }: TotalAnimationDuration): [number, number] =>
-    [numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)].flatMap<
-      number,
-      [number, number]
-    >((horizontalAnimationDuration: number): [number, number] => [
+    [
+      numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)
+    ].flatMap<number, [number, number]>((horizontalAnimationDuration: number): [number, number] => [
       horizontalAnimationDuration,
       ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
     ]);
@@ -594,13 +592,11 @@ export const useStyledView = <
     return { ...styledView, ...viewProps };
   };
 
+  // prettier-ignore
   return options
     .zip<TupleOfLength<Styled, Integer.Eight>>(Object.values<Styled, TupleOfLength<Styled, Integer.Eight>>(Styled))
     .map<
-      UnionProduct<
-        ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-        Optional<K | M | O | Q | S | U | W | Y>
-      >,
+      UnionProduct<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Optional<K | M | O | Q | S | U | W | Y>>,
       ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
     >(mapView);
 };
@@ -851,6 +847,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => TupleOfLength<number, Integer.Four>) =>
     (tuple: [number, number]): TupleOfLength<number, Integer.Four> => [...calculateCoefficients(tuple), -outputValue];
 
+  // prettier-ignore
   const calculateDepressedCoefficients = ([first, second, third, fourth]: TupleOfLength<number, Integer.Four>): [
     TupleOfLength<number, Integer.Four>,
     [number, number],
@@ -858,9 +855,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
     [first, second, third, fourth],
     [
       (Integer.Three * first * third - second ** Integer.Two) / (Integer.Three * first ** Integer.Two),
-      (Integer.Two * second ** Integer.Three -
-        Integer.Nine * first * second * third +
-        Integer.TwentySeven * first ** Integer.Two * fourth) /
+      (Integer.Two * second ** Integer.Three - Integer.Nine * first * second * third + Integer.TwentySeven * first ** Integer.Two * fourth) /
         (Integer.TwentySeven * first ** Integer.Three),
     ],
   ];
@@ -884,17 +879,14 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
         )
       : [-second / (Integer.Three * first)];
 
+  // prettier-ignore
   const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
     [...Array<unknown>(Integer.Three)].map(
       (_: unknown, index: number): number =>
-        Integer.Two *
-          Math.sqrt(-firstDepressed / Integer.Three) *
-          Math.cos(
-            (Integer.One / Integer.Three) *
-              Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
-              (Integer.Two * index * Math.PI) / Integer.Three,
-          ) -
-        second / (Integer.Three * first),
+        Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * Math.cos(
+          (Integer.One / Integer.Three) * Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
+          (Integer.Two * index * Math.PI) / Integer.Three,
+        ) - second / (Integer.Three * first),
     );
 
   // prettier-ignore
@@ -917,7 +909,14 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
       [yAxisPoints]
-        .mapMulti<[TupleOfLength<number, Integer.Four>, number[][], number[][]], [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]>([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
+        .mapMulti<
+          [TupleOfLength<number, Integer.Four>, number[][], number[][]],
+          [
+            [TupleOfLength<number, Integer.Four>],
+            [[TupleOfLength<number, Integer.Four>, [number, number]]],
+            [[TupleOfLength<number, Integer.Four>, [number, number, number]]],
+          ]
+        >([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
         .flat<[[number[], number[]]], Integer.One>()
         .reduce(solveCubicBezier)
         .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
@@ -1090,11 +1089,8 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     currentValue,
   }: UseVerticalAnimationDigitsOptions = options;
 
-  const createDigitValues = (
-    [first, second]: [[bigint, bigint][], [bigint, bigint][]],
-    _: unknown,
-    index: number,
-  ): [[bigint, bigint][], [bigint, bigint][]] =>
+  // prettier-ignore
+  const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], _: unknown, index: number): [[bigint, bigint][], [bigint, bigint][]] =>
     [previousValue, currentValue]
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero))
@@ -1102,8 +1098,8 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
         end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
 
-  const calculate =
-    (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
+  // prettier-ignore
+  const calculate = (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
     (_: unknown, index: number, { length }: unknown[]): bigint =>
       (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
@@ -1118,12 +1114,11 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
       getDigit(start + BigInt(index)),
     );
 
+  // prettier-ignore
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
       .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, getDigit])
-      .mapAll<
-        number[]
-      >((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)]));
+      .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
