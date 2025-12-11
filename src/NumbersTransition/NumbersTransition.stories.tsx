@@ -201,20 +201,18 @@ const getVerticalRotateKeyframes = ({
         (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
       ];
 
-const mapVerticalRotateKeyframes =
-  ({ animationDirection, columnLength, rowIndex }: Remove<NumbersTransitionTheme, AnimationType>): ((value: number) => number) =>
-  (value: number): number =>
-    value +
-    (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
+// prettier-ignore
+const mapVerticalRotateKeyframes = ({ animationDirection, columnLength, rowIndex }: Remove<NumbersTransitionTheme, AnimationType>): ((value: number) => number) =>
+  (value: number): number => 
+    value + (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
       ? Integer.One / Integer.Two
-      : ((animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.One) + Math.min(rowIndex!, columnLength! - rowIndex!)) %
-        Integer.Two);
+      : ((animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.One) + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
+// prettier-ignore
 const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
 }: NumbersTransitionExecutionContext): Animation<object, number> | Falsy =>
-  animationType === AnimationType.Vertical &&
-  columnLength! > Integer.One && {
+  animationType === AnimationType.Vertical && columnLength! > Integer.One && {
     keyframeFunction: rotateKeyframeFunction,
     keyframes: getVerticalRotateKeyframes(restTheme).mapMulti<[number, number]>([
       mapVerticalRotateKeyframes({ ...restTheme, columnLength }),

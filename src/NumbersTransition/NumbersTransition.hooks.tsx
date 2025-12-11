@@ -146,10 +146,10 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   const parseBigDecimal: (value: BigDecimal) => string = useBigDecimalParser(precision);
 
-  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue].map<
-    string,
-    [string, string, string]
-  >(parseBigDecimal);
+  // prettier-ignore
+  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue].map<string, [string, string, string]>(
+    parseBigDecimal,
+  );
 
   const digits: [number[], number[]] = [characters[Integer.Zero], characters[Integer.Two]].map<number[], [number[], number[]]>(
     (characters: string): number[] =>
@@ -566,13 +566,11 @@ export const useStyledView = <
 >(
   options: ViewTuple<ViewType.View, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>,
 ): ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> => {
+  // prettier-ignore
   const mapView = ([{ viewProps, ...restView } = {}, styledComponent]: [
     ViewTuple<ViewType.View, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
     Styled,
-  ]): UnionProduct<
-    ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number],
-    Optional<K | M | O | Q | S | U | W | Y>
-  > => {
+  ]): UnionProduct<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Optional<K | M | O | Q | S | U | W | Y>> => {
     const mapEntry = ([key, value]: [
       string,
       ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
@@ -581,13 +579,18 @@ export const useStyledView = <
       value,
     ];
 
-    const styledView: ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = Object.fromEntries<
-      ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
-    >(
-      Object.entries<ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView).map<
-        [string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]
-      >(mapEntry),
-    );
+    const restViewEntries: [string, ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>][] =
+      Object.entries<ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView);
+
+    const styledViewEntries: [string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>][] =
+      restViewEntries.map<[string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]>(
+        mapEntry,
+      );
+
+    const styledView: ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] =
+      Object.fromEntries<ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(
+        styledViewEntries,
+      );
 
     return { ...styledView, ...viewProps };
   };
@@ -603,10 +606,9 @@ export const useStyledView = <
 
 // prettier-ignore
 const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: number) => number) =>
-  (numberOfDigits: number): number =>
-    [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
-      .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
-      .reduce(Number.sum);
+  (numberOfDigits: number): number => [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
+    .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
+    .reduce(Number.sum);
 
 type CharacterIndexFunction = (index: number, length: number) => number;
 
@@ -620,10 +622,9 @@ export interface CharacterIndexFunctions {
 export const useCharacterIndexFunctions = (precision: number): CharacterIndexFunctions => {
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
+  // prettier-ignore
   const getIndex = (index: number, length: number): number =>
-    Math.trunc(
-      (index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three,
-    );
+    Math.trunc((index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three);
 
   const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength + index + getIndex(index, length);
   const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Integer.One;
@@ -907,22 +908,21 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 
   // prettier-ignore
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
-    (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
-      [yAxisPoints]
-        .mapMulti<
-          [TupleOfLength<number, Integer.Four>, number[][], number[][]],
-          [
-            [TupleOfLength<number, Integer.Four>],
-            [[TupleOfLength<number, Integer.Four>, [number, number]]],
-            [[TupleOfLength<number, Integer.Four>, [number, number, number]]],
-          ]
-        >([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
-        .flat<[[number[], number[]]], Integer.One>()
-        .reduce(solveCubicBezier)
-        .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
-        .sort(Number.subtract)
-        .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
-        .map<number>((solved: number): number => cubicBezierFunction(xAxisPoints).call<undefined, [number], number>(undefined, solved));
+    (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
+      .mapMulti<
+        [TupleOfLength<number, Integer.Four>, number[][], number[][]],
+        [
+          [TupleOfLength<number, Integer.Four>],
+          [[TupleOfLength<number, Integer.Four>, [number, number]]],
+          [[TupleOfLength<number, Integer.Four>, [number, number, number]]],
+        ]
+      >([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
+      .flat<[[number[], number[]]], Integer.One>()
+      .reduce(solveCubicBezier)
+      .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
+      .sort(Number.subtract)
+      .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
+      .map<number>((solved: number): number => cubicBezierFunction(xAxisPoints).call<undefined, [number], number>(undefined, solved));
 
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
     easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
@@ -1100,8 +1100,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   // prettier-ignore
   const calculate = (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
-    (_: unknown, index: number, { length }: unknown[]): bigint =>
-      (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
+    (_: unknown, index: number, { length }: unknown[]): bigint => (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
 
   const round = (value: bigint): bigint =>
     value / NumberPrecision.Value +
@@ -1109,10 +1108,9 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
 
+  // prettier-ignore
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number =>
-      getDigit(start + BigInt(index)),
-    );
+    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => getDigit(start + BigInt(index)));
 
   // prettier-ignore
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>

@@ -34,7 +34,7 @@ export class List<T> extends Value<T[]> {
   public readonly equals = <U extends T>({ length, ...array }: U[]): boolean =>
     this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
 
-  public readonly filterAll = (predicate: boolean): T[] => (predicate ? this.value : []);
+  public readonly filterAll = (predicate: unknown): T[] => (predicate ? this.value : []);
 
   public readonly filterMulti = (predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] =>
     predicates.reduce<T[]>(
