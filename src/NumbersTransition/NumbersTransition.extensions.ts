@@ -25,10 +25,10 @@ export class List<T> extends Value<T[]> {
   public static readonly isOfDepth = <T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> =>
     this.depth<unknown>(array) === depth;
 
+  // prettier-ignore
   public static readonly depth = <T>(array: T): number =>
     Array.isArray<T>(array)
-      ? Integer.One +
-        array.map<number>(this.depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
+      ? Integer.One + array.map<number>(this.depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
       : Integer.Zero;
 
   public readonly equals = <U extends T>({ length, ...array }: U[]): boolean =>
@@ -45,7 +45,7 @@ export class List<T> extends Value<T[]> {
   public readonly mapAll = <U>(mapper: (array: T[]) => U): U => mapper(this.value);
 
   public readonly mapMulti = (mappers: ((value: T, index: number, array: T[]) => T)[]): T[] =>
-    mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map(mapper), this.value);
+    mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
 
   public readonly zip = <U>(array: U[]): Zip<T[], U[]> =>
     this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
