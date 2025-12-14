@@ -127,8 +127,9 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
   };
 
   return (value: BigDecimal): string =>
-    [`${value}`.split(RegularExpression.DecimalSeparator)]
-      .reduce<string[]>((_: string[], [integer, fraction = Text.Empty]: string[]): string[] => [integer, fraction], [])
+    `${value}`
+      .split(RegularExpression.DecimalSeparator)
+      .mapAll<string[]>(([integer, fraction = Text.Empty]: string[]): string[] => [integer, fraction])
       .reduce(reduceFloatingPoint);
 };
 
