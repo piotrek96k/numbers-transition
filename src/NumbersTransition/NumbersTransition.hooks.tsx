@@ -749,7 +749,7 @@ export const useNegativeElementAnimationVisibilities = ({
   hasSignChanged,
 }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
   animationDigits
-    .find(({ length, ...rest }: number[]): boolean => length > Integer.One || !!rest[Integer.Zero])!
+    .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits[Integer.Zero])!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
@@ -1102,17 +1102,14 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     value / NumberPrecision.Value +
     BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
 
-  const getDigit = (number: bigint): number => Math.abs(Number(number % BigInt(Integer.Ten)));
-
   // prettier-ignore
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => getDigit(start + BigInt(index)));
+    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => (start + BigInt(index)).digit);
 
-  // prettier-ignore
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
-      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, getDigit])
-      .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === getDigit(end) ? numbers : [...numbers, getDigit(end)]));
+      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, (number: bigint): number => number.digit])
+      .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);

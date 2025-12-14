@@ -37,12 +37,10 @@ import {
   factory,
   findConfigFile,
   isArrayLiteralExpression,
-  isArrowFunction,
   isBigIntLiteral,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
-  isFunctionExpression,
   isIdentifier,
   isImportDeclaration,
   isMethodDeclaration,
@@ -123,7 +121,7 @@ interface IdentifierPropertyDeclaration extends PropertyDeclaration {
   name: Identifier;
 }
 
-type FunctionDeclaration = IdentifierMethodDeclaration | IdentifierPropertyDeclaration;
+type MethodOrPropertyDeclaration = IdentifierMethodDeclaration | IdentifierPropertyDeclaration;
 
 interface InternalConfig {
   allowedFiles: Set<string>;
@@ -131,7 +129,7 @@ interface InternalConfig {
   constAliases: Map<string, string>;
 }
 
-interface Method {
+interface Property {
   name: string;
   isStatic: boolean;
 }
@@ -142,7 +140,7 @@ interface Extension {
 }
 
 interface TypeExtension extends Extension {
-  methods: Method[];
+  properties: Property[];
 }
 
 interface TypeExtensionsConfig {
@@ -186,25 +184,20 @@ const isPublic = ({ modifiers }: PropertyDeclaration | MethodDeclaration): boole
 
 const isClass = (node: Node): node is NamedClassDeclaration => isClassDeclaration(node) && !!node.name && isExported(node);
 
-const isPropertyFunction = (member: ClassElement): member is PropertyDeclaration =>
-  isPropertyDeclaration(member) &&
-  !!member.initializer &&
-  (isArrowFunction(member.initializer) || isFunctionExpression(member.initializer));
+const isMethodOrProperty = (member: ClassElement): member is MethodOrPropertyDeclaration =>
+  (isMethodDeclaration(member) || isPropertyDeclaration(member)) && isIdentifier(member.name) && isPublic(member);
 
-const isMethod = (member: ClassElement): member is FunctionDeclaration =>
-  (isMethodDeclaration(member) || isPropertyFunction(member)) && isIdentifier(member.name) && isPublic(member);
-
-const isStaticMethod =
-  (expression: Expression, methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
-  ([, { type, methods }]: [string, TypeExtension]): boolean =>
+const isStaticProperty =
+  (expression: Expression, propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>
+  ([, { type, properties }]: [string, TypeExtension]): boolean =>
     isIdentifier(expression) &&
     type === expression.text &&
-    methods.some(({ name, isStatic }: Method): boolean => name === methodName && isStatic);
+    properties.some(({ name, isStatic }: Property): boolean => name === propertyName && isStatic);
 
-const isObjectMethod =
-  (methodName: string): ((entry: [string, TypeExtension]) => boolean) =>
-  ([, { methods }]: [string, TypeExtension]): boolean =>
-    methods.some(({ name, isStatic }: Method): boolean => name === methodName && !isStatic);
+const isObjectProperty =
+  (propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>
+  ([, { properties }]: [string, TypeExtension]): boolean =>
+    properties.some(({ name, isStatic }: Property): boolean => name === propertyName && !isStatic);
 
 const generateAlias = (name: string, node: Node | string): string =>
   `${name}${createHash(HashAlgorithm.Sha256)
@@ -222,7 +215,7 @@ const getAllowedFiles = (tsConfig: string): Set<string> =>
     ).fileNames.map<string>((file: string): string => resolve(file)),
   );
 
-const mapMethod = ({ name: { text }, modifiers }: FunctionDeclaration): Method => ({
+const mapProperty = ({ name: { text }, modifiers }: MethodOrPropertyDeclaration): Property => ({
   name: text,
   isStatic: !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword),
 });
@@ -236,14 +229,14 @@ const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<strin
     ScriptKind.TS,
   )
     .statements.filter<NamedClassDeclaration>(isClass)
-    .map<[string, Method[]]>(({ name: { text }, members }: NamedClassDeclaration): [string, Method[]] => [
+    .map<[string, Property[]]>(({ name: { text }, members }: NamedClassDeclaration): [string, Property[]] => [
       text,
-      members.filter<FunctionDeclaration>(isMethod).map<Method>(mapMethod),
+      members.filter<MethodOrPropertyDeclaration>(isMethodOrProperty).map<Property>(mapProperty),
     ])
-    .filter(([className]: [string, Method[]]): boolean => Object.keys(extensions).includes(className))
+    .filter(([className]: [string, Property[]]): boolean => Object.keys(extensions).includes(className))
     .reduce<Map<string, TypeExtension>>(
-      (map: Map<string, TypeExtension>, [className, methods]: [string, Method[]]): Map<string, TypeExtension> =>
-        map.set(className, { type: extensions[className].type, typeCheck: extensions[className].typeCheck, methods }),
+      (map: Map<string, TypeExtension>, [className, properties]: [string, Property[]]): Map<string, TypeExtension> =>
+        map.set(className, { type: extensions[className].type, typeCheck: extensions[className].typeCheck, properties }),
       new Map<string, TypeExtension>(),
     );
 
@@ -436,14 +429,14 @@ const buildStaticExpression = (
   { expression, name: { text } }: PropertyAccessExpression,
 ): (() => Expression) | undefined =>
   [...extensionsMap]
-    .filter(isStaticMethod(expression, text))
+    .filter(isStaticProperty(expression, text))
     .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
       (className: string): (() => Expression) =>
         () =>
           factory.createPropertyAccessExpression(factory.createIdentifier(className), text),
     )
-    .at(0);
+    .pop();
 
 const buildLiteralExpression = (
   extensionsMap: Map<string, TypeExtension>,
@@ -452,7 +445,7 @@ const buildLiteralExpression = (
   { expression, name: { text } }: PropertyAccessExpression,
 ): (() => Expression) | undefined =>
   [...extensionsMap]
-    .filter(isObjectMethod(text))
+    .filter(isObjectProperty(text))
     .filter(([, { type }]: [string, TypeExtension]): boolean => !!literalExpressionsMap.get(type)?.(expression))
     .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
     .map<() => Expression>(
@@ -463,7 +456,7 @@ const buildLiteralExpression = (
             text,
           ),
     )
-    .at(0);
+    .pop();
 
 const buildProxiedExpression = (
   extensionsMap: Map<string, TypeExtension>,
@@ -474,7 +467,7 @@ const buildProxiedExpression = (
 ): (() => Expression) | undefined =>
   [
     [...extensionsMap]
-      .filter(isObjectMethod(access.name.text))
+      .filter(isObjectProperty(access.name.text))
       .map<StringLiteral>(([, { type }]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(type)),
   ]
     .filter(({ length }: StringLiteral[]): boolean => !!length)
@@ -493,7 +486,7 @@ const buildProxiedExpression = (
             access.name.text,
           ),
     )
-    .at(0);
+    .pop();
 
 const flatMapExpressionsBuilders =
   (
@@ -519,7 +512,7 @@ const modifyNode = (
     .filter<PropertyAccessExpression>(isPropertyAccessExpression)
     .flatMap<(() => Expression) | undefined>(flatMapExpressionsBuilders(extensionsMap, constAliases, usedExtensions, isExtensionsFile))
     .filter((expression: (() => Expression) | undefined): boolean => !!expression)
-    .at(0)
+    .pop()
     ?.call(undefined) ?? node;
 
 const buildVisitor = (

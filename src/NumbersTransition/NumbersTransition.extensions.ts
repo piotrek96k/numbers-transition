@@ -11,6 +11,15 @@ export class Double extends Value<number> {
   public static readonly sum = (first: number, second: number): number => first + second;
 }
 
+export class BigInteger extends Value<bigint> {
+  public readonly digit: number;
+
+  public constructor(value: bigint) {
+    super(value);
+    this.digit = Math.abs(Number(this.value % BigInt(Integer.Ten)));
+  }
+}
+
 export class CharSequence extends Value<string> {
   public readonly capitalize = (): string => `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
 }
