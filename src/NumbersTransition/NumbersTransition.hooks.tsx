@@ -107,7 +107,7 @@ export const useValue = (
 };
 
 const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
-  const reduceFloatingPoint = (integer: string, fraction: string): string => {
+  const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
     const [digits, restDigits]: [string, string] =
       precision >= Integer.Zero
         ? [`${integer.replace(Text.Minus, Text.Empty)}${fraction.slice(Integer.Zero, precision)}`, fraction.slice(precision)]
@@ -126,11 +126,7 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
 
-  return (value: BigDecimal): string =>
-    `${value}`
-      .split(RegularExpression.DecimalSeparator)
-      .mapAll<string[]>(([integer, fraction = Text.Empty]: string[]): string[] => [integer, fraction])
-      .reduce(reduceFloatingPoint);
+  return (value: BigDecimal): string => `${value}`.split(RegularExpression.DecimalSeparator).mapAll<string>(parseFloatingPoint);
 };
 
 interface UseAnimationValuesOptions {
@@ -162,8 +158,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
   const numbersOfDigits: [number, number, number] = digits
     .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(Number.subtract)
-    .reduce<[number[]], [[number, number]]>(([accumulator]: [number[]], value: number): [number[]] => [[...accumulator, value]], [[]])
-    .reduce<number[], [number, number, number]>((_: number[], [min, max]: [number, number]): number[] => [min, max, max - min], []);
+    .mapAll<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);
 
   return [digits, bigInts, numbersOfDigits];
 };
@@ -799,15 +794,15 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
       (index === Integer.One ? outputValue >= first : outputValue > first) && outputValue <= second;
 
   // prettier-ignore
-  const findInterval = (index: number, outputValue: number): ((_: [number, number][][], array: [number, number][]) => [number, number][][]) =>
-    (_: [number, number][][], array: [number, number][]): [number, number][][] =>
+  const findInterval = (index: number, outputValue: number): ((array: [number, number][]) => [number, number][][]) =>
+    (array: [number, number][]): [number, number][][] =>
       index && [array.map<number>(getValue).sort(Number.subtract)].every(isInInterval(index, outputValue)) ? [array] : [];
 
   // prettier-ignore
   const findIntervals = (outputValue: number): ((acc: [number, number][][], tuple: [number, number], index: number, array: [number, number][]) => [number, number][][]) =>
     (accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
       ...accumulator,
-      ...[[array[index - Integer.One], array[index]]].reduce<[number, number][][]>(findInterval(index, outputValue), []),
+      ...[array[index - Integer.One], array[index]].mapAll<[number, number][][]>(findInterval(index, outputValue)),
     ];
 
   // prettier-ignore
