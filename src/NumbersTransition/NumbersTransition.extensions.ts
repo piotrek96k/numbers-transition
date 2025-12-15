@@ -12,12 +12,7 @@ export class Double extends Value<number> {
 }
 
 export class BigInteger extends Value<bigint> {
-  public readonly digit: number;
-
-  public constructor(value: bigint) {
-    super(value);
-    this.digit = Math.abs(Number(this.value % BigInt(Integer.Ten)));
-  }
+  public readonly digit: number = Math.abs(Number(this.value % BigInt(Integer.Ten)));
 }
 
 export class CharSequence extends Value<string> {
