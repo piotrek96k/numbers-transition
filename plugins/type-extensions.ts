@@ -440,7 +440,7 @@ const generateProxyFunction = (constAliases: Map<string, string>): VariableDecla
     ),
   );
 
-const generateRuntimeProxy = (extensionsMap: Map<string, TypeExtension>, constAliases: Map<string, string>): Statement[] => [
+const generateRuntimeProxies = (extensionsMap: Map<string, TypeExtension>, constAliases: Map<string, string>): Statement[] => [
   factory.createVariableStatement(
     undefined,
     factory.createVariableDeclarationList(
@@ -757,7 +757,7 @@ const transformCode = (
         ...restImports,
         ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
         ...statements,
-        ...(isExtensionsFile ? generateRuntimeProxy(extensionsMap, constAliases) : []),
+        ...(isExtensionsFile ? generateRuntimeProxies(extensionsMap, constAliases) : []),
       ]),
     ),
   };
