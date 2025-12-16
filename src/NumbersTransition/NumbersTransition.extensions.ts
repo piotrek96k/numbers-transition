@@ -11,7 +11,7 @@ export class Double extends Value<number> {
   public static readonly sum = (first: number, second: number): number => first + second;
 }
 
-export class BigInteger extends Value<bigint> {
+export class Long extends Value<bigint> {
   public readonly digit: number = Math.abs(Number(this.value % BigInt(Integer.Ten)));
 }
 
