@@ -1102,9 +1102,10 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     value / NumberPrecision.Value +
     BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
 
-  // prettier-ignore
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One)].map<number>((_: unknown, index: number): number => (start + BigInt(index)).digit);
+    [...Array<unknown>(Number(end - start) + Integer.One)]
+      .map<bigint>((_: unknown, index: number): bigint => start + BigInt(index))
+      .map<number>(({ digit }: bigint): number => digit);
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
