@@ -8,10 +8,13 @@ import {
   ArrowFunction,
   BindingElement,
   BindingName,
+  Block,
   CallExpression,
   ClassDeclaration,
   ClassElement,
   Expression,
+  FunctionDeclaration,
+  FunctionExpression,
   Identifier,
   ImportDeclaration,
   ImportSpecifier,
@@ -44,10 +47,14 @@ import {
   factory,
   findConfigFile,
   isArrayLiteralExpression,
+  isArrowFunction,
   isBigIntLiteral,
+  isBlock,
   isCallExpression,
   isClassDeclaration,
   isExpressionStatement,
+  isFunctionDeclaration,
+  isFunctionExpression,
   isIdentifier,
   isImportDeclaration,
   isMethodDeclaration,
@@ -103,6 +110,7 @@ enum ClassName {
 
 enum FunctionName {
   Assign = 'assign',
+  Create = 'create',
   Get = 'get',
   Find = 'find',
 }
@@ -116,6 +124,7 @@ enum ConstName {
 }
 
 enum ArgName {
+  Arg = 'arg',
   Cls = 'cls',
   Classes = 'classes',
   Merge = 'merge',
@@ -140,6 +149,26 @@ interface VariableDestructureDeclaration extends VariableDeclaration {
   name: ObjectBindingPattern;
   initializer: Expression;
 }
+
+type GenericFunctionDeclaration = FunctionDeclaration | FunctionExpression | ArrowFunction | MethodDeclaration;
+
+interface BindingPatternParameterDeclaration extends ParameterDeclaration {
+  name: ObjectBindingPattern;
+}
+
+interface DestructureParameterDeclaration {
+  param: BindingPatternParameterDeclaration;
+  index: number;
+  extensions: [string, TypeExtension][];
+}
+
+type ExpressionsBuilder<T extends Node = Node> = (
+  extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  node: T,
+) => (() => Node)[];
 
 interface InternalConfig {
   allowedFiles: Set<string>;
@@ -166,14 +195,6 @@ interface TypeExtensionsConfig {
   extensionsFilePath: string;
   extensions: Record<string, Extension>;
 }
-
-type ExpressionsBuilder = (
-  extensionsMap: Map<string, TypeExtension>,
-  constAliases: Map<string, string>,
-  usedExtensions: Map<string, string>,
-  isExtensionsFile: boolean,
-  node: Node,
-) => ((() => Node) | undefined)[];
 
 const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsType, ((node: Node) => boolean)[]>([
   [
@@ -221,6 +242,11 @@ const isMethodOrProperty = (member: ClassElement): member is MethodOrPropertyDec
 const isVariableDestructure = (node: Node): node is VariableDestructureDeclaration =>
   isVariableDeclaration(node) && isObjectBindingPattern(node.name) && node.initializer !== undefined;
 
+const isParamDestructure = (node: ParameterDeclaration): node is BindingPatternParameterDeclaration => isObjectBindingPattern(node.name);
+
+const isFunction = (node: Node): node is GenericFunctionDeclaration =>
+  (isFunctionDeclaration(node) || isFunctionExpression(node) || isArrowFunction(node) || isMethodDeclaration(node)) && !!node.body;
+
 const isStaticProperty =
   (expression: Expression, propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>
   ([, { type, properties }]: [string, TypeExtension]): boolean =>
@@ -241,6 +267,9 @@ const isDestructuredProperty = (elements: NodeArray<BindingElement>): ((entry: [
   return ([, { properties }]: [string, TypeExtension]): boolean =>
     properties.some(({ name }: Property): boolean => destructured.some((id: Identifier): boolean => id.text === name));
 };
+
+const isDestructureParameterDeclaration = (partial: Partial<DestructureParameterDeclaration>): partial is DestructureParameterDeclaration =>
+  !!partial.param && !!partial.extensions?.length;
 
 const generateAlias = (name: string, node: Node | string): string =>
   `${name}${createHash(HashAlgorithm.Sha256)
@@ -526,21 +555,12 @@ const buildProxyCallExpression = (
     ],
   );
 
-const updateVariableDeclaration = (variableDeclaration: VariableDestructureDeclaration, initializer: Expression): VariableDeclaration =>
-  factory.updateVariableDeclaration(
-    variableDeclaration,
-    variableDeclaration.name,
-    variableDeclaration.exclamationToken,
-    variableDeclaration.type,
-    initializer,
-  );
-
 const buildPropertyAccessStaticExpression = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
-): (() => Node) | undefined =>
+): (() => Node)[] =>
   [...extensionsMap]
     .filter(isStaticProperty(expression, text))
     .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
@@ -548,15 +568,14 @@ const buildPropertyAccessStaticExpression = (
       (className: string): (() => Node) =>
         (): Node =>
           factory.createPropertyAccessExpression(factory.createIdentifier(className), text),
-    )
-    .pop();
+    );
 
 const buildPropertyAccessLiteralExpression = (
   extensionsMap: Map<string, TypeExtension>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
-): (() => Node) | undefined =>
+): (() => Node)[] =>
   [...extensionsMap]
     .filter(isObjectProperty(text))
     .filter(isLiteralExpression(expression))
@@ -568,8 +587,7 @@ const buildPropertyAccessLiteralExpression = (
             factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
             text,
           ),
-    )
-    .pop();
+    );
 
 const buildPropertyAccessProxiedExpression = (
   extensionsMap: Map<string, TypeExtension>,
@@ -577,7 +595,7 @@ const buildPropertyAccessProxiedExpression = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   access: PropertyAccessExpression,
-): (() => Node) | undefined =>
+): (() => Node)[] =>
   [[...extensionsMap].filter(isObjectProperty(access.name.text))]
     .filter(({ length }: [string, TypeExtension][]): boolean => !!length)
     .map<() => Node>(
@@ -588,8 +606,7 @@ const buildPropertyAccessProxiedExpression = (
             isPropertyAccessChain(access) ? factory.createToken(SyntaxKind.QuestionDotToken) : undefined,
             access.name.text,
           ),
-    )
-    .pop();
+    );
 
 const buildPropertyAccessExpressions = (
   extensionsMap: Map<string, TypeExtension>,
@@ -597,14 +614,26 @@ const buildPropertyAccessExpressions = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   node: Node,
-): ((() => Node) | undefined)[] =>
+): (() => Node)[] =>
   isPropertyAccessExpression(node)
     ? [
-        buildPropertyAccessStaticExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
-        buildPropertyAccessLiteralExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
-        buildPropertyAccessProxiedExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
+        ...buildPropertyAccessStaticExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
+        ...buildPropertyAccessLiteralExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
+        ...buildPropertyAccessProxiedExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
       ]
     : [];
+
+const updateVariableDestructureDeclaration = (
+  variableDeclaration: VariableDestructureDeclaration,
+  initializer: Expression,
+): VariableDeclaration =>
+  factory.updateVariableDeclaration(
+    variableDeclaration,
+    variableDeclaration.name,
+    variableDeclaration.exclamationToken,
+    variableDeclaration.type,
+    initializer,
+  );
 
 const buildVariableDestructureLiteralExpression = (
   extensionsMap: Map<string, TypeExtension>,
@@ -612,14 +641,14 @@ const buildVariableDestructureLiteralExpression = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   variableDeclaration: VariableDestructureDeclaration,
-): (() => Node) | undefined =>
+): (() => Node)[] =>
   [...extensionsMap]
     .filter(isDestructuredProperty(variableDeclaration.name.elements))
     .filter(isLiteralExpression(variableDeclaration.initializer))
     .map<() => Node>(
       ([, { type }]: [string, TypeExtension]): (() => Node) =>
         (): Node =>
-          updateVariableDeclaration(
+          updateVariableDestructureDeclaration(
             variableDeclaration,
             factory.createCallExpression(
               factory.createIdentifier(
@@ -629,8 +658,7 @@ const buildVariableDestructureLiteralExpression = (
               [variableDeclaration.initializer, factory.createStringLiteral(type)],
             ),
           ),
-    )
-    .pop();
+    );
 
 const buildVariableDestructureProxiedExpression = (
   extensionsMap: Map<string, TypeExtension>,
@@ -638,18 +666,17 @@ const buildVariableDestructureProxiedExpression = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   variableDeclaration: VariableDestructureDeclaration,
-): (() => Node) | undefined =>
+): (() => Node)[] =>
   [[...extensionsMap].filter(isDestructuredProperty(variableDeclaration.name.elements))]
     .filter(({ length }: [string, TypeExtension][]): boolean => !!length)
     .map<() => Node>(
       (extensions: [string, TypeExtension][]): (() => Node) =>
         (): Node =>
-          updateVariableDeclaration(
+          updateVariableDestructureDeclaration(
             variableDeclaration,
             buildProxyCallExpression(extensions, constAliases, usedExtensions, isExtensionsFile, variableDeclaration.initializer, true),
           ),
-    )
-    .pop();
+    );
 
 const buildVariableDestructureExpressions = (
   extensionsMap: Map<string, TypeExtension>,
@@ -657,13 +684,178 @@ const buildVariableDestructureExpressions = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   node: Node,
-): ((() => Node) | undefined)[] =>
+): (() => Node)[] =>
   isVariableDestructure(node)
-    ? [
-        buildVariableDestructureLiteralExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
-        buildVariableDestructureProxiedExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
-      ]
+    ? [buildVariableDestructureLiteralExpression, buildVariableDestructureProxiedExpression].flatMap<() => Node>(
+        (builder: ExpressionsBuilder<VariableDestructureDeclaration>): (() => Node)[] =>
+          builder(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
+      )
     : [];
+
+const mapFunctionParameters =
+  (extensionsMap: Map<string, TypeExtension>): ((param: ParameterDeclaration, index: number) => Partial<DestructureParameterDeclaration>) =>
+  (param: ParameterDeclaration, index: number): Partial<DestructureParameterDeclaration> => ({
+    ...(isParamDestructure(param) && { param, extensions: [...extensionsMap].filter(isDestructuredProperty(param.name.elements)) }),
+    index,
+  });
+
+const updateFunctionParameters = (parameters: NodeArray<ParameterDeclaration>, modifyIndexes: number[]): ParameterDeclaration[] =>
+  parameters.map<ParameterDeclaration>(
+    (param: ParameterDeclaration, index: number): ParameterDeclaration =>
+      modifyIndexes.includes(index)
+        ? factory.updateParameterDeclaration(
+            param,
+            param.modifiers,
+            param.dotDotDotToken,
+            factory.createIdentifier(generateAlias(`${ArgName.Arg}${index}`, param)),
+            param.questionToken,
+            param.type,
+            param.initializer,
+          )
+        : param,
+  );
+
+const createVariableDestructureDeclaration = (
+  constAliases: Map<string, string>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  parameters: DestructureParameterDeclaration[],
+): VariableStatement =>
+  factory.createVariableStatement(
+    undefined,
+    factory.createVariableDeclarationList(
+      parameters.map<VariableDeclaration>(
+        ({ param, index, extensions }: DestructureParameterDeclaration): VariableDeclaration =>
+          factory.createVariableDeclaration(
+            param.name,
+            undefined,
+            undefined,
+            buildProxyCallExpression(
+              extensions,
+              constAliases,
+              usedExtensions,
+              isExtensionsFile,
+              factory.createIdentifier(generateAlias(`${ArgName.Arg}${index}`, param)),
+              true,
+            ),
+          ),
+      ),
+      NodeFlags.Const,
+    ),
+  );
+
+const updateFunctionBody = (
+  constAliases: Map<string, string>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  declaration: GenericFunctionDeclaration,
+  parameters: DestructureParameterDeclaration[],
+): Block => {
+  const { statements }: Block = isBlock(declaration.body!)
+    ? declaration.body
+    : factory.createBlock([factory.createReturnStatement(declaration.body)], true);
+
+  return factory.createBlock([
+    createVariableDestructureDeclaration(constAliases, usedExtensions, isExtensionsFile, parameters),
+    ...statements,
+  ]);
+};
+
+const updateArrowFunction = (arrowFunction: ArrowFunction, parameters: ParameterDeclaration[], body: Block) =>
+  factory.updateArrowFunction(
+    arrowFunction,
+    arrowFunction.modifiers,
+    arrowFunction.typeParameters,
+    parameters,
+    arrowFunction.type,
+    arrowFunction.equalsGreaterThanToken,
+    body,
+  );
+
+const updateFunctionDeclaration = (functionDeclaration: FunctionDeclaration, parameters: ParameterDeclaration[], body: Block) =>
+  factory.updateFunctionDeclaration(
+    functionDeclaration,
+    functionDeclaration.modifiers,
+    functionDeclaration.asteriskToken,
+    functionDeclaration.name,
+    functionDeclaration.typeParameters,
+    parameters,
+    functionDeclaration.type,
+    body,
+  );
+
+const updateFunctionExpression = (functionExpression: FunctionExpression, parameters: ParameterDeclaration[], body: Block) =>
+  factory.updateFunctionExpression(
+    functionExpression,
+    functionExpression.modifiers,
+    functionExpression.asteriskToken,
+    functionExpression.name,
+    functionExpression.typeParameters,
+    parameters,
+    functionExpression.type,
+    body,
+  );
+
+const updateMethodDeclaration = (methodDeclaration: MethodDeclaration, parameters: ParameterDeclaration[], body: Block) =>
+  factory.updateMethodDeclaration(
+    methodDeclaration,
+    methodDeclaration.modifiers,
+    methodDeclaration.asteriskToken,
+    methodDeclaration.name,
+    methodDeclaration.questionToken,
+    methodDeclaration.typeParameters,
+    parameters,
+    methodDeclaration.type,
+    body,
+  );
+
+const updateGenericFunctionDeclaration = (
+  declaration: GenericFunctionDeclaration,
+  parameters: ParameterDeclaration[],
+  body: Block,
+): GenericFunctionDeclaration =>
+  [
+    isArrowFunction(declaration) && updateArrowFunction(declaration, parameters, body),
+    isFunctionDeclaration(declaration) && updateFunctionDeclaration(declaration, parameters, body),
+    isFunctionExpression(declaration) && updateFunctionExpression(declaration, parameters, body),
+    isMethodDeclaration(declaration) && updateMethodDeclaration(declaration, parameters, body),
+  ].find<GenericFunctionDeclaration>(
+    (declaration: GenericFunctionDeclaration | false): declaration is GenericFunctionDeclaration => !!declaration,
+  )!;
+
+const buildArgumentDestructureFunctionExpression = (
+  extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  node: GenericFunctionDeclaration,
+): (() => Node)[] =>
+  [
+    node.parameters
+      .map<Partial<DestructureParameterDeclaration>>(mapFunctionParameters(extensionsMap))
+      .filter<DestructureParameterDeclaration>(isDestructureParameterDeclaration),
+  ]
+    .filter(({ length }: DestructureParameterDeclaration[]): unknown => length)
+    .map<() => Node>(
+      (parameters: DestructureParameterDeclaration[]) => (): Node =>
+        updateGenericFunctionDeclaration(
+          node,
+          updateFunctionParameters(
+            node.parameters,
+            parameters.map<number>(({ index }: DestructureParameterDeclaration): number => index),
+          ),
+          updateFunctionBody(constAliases, usedExtensions, isExtensionsFile, node, parameters),
+        ),
+    );
+
+const buildArgumentDestructureFunctionExpressions = (
+  extensionsMap: Map<string, TypeExtension>,
+  constAliases: Map<string, string>,
+  usedExtensions: Map<string, string>,
+  isExtensionsFile: boolean,
+  node: Node,
+): (() => Node)[] =>
+  isFunction(node) ? buildArgumentDestructureFunctionExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node) : [];
 
 const modifyNode = (
   extensionsMap: Map<string, TypeExtension>,
@@ -672,11 +864,16 @@ const modifyNode = (
   isExtensionsFile: boolean,
   node: Node,
 ): Node =>
-  [buildPropertyAccessExpressions, buildVariableDestructureExpressions, (): (() => Node)[] => [(): Node => node]]
-    .flatMap<(() => Node) | undefined>((builder: ExpressionsBuilder): ((() => Node) | undefined)[] =>
+  [
+    buildPropertyAccessExpressions,
+    buildVariableDestructureExpressions,
+    buildArgumentDestructureFunctionExpressions,
+    (): (() => Node)[] => [(): Node => node],
+  ]
+    .flatMap<() => Node>((builder: ExpressionsBuilder): (() => Node)[] =>
       builder(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
     )
-    .find((expression: (() => Node) | undefined): unknown => expression)!
+    .find((expression: () => Node): unknown => expression)!
     .call(undefined);
 
 const buildVisitor = (

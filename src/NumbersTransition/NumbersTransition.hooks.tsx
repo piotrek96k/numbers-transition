@@ -1108,7 +1108,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
-      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, (number: bigint): number => number.digit])
+      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, ({ digit }: bigint): number => digit])
       .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
