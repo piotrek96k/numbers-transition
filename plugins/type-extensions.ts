@@ -750,16 +750,12 @@ const updateFunctionBody = (
   isExtensionsFile: boolean,
   declaration: GenericFunctionDeclaration,
   parameters: DestructureParameterDeclaration[],
-): Block => {
-  const { statements }: Block = isBlock(declaration.body!)
-    ? declaration.body
-    : factory.createBlock([factory.createReturnStatement(declaration.body)], true);
-
-  return factory.createBlock([
+): Block =>
+  factory.createBlock([
     createVariableDestructureDeclaration(constAliases, usedExtensions, isExtensionsFile, parameters),
-    ...statements,
+    ...(isBlock(declaration.body!) ? declaration.body : factory.createBlock([factory.createReturnStatement(declaration.body)], true))
+      .statements,
   ]);
-};
 
 const updateArrowFunction = (arrowFunction: ArrowFunction, parameters: ParameterDeclaration[], body: Block) =>
   factory.updateArrowFunction(
