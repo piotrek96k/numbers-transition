@@ -6,7 +6,9 @@ const config: UserConfig = {
   plugins: [dts({ rollupTypes: true, tsconfigPath: resolve('tsconfig.plugins.json') })],
   build: {
     lib: {
-      entry: ['suppress-diagnostics', 'type-extensions'].map<string>((plugin: string): string => resolve('plugins', `${plugin}.ts`)),
+      entry: ['suppress-diagnostics', 'type-extensions'].map<string>((plugin: string): string =>
+        resolve('plugins', plugin, `${plugin}.ts`),
+      ),
       formats: ['es'],
     },
     rollupOptions: { external: ['crypto', 'fs', 'path', 'process', 'typescript'] },
