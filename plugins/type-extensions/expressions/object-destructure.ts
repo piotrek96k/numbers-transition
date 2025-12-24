@@ -14,9 +14,11 @@ import {
   ObjectBindingPattern,
   ParameterDeclaration,
   PropertyName,
+  SyntaxKind,
   VariableDeclaration,
   VariableStatement,
   factory,
+  forEachChild,
   isArrowFunction,
   isBlock,
   isFunctionDeclaration,
@@ -68,6 +70,23 @@ const isDestructureProperty = (elements: NodeArray<BindingElement>): ((entry: [s
     properties.some(({ name }: Property): boolean => destructured.some((id: Identifier): boolean => id.text === name));
 };
 
+const shouldUpdateInitializer = (extractedIdentifiers: Set<string>, { initializer }: BindingElement | ParameterDeclaration): boolean => {
+  const visitEachChild = (node: Node): boolean =>
+    (isIdentifier(node) && extractedIdentifiers.has(node.text)) || !!forEachChild<boolean>(node, visitEachChild);
+
+  return !!initializer && visitEachChild(initializer);
+};
+
+const readNestedIdentifiers = ({ elements }: ObjectBindingPattern): string[] =>
+  elements
+    .map<BindingName>(({ name }: BindingElement): BindingName => name)
+    .flatMap<string>((element: BindingName): string | string[] =>
+      isIdentifier(element) ? element.text : isObjectBindingPattern(element) ? readNestedIdentifiers(element) : [],
+    );
+
+const readBindingIdentifiers = (binding: BindingName): string[] =>
+  isIdentifier(binding) ? [binding.text] : isObjectBindingPattern(binding) ? readNestedIdentifiers(binding) : [];
+
 const reduceElementVariables = <T>(
   [elements, variables]: [T[], VariableDeclaration[]],
   [element, newVariables]: [T, VariableDeclaration[]],
@@ -76,6 +95,35 @@ const reduceElementVariables = <T>(
   [...variables, ...newVariables],
 ];
 
+const updateBindingInitializer = (
+  extractedIdentifiers: Set<string>,
+  element: BindingElement,
+  variables: VariableDeclaration[],
+): [BindingElement, VariableDeclaration[]] => {
+  readBindingIdentifiers(element.name).forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
+
+  const updatedElement: BindingElement = factory.updateBindingElement(
+    element,
+    element.dotDotDotToken,
+    element.propertyName ?? (isIdentifier(element.name) ? element.name : undefined),
+    factory.createIdentifier(generateAlias(ArgName.Init, element)),
+    undefined,
+  );
+
+  const variable: VariableDeclaration = factory.createVariableDeclaration(
+    element.name,
+    undefined,
+    undefined,
+    factory.createBinaryExpression(
+      factory.createIdentifier(generateAlias(ArgName.Init, element)),
+      factory.createToken(SyntaxKind.QuestionQuestionToken),
+      element.initializer ?? factory.createVoidZero(),
+    ),
+  );
+
+  return [updatedElement, [variable, ...variables]];
+};
+
 /* eslint-disable no-use-before-define */
 const mapBindingElement =
   (
@@ -83,11 +131,17 @@ const mapBindingElement =
     constAliases: Map<string, string>,
     usedExtensions: Map<string, string>,
     isExtensionsFile: boolean,
+    extractedIdentifiers: Set<string>,
   ): ((element: BindingElement) => [BindingElement, VariableDeclaration[]]) =>
-  (element: BindingElement): [BindingElement, VariableDeclaration[]] =>
-    isObjectBindingPatternElement(element)
-      ? updateObjectBindingPattern(extensionsMap, constAliases, usedExtensions, isExtensionsFile, element)
+  (element: BindingElement): [BindingElement, VariableDeclaration[]] => {
+    const [updatedElement, variables]: [BindingElement, VariableDeclaration[]] = isObjectBindingPatternElement(element)
+      ? updateObjectBindingPattern(extensionsMap, constAliases, usedExtensions, isExtensionsFile, element, extractedIdentifiers)
       : [element, []];
+
+    return shouldUpdateInitializer(extractedIdentifiers, updatedElement)
+      ? updateBindingInitializer(extractedIdentifiers, updatedElement, variables)
+      : [updatedElement, variables];
+  };
 
 const mapBindingElements = (
   extensionsMap: Map<string, TypeExtension>,
@@ -95,9 +149,12 @@ const mapBindingElements = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   elements: NodeArray<BindingElement>,
+  extractedIdentifiers: Set<string> = new Set<string>(),
 ): [BindingElement[], VariableDeclaration[]] =>
   elements
-    .map<[BindingElement, VariableDeclaration[]]>(mapBindingElement(extensionsMap, constAliases, usedExtensions, isExtensionsFile))
+    .map<
+      [BindingElement, VariableDeclaration[]]
+    >(mapBindingElement(extensionsMap, constAliases, usedExtensions, isExtensionsFile, extractedIdentifiers))
     .reduce<[BindingElement[], VariableDeclaration[]]>(reduceElementVariables<BindingElement>, [[], []]);
 
 const updateObjectBindingPattern = (
@@ -106,8 +163,13 @@ const updateObjectBindingPattern = (
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   binding: BindingPatternBindingElement,
+  extractedIdentifiers: Set<string>,
 ): [BindingElement, VariableDeclaration[]] => {
   const extensions: [string, TypeExtension][] = [...extensionsMap].filter(isDestructureProperty(binding.name.elements));
+
+  const identifiers: string[] = extensions.length ? readNestedIdentifiers(binding.name) : [];
+
+  identifiers.forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
 
   const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(
     extensionsMap,
@@ -115,6 +177,7 @@ const updateObjectBindingPattern = (
     usedExtensions,
     isExtensionsFile,
     binding.name.elements,
+    extractedIdentifiers,
   );
 
   const updatedBindingPattern: ObjectBindingPattern = factory.updateObjectBindingPattern(binding.name, elements);
@@ -246,14 +309,50 @@ export const buildVariableDestructureExpressions = (
     ? [buildVariableDestructureExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node)]
     : [];
 
-const updateFunctionParameter = (
+const updateParameterInitializer = (
+  extractedIdentifiers: Set<string>,
+  parameter: ParameterDeclaration,
+  variables: VariableDeclaration[],
+): [ParameterDeclaration, VariableDeclaration[]] => {
+  readBindingIdentifiers(parameter.name).forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
+
+  const updatedParameter: ParameterDeclaration = factory.updateParameterDeclaration(
+    parameter,
+    parameter.modifiers,
+    parameter.dotDotDotToken,
+    factory.createIdentifier(generateAlias(ArgName.Init, parameter)),
+    parameter.questionToken,
+    parameter.type,
+    undefined,
+  );
+
+  const variable: VariableDeclaration = factory.createVariableDeclaration(
+    parameter.name,
+    undefined,
+    undefined,
+    factory.createBinaryExpression(
+      factory.createIdentifier(generateAlias(ArgName.Init, parameter)),
+      factory.createToken(SyntaxKind.QuestionQuestionToken),
+      parameter.initializer ?? factory.createVoidZero(),
+    ),
+  );
+
+  return [updatedParameter, [variable, ...variables]];
+};
+
+const updateParameter = (
   extensionsMap: Map<string, TypeExtension>,
   constAliases: Map<string, string>,
   usedExtensions: Map<string, string>,
   isExtensionsFile: boolean,
   parameter: BindingPatternParameterDeclaration,
+  extractedIdentifiers: Set<string>,
 ): [ParameterDeclaration, VariableDeclaration[]] => {
   const extensions: [string, TypeExtension][] = [...extensionsMap].filter(isDestructureProperty(parameter.name.elements));
+
+  const identifiers: string[] = extensions.length ? readNestedIdentifiers(parameter.name) : [];
+
+  identifiers.forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
 
   const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(
     extensionsMap,
@@ -261,6 +360,7 @@ const updateFunctionParameter = (
     usedExtensions,
     isExtensionsFile,
     parameter.name.elements,
+    extractedIdentifiers,
   );
 
   const updatedParam: ParameterDeclaration = factory.updateParameterDeclaration(
@@ -303,11 +403,17 @@ const mapFunctionParameter =
     constAliases: Map<string, string>,
     usedExtensions: Map<string, string>,
     isExtensionsFile: boolean,
+    extractedIdentifiers: Set<string>,
   ): ((parameter: ParameterDeclaration) => [ParameterDeclaration, VariableDeclaration[]]) =>
-  (parameter: ParameterDeclaration): [ParameterDeclaration, VariableDeclaration[]] =>
-    isParamDestructure(parameter)
-      ? updateFunctionParameter(extensionsMap, constAliases, usedExtensions, isExtensionsFile, parameter)
+  (parameter: ParameterDeclaration): [ParameterDeclaration, VariableDeclaration[]] => {
+    const [updatedParameter, variables]: [ParameterDeclaration, VariableDeclaration[]] = isParamDestructure(parameter)
+      ? updateParameter(extensionsMap, constAliases, usedExtensions, isExtensionsFile, parameter, extractedIdentifiers)
       : [parameter, []];
+
+    return shouldUpdateInitializer(extractedIdentifiers, updatedParameter)
+      ? updateParameterInitializer(extractedIdentifiers, updatedParameter, variables)
+      : [updatedParameter, variables];
+  };
 
 const updateFunctionBody = (declaration: GenericFunctionDeclaration, variables: VariableDeclaration[]): Block | undefined =>
   variables.length
@@ -392,7 +498,7 @@ const buildArgumentDestructureFunctionExpression =
     const [parameters, variables]: [ParameterDeclaration[], VariableDeclaration[]] = node.parameters
       .map<
         [ParameterDeclaration, VariableDeclaration[]]
-      >(mapFunctionParameter(extensionsMap, constAliases, usedExtensions, isExtensionsFile))
+      >(mapFunctionParameter(extensionsMap, constAliases, usedExtensions, isExtensionsFile, new Set<string>()))
       .reduce<[ParameterDeclaration[], VariableDeclaration[]]>(reduceElementVariables<ParameterDeclaration>, [[], []]);
 
     return updateGenericFunctionDeclaration(node, parameters, updateFunctionBody(node, variables));
