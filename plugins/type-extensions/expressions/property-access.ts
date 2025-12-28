@@ -9,6 +9,7 @@ import {
   isPropertyAccessExpression,
 } from 'typescript';
 import { Property, TypeExtension } from '../config/config';
+import { getContext } from '../context/context';
 import { readImportName } from '../imports/imports';
 import { isLiteralExpression } from '../literals/literal-expressions';
 import { buildProxyCallExpression } from '../proxy/runtime-proxy';
@@ -25,15 +26,10 @@ const isObjectProperty =
   ([, { properties }]: [string, TypeExtension]): boolean =>
     properties.some(({ name, isStatic }: Property): boolean => name === propertyName && !isStatic);
 
-const buildPropertyAccessStaticExpression = (
-  extensionsMap: Map<string, TypeExtension>,
-  usedExtensions: Map<string, string>,
-  isExtensionsFile: boolean,
-  { expression, name: { text } }: PropertyAccessExpression,
-): (() => Node)[] =>
-  [...extensionsMap]
+const buildPropertyAccessStaticExpression = ({ expression, name: { text } }: PropertyAccessExpression): (() => Node)[] =>
+  [...getContext().extensionsMap]
     .filter(isStaticProperty(expression, text))
-    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, expression))
     .map<() => Node>(
       (className: string): (() => Node) =>
         (): Node =>
@@ -42,13 +38,11 @@ const buildPropertyAccessStaticExpression = (
 
 const buildPropertyAccessLiteralExpression = (
   extensions: [string, TypeExtension][],
-  usedExtensions: Map<string, string>,
-  isExtensionsFile: boolean,
   { expression, name: { text } }: PropertyAccessExpression,
 ): Node | undefined =>
   extensions
     .filter(isLiteralExpression(expression))
-    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, usedExtensions, isExtensionsFile, expression))
+    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, expression))
     .map<Node>(
       (className: string): Node =>
         factory.createPropertyAccessExpression(
@@ -58,36 +52,23 @@ const buildPropertyAccessLiteralExpression = (
     )
     .pop();
 
-const buildPropertyAccessExpression = (
-  extensionsMap: Map<string, TypeExtension>,
-  constAliases: Map<string, string>,
-  usedExtensions: Map<string, string>,
-  isExtensionsFile: boolean,
-  access: PropertyAccessExpression,
-): (() => Node)[] =>
-  [[...extensionsMap].filter(isObjectProperty(access.name.text))]
+const buildPropertyAccessExpression = (access: PropertyAccessExpression): (() => Node)[] =>
+  [[...getContext().extensionsMap].filter(isObjectProperty(access.name.text))]
     .filter(({ length }: [string, TypeExtension][]): unknown => length)
     .map<() => Node>(
       (extensions: [string, TypeExtension][]): (() => Node) =>
         (): Node =>
-          buildPropertyAccessLiteralExpression(extensions, usedExtensions, isExtensionsFile, access) ??
+          buildPropertyAccessLiteralExpression(extensions, access) ??
           factory.createPropertyAccessChain(
-            buildProxyCallExpression(extensions, constAliases, usedExtensions, isExtensionsFile, access.expression, false),
+            buildProxyCallExpression(extensions, access.expression, false),
             isPropertyAccessChain(access) ? factory.createToken(SyntaxKind.QuestionDotToken) : undefined,
             access.name.text,
           ),
     );
 
-export const buildPropertyAccessExpressions = (
-  extensionsMap: Map<string, TypeExtension>,
-  constAliases: Map<string, string>,
-  usedExtensions: Map<string, string>,
-  isExtensionsFile: boolean,
-  node: Node,
-): (() => Node)[] =>
+export const buildPropertyAccessExpressions = (node: Node): (() => Node)[] =>
   isPropertyAccessExpression(node)
-    ? [
-        ...buildPropertyAccessStaticExpression(extensionsMap, usedExtensions, isExtensionsFile, node),
-        ...buildPropertyAccessExpression(extensionsMap, constAliases, usedExtensions, isExtensionsFile, node),
-      ]
+    ? [buildPropertyAccessStaticExpression, buildPropertyAccessExpression].flatMap<() => Node>(
+        (builder: (node: PropertyAccessExpression) => (() => Node)[]): (() => Node)[] => builder(node),
+      )
     : [];

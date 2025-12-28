@@ -10,6 +10,7 @@ import {
   isStringLiteral,
 } from 'typescript';
 import { generateAlias } from '../alias/alias';
+import { Context, getContext } from '../context/context';
 
 export const getExtensionsImportPath = (id: string, extensionsFilePath: string): string =>
   relative(dirname(id), extensionsFilePath)
@@ -54,17 +55,22 @@ const mapExtensionImport = ([original, local]: [string, string]): ImportSpecifie
     factory.createIdentifier(local),
   );
 
-export const buildExtensionsImport = (importPath: string, usedExtensions: Map<string, string>): ImportDeclaration =>
+export const buildExtensionsImport = (importPath: string): ImportDeclaration =>
   factory.createImportDeclaration(
     undefined,
     factory.createImportClause(
       undefined,
       undefined,
-      factory.createNamedImports([...usedExtensions].map<ImportSpecifier>(mapExtensionImport)),
+      factory.createNamedImports([...getContext().usedExtensions].map<ImportSpecifier>(mapExtensionImport)),
     ),
     factory.createStringLiteral(importPath),
   );
 
-export const readImportName = (importName: string, usedExtensions: Map<string, string>, isExtensionsFile: boolean, node: Node): string =>
-  usedExtensions.get(importName) ??
-  (usedExtensions.set(importName, isExtensionsFile ? importName : generateAlias(importName, node)) && usedExtensions.get(importName)!);
+export const readImportName = (importName: string, node: Node): string => {
+  const { usedExtensions, isExtensionsFile }: Context = getContext();
+
+  return (
+    usedExtensions.get(importName) ??
+    (usedExtensions.set(importName, isExtensionsFile ? importName : generateAlias(importName, node)) && usedExtensions.get(importName)!)
+  );
+};

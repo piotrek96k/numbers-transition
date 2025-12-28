@@ -15,9 +15,29 @@ import {
   visitEachChild,
 } from 'typescript';
 import { InternalConfig, TypeExtension, TypeExtensionsConfig } from '../config/config';
+import { Context, getContext, provideContext } from '../context/context';
 import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports } from '../imports/imports';
 import { generateRuntimeProxies } from '../proxy/runtime-proxy';
 import { buildVisitor } from '../visitor/visitor';
+
+const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: string, imports: ImportDeclaration[]): string => {
+  const { isExtensionsFile }: Context = getContext();
+
+  const { statements }: SourceFile = visitEachChild<SourceFile>(
+    factory.createSourceFile(source, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
+    buildVisitor(),
+    undefined,
+  );
+
+  return createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
+    factory.updateSourceFile(sourceFile, [
+      ...imports,
+      ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath)]),
+      ...statements,
+      ...(isExtensionsFile ? generateRuntimeProxies() : []),
+    ]),
+  );
+};
 
 const transformCode = (
   extensionsFilePath: string,
@@ -39,20 +59,14 @@ const transformCode = (
   const usedExtensions: Map<string, string> = readUsedExtensions(extensionImport);
   const isExtensionsFile: boolean = resolve(id) === resolve(extensionsFilePath);
 
-  const { statements }: SourceFile = visitEachChild<SourceFile>(
-    factory.createSourceFile(restSource, factory.createToken(SyntaxKind.EndOfFileToken), NodeFlags.None),
-    buildVisitor(extensionsMap, constAliases, usedExtensions, isExtensionsFile),
-    undefined,
-  );
-
   return {
-    code: createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
-      factory.updateSourceFile(sourceFile, [
-        ...restImports,
-        ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath, usedExtensions)]),
-        ...statements,
-        ...(isExtensionsFile ? generateRuntimeProxies(extensionsMap, constAliases) : []),
-      ]),
+    code: provideContext(
+      { extensionsMap, constAliases, usedExtensions, isExtensionsFile },
+      buildNewCode,
+      sourceFile,
+      restSource,
+      importPath,
+      restImports,
     ),
   };
 };

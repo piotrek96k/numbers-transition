@@ -11,7 +11,7 @@ const config: UserConfig = {
       ),
       formats: ['es'],
     },
-    rollupOptions: { external: ['crypto', 'fs', 'path', 'process', 'typescript'] },
+    rollupOptions: { external: ['async_hooks', 'crypto', 'fs', 'path', 'process', 'typescript'] },
     outDir: resolve('plugins', 'dist'),
     minify: 'terser',
   },
