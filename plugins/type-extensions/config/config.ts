@@ -49,6 +49,7 @@ type MethodOrPropertyDeclaration = IdentifierMethodDeclaration | IdentifierPrope
 export interface Property {
   name: string;
   isStatic: boolean;
+  isProperty: boolean;
 }
 
 interface Extension {
@@ -92,9 +93,10 @@ export const getAllowedFiles = (tsConfig: string): Set<string> =>
     ).fileNames.map<string>((file: string): string => resolve(file)),
   );
 
-const mapProperty = ({ name: { text }, modifiers }: MethodOrPropertyDeclaration): Property => ({
-  name: text,
-  isStatic: !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword),
+const mapProperty = (member: MethodOrPropertyDeclaration): Property => ({
+  name: member.name.text,
+  isStatic: !!member.modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword),
+  isProperty: isPropertyDeclaration(member),
 });
 
 const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> =>
