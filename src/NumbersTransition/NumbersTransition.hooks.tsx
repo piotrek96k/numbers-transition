@@ -108,7 +108,7 @@ export const useValue = (
 
 const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
   const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
-    const [digits, restDigits]: [string, string] =
+    const [{ bigInt: digits }, { bigInt: restDigits, length }]: [string, string] =
       precision >= Integer.Zero
         ? [`${integer.replace(Text.Minus, Text.Empty)}${fraction.slice(Integer.Zero, precision)}`, fraction.slice(precision)]
         : [
@@ -117,11 +117,9 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
           ];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
-    const increase: number =
-      BigInt(restDigits) < BigInt(`${Integer.Five}`.padEnd(Math.max(restDigits.length, numberOfZeros), `${Integer.Zero}`))
-        ? Integer.Zero
-        : Integer.One;
-    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
+    const { bigInt: increase }: number =
+      restDigits < `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt ? Integer.Zero : Integer.One;
+    const value: bigint = (digits + increase) * Integer.Ten.bigInt ** numberOfZeros.bigInt;
 
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
@@ -907,11 +905,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
       .mapMulti<
         [TupleOfLength<number, Integer.Four>, number[][], number[][]],
-        [
-          [TupleOfLength<number, Integer.Four>],
-          [[TupleOfLength<number, Integer.Four>, [number, number]]],
-          [[TupleOfLength<number, Integer.Four>, [number, number, number]]],
-        ]
+        [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
       >([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
       .flat<[[number[], number[]]], Integer.One>()
       .reduce(solveCubicBezier)
@@ -1088,7 +1082,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   // prettier-ignore
   const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], _: unknown, index: number): [[bigint, bigint][], [bigint, bigint][]] =>
     [previousValue, currentValue]
-      .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
+      .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero))
       .mapAll<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
         end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
@@ -1096,15 +1090,15 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   // prettier-ignore
   const calculate = (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
-    (_: unknown, index: number, { length }: unknown[]): bigint => (NumberPrecision.Value * (start * BigInt(length - index) + end * BigInt(index))) / BigInt(length);
+    (_: unknown, { bigInt: index }: number, { length: { bigInt: length } }: unknown[]): bigint => (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
 
   const round = (value: bigint): bigint =>
     value / NumberPrecision.Value +
-    BigInt(value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One);
+    (value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One).bigInt;
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
     [...Array<unknown>(Number(end - start) + Integer.One)]
-      .map<bigint>((_: unknown, index: number): bigint => start + BigInt(index))
+      .map<bigint>((_: unknown, { bigInt }: number): bigint => start + bigInt)
       .map<number>(({ digit }: bigint): number => digit);
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>

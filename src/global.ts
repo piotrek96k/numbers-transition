@@ -7,6 +7,7 @@ declare global {
   }
 
   interface Number {
+    bigInt: bigint;
     toFixed(fractionDigits?: number): `${number}`;
   }
 
@@ -15,6 +16,7 @@ declare global {
   }
 
   interface String {
+    bigInt: bigint;
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;
   }

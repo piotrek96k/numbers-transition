@@ -9,13 +9,23 @@ export class Double extends Value<number> {
   public static readonly subtract = (first: number, second: number): number => first - second;
 
   public static readonly sum = (first: number, second: number): number => first + second;
+
+  public get bigInt(): bigint {
+    return BigInt(this.value);
+  }
 }
 
 export class Long extends Value<bigint> {
-  public readonly digit: number = Math.abs(Number(this.value % BigInt(Integer.Ten)));
+  public get digit(): number {
+    return Math.abs(Number(this.value % BigInt(Integer.Ten)));
+  }
 }
 
 export class CharSequence extends Value<string> {
+  public get bigInt(): bigint {
+    return BigInt(this.value);
+  }
+
   public readonly capitalize = (): string => `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
 }
 
