@@ -1,5 +1,5 @@
 import { Node, Visitor, visitEachChild } from 'typescript';
-import { buildArgumentDestructureFunctionExpressions, buildVariableDestructureExpressions } from '../expressions/object-destructure';
+import { buildArgumentDestructureFunctionExpressions, buildVariableDestructureExpressions } from '../expressions/destructure';
 import { buildPropertyAccessExpressions } from '../expressions/property-access';
 
 const modifyNode = (node: Node): Node =>
