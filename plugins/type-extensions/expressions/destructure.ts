@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import {
   ArrayBindingElement,
   ArrayBindingPattern,
@@ -143,7 +144,6 @@ const updateInitializer = <T extends DestructureDeclaration>(
   return [updateElement(element), [variable, ...variables]];
 };
 
-/* eslint-disable no-use-before-define */
 const updateObjectBindingPattern = <T extends DestructureDeclaration>(
   element: ObjectBindingPatternWrapper<T>,
   updateElement: (extensions: [string, TypeExtension][], element: T, objectBindingPattern: ObjectBindingPattern) => T,
@@ -202,10 +202,10 @@ const mapElement =
     extractedIdentifiers: Set<string>,
   ): ((element: T) => [T, VariableDeclaration[]]) =>
   (element: T): [T, VariableDeclaration[]] => {
-    const [updatedElement, variables]: [T, VariableDeclaration[]] = isArrayBindingPatternWrapper<T>(element)
-      ? updateArrayBindingPattern<T>(element, updateElement, extractedIdentifiers)
-      : isObjectBindingPatternWrapper<T>(element)
-        ? updateObjectBindingPattern<T>(element, updateElement, extractedIdentifiers)
+    const [updatedElement, variables]: [T, VariableDeclaration[]] = isObjectBindingPatternWrapper<T>(element)
+      ? updateObjectBindingPattern<T>(element, updateElement, extractedIdentifiers)
+      : isArrayBindingPatternWrapper<T>(element)
+        ? updateArrayBindingPattern<T>(element, updateElement, extractedIdentifiers)
         : [element, []];
 
     return shouldUpdateInitializer(extractedIdentifiers, updatedElement)
