@@ -228,10 +228,9 @@ const NumbersTransition = <
     animationDirection,
   });
 
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: TupleOfLength<
-    number,
-    Integer.Four
-  > = useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
+  // prettier-ignore
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: TupleOfLength<number, Integer.Four> = 
+    useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   // prettier-ignore
   const [
@@ -281,12 +280,12 @@ const NumbersTransition = <
 
   useEffect(
     (): void =>
-      [
-        (): void => setPreviousValueOnEnd(previousValueOnStart.current),
-        (): void => setAnimationTransition(AnimationTransition.None),
-        (): unknown => (previousValueOnStart.current = validValue),
-      ]
-        .filter((_: () => void, index: number, { length }: (() => void)[]): boolean => restartAnimation || index === length - Integer.One)
+      [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
+        .filterAll(restartAnimation)
+        .mapAll<(() => unknown)[]>((callbacks: (() => void)[]): (() => unknown)[] => [
+          ...callbacks,
+          (): unknown => (previousValueOnStart.current = validValue),
+        ])
         .forEach(Function.invoke<() => void>),
     [validValue, restartAnimation],
   );
