@@ -40,6 +40,8 @@ declare global {
   }
 
   interface Array<T> {
+    append(element: T): T[];
+    append<U>(element: U): T extends U ? U[] : never;
     at(index: number): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;

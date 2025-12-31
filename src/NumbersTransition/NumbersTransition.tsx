@@ -282,11 +282,8 @@ const NumbersTransition = <
     (): void =>
       [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
         .filterAll(restartAnimation)
-        .mapAll<(() => unknown)[]>((callbacks: (() => void)[]): (() => unknown)[] => [
-          ...callbacks,
-          (): unknown => (previousValueOnStart.current = validValue),
-        ])
-        .forEach(Function.invoke<() => void>),
+        .append<() => unknown>((): unknown => (previousValueOnStart.current = validValue))
+        .forEach(Function.invoke<() => unknown>),
     [validValue, restartAnimation],
   );
 
