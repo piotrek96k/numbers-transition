@@ -47,7 +47,7 @@ export class List<T> extends Value<T[]> {
   }
 
   public static isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
-    return this.depth<unknown>(array) === depth;
+    return Array.depth<unknown>(array) === depth;
   }
 
   // prettier-ignore
