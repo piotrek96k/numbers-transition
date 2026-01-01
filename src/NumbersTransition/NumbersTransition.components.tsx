@@ -126,7 +126,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     (): void =>
       [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
         .filterAll(mountedElements < aggregatedSums.at(Integer.MinusOne)!)
-        .forEach(Function.invoke<() => unknown>),
+        .forEach(Function.invoke<unknown>),
     [chunkSize, mountedElements, aggregatedSums],
   );
 

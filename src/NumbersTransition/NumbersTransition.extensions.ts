@@ -93,7 +93,7 @@ export class List<T> extends Value<T[]> {
 }
 
 export class Method<T extends (...args: unknown[]) => unknown> extends Value<T> {
-  public static invoke<T extends () => any>(callback: T): ReturnType<T> {
+  public static invoke<T>(callback: () => T): T {
     return callback();
   }
 

@@ -99,7 +99,7 @@ export const useValue = (
         (): unknown => values.current.length && rerender(),
       ]
         .filterAll(validValue === previousValue || !isValueValid)
-        .forEach(Function.invoke<() => unknown>),
+        .forEach(Function.invoke<unknown>),
     [rerender, previousValue, validValue, isValueValid],
   );
 
