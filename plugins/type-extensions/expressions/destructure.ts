@@ -100,6 +100,17 @@ const shouldMapExtensionInitializer = (extensions: [string, TypeExtension][], el
     properties.some(({ name, isProperty }: Property): boolean => identifier.text === name && !isProperty),
   ) && !element.dotDotDotToken;
 
+const getExtensions = <T extends DestructureDeclaration>({
+  name: { elements },
+}: ObjectBindingPatternWrapper<T>): [string, TypeExtension][] => {
+  const extensions: [string, TypeExtension][] = [...getContext().extensionsMap];
+  const foundExtensions: [string, TypeExtension][] = extensions.filter(isDestructureProperty(elements));
+
+  return foundExtensions.length || elements.every(({ dotDotDotToken }: BindingElement): boolean => !dotDotDotToken)
+    ? foundExtensions
+    : extensions;
+};
+
 const getBindingElementIdentifier = ({ propertyName, name }: BindingElement): Identifier =>
   [propertyName, name].find<Identifier>(
     (name: PropertyName | BindingName | undefined): name is Identifier => !!name && isIdentifier(name),
@@ -149,7 +160,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
   updateElement: (extensions: [string, TypeExtension][], element: T, objectBindingPattern: ObjectBindingPattern) => T,
   extractedIdentifiers: Set<string>,
 ): [T, VariableDeclaration[]] => {
-  const extensions: [string, TypeExtension][] = [...getContext().extensionsMap].filter(isDestructureProperty(element.name.elements));
+  const extensions: [string, TypeExtension][] = getExtensions<T>(element);
   const identifiers: string[] = extensions.length ? readNestedIdentifiers(element.name) : [];
   identifiers.forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
 
@@ -381,7 +392,7 @@ const updateVariableArrayDestructureDeclaration = (
 
 const mapVariableDeclaration = (variableDeclaration: VariableDeclaration): VariableDeclaration | VariableDeclaration[] =>
   isInitializerObjectBindingPatternWrapper<VariableDeclaration>(variableDeclaration)
-    ? [[...getContext().extensionsMap].filter(isDestructureProperty(variableDeclaration.name.elements))].flatMap<VariableDeclaration>(
+    ? [getExtensions<VariableDeclaration>(variableDeclaration)].flatMap<VariableDeclaration>(
         updateVariableObjectDestructureDeclaration(variableDeclaration),
       )
     : isInitializerArrayBindingPatternWrapper<VariableDeclaration>(variableDeclaration)

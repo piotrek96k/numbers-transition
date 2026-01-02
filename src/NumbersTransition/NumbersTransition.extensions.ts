@@ -1,8 +1,16 @@
 import { Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
-class Value<T> {
-  public constructor(protected readonly value: T) {}
+abstract class Value<T> {
+  readonly #value: T;
+
+  protected get value(): T {
+    return this.#value;
+  }
+
+  public constructor(value: T) {
+    this.#value = value;
+  }
 }
 
 export class Double extends Value<number> {
