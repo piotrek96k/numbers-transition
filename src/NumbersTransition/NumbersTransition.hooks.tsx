@@ -876,8 +876,8 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 
   // prettier-ignore
   const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
-    [...Array<unknown>(Integer.Three)].map(
-      (_: unknown, index: number): number =>
+    [...Array<unknown>(Integer.Three).keys()].map<number>(
+      (index: number): number =>
         Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * Math.cos(
           (Integer.One / Integer.Three) * Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
           (Integer.Two * index * Math.PI) / Integer.Three,
@@ -957,7 +957,7 @@ export const useNegativeElementAnimationTimingFunction = (
     );
 
   const mapToLinear = (solution: number, index: number): LinearEasingFunction[number][] =>
-    [...Array<unknown>(Integer.Two)].map<LinearEasingFunction[number]>((_: unknown, value: number): LinearEasingFunction[number] => [
+    [...Array<unknown>(Integer.Two).keys()].map<LinearEasingFunction[number]>((value: number): LinearEasingFunction[number] => [
       (index + value) % Integer.Two,
       solution * Integer.OneHundred,
     ]);
@@ -1080,7 +1080,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   }: UseVerticalAnimationDigitsOptions = options;
 
   // prettier-ignore
-  const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], _: unknown, index: number): [[bigint, bigint][], [bigint, bigint][]] =>
+  const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], index: number): [[bigint, bigint][], [bigint, bigint][]] =>
     [previousValue, currentValue]
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero))
@@ -1089,27 +1089,27 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
       );
 
   // prettier-ignore
-  const calculate = (start: bigint, end: bigint): ((value: unknown, index: number, array: unknown[]) => bigint) =>
-    (_: unknown, { bigInt: index }: number, { length: { bigInt: length } }: unknown[]): bigint => (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
+  const calculate = (start: bigint, end: bigint): ((value: number, index: number, array: number[]) => bigint) =>
+    (_:number, { bigInt: index }: number, { length: { bigInt: length } }: number[]): bigint => (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
 
   const round = (value: bigint): bigint =>
     value / NumberPrecision.Value +
     (value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One).bigInt;
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One)]
-      .map<bigint>((_: unknown, { bigInt }: number): bigint => start + bigInt)
+    [...Array<unknown>(Number(end - start) + Integer.One).keys()]
+      .map<bigint>(({ bigInt }: number): bigint => start + bigInt)
       .map<number>(({ digit }: bigint): number => digit);
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
-    [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index)]
+    [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
       .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, ({ digit }: bigint): number => digit])
       .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
-  return [...Array<unknown>(maxNumberOfDigits)]
+  return [...Array<unknown>(maxNumberOfDigits).keys()]
     .reduce<[[bigint, bigint][], [bigint, bigint][]]>(createDigitValues, [[], []])
     .map<number[][], [number[][], number[][]]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();

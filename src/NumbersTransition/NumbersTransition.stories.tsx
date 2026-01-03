@@ -97,7 +97,7 @@ const basicEffectCss: RuleSet<object> = css<object>`
 
 const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
   initialValue: Integer.Zero,
-  value: [...Array<unknown>(Integer.Ten)].reduce<string>((txt: string, _: unknown, idx: number): string => `${idx}${txt}${idx}`, Text.Dot),
+  value: [...Array<unknown>(Integer.Ten).keys()].reduce<string>((txt: string, index: number): string => `${index}${txt}${index}`, Text.Dot),
   precision: Integer.Ten,
   decimalSeparator: DecimalSeparatorCharacter.Comma,
   digitGroupSeparator: DigitGroupSeparatorCharacter.Space,
