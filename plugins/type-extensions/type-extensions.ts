@@ -9,6 +9,7 @@ const typeExtensions = (configPath: string): Plugin => {
 
   return {
     name: 'type-extensions-plugin',
+    enforce: 'pre',
     handleHotUpdate: buildHotUpdateHandler(configPath, config, internalConfig),
     transform: buildTransformer(config, internalConfig),
   };
