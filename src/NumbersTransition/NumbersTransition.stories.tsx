@@ -214,10 +214,10 @@ const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
 }: NumbersTransitionExecutionContext): Animation<object, number> | Falsy =>
   animationType === AnimationType.Vertical && columnLength! > Integer.One && {
     keyframeFunction: rotateKeyframeFunction,
-    keyframes: getVerticalRotateKeyframes(restTheme).mapMulti<[number, number]>([
+    keyframes: getVerticalRotateKeyframes(restTheme).mapMulti<[number, number]>(
       mapVerticalRotateKeyframes({ ...restTheme, columnLength }),
       (value: number): number => value / Integer.Two,
-    ]),
+    ),
   };
 
 const getInitialRotation = ({

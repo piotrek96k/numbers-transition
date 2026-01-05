@@ -46,7 +46,7 @@ declare global {
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
     filterAll(predicate: unknown): T[];
-    filterMulti(predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
+    filterMulti(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
@@ -55,14 +55,16 @@ declare global {
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapAll<U>(mapper: (array: this) => U): U;
-    mapMulti(mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
-    mapMulti<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(mappers: {
-      [I in keyof U]: (
-        value: PreviousElement<V, this, I> extends Array<infer W> ? W : never,
-        index: number,
-        array: PreviousElement<V, this, I>,
-      ) => U[I];
-    }): V extends [...unknown[], infer W] ? W : never;
+    mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
+    mapMulti<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
+      ...mappers: {
+        [I in keyof U]: (
+          value: PreviousElement<V, this, I> extends Array<infer W> ? W : never,
+          index: number,
+          array: PreviousElement<V, this, I>,
+        ) => U[I];
+      }
+    ): V extends [...unknown[], infer W] ? W : never;
     reduce(
       callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T extends unknown[] ? T[number][] : T,
     ): T extends unknown[] ? T[number][] : T;

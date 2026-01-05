@@ -95,7 +95,7 @@ export const useValue = (
   useEffect(
     (): void =>
       [
-        (): unknown => (values.current = values.current.slice(Integer.One).filterMulti([filterInvalidValues, filterDuplicates])),
+        (): unknown => (values.current = values.current.slice(Integer.One).filterMulti(filterInvalidValues, filterDuplicates)),
         (): unknown => values.current.length && rerender(),
       ]
         .filterAll(validValue === previousValue || !isValueValid)
@@ -906,7 +906,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .mapMulti<
         [TupleOfLength<number, Integer.Four>, number[][], number[][]],
         [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
-      >([calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant])
+      >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
       .flat<[[number[], number[]]], Integer.One>()
       .reduce(solveCubicBezier)
       .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
@@ -1103,7 +1103,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
-      .mapMulti<[bigint, bigint, number]>([calculate(start, end), round, ({ digit }: bigint): number => digit])
+      .mapMulti<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
       .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>

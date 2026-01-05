@@ -143,7 +143,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   return (
     <Conditional condition={mountedElements < aggregatedSums.at(Integer.MinusOne)! || !onAfterMount}>
-      {children.mapMulti<[GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>]>([mapChildren, mapToFragmentElement])}
+      {children.mapMulti<[GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>]>(mapChildren, mapToFragmentElement)}
       {children}
     </Conditional>
   );
@@ -242,7 +242,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
 
   // prettier-ignore
   const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(
-    [mapToNegativeElement, mapToThemeProviderElement],
+    mapToNegativeElement, mapToThemeProviderElement,
   );
 
   const verticalAnimationElement: ReactElement<ChildrenProps> = (
@@ -329,7 +329,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, { ...characterStyledView, ...digitStyledView });
 
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
-    numbers.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>([mapToDigitElement, mapToDigitsThemeProviderElement]);
+    numbers.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(mapToDigitElement, mapToDigitsThemeProviderElement);
 
   const getSeparatorTheme = (
     partialTheme: Partial<NumbersTransitionTheme>,
@@ -372,11 +372,11 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   ];
 
   const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
-    ? children.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>([mapToDigitElement, mapToDigitThemeProviderElement])
-    : children.mapMulti<[ReactElement<ChildrenProps>[], ReactElement<ChildrenProps>]>([mapToDigitsElement, mapToDigitThemeProviderElement]);
+    ? children.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(mapToDigitElement, mapToDigitThemeProviderElement)
+    : children.mapMulti<[ReactElement<ChildrenProps>[], ReactElement<ChildrenProps>]>(mapToDigitsElement, mapToDigitThemeProviderElement);
 
   const number: ReactElement<ChildrenProps>[] = mappedChildren
-    .mapMulti(mapToElement)
+    .mapMulti(...mapToElement)
     .reduce<ReactElement<ChildrenProps>[]>(reduceToNumber, [])
     .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
 

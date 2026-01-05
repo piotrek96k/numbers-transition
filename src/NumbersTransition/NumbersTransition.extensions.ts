@@ -77,7 +77,7 @@ export class List<T> extends Value<T[]> {
     return predicate ? this.value : [];
   }
 
-  public filterMulti(predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] {
+  public filterMulti(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] {
     return predicates.reduce<T[]>(
       (array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T[] => array.filter(predicate),
       this.value,
@@ -88,7 +88,7 @@ export class List<T> extends Value<T[]> {
     return mapper(this.value);
   }
 
-  public mapMulti(mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
+  public mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
     return mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
   }
 
