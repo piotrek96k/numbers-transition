@@ -59,16 +59,16 @@ const transformCode = (
   const usedExtensions: Map<string, string> = readUsedExtensions(extensionImport);
   const isExtensionsFile: boolean = resolve(id) === resolve(extensionsFilePath);
 
-  return {
-    code: provideContext(
-      { extensionsMap, constAliases, usedExtensions, isExtensionsFile },
-      buildNewCode,
-      sourceFile,
-      restSource,
-      importPath,
-      restImports,
-    ),
-  };
+  const newCode: string = provideContext(
+    { extensionsMap, constAliases, usedExtensions, isExtensionsFile },
+    buildNewCode,
+    sourceFile,
+    restSource,
+    importPath,
+    restImports,
+  );
+
+  return { code: newCode };
 };
 
 export const buildTransformer =
