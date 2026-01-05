@@ -29,7 +29,7 @@ const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: s
     undefined,
   );
 
-  return createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
+  return createPrinter({ newLine: NewLineKind.LineFeed, removeComments: true }).printFile(
     factory.updateSourceFile(sourceFile, [
       ...imports,
       ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath)]),
