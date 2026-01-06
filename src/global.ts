@@ -1,6 +1,11 @@
 import type { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
+  interface Boolean {
+    readonly int: number;
+    readonly bigInt: bigint;
+  }
+
   interface NumberConstructor {
     subtract(first: number, second: number): number;
     sum(first: number, second: number): number;

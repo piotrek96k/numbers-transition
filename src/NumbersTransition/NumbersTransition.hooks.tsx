@@ -117,8 +117,7 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
           ];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
-    const { bigInt: increase }: number =
-      restDigits < `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt ? Integer.Zero : Integer.One;
+    const { bigInt: increase }: boolean = restDigits >= `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt;
     const value: bigint = (digits + increase) * Integer.Ten.bigInt ** numberOfZeros.bigInt;
 
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
@@ -604,7 +603,7 @@ const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: n
     .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
     .reduce(Number.sum);
 
-type CharacterIndexFunction = (index: number, length: number) => number;
+export type CharacterIndexFunction = (index: number, length: number) => number;
 
 export interface CharacterIndexFunctions {
   getCharacterIndex: CharacterIndexFunction;
@@ -624,7 +623,7 @@ export const useCharacterIndexFunctions = (precision: number): CharacterIndexFun
   const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Integer.One;
   const getSeparatorIndex = (index: number, length: number): number => getIndex(index, length) - Integer.One;
   const getDigitGroupSeparatorIndex = (index: number, length: number): number =>
-    getSeparatorIndex(index, length) - (length - index < precision ? Integer.One : Integer.Zero);
+    getSeparatorIndex(index, length) - (length - index < precision).int;
 
   return { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex };
 };
@@ -642,10 +641,10 @@ export const useElementsLength = (options: UseElementsLengthOptions): ElementsLe
 
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
 
-  const invalidLength: number = isValueValid ? Integer.Zero : Integer.One;
-  const negativeCharacterLength: number = isValueValid && (hasSignChanged || currentValue < Integer.Zero) ? Integer.One : Integer.Zero;
+  const { int: invalidLength }: boolean = !isValueValid;
+  const { int: negativeCharacterLength }: boolean = isValueValid && (hasSignChanged || currentValue < Integer.Zero);
+  const { int: decimalSeparatorLength }: boolean = isValueValid && precision > Integer.Zero;
   const digitGroupSeparatorsLength: number = isValueValid ? calculateNumberOfDigitGroupSeparators(numberOfDigits) : Integer.Zero;
-  const decimalSeparatorLength: number = isValueValid && precision > Integer.Zero ? Integer.One : Integer.Zero;
   const separatorsLength: number = [digitGroupSeparatorsLength, decimalSeparatorLength].reduce(Number.sum);
   const digitsLength: number = isValueValid ? numberOfDigits : Integer.Zero;
   const charactersLength: number = [digitsLength, separatorsLength, negativeCharacterLength].reduce(Number.sum);
@@ -1032,7 +1031,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     ref.current?.children.length ?? Integer.Zero,
     numberOfDigits,
     calculateNumberOfDigitGroupSeparators(numberOfDigits),
-    precision > Integer.Zero ? Integer.One : Integer.Zero,
+    (precision > Integer.Zero).int,
   ].reduce(Number.subtract);
 
   const getElementWidth = useCallback<(element: HTMLElement) => number>(
@@ -1083,7 +1082,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], index: number): [[bigint, bigint][], [bigint, bigint][]] =>
     [previousValue, currentValue]
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
-      .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : first > second ? Integer.One : Integer.Zero))
+      .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : (first > second).int))
       .mapAll<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
         end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
@@ -1093,8 +1092,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     (_:number, { bigInt: index }: number, { length: { bigInt: length } }: number[]): bigint => (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
 
   const round = (value: bigint): bigint =>
-    value / NumberPrecision.Value +
-    (value - (value / NumberPrecision.Value) * NumberPrecision.Value < NumberPrecision.HalfValue ? Integer.Zero : Integer.One).bigInt;
+    value / NumberPrecision.Value + (value - (value / NumberPrecision.Value) * NumberPrecision.Value >= NumberPrecision.HalfValue).bigInt;
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
     [...Array<unknown>(Number(end - start) + Integer.One).keys()]

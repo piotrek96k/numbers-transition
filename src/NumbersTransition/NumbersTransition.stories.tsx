@@ -206,7 +206,7 @@ const mapVerticalRotateKeyframes = ({ animationDirection, columnLength, rowIndex
   (value: number): number => 
     value + (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
       ? Integer.One / Integer.Two
-      : ((animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.One) + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
+      : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
 // prettier-ignore
 const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({

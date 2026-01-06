@@ -2,6 +2,7 @@
   "tsConfig": "tsconfig.json",
   "extensionsFilePath": "src/NumbersTransition/NumbersTransition.extensions.ts",
   "extensions": {
+    "Predicate": { "type": "Boolean", "typeCheck": "typeof VALUE === 'boolean' || VALUE instanceof Boolean" },
     "Double": { "type": "Number", "typeCheck": "typeof VALUE === 'number' || VALUE instanceof Number" },
     "Long": { "type": "BigInt", "typeCheck": "typeof VALUE === 'bigint'" },
     "CharSequence": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },

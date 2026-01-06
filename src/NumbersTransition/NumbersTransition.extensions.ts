@@ -13,6 +13,16 @@ abstract class Value<T> {
   }
 }
 
+export class Predicate extends Value<boolean> {
+  public get int(): number {
+    return this.value ? Integer.One : Integer.Zero;
+  }
+
+  public get bigInt(): bigint {
+    return BigInt(this.int);
+  }
+}
+
 export class Double extends Value<number> {
   public static subtract(first: number, second: number): number {
     return first - second;

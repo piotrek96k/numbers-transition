@@ -31,6 +31,7 @@ import {
 } from './NumbersTransition.enums';
 import {
   AnimationAlgorithm,
+  CharacterIndexFunction,
   CharacterIndexFunctions,
   ChildrenProps,
   ElementKeyMapper,
@@ -98,8 +99,8 @@ interface DeferProps {
   children: ReactElement<ChildrenProps>[];
   chunkSize: number;
   countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
-  onPartialMount: (child: ReactElement<ChildrenProps>, elementsToMount: number) => GenericReactNode<ChildrenProps>;
+  onBeforeMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
+  onPartialMount: (child: ReactElement<ChildrenProps>, index: number, elementsToMount: number) => GenericReactNode<ChildrenProps>;
   onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
 }
 
@@ -130,15 +131,15 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [chunkSize, mountedElements, aggregatedSums],
   );
 
-  const mapBeforeMount = (child: ReactElement<ChildrenProps>, numberOfElements: number): GenericReactNode<ChildrenProps> =>
-    numberOfElements > Integer.Zero ? onPartialMount(child, numberOfElements ?? Integer.Zero) : onBeforeMount(child);
+  const mapBeforeMount = (child: ReactElement<ChildrenProps>, index: number, numberOfElements: number): GenericReactNode<ChildrenProps> =>
+    numberOfElements > Integer.Zero ? onPartialMount(child, index, numberOfElements ?? Integer.Zero) : onBeforeMount(child, index);
 
   const mapAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
     onAfterMount?.(child, index) ?? child;
 
   const mapChildren = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
     aggregatedSums[index] > mountedElements
-      ? mapBeforeMount(child, mountedElements - (aggregatedSums[index - Integer.One] ?? Integer.Zero))
+      ? mapBeforeMount(child, index, mountedElements - (aggregatedSums[index - Integer.One] ?? Integer.Zero))
       : mapAfterMount(child, index);
 
   return (
@@ -166,6 +167,116 @@ export const InvalidElement = <T extends object, U, V extends object, W>({
     </Invalid>
   </ThemeProvider>
 );
+
+interface DecimalSeparatorElementProps<T extends object, U, V extends object, W, X extends object, Y> {
+  decimalSeparator: DecimalSeparatorCharacter;
+  characterStyledView: StyledViewWithProps<Styled.Character, T, U>;
+  separatorStyledView: StyledViewWithProps<Styled.Separator, V, W>;
+  decimalSeparatorStyledView: StyledViewWithProps<Styled.DecimalSeparator, X, Y>;
+}
+
+const DecimalSeparatorElement = <T extends object, U, V extends object, W, X extends object, Y>({
+  decimalSeparator,
+  characterStyledView,
+  separatorStyledView,
+  decimalSeparatorStyledView,
+}: DecimalSeparatorElementProps<T, U, V, W, X, Y>): ReactNode => (
+  <ThemeProvider theme={{ decimalSeparatorIndex: Integer.Zero }}>
+    <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
+      {decimalSeparator}
+    </DecimalSeparator>
+  </ThemeProvider>
+);
+
+interface DigitGroupSeparatorElementProps<T extends object, U, V extends object, W, X extends object, Y> {
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
+  characterStyledView: StyledViewWithProps<Styled.Character, T, U>;
+  separatorStyledView: StyledViewWithProps<Styled.Separator, V, W>;
+  digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, X, Y>;
+  digitGroupSeparatorIndex: number;
+}
+
+const DigitGroupSeparatorElement = <T extends object, U, V extends object, W, X extends object, Y>({
+  digitGroupSeparator,
+  characterStyledView,
+  separatorStyledView,
+  digitGroupSeparatorStyledView,
+  digitGroupSeparatorIndex,
+}: DigitGroupSeparatorElementProps<T, U, V, W, X, Y>): ReactNode => (
+  <ThemeProvider theme={{ digitGroupSeparatorIndex }}>
+    <DigitGroupSeparator {...characterStyledView} {...separatorStyledView} {...digitGroupSeparatorStyledView}>
+      {digitGroupSeparator}
+    </DigitGroupSeparator>
+  </ThemeProvider>
+);
+
+interface SeparatorProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> {
+  precision: number;
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
+  decimalSeparator: DecimalSeparatorCharacter;
+  characterStyledView: StyledViewWithProps<Styled.Character, S, T>;
+  separatorStyledView: StyledViewWithProps<Styled.Separator, U, V>;
+  decimalSeparatorStyledView: StyledViewWithProps<Styled.DecimalSeparator, W, X>;
+  digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, Y, Z>;
+}
+
+interface SeparatorElementProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
+  extends SeparatorProps<S, T, U, V, W, X, Y, Z> {
+  getCharacterSeparatorIndex: CharacterIndexFunction;
+  getSeparatorIndex: CharacterIndexFunction;
+  getDigitGroupSeparatorIndex: CharacterIndexFunction;
+  digitIndex: number;
+  numberLength: number;
+}
+
+const SeparatorElement = <S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
+  props: SeparatorElementProps<S, T, U, V, W, X, Y, Z>,
+): ReactNode => {
+  const {
+    precision,
+    digitGroupSeparator,
+    decimalSeparator,
+    decimalSeparatorStyledView,
+    digitGroupSeparatorStyledView,
+    getCharacterSeparatorIndex,
+    getSeparatorIndex,
+    getDigitGroupSeparatorIndex,
+    digitIndex,
+    numberLength,
+    ...restProps
+  }: SeparatorElementProps<S, T, U, V, W, X, Y, Z> = props;
+
+  const separatorTheme: Partial<NumbersTransitionTheme> = {
+    characterIndex: getCharacterSeparatorIndex(digitIndex, numberLength),
+    separatorIndex: getSeparatorIndex(digitIndex, numberLength),
+  };
+
+  const decimalSeparatorElement: ReactElement<ChildrenProps> = (
+    <DecimalSeparatorElement<S, T, U, V, W, X>
+      {...restProps}
+      decimalSeparator={decimalSeparator}
+      decimalSeparatorStyledView={decimalSeparatorStyledView}
+    />
+  );
+
+  const digitGroupSeparatorElement: ReactElement<ChildrenProps> = (
+    <DigitGroupSeparatorElement<S, T, U, V, Y, Z>
+      {...restProps}
+      digitGroupSeparator={digitGroupSeparator}
+      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
+      digitGroupSeparatorIndex={getDigitGroupSeparatorIndex(digitIndex, numberLength)}
+    />
+  );
+
+  return (
+    <ThemeProvider theme={separatorTheme}>
+      <Conditional condition={numberLength - digitIndex === precision}>
+        {decimalSeparatorElement}
+        {digitGroupSeparatorElement}
+      </Conditional>
+    </ThemeProvider>
+  );
+};
 
 export interface NegativeProps<T extends object, U> {
   negativeCharacter: NegativeCharacter;
@@ -272,15 +383,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   );
 };
 
-export interface NumberProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> {
-  precision: number;
-  digitGroupSeparator: DigitGroupSeparatorCharacter;
-  decimalSeparator: DecimalSeparatorCharacter;
-  characterStyledView: StyledViewWithProps<Styled.Character, Q, R>;
+export interface NumberProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
+  extends SeparatorProps<Q, R, U, V, W, X, Y, Z> {
   digitStyledView: StyledViewWithProps<Styled.Digit, S, T>;
-  separatorStyledView: StyledViewWithProps<Styled.Separator, U, V>;
-  decimalSeparatorStyledView: StyledViewWithProps<Styled.DecimalSeparator, W, X>;
-  digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, Y, Z>;
 }
 
 interface NumberElementProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
@@ -295,20 +400,15 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
 ): ReactNode => {
   const {
     precision,
-    digitGroupSeparator,
-    decimalSeparator,
     characterStyledView,
     digitStyledView,
-    separatorStyledView,
-    decimalSeparatorStyledView,
-    digitGroupSeparatorStyledView,
     mapToElement = [],
     children,
     enclose,
+    ...restProps
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  // prettier-ignore
-  const { getCharacterIndex, getCharacterSeparatorIndex, getSeparatorIndex, getDigitGroupSeparatorIndex }: CharacterIndexFunctions = useCharacterIndexFunctions(precision);
+  const { getCharacterIndex, ...restIndexFunctions }: CharacterIndexFunctions = useCharacterIndexFunctions(precision);
   // prettier-ignore
   const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, FragmentProps>(Fragment);
 
@@ -331,44 +431,22 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
     numbers.mapMulti<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(mapToDigitElement, mapToDigitsThemeProviderElement);
 
-  const getSeparatorTheme = (
-    partialTheme: Partial<NumbersTransitionTheme>,
-    index: number,
-    length: number,
-  ): Partial<NumbersTransitionTheme> => ({
-    ...partialTheme,
-    characterIndex: getCharacterSeparatorIndex(index, length),
-    separatorIndex: getSeparatorIndex(index, length),
-  });
-
-  const getDigitGroupSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> => (
-    <ThemeProvider theme={getSeparatorTheme({ digitGroupSeparatorIndex: getDigitGroupSeparatorIndex(index, length) }, index, length)}>
-      <DigitGroupSeparator {...characterStyledView} {...separatorStyledView} {...digitGroupSeparatorStyledView}>
-        {digitGroupSeparator}
-      </DigitGroupSeparator>
-    </ThemeProvider>
-  );
-
-  const getDecimalSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> => (
-    <ThemeProvider theme={getSeparatorTheme({ decimalSeparatorIndex: Integer.Zero }, index, length)}>
-      <DecimalSeparator {...characterStyledView} {...separatorStyledView} {...decimalSeparatorStyledView}>
-        {decimalSeparator}
-      </DecimalSeparator>
-    </ThemeProvider>
-  );
-
-  const getSeparatorElement = (index: number, length: number): ReactElement<ChildrenProps> =>
-    (length - index === precision ? getDecimalSeparatorElement : getDigitGroupSeparatorElement)(index, length);
-
-  const reduceToNumber = (
-    accumulator: ReactElement<ChildrenProps>[],
-    currentValue: ReactElement<ChildrenProps>,
+  const mapToNumber = (
+    value: ReactElement<ChildrenProps>,
     index: number,
     { length }: ReactElement<ChildrenProps>[],
   ): ReactElement<ChildrenProps>[] => [
-    ...accumulator,
-    ...(index && !((length - index - Math.max(precision, Integer.Zero)) % Integer.Three) ? [getSeparatorElement(index, length)] : []),
-    currentValue,
+    <Show condition={!!index && !((length - index - Math.max(precision, Integer.Zero)) % Integer.Three)}>
+      <SeparatorElement<Q, R, U, V, W, X, Y, Z>
+        {...restProps}
+        {...restIndexFunctions}
+        precision={precision}
+        characterStyledView={characterStyledView}
+        digitIndex={index}
+        numberLength={length}
+      />
+    </Show>,
+    value,
   ];
 
   const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
@@ -377,7 +455,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
 
   const number: ReactElement<ChildrenProps>[] = mappedChildren
     .mapMulti(...mapToElement)
-    .reduce<ReactElement<ChildrenProps>[]>(reduceToNumber, [])
+    .flatMap<ReactElement<ChildrenProps>>(mapToNumber)
     .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
 
   return <Enclose<ReactElement<ChildrenProps>[]> enclose={enclose}>{number}</Enclose>;
@@ -605,13 +683,13 @@ export const VerticalAnimationElement = <
   const onElementMount =
     <T extends unknown[] = []>(
       factory: (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>,
-    ): ((child: ReactElement<ChildrenProps>, ...args: T) => GenericReactNode<ChildrenProps>) =>
-    (child: ReactElement<ChildrenProps>, ...args: T) => (
+    ): ((child: ReactElement<ChildrenProps>, index: number, ...args: T) => GenericReactNode<ChildrenProps>) =>
+    (child: ReactElement<ChildrenProps>, index: number, ...args: T) => (
       <Enclose<ReactElement<ChildrenProps>>
         condition={({ props: { children } }: ReactElement<ChildrenProps>): boolean => Array.isArray<GenericReactNode<ChildrenProps>>(children)}
         enclose={({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args)}
       >
-        {getLastNestedElement(child)}
+        {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
       </Enclose>
     );
 
@@ -624,7 +702,7 @@ export const VerticalAnimationElement = <
     </AnimationPlaceholder>
   );
 
-  const onAfterElementMount: (child: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps> = onElementMount<[]>(
+  const onAfterElementMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps> = onElementMount<[]>(
     (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <AnimationPlaceholder>{array}</AnimationPlaceholder>,
   );
 
@@ -646,7 +724,7 @@ export const VerticalAnimationElement = <
   const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
     <Conditional condition={!index && child === getLastNestedElement(child)}>
       {onAfterMountFunction(child)}
-      {onAfterElementMount(child)}
+      {onAfterElementMount(child, index)}
     </Conditional>
   );
 
