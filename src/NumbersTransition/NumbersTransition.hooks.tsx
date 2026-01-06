@@ -77,12 +77,10 @@ export const useValue = (
   const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
   const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
-  values.current =
-    animationInterruptionMode === AnimationInterruptionMode.Continue
-      ? values.current.at(Integer.MinusOne)?.equals(validationTuple)
-        ? values.current
-        : [...values.current, validationTuple]
-      : [validationTuple];
+  // prettier-ignore
+  values.current = animationInterruptionMode === AnimationInterruptionMode.Continue
+    ? values.current.at(Integer.MinusOne)?.equals(validationTuple) ? values.current : [...values.current, validationTuple]
+    : [validationTuple];
 
   const [validValue, isValueValid]: [BigDecimal, boolean] = values.current[Integer.Zero];
 
@@ -92,15 +90,13 @@ export const useValue = (
   const filterDuplicates = ([value]: [BigDecimal, boolean], index: number, array: [BigDecimal, boolean][]): boolean =>
     !index || value !== array[index - Integer.One][Integer.Zero];
 
-  useEffect(
-    (): void =>
-      [
-        (): unknown => (values.current = values.current.slice(Integer.One).filterMulti(filterInvalidValues, filterDuplicates)),
-        (): unknown => values.current.length && rerender(),
-      ]
-        .filterAll(validValue === previousValue || !isValueValid)
-        .forEach(Function.invoke<unknown>),
-    [rerender, previousValue, validValue, isValueValid],
+  useEffect((): void =>
+    [
+      (): unknown => (values.current = values.current.slice(Integer.One).filterMulti(filterInvalidValues, filterDuplicates)),
+      (): unknown => values.current.length && rerender(),
+    ]
+      .filterAll(validValue === previousValue || !isValueValid)
+      .forEach(Function.invoke<unknown>),
   );
 
   return [validValue, isValueValid];
