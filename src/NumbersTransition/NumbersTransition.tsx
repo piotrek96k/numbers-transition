@@ -291,21 +291,20 @@ const NumbersTransition = <
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
-      (): boolean => !Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id),
       (): boolean => numberOfAnimations === AnimationNumber.One,
       (): boolean => numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.FirstToSecond,
       (): boolean => animationTransition !== AnimationTransition.None,
       (): boolean => true,
     ]
-      .zip<TupleOfLength<() => boolean, Integer.Five>, TupleOfLength<(() => void)[], Integer.Five>>([
-        [],
+      .zip<TupleOfLength<() => boolean, Integer.Four>, TupleOfLength<(() => void)[], Integer.Four>>([
         [(): void => setPreviousValueOnEnd(validValue)],
         [(): void => setAnimationTransition(AnimationTransition.SecondToThird)],
         [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       ])
-      .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())!
-      .at<Integer.One>(Integer.One)
+      .filterAll(Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
+      .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())
+      ?.at<Integer.One>(Integer.One)
       .forEach(Function.invoke<void>);
 
   const theme: NumbersTransitionTheme = {
