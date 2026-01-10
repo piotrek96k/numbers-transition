@@ -99,7 +99,7 @@ const mapProperty = (member: MethodOrPropertyDeclaration): Property => ({
   isProperty: isPropertyDeclaration(member),
 });
 
-const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> =>
+export const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> =>
   createSourceFile(
     resolve(extensionsFilePath),
     readFileSync(resolve(extensionsFilePath), Encoding.Utf8),
@@ -119,15 +119,18 @@ const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<strin
       new Map<string, TypeExtension>(),
     );
 
+export const buildConstAliases = (extensionsFilePath: string): Map<string, string> =>
+  new Map<string, string>(
+    Object.values<ConstName>(ConstName).map<[string, string]>((value: ConstName): [string, string] => [
+      value,
+      generateAlias(value, extensionsFilePath),
+    ]),
+  );
+
 export const readConfig = (configPath: string): TypeExtensionsConfig => JSON.parse(readFileSync(resolve(configPath), Encoding.Utf8));
 
 export const buildInternalConfig = ({ tsConfig, extensionsFilePath, extensions }: TypeExtensionsConfig): InternalConfig => ({
   allowedFiles: getAllowedFiles(tsConfig),
   extensionsMap: buildExtensionsMap(extensionsFilePath, extensions),
-  constAliases: new Map<string, string>(
-    Object.values<ConstName>(ConstName).map<[string, string]>((value: ConstName): [string, string] => [
-      value,
-      generateAlias(value, extensionsFilePath),
-    ]),
-  ),
+  constAliases: buildConstAliases(extensionsFilePath),
 });
