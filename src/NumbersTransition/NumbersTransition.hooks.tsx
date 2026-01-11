@@ -129,7 +129,7 @@ interface UseAnimationValuesOptions {
   previousValueOnAnimationStart: BigDecimal;
 }
 
-export type AnimationValues = [[number[], number[]], [bigint, bigint, bigint], [number, number, number]];
+export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, bigint], [number, number, number]];
 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
@@ -141,14 +141,13 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     parseBigDecimal,
   );
 
-  const digits: [number[], number[]] = [characters[Integer.Zero], characters[Integer.Two]].map<number[], [number[], number[]]>(
-    (characters: string): number[] =>
-      [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
+  const digits: [number[], number[], number[]] = characters.map<number[], [number[], number[], number[]]>((characters: string): number[] =>
+    [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
   );
 
   const bigInts: [bigint, bigint, bigint] = characters.map<bigint, [bigint, bigint, bigint]>(BigInt);
 
-  const numbersOfDigits: [number, number, number] = digits
+  const numbersOfDigits: [number, number, number] = [digits[Integer.Zero], digits[Integer.Two]]
     .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(Number.subtract)
     .mapAll<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);

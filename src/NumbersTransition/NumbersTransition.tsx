@@ -169,7 +169,7 @@ const NumbersTransition = <
     useState<AnimationTransition>(AnimationTransition.None);
 
   const [
-    [previousValueOnEndDigits, valueDigits],
+    [previousValueOnEndDigits, previousValueOnStartDigits, valueDigits],
     [previousValueOnEndBigInt, previousValueOnStartBigInt, valueBigInt],
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
   ]: AnimationValues = useAnimationValues({
@@ -374,7 +374,9 @@ const NumbersTransition = <
 
   const valueElement: ReactElement = (
     <Conditional condition={isValueValid}>
-      <NumberElement<M, N, O, P, Q, R, S, T, U, V> {...numberProps}>{previousValueOnEndDigits}</NumberElement>
+      <NumberElement<M, N, O, P, Q, R, S, T, U, V> {...numberProps}>
+        {restartAnimation ? previousValueOnStartDigits : previousValueOnEndDigits}
+      </NumberElement>
       <InvalidElement<M, N, Y, Z>
         invalidValue={invalidValue}
         characterStyledView={characterStyledView}
