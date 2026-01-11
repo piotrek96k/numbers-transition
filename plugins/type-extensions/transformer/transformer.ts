@@ -68,7 +68,7 @@ const transformCode = (
     restImports,
   );
 
-  return { code: newCode };
+  return { code: newCode, map: { mappings: '' } };
 };
 
 export const buildTransformer =
