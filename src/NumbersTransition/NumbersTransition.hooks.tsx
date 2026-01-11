@@ -102,7 +102,18 @@ export const useValue = (
   return [validValue, isValueValid];
 };
 
-const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string) => {
+interface UseAnimationValuesOptions {
+  precision: number;
+  currentValue: BigDecimal;
+  previousValueOnAnimationEnd: BigDecimal;
+  previousValueOnAnimationStart: BigDecimal;
+}
+
+export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, bigint], [number, number, number]];
+
+export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
+  const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
+
   const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
     const [{ bigInt: digits }, { bigInt: restDigits, length }]: [string, string] =
       precision >= Integer.Zero
@@ -119,27 +130,9 @@ const useBigDecimalParser = (precision: number): ((value: BigDecimal) => string)
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
 
-  return (value: BigDecimal): string => `${value}`.split(RegularExpression.DecimalSeparator).mapAll<string>(parseFloatingPoint);
-};
-
-interface UseAnimationValuesOptions {
-  precision: number;
-  currentValue: BigDecimal;
-  previousValueOnAnimationEnd: BigDecimal;
-  previousValueOnAnimationStart: BigDecimal;
-}
-
-export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, bigint], [number, number, number]];
-
-export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
-  const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
-
-  const parseBigDecimal: (value: BigDecimal) => string = useBigDecimalParser(precision);
-
-  // prettier-ignore
-  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue].map<string, [string, string, string]>(
-    parseBigDecimal,
-  );
+  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue]
+    .map<string[], [string[], string[], string[]]>((value: BigDecimal): string[] => `${value}`.split(RegularExpression.DecimalSeparator))
+    .map<string, [string, string, string]>(parseFloatingPoint);
 
   const digits: [number[], number[], number[]] = characters.map<number[], [number[], number[], number[]]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
