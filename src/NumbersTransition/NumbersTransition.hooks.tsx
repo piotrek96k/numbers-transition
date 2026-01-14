@@ -130,7 +130,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
 
-  const characters: [string, string, string] = [previousValueOnAnimationEnd, previousValueOnAnimationStart, currentValue]
+  const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
     .map<string[], [string[], string[], string[]]>((value: BigDecimal): string[] => `${value}`.split(RegularExpression.DecimalSeparator))
     .map<string, [string, string, string]>(parseFloatingPoint);
 
@@ -140,7 +140,8 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   const bigInts: [bigint, bigint, bigint] = characters.map<bigint, [bigint, bigint, bigint]>(BigInt);
 
-  const numbersOfDigits: [number, number, number] = [digits[Integer.Zero], digits[Integer.Two]]
+  const numbersOfDigits: [number, number, number] = digits
+    .slice(Integer.One)
     .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(Number.subtract)
     .mapAll<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);

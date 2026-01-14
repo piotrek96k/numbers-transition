@@ -169,8 +169,8 @@ const NumbersTransition = <
     useState<AnimationTransition>(AnimationTransition.None);
 
   const [
-    [previousValueOnEndDigits, previousValueOnStartDigits, valueDigits],
-    [previousValueOnEndBigInt, previousValueOnStartBigInt, valueBigInt],
+    [previousValueOnStartDigits, previousValueOnEndDigits, valueDigits],
+    [previousValueOnStartBigInt, previousValueOnEndBigInt, valueBigInt],
     [minNumberOfDigits, maxNumberOfDigits, numberOfDigitsDifference],
   ]: AnimationValues = useAnimationValues({
     precision,
