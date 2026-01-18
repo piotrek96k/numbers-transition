@@ -68,10 +68,9 @@ export class List<T> extends Value<T[]> {
     return Array.depth<unknown>(array) === depth;
   }
 
-  // prettier-ignore
   public static depth<T>(array: T): number {
     return Array.isArray<T>(array)
-      ? Integer.One + array.map<number>(Array.depth).reduce((current: number, next: number): number => (current === next ? next : Number.NaN))
+      ? Integer.One + array.map<number>(Array.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
       : Integer.Zero;
   }
 
