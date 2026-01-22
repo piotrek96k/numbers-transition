@@ -7,9 +7,9 @@ updates:
     versioning-strategy: 'increase'
     open-pull-requests-limit: 5
     groups:
-      dependencies:
+      storybook:
         patterns:
-          - '*'
+          - '*storybook*'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
