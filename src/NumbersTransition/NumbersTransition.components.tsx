@@ -220,8 +220,16 @@ interface SeparatorProps<S extends object, T, U extends object, V, W extends obj
   digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, Y, Z>;
 }
 
-interface SeparatorElementProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
-  extends SeparatorProps<S, T, U, V, W, X, Y, Z> {
+interface SeparatorElementProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> extends SeparatorProps<
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y,
+  Z
+> {
   getCharacterSeparatorIndex: CharacterIndexFunction;
   getSeparatorIndex: CharacterIndexFunction;
   getDigitGroupSeparatorIndex: CharacterIndexFunction;
@@ -383,13 +391,33 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   );
 };
 
-export interface NumberProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
-  extends SeparatorProps<Q, R, U, V, W, X, Y, Z> {
+export interface NumberProps<
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> extends SeparatorProps<Q, R, U, V, W, X, Y, Z> {
   digitStyledView: StyledViewWithProps<Styled.Digit, S, T>;
 }
 
-interface NumberElementProps<Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>
-  extends NumberProps<Q, R, S, T, U, V, W, X, Y, Z> {
+interface NumberElementProps<
+  Q extends object,
+  R,
+  S extends object,
+  T,
+  U extends object,
+  V,
+  W extends object,
+  X,
+  Y extends object,
+  Z,
+> extends NumberProps<Q, R, S, T, U, V, W, X, Y, Z> {
   mapToElement?: ElementKeyMapper<ReactElement<ChildrenProps>>[];
   children: OrArray<number[]>;
   enclose?: (children: ReactElement<ChildrenProps>[]) => ReactNode;
@@ -474,8 +502,8 @@ export interface AnimationProps<
   X,
   Y extends object,
   Z,
-> extends NegativeProps<Y, Z>,
-    NumberProps<O, P, Q, R, S, T, U, V, W, X> {
+>
+  extends NegativeProps<Y, Z>, NumberProps<O, P, Q, R, S, T, U, V, W, X> {
   identifier: string;
   previousValue: bigint;
   currentValue: bigint;
