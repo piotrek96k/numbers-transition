@@ -34,7 +34,7 @@
     "@storybook/addon-onboarding": "^10.1.11",
     "@storybook/react-vite": "^10.1.11",
     "@types/node": "^25.0.10",
-    "@types/react": "^19.2.7",
+    "@types/react": "^19.2.9",
     "@types/react-dom": "^19.2.3",
     "@typescript-eslint/eslint-plugin": "^8.53.1",
     "@typescript-eslint/parser": "^8.48.1",
