@@ -7,6 +7,7 @@ import styled, {
   Keyframes,
   RuleSet,
   StyledComponent,
+  StyledHTMLAttributes,
   css,
   keyframes,
 } from 'styled-components';
@@ -429,8 +430,8 @@ const animationFactory =
     );
 
 const attributesFactory =
-  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => HTMLAttributes<HTMLDivElement>) =>
-  <U extends object, V>(props: Props<T, U, V>): HTMLAttributes<HTMLDivElement> => ({
+  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => StyledHTMLAttributes<HTMLDivElement>) =>
+  <U extends object, V>(props: Props<T, U, V>): StyledHTMLAttributes<HTMLDivElement> => ({
     style: { ...props.style, ...styleFactory(props[`${styledComponent}${ViewKey.Style.capitalize<ViewKey.Style>()}`], props) },
     className: [props.className, classNameFactory(props[`${styledComponent}${ViewKey.ClassName.capitalize<ViewKey.ClassName>()}`], props)]
       .filter<string>((className: Optional<string>): className is string => !!className)
@@ -551,8 +552,7 @@ export const Separator: SeparatorStyledComponent = styled<CharacterStyledCompone
 `;
 
 interface DecimalSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
-  extends SeparatorProps<T, U, V, W>,
-    StyledView<Styled.DecimalSeparator, X, Y> {}
+  extends SeparatorProps<T, U, V, W>, StyledView<Styled.DecimalSeparator, X, Y> {}
 
 type DecimalSeparatorStyledComponent = AttributesStyledComponent<
   SeparatorStyledComponent,
@@ -568,8 +568,7 @@ export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<Separato
 `;
 
 interface DigitGroupSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
-  extends SeparatorProps<T, U, V, W>,
-    StyledView<Styled.DigitGroupSeparator, X, Y> {}
+  extends SeparatorProps<T, U, V, W>, StyledView<Styled.DigitGroupSeparator, X, Y> {}
 
 type DigitGroupSeparatorStyledComponent = AttributesStyledComponent<
   SeparatorStyledComponent,
@@ -585,9 +584,7 @@ export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<Se
 `;
 
 interface NegativeProps<T extends object, U, V extends object, W>
-  extends VisibilityProps,
-    CharacterProps<T, U>,
-    StyledView<Styled.Negative, V, W> {}
+  extends VisibilityProps, CharacterProps<T, U>, StyledView<Styled.Negative, V, W> {}
 
 type NegativeStyledComponent = AttributesStyledComponent<
   CharacterStyledComponent,
