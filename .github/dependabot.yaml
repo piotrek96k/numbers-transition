@@ -7,6 +7,7 @@ updates:
     versioning-strategy: 'increase'
     open-pull-requests-limit: 5
     allow:
+      - dependency-type: 'direct'
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
       - dependency-name: 'styled-components'
