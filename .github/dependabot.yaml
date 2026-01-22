@@ -6,6 +6,10 @@ updates:
       interval: 'daily'
     versioning-strategy: 'increase'
     open-pull-requests-limit: 5
+    allow:
+      - dependency-name: 'react'
+      - dependency-name: 'react-dom'
+      - dependency-name: 'styled-components'
     groups:
       storybook:
         patterns:
