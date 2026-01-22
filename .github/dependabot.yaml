@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'daily'
+    versioning-strategy: 'increase'
+    open-pull-requests-limit: 5
+    groups:
+      storybook:
+        patterns:
+          - '*storybook*'
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'daily'
