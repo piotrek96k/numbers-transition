@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: 'daily'
     versioning-strategy: 'increase'
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 10
     allow:
       - dependency-type: 'direct'
       - dependency-name: 'react'
