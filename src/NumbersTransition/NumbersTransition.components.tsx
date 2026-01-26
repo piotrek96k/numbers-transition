@@ -220,16 +220,8 @@ interface SeparatorProps<S extends object, T, U extends object, V, W extends obj
   digitGroupSeparatorStyledView: StyledViewWithProps<Styled.DigitGroupSeparator, Y, Z>;
 }
 
-interface SeparatorElementProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> extends SeparatorProps<
-  S,
-  T,
-  U,
-  V,
-  W,
-  X,
-  Y,
-  Z
-> {
+// prettier-ignore
+interface SeparatorElementProps<S extends object, T, U extends object, V, W extends object, X, Y extends object, Z> extends SeparatorProps<S, T, U, V, W, X, Y, Z> {
   getCharacterSeparatorIndex: CharacterIndexFunction;
   getSeparatorIndex: CharacterIndexFunction;
   getDigitGroupSeparatorIndex: CharacterIndexFunction;
