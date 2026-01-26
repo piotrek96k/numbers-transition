@@ -9,20 +9,16 @@ import type {
   ReactNode,
 } from 'react';
 import type { CSSProperties, FastOmit, IStyledComponent, SupportedHTMLElements } from 'styled-components';
-import type { Runtime } from './NumbersTransition/NumbersTransition.enums';
+import type { Runtime, Text } from './NumbersTransition/NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
 import type { Nullable, Optional } from './NumbersTransition/NumbersTransition.types';
 
 declare module 'styled-components' {
   export type BaseObject = {};
-  export type CSSPropertiesWithVars = CSSProperties & { [key: `--${string}`]: Optional<string | number> };
-  export type StyledHTMLAttributes<T> = HTMLAttributes<T> & { style: CSSPropertiesWithVars };
   export interface DefaultTheme extends NumbersTransitionTheme {}
 
-  export interface Keyframes {
-    id: string;
-    name: string;
-    rules: string;
+  interface CSSPropertiesWithVars extends CSSProperties {
+    [key: `${Text.Minus}${Text.Minus}${string}`]: Optional<string | number>;
   }
 
   interface ExoticComponentWithDisplayName<T extends BaseObject = {}> extends ExoticComponent<T> {
@@ -43,6 +39,16 @@ declare module 'styled-components' {
   export type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
     Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
   >;
+
+  export interface StyledHTMLAttributes<T> extends HTMLAttributes<T> {
+    style: CSSPropertiesWithVars;
+  }
+
+  export interface Keyframes {
+    id: string;
+    name: string;
+    rules: string;
+  }
 
   export interface ThemeProviderProps {
     children?: ReactNode;
