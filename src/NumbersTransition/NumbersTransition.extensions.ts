@@ -101,10 +101,10 @@ export class List<T> extends Value<T[]> {
     return mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
   }
 
-  public zip<U>(array: U[]): Zip<T[], U[]> {
+  public zip<U>({ length, ...array }: U[]): Zip<T[], U[]> {
     return this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
       ...Array.toArray<T>(value),
-      ...((array[index] === undefined ? [] : [array[index]]) satisfies [] | [U]),
+      ...((index < length ? [array[index]] : []) satisfies [U] | []),
     ]);
   }
 }
