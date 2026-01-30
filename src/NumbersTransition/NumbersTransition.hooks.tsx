@@ -654,7 +654,6 @@ interface UseRenderNegativeElementOptions {
   animationTransition: AnimationTransition;
   previousValue: bigint;
   currentValue: bigint;
-  isValueValid: boolean;
   hasSignChanged: boolean;
   renderAnimation: boolean;
   numberOfAnimations: AnimationNumber;
@@ -667,7 +666,6 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
     animationTransition,
     previousValue,
     currentValue,
-    isValueValid,
     hasSignChanged,
     renderAnimation,
     numberOfAnimations,
@@ -686,7 +684,7 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
     previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
   const renderNegativeElement: boolean =
-    (isValueValid && !hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+    (!hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
     renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   return renderNegativeElement;

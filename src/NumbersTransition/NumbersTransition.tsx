@@ -266,7 +266,6 @@ const NumbersTransition = <
     animationTransition,
     previousValue: previousValueOnEndBigInt,
     currentValue: valueBigInt,
-    isValueValid,
     hasSignChanged,
     renderAnimation,
     numberOfAnimations,
@@ -372,27 +371,37 @@ const NumbersTransition = <
     </Conditional>
   );
 
-  const valueElement: ReactElement = (
-    <Conditional condition={isValueValid}>
-      <NumberElement<M, N, O, P, Q, R, S, T, U, V> {...numberProps}>
-        {restartAnimation ? previousValueOnStartDigits : previousValueOnEndDigits}
-      </NumberElement>
-      <InvalidElement<M, N, Y, Z>
-        invalidValue={invalidValue}
-        characterStyledView={characterStyledView}
-        invalidStyledView={invalidStyledView}
-      />
-    </Conditional>
+  const numberElement: ReactElement = (
+    <NumberElement<M, N, O, P, Q, R, S, T, U, V> {...numberProps}>
+      {restartAnimation ? previousValueOnStartDigits : previousValueOnEndDigits}
+    </NumberElement>
   );
 
-  const containerElement: ReactElement = (
-    <Container {...styledView} onAnimationEnd={onAnimationEnd}>
+  const validElement: ReactElement = (
+    <>
       <Show condition={renderNegativeElement}>
         <NegativeElement<M, N, W, X> {...negativeProps} characterStyledView={characterStyledView} />
       </Show>
       <Conditional condition={renderAnimation}>
         {animationElement}
-        {valueElement}
+        {numberElement}
+      </Conditional>
+    </>
+  );
+
+  const invalidElement: ReactElement = (
+    <InvalidElement<M, N, Y, Z>
+      invalidValue={invalidValue}
+      characterStyledView={characterStyledView}
+      invalidStyledView={invalidStyledView}
+    />
+  );
+
+  const containerElement: ReactElement = (
+    <Container {...styledView} onAnimationEnd={onAnimationEnd}>
+      <Conditional condition={isValueValid}>
+        {validElement}
+        {invalidElement}
       </Conditional>
     </Container>
   );
