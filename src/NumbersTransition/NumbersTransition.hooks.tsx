@@ -1034,10 +1034,10 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 
   const getElementWidth = useCallback<(element: HTMLElement) => number>(
     (element: HTMLElement): number =>
-      element.offsetWidth +
       [getComputedStyle(element)]
         .flatMap<string>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
         .map<number>(parseFloat)
+        .append(element.getBoundingClientRect().width)
         .reduce(Number.sum),
     [],
   );
