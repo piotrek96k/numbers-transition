@@ -97,4 +97,8 @@ declare global {
       ...args: V | W
     ): ReturnType<T> | U;
   }
+
+  interface Math {
+    roundTo(value: number, precision: number): number;
+  }
 }

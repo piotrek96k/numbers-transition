@@ -118,3 +118,9 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Value<T> 
     return typeof callback === 'function' ? callback(...args) : callback;
   }
 }
+
+export class Calc extends Value<never> {
+  public static roundTo(value: number, precision: number): number {
+    return Math.round(value * Integer.Ten ** precision) / Integer.Ten ** precision;
+  }
+}

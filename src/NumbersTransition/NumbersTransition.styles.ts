@@ -17,6 +17,7 @@ import {
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
+  Color,
   CssSyntax,
   CssUnit,
   Display,
@@ -444,7 +445,7 @@ interface VisibilityProps {
 
 // prettier-ignore
 const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
-  [css<object>`opacity: ${Integer.Zero};`].filterAll(!visible).at(Integer.Zero);
+  [css<object>`color: ${Color.Transparent};`].filterAll(!visible).at(Integer.Zero);
 
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 
@@ -505,7 +506,6 @@ export const AnimationPlaceholder: AnimationPlaceholderStyledComponent = styled.
   display: ${Display.InlineFlex};
   flex-direction: ${({ theme: { animationDirection } }: NumbersTransitionExecutionContext): FlexDirection =>
     animationDirection === AnimationDirection.Normal ? FlexDirection.Column : FlexDirection.ColumnReverse};
-  height: ${Size.Inherit};
   > * {
     display: ${Display.Block};
   }

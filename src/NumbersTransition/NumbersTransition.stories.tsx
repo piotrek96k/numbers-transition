@@ -11,6 +11,8 @@ import {
   AnimationNumber,
   AnimationTimingFunction,
   AnimationType,
+  BorderStyle,
+  BoxSizing,
   Color,
   CssUnit,
   DecimalSeparatorCharacter,
@@ -23,12 +25,15 @@ import {
   Text,
   VariableName,
 } from './NumbersTransition.enums';
-import type {
+import {
   Animation,
   AnimationFactory,
+  Character,
   CssRuleFactory,
+  HorizontalAnimation,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
+  VerticalAnimation,
 } from './NumbersTransition.styles';
 import type { EnumType, EnumValue, Falsy, Remove, Select } from './NumbersTransition.types';
 
@@ -139,6 +144,34 @@ const marginCss: RuleSet<object> = css<object>`
 const marginArgs: ComponentProps<NumbersTransitionProps> = { ...basicEffectArgs, view: { css: marginCss } };
 
 export const Margin: Story = { argTypes, args: marginArgs };
+
+const border: string = `${Integer.Three}${CssUnit.Pixel} ${BorderStyle.Solid} ${Color.Blue}`;
+
+const borderCss: RuleSet<object> = css<object>`
+  ${basicEffectCss}
+  height: calc(${Integer.One}${CssUnit.LineHeight} + ${Integer.Six}${CssUnit.Pixel});
+  > * {
+    border-top: ${border};
+  }
+  > :first-child {
+    border-left: ${border};
+  }
+  > *,
+  ${HorizontalAnimation} > * :not(:last-child) {
+    border-right: ${border};
+  }
+  ${Character},
+  ${VerticalAnimation} {
+    border-bottom: ${border};
+  }
+  ${VerticalAnimation} {
+    box-sizing: ${BoxSizing.BorderBox};
+  }
+`;
+
+const borderArgs: ComponentProps<NumbersTransitionProps> = { ...basicEffectArgs, view: { css: borderCss } };
+
+export const Border: Story = { argTypes, args: borderArgs };
 
 const opacityKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
   opacity: ${keyframeValue};

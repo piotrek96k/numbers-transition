@@ -111,8 +111,18 @@ export enum WhiteSpace {
   Pre = 'pre',
 }
 
+export enum BoxSizing {
+  BorderBox = 'border-box',
+}
+
+export enum BorderStyle {
+  Solid = 'solid',
+}
+
 export enum Color {
+  Blue = '#036CDB',
   Yellow = '#f0ff95',
+  Transparent = 'transparent',
 }
 
 export enum AnimationFillMode {
@@ -224,7 +234,8 @@ export enum Integer {
   Three,
   Four,
   Five,
-  Seven = 7,
+  Six,
+  Seven,
   Eight,
   Nine,
   Ten,

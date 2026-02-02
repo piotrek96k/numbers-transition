@@ -889,16 +889,17 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   // prettier-ignore
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
-      .mapMulti<
-        [TupleOfLength<number, Integer.Four>, number[][], number[][]],
+        .mapMulti<
+          [TupleOfLength<number, Integer.Four>, number[][], number[][]],
         [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
-      >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
-      .flat<[[number[], number[]]], Integer.One>()
-      .reduce(solveCubicBezier)
-      .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
-      .sort(Number.subtract)
-      .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
-      .map<number>(cubicBezierFunction(xAxisPoints));
+        >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
+        .flat<[[number[], number[]]], Integer.One>()
+        .reduce(solveCubicBezier)
+        .map<number>((value: number): number => Math.roundTo(value,Integer.Six))
+        .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
+        .sort(Number.subtract)
+        .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
+        .map<number>(cubicBezierFunction(xAxisPoints));
 
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
     easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
@@ -942,16 +943,26 @@ export const useNegativeElementAnimationTimingFunction = (
       input,
     );
 
-  const mapToLinear = (solution: number, index: number): LinearEasingFunction[number][] =>
-    [...Array<unknown>(Integer.Two).keys()].map<LinearEasingFunction[number]>((value: number): LinearEasingFunction[number] => [
-      (index + value) % Integer.Two,
-      solution * Integer.OneHundred,
-    ]);
+  const mapToLinear =
+    (increment: number): ((solution: number, index: number) => [number, number][]) =>
+    (solution: number, index: number): [number, number][] =>
+      [...Array<unknown>(Integer.Two).keys()].map<[number, number]>((value: number): [number, number] => [
+        increment ^ ((index + value) % Integer.Two) ? Integer.One / animationVisibilities.length : (index + value) % Integer.Two,
+        solution * Integer.OneHundred,
+      ]);
 
-  const input: number = animationVisibilities.lastIndexOf(true) / (animationVisibilities.length - Integer.One);
-  const solutions: number[] = negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single ? solve(input) : [Integer.Zero];
+  const inputs: number[] =
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single
+      ? [animationVisibilities.lastIndexOf(true), animationVisibilities.indexOf(false)]
+      : [];
 
-  return [Integer.Zero, ...solutions.flatMap<LinearEasingFunction[number]>(mapToLinear), Integer.One];
+  const points: [number, number][] = inputs
+    .map<number>((input: number): number => input / (animationVisibilities.length - Integer.One))
+    .map<number[]>(solve)
+    .flatMap<[number, number]>((vals: number[], index: number): [number, number][] => vals.flatMap<[number, number]>(mapToLinear(index)))
+    .sort(([, first]: [number, number], [, second]: [number, number]): number => first - second);
+
+  return [Integer.Zero, ...points, Integer.One];
 };
 
 interface UseHorizontalAnimationDigitsOptions {

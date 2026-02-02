@@ -356,29 +356,30 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     mapToNegativeElement, mapToThemeProviderElement,
   );
 
-  const verticalAnimationElement: ReactElement<ChildrenProps> = (
-    <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
-      <VerticalAnimation>
-        <div>{negativeElements}</div>
-      </VerticalAnimation>
-    </ThemeProvider>
+  const negativeElementProps: NegativeElementProps<T, U, V, W> = { negativeCharacter, characterStyledView, negativeCharacterStyledView };
+
+  const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
+    <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Three }}>
+      <div>
+        <NegativeElement<T, U, V, W> {...negativeElementProps} />
+        {animation}
+        <NegativeElement<T, U, V, W> {...negativeElementProps} visible={false} />
+      </div>
+    </VerticalAnimation>
   );
 
   return (
     <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
-      <Conditional condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}>
-        <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Two }}>
-          <div>
-            <NegativeElement<T, U, V, W>
-              negativeCharacter={negativeCharacter}
-              characterStyledView={characterStyledView}
-              negativeCharacterStyledView={negativeCharacterStyledView}
-            />
-            {verticalAnimationElement}
-          </div>
-        </VerticalAnimation>
-        {verticalAnimationElement}
-      </Conditional>
+      <Enclose<ReactElement<ChildrenProps>>
+        condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}
+        enclose={encloseAnimation}
+      >
+        <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
+          <VerticalAnimation>
+            <div>{negativeElements}</div>
+          </VerticalAnimation>
+        </ThemeProvider>
+      </Enclose>
     </Enclose>
   );
 };
