@@ -18,6 +18,7 @@ import {
   AnimationDuration,
   ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
+  UnknownAnimationTimingFunction,
   View,
 } from './NumbersTransition/NumbersTransition.hooks';
 import {
@@ -98,6 +99,7 @@ export type {
   StyleFactory,
   TotalAnimationDuration,
   UncheckedBigDecimal,
+  UnknownAnimationTimingFunction,
   View,
 };
 

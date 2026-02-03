@@ -7,6 +7,7 @@ import {
   isIdentifier,
   isNewExpression,
   isNumericLiteral,
+  isObjectLiteralExpression,
   isRegularExpressionLiteral,
   isStringLiteral,
   isTemplateLiteral,
@@ -24,6 +25,7 @@ const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsTyp
   [JsType.String, [isStringLiteral, isTemplateLiteral]],
   [JsType.RegExp, [isRegularExpressionLiteral]],
   [JsType.Array, [isArrayLiteralExpression]],
+  [JsType.Object, [isObjectLiteralExpression, isArrayLiteralExpression, isNewExpression]],
 ]);
 
 const isConstructorCall = (node: Node, type: JsType): boolean =>

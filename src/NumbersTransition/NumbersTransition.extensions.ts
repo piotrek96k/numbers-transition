@@ -93,10 +93,6 @@ export class List<T> extends Value<T[]> {
     );
   }
 
-  public mapAll<U>(mapper: (array: T[]) => U): U {
-    return mapper(this.value);
-  }
-
   public mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
     return mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
   }
@@ -106,6 +102,16 @@ export class List<T> extends Value<T[]> {
       ...Array.toArray<T>(value),
       ...((index < length ? [array[index]] : []) satisfies [U] | []),
     ]);
+  }
+}
+
+export class Struct<T extends object> extends Value<T> {
+  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
+    return predicate(this.value);
+  }
+
+  public pipe<U>(mapper: (value: T) => U): U {
+    return mapper(this.value);
   }
 }
 

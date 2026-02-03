@@ -45,8 +45,8 @@ import {
   AnimationDuration,
   AnimationLogic,
   AnimationValues,
-  ExtendedAnimationTimingFunction,
   TotalAnimationDuration,
+  UnknownAnimationTimingFunction,
   View,
   ViewTuple,
   useAnimationDirection,
@@ -64,7 +64,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import type { BigDecimal, OrReadOnly, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import type { BigDecimal, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -92,7 +92,7 @@ export interface NumbersTransitionProps<
   negativeCharacter?: NegativeCharacter;
   negativeCharacterAnimationMode?: NegativeCharacterAnimationMode;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
-  animationTimingFunction?: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
+  animationTimingFunction?: UnknownAnimationTimingFunction;
   animationInterruptionMode?: AnimationInterruptionMode;
   animationAlgorithm?: AnimationAlgorithm;
   optimizationStrategy?: OptimizationStrategy;

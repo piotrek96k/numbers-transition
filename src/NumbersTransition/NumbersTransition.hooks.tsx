@@ -82,7 +82,8 @@ export const useValue = (
     ? values.current.at(Integer.MinusOne)?.equals(validationTuple) ? values.current : [...values.current, validationTuple]
     : [validationTuple];
 
-  const [validValue, isValueValid]: [BigDecimal, boolean] = values.current[Integer.Zero];
+  // prettier-ignore
+  const { current: [[validValue, isValueValid]] }: RefObject<[BigDecimal, boolean][]> = values;
 
   const filterInvalidValues = ([, isValid]: [BigDecimal, boolean], index: number, { length }: [BigDecimal, boolean][]): boolean =>
     isValid || index === length - Integer.One;
@@ -144,7 +145,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     .slice(Integer.One)
     .map<number, [number, number]>(({ length }: number[]): number => length)
     .sort(Number.subtract)
-    .mapAll<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);
+    .pipe<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);
 
   return [digits, bigInts, numbersOfDigits];
 };
@@ -370,8 +371,10 @@ export interface ExtendedAnimationTimingFunction {
   verticalAnimation: OrReadOnly<EasingFunction>;
 }
 
+export type UnknownAnimationTimingFunction = OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
+
 interface UseAnimationTimingFunctionOptions {
-  animationTimingFunction?: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
+  animationTimingFunction?: UnknownAnimationTimingFunction;
   animationType: AnimationType;
   animationDirection: AnimationDirection;
 }
@@ -388,17 +391,16 @@ export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOp
   const fixCubicBezierDirection: FixDirection<CubicBezierEasingFunction> = useCubicBezierDirection(animationDirection);
   const fixStepsDirection: FixDirection<StepsEasingFunction> = useStepsDirection(animationDirection);
 
-  const isExtendedAnimationTimingFunction = (
-    animationTimingFunction: OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction,
-  ): animationTimingFunction is ExtendedAnimationTimingFunction =>
-    Object.keys(animationTimingFunction).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
+  const isExtendedAnimationTimingFunction = (value: UnknownAnimationTimingFunction): value is ExtendedAnimationTimingFunction =>
+    Object.keys(value).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
 
-  const {
-    [animationType === AnimationType.Horizontal ? AnimationKey.HorizontalAnimation : AnimationKey.VerticalAnimation]:
-      easingFunction = AnimationTimingFunction.Ease,
-  }: ExtendedAnimationTimingFunction = isExtendedAnimationTimingFunction(animationTimingFunction)
-    ? animationTimingFunction
-    : { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction };
+  const animationKey: AnimationKey =
+    animationType === AnimationType.Horizontal ? AnimationKey.HorizontalAnimation : AnimationKey.VerticalAnimation;
+
+  const { [animationKey]: easingFunction = AnimationTimingFunction.Ease }: ExtendedAnimationTimingFunction =
+    animationTimingFunction.matches<UnknownAnimationTimingFunction, ExtendedAnimationTimingFunction>(isExtendedAnimationTimingFunction)
+      ? animationTimingFunction
+      : { horizontalAnimation: animationTimingFunction, verticalAnimation: animationTimingFunction };
 
   // prettier-ignore
   return mapEasingFunction<EasingFunction, OrReadOnly<LinearEasingFunction>, OrReadOnly<CubicBezierEasingFunction>, OrReadOnly<StepsEasingFunction>>(
@@ -417,10 +419,6 @@ export interface TotalAnimationDuration {
   ratio?: number;
 }
 
-type AnimationDurationMapper =
-  | ((animationDuration: AnimationDuration) => [number, number])
-  | ((animationDuration: TotalAnimationDuration) => [number, number]);
-
 interface UseAnimationDurationOptions {
   animationType: AnimationType;
   animationDuration?: AnimationDuration | TotalAnimationDuration;
@@ -430,9 +428,9 @@ interface UseAnimationDurationOptions {
 export const useAnimationDuration = (options: UseAnimationDurationOptions): TupleOfLength<number, Integer.Four> => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
-  const isAnimationDuration = (animationDuration: AnimationDuration | TotalAnimationDuration): animationDuration is AnimationDuration =>
-    !Object.keys(animationDuration).length ||
-    Object.keys(animationDuration).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
+  const isAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): value is AnimationDuration =>
+    !Object.keys(value).length ||
+    Object.keys(value).some((key: string): boolean => Object.values<AnimationKey>(AnimationKey).includes<string>(key));
 
   const fromAnimationDuration = ({
     horizontalAnimation = Integer.TwoThousand,
@@ -454,12 +452,15 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
     ]);
 
-  const mapAnimationDuration: AnimationDurationMapper = isAnimationDuration(animationDuration)
-    ? fromAnimationDuration
-    : fromTotalAnimationDuration;
+  const mapAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): [number, number] =>
+    value.matches<AnimationDuration | TotalAnimationDuration, AnimationDuration>(isAnimationDuration)
+      ? fromAnimationDuration(value)
+      : fromTotalAnimationDuration(value);
 
   const [horizontalAnimationDuration, verticalAnimationDuration] =
-    numberOfAnimations === AnimationNumber.Zero ? [Integer.Zero, Integer.Zero] : mapAnimationDuration(animationDuration);
+    numberOfAnimations === AnimationNumber.Zero
+      ? [Integer.Zero, Integer.Zero]
+      : animationDuration.pipe<AnimationDuration | TotalAnimationDuration, [number, number]>(mapAnimationDuration);
 
   const currentAnimationDuration: number = Object.values<AnimationType>(AnimationType)
     .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>([
@@ -786,7 +787,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
   const findIntervals = (outputValue: number): ((acc: [number, number][][], tuple: [number, number], index: number, array: [number, number][]) => [number, number][][]) =>
     (accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
       ...accumulator,
-      ...[array[index - Integer.One], array[index]].mapAll<[number, number][][]>(findInterval(index, outputValue)),
+      ...[array[index - Integer.One], array[index]].pipe<[number, number][][]>(findInterval(index, outputValue)),
     ];
 
   // prettier-ignore
@@ -1034,8 +1035,8 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 
   const getElementWidth = useCallback<(element: HTMLElement) => number>(
     (element: HTMLElement): number =>
-      [getComputedStyle(element)]
-        .flatMap<string>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
+      getComputedStyle(element)
+        .pipe<CSSStyleDeclaration, string[]>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
         .map<number>(parseFloat)
         .append(element.getBoundingClientRect().width)
         .reduce(Number.sum),
@@ -1081,7 +1082,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     [previousValue, currentValue]
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : (first > second).int))
-      .mapAll<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
+      .pipe<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
         end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
 
@@ -1100,7 +1101,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
       .mapMulti<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
-      .mapAll<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
+      .pipe<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);

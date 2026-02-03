@@ -30,11 +30,6 @@ declare global {
     testAny<T>(unknown: unknown): unknown is T;
   }
 
-  interface ObjectConstructor {
-    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
-    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
-  }
-
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
@@ -59,7 +54,6 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
-    mapAll<U>(mapper: (array: this) => U): U;
     mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
     mapMulti<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
       ...mappers: {
@@ -70,6 +64,7 @@ declare global {
         ) => U[I];
       }
     ): V extends [...unknown[], infer W] ? W : never;
+    pipe<U>(mapper: (array: this) => U): U;
     reduce(
       callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T extends unknown[] ? T[number][] : T,
     ): T extends unknown[] ? T[number][] : T;
@@ -87,6 +82,16 @@ declare global {
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly T[]) => U,
       initialValue: U,
     ): V;
+  }
+
+  interface ObjectConstructor {
+    values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
+    values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
+  }
+
+  interface Object {
+    matches<T extends object, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
+    pipe<T extends object, U>(this: T, mapper: (value: T) => U): U;
   }
 
   interface FunctionConstructor {

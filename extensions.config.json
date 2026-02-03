@@ -8,6 +8,7 @@
     "CharSequence": { "type": "String", "typeCheck": "typeof VALUE === 'string' || VALUE instanceof String" },
     "Pattern": { "type": "RegExp", "typeCheck": "VALUE instanceof RegExp" },
     "List": { "type": "Array", "typeCheck": "Array.isArray(VALUE)" },
+    "Struct": { "type": "Object", "typeCheck": "typeof VALUE === 'object' && VALUE !== null" },
     "Method": { "type": "Function", "typeCheck": "typeof VALUE === 'function'" },
     "Calc": { "type": "Math", "typeCheck": "false" }
   }
