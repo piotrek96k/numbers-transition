@@ -45,8 +45,7 @@ declare global {
     at(index: number): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
     equals<U>(array: U[]): boolean;
-    filterAll(predicate: unknown): T[];
-    filterMulti(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
+    filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
@@ -54,8 +53,8 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
-    mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
-    mapMulti<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
+    mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
+    mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
       ...mappers: {
         [I in keyof U]: (
           value: PreviousElement<V, this, I> extends Array<infer W> ? W : never,
@@ -72,6 +71,7 @@ declare global {
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U,
       initialValue: U,
     ): V;
+    when(predicate: unknown): T[];
     zip<U extends unknown[]>(array: U): Zip<this, U>;
     zip<U extends this, V extends unknown[]>(array: V): Zip<U, V>;
   }

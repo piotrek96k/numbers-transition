@@ -93,10 +93,10 @@ export const useValue = (
 
   useEffect((): void =>
     [
-      (): unknown => (values.current = values.current.slice(Integer.One).filterMulti(filterInvalidValues, filterDuplicates)),
+      (): unknown => (values.current = values.current.slice(Integer.One).filterEach(filterInvalidValues, filterDuplicates)),
       (): unknown => values.current.length && rerender(),
     ]
-      .filterAll(validValue === previousValue || !isValueValid)
+      .when(validValue === previousValue || !isValueValid)
       .forEach(Function.invoke<unknown>),
   );
 
@@ -890,7 +890,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   // prettier-ignore
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
-        .mapMulti<
+        .mapEach<
           [TupleOfLength<number, Integer.Four>, number[][], number[][]],
         [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
         >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
@@ -1100,7 +1100,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
-      .mapMulti<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
+      .mapEach<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
       .pipe<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>

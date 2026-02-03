@@ -82,19 +82,19 @@ export class List<T> extends Value<T[]> {
     return this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
   }
 
-  public filterAll(predicate: unknown): T[] {
-    return predicate ? this.value : [];
-  }
-
-  public filterMulti(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] {
+  public filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] {
     return predicates.reduce<T[]>(
       (array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T[] => array.filter(predicate),
       this.value,
     );
   }
 
-  public mapMulti(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
+  public mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
     return mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
+  }
+
+  public when(predicate: unknown): T[] {
+    return predicate ? this.value : [];
   }
 
   public zip<U>({ length, ...array }: U[]): Zip<T[], U[]> {

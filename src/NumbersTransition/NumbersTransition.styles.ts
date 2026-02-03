@@ -411,8 +411,8 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
 ): Optional<RuleSet<object>> =>
   Array.toArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation)
-    .filterAll(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation)
-    .mapMulti<[Partial<Animation<U, V>> | Falsy, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
+    .when(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation)
+    .mapEach<[Partial<Animation<U, V>> | Falsy, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
       createViewFactoryMapper<T, U, Animation<U, V>>(props),
       mapAnimationFalsyValue<U, V>,
       mapAnimation<U, V>,
@@ -421,7 +421,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
 
 // prettier-ignore
 const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
-  [css<object>`animation-name: ${animationsKeyframes};`].filterAll(animationsKeyframes).at(Integer.Zero);
+  [css<object>`animation-name: ${animationsKeyframes};`].when(animationsKeyframes).at(Integer.Zero);
 
 const animationFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
@@ -445,7 +445,7 @@ interface VisibilityProps {
 
 // prettier-ignore
 const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
-  [css<object>`color: ${Color.Transparent};`].filterAll(!visible).at(Integer.Zero);
+  [css<object>`color: ${Color.Transparent};`].when(!visible).at(Integer.Zero);
 
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 

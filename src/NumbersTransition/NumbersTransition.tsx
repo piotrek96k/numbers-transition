@@ -273,14 +273,14 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => [(): void => setPreviousValueOnEnd(validValue)].filterAll(omitAnimation).forEach(Function.invoke<void>),
+    (): void => [(): void => setPreviousValueOnEnd(validValue)].when(omitAnimation).forEach(Function.invoke<void>),
     [validValue, omitAnimation],
   );
 
   useEffect(
     (): void =>
       [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
-        .filterAll(restartAnimation)
+        .when(restartAnimation)
         .append<() => unknown>((): unknown => (previousValueOnStart.current = validValue))
         .forEach(Function.invoke<unknown>),
     [validValue, restartAnimation],
@@ -301,7 +301,7 @@ const NumbersTransition = <
         [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       ])
-      .filterAll(Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
+      .when(Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
       .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())
       ?.at<Integer.One>(Integer.One)
       .forEach(Function.invoke<void>);
