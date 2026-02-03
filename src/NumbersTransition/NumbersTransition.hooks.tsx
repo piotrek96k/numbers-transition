@@ -445,12 +445,11 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
     animationDuration = Integer.SixThousand,
     ratio = Integer.Five / Integer.Two,
   }: TotalAnimationDuration): [number, number] =>
-    [
-      numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)
-    ].flatMap<number, [number, number]>((horizontalAnimationDuration: number): [number, number] => [
-      horizontalAnimationDuration,
-      ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
-    ]);
+    [numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)]
+      .flatMap<number, [number, number]>((horizontalAnimationDuration: number): [number, number] => [
+        horizontalAnimationDuration,
+        ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
+      ]);
 
   const mapAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): [number, number] =>
     value.matches<AnimationDuration | TotalAnimationDuration, AnimationDuration>(isAnimationDuration)
