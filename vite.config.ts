@@ -6,6 +6,7 @@ import typeExtensions from './plugins/dist/type-extensions';
 
 const config: UserConfig = {
   plugins: [typeExtensions('extensions.config.json'), react(), dts({ rollupTypes: true })],
+  resolve: { alias: { extension: resolve('plugins', 'dist', 'extension') } },
   build: {
     lib: { entry: resolve('src', 'index.ts'), name: 'numbers-transition' },
     rollupOptions: {

@@ -1,19 +1,8 @@
+import Extension from 'extension';
 import { Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
 
-abstract class Value<T> {
-  readonly #value: T;
-
-  protected get value(): T {
-    return this.#value;
-  }
-
-  public constructor(value: T) {
-    this.#value = value;
-  }
-}
-
-export class Predicate extends Value<boolean> {
+export class Predicate extends Extension<boolean> {
   public get int(): number {
     return this.value ? Integer.One : Integer.Zero;
   }
@@ -23,7 +12,7 @@ export class Predicate extends Value<boolean> {
   }
 }
 
-export class Double extends Value<number> {
+export class Double extends Extension<number> {
   public static subtract(first: number, second: number): number {
     return first - second;
   }
@@ -37,13 +26,13 @@ export class Double extends Value<number> {
   }
 }
 
-export class Long extends Value<bigint> {
+export class Long extends Extension<bigint> {
   public get digit(): number {
     return Math.abs(Number(this.value % BigInt(Integer.Ten)));
   }
 }
 
-export class CharSequence extends Value<string> {
+export class CharSequence extends Extension<string> {
   public get bigInt(): bigint {
     return BigInt(this.value);
   }
@@ -53,13 +42,13 @@ export class CharSequence extends Value<string> {
   }
 }
 
-export class Pattern extends Value<RegExp> {
+export class Pattern extends Extension<RegExp> {
   public testAny<T>(unknown: unknown): unknown is T {
     return this.value.test(`${unknown}`);
   }
 }
 
-export class List<T> extends Value<T[]> {
+export class List<T> extends Extension<T[]> {
   public static toArray<T>(value: OrArray<T>): T[] {
     return Array.isArray<T>(value) ? value : [value];
   }
@@ -105,7 +94,7 @@ export class List<T> extends Value<T[]> {
   }
 }
 
-export class Struct<T extends object> extends Value<T> {
+export class Struct<T extends object> extends Extension<T> {
   public matches<U extends T>(predicate: (value: T) => value is U): this is U {
     return predicate(this.value);
   }
@@ -115,7 +104,7 @@ export class Struct<T extends object> extends Value<T> {
   }
 }
 
-export class Method<T extends (...args: unknown[]) => unknown> extends Value<T> {
+export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> {
   public static invoke<T>(callback: () => T): T {
     return callback();
   }
@@ -125,7 +114,7 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Value<T> 
   }
 }
 
-export class Calc extends Value<never> {
+export class Calc extends Extension<never> {
   public static roundTo(value: number, precision: number): number {
     return Math.round(value * Integer.Ten ** precision) / Integer.Ten ** precision;
   }

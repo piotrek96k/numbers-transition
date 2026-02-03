@@ -17,7 +17,8 @@
     "noFallthroughCasesInSwitch": true,
     "noErrorTruncation": true,
     "noImplicitAny": true,
-    "plugins": [{ "transform": "./plugins/dist/suppress-diagnostics.js", "transformProgram": true, "codes": [2373] }]
+    "paths": { "extension": ["./plugins/dist/extension"] },
+    "plugins": [{ "transform": "./plugins/dist/suppress-diagnostics", "transformProgram": true, "codes": [2373] }]
   },
   "include": ["src"],
   "references": [{ "path": "./tsconfig.node.json" }]

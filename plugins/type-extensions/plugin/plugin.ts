@@ -1,7 +1,7 @@
 import type { Plugin } from 'vite';
-import { InternalConfig, TypeExtensionsConfig, buildInternalConfig, readConfig } from './config/config';
-import { buildHotUpdateHandler } from './hmr/hmr';
-import { buildTransformer } from './transformer/transformer';
+import { InternalConfig, TypeExtensionsConfig, buildInternalConfig, readConfig } from '../config/config';
+import { buildHotUpdateHandler } from '../hmr/hmr';
+import { buildTransformer } from '../transformer/transformer';
 
 const typeExtensions = (configPath: string): Plugin => {
   const config: TypeExtensionsConfig = readConfig(configPath);
