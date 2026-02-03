@@ -889,17 +889,17 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   // prettier-ignore
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
-        .mapEach<
-          [TupleOfLength<number, Integer.Four>, number[][], number[][]],
+      .mapEach<
+        [TupleOfLength<number, Integer.Four>, number[][], number[][]],
         [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
-        >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
-        .flat<[[number[], number[]]], Integer.One>()
-        .reduce(solveCubicBezier)
-        .map<number>((value: number): number => Math.roundTo(value,Integer.Six))
-        .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
-        .sort(Number.subtract)
-        .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
-        .map<number>(cubicBezierFunction(xAxisPoints));
+      >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
+      .flat<[[number[], number[]]], Integer.One>()
+      .reduce(solveCubicBezier)
+      .map<number>((value: number): number => Math.roundTo(value, Integer.Six))
+      .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
+      .sort(Number.subtract)
+      .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
+      .map<number>(cubicBezierFunction(xAxisPoints));
 
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
     easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
