@@ -45,6 +45,7 @@
   - [StepsEasingFunction](#stepseasingfunction)
   - [EasingFunction](#easingfunction)
   - [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)
+  - [UnknownAnimationTimingFunction](#unknownanimationtimingfunction)
 - [License](#license)
 
 ---
@@ -163,7 +164,7 @@ const Example: FC = () => {
 
 ### `animationTimingFunction`
 
-- **Type:** <code>[OrReadOnly](#orreadonlyt)<[EasingFunction](#easingfunction)> | [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+- **Type:** <code>[UnknownAnimationTimingFunction](#unknownanimationtimingfunction)</code>
 - **Default:** <code>[AnimationTimingFunction](#animationtimingfunction-1).Ease</code>
 - **Description:** Controls the easing curve used for the number transition animation. This prop accepts either:
   - A single easing function of <code>[EasingFunction](#easingfunction)</code> type, which is applied to horizontal/vertical animations.
@@ -214,7 +215,7 @@ const Example: FC = () => {
   - `EaseInOut` – Equivalent to `ease-in-out`.
   - `StepStart` – Equivalent to CSS `step-start`.
   - `StepEnd` – Equivalent to CSS `step-end`.
-- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code> <code>[UnknownAnimationTimingFunction](#unknownanimationtimingfunction)</code>
 
 ## Types
 
@@ -386,18 +387,26 @@ const Example: FC = () => {
   - <code>[LinearEasingFunction](#lineareasingfunction)</code> → `linear()`
   - <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> → `cubic-bezier()`
   - <code>[StepsEasingFunction](#stepseasingfunction)</code> → `steps()`
-- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code> <code>[UnknownAnimationTimingFunction](#unknownanimationtimingfunction)</code>
 
 ### `ExtendedAnimationTimingFunction`
 
 - ```ts
-  export interface ExtendedAnimationTimingFunction {
+  interface ExtendedAnimationTimingFunction {
     horizontalAnimation: OrReadOnly<EasingFunction>;
     verticalAnimation: OrReadOnly<EasingFunction>;
   }
   ```
 - **Description:** Specifies separate easing functions for horizontal and vertical animations. Each accepts both mutable and readonly versions of <code>[EasingFunction](#easingfunction)</code>.
-- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code>
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[UnknownAnimationTimingFunction](#unknownanimationtimingfunction)</code>
+
+### `UnknownAnimationTimingFunction`
+
+- ```ts
+  type UnknownAnimationTimingFunction = OrReadOnly<EasingFunction> | ExtendedAnimationTimingFunction;
+  ```
+- **Description:** A union representing any supported animation timing function type.
+- **See also:** <code>[animationTimingFunction](#animationtimingfunction)</code> <code>[ReadOnly<T>](#readonlyt)</code> <code>[OrReadOnly<T>](#orreadonlyt)</code> <code>[LinearEasingFunction](#lineareasingfunction)</code> <code>[CubicBezierEasingFunction](#cubicbeziereasingfunction)</code> <code>[StepsEasingFunction](#stepseasingfunction)</code> <code>[EasingFunction](#easingfunction)</code> <code>[ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)</code>
 
 ### `AnimationInterruptionMode`
 
