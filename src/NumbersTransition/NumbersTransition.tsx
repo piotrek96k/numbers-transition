@@ -302,9 +302,10 @@ const NumbersTransition = <
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       ])
       .when(Object.values<AnimationId>(AnimationId).some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
-      .find(([condition]: [() => boolean, (() => void)[]]): boolean => condition())
-      ?.at<Integer.One>(Integer.One)
-      .forEach(Function.invoke<void>);
+      .findMap<void>(
+        ([condition]: [() => boolean, (() => void)[]]): boolean => condition(),
+        ([, callbacks]: [() => boolean, (() => void)[]]): void => callbacks.forEach(Function.invoke<void>),
+      );
 
   const theme: NumbersTransitionTheme = {
     ...elementsLength,

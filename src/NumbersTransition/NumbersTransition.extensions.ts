@@ -1,6 +1,6 @@
 import Extension from 'extension';
 import { Integer } from './NumbersTransition.enums';
-import type { ArrayOfDepth, OrArray, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, Optional, OrArray, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> {
   public get int(): number {
@@ -76,6 +76,11 @@ export class List<T> extends Extension<T[]> {
       (array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T[] => array.filter(predicate),
       this.value,
     );
+  }
+
+  public findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U, fallback?: U): Optional<U> {
+    const element: Optional<T> = this.value.find(predicate);
+    return element === undefined ? fallback : callback(element);
   }
 
   public mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {

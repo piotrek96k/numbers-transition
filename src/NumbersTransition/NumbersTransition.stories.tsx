@@ -253,6 +253,7 @@ const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
     ),
   };
 
+// prettier-ignore
 const getInitialRotation = ({
   animationNumber,
   animationType,
@@ -265,8 +266,11 @@ const getInitialRotation = ({
       (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
       (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration,
     ])
-    .find(([animation]: [AnimationNumber, number]): boolean => animation === animationNumber)
-    ?.at<Integer.One>(Integer.One) ?? Integer.Zero;
+    .findMap<number>(
+      ([animation]: [AnimationNumber, number]): boolean => animation === animationNumber,
+      ([, value]: [AnimationNumber, number]): number => value,
+      Integer.Zero,
+    );
 
 const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${rotateKeyframeFunction(getInitialRotation(theme) / Integer.Two)};
