@@ -77,10 +77,10 @@ export const useValue = (
   const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
   const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
 
-  // prettier-ignore
-  values.current = animationInterruptionMode === AnimationInterruptionMode.Continue
-    ? values.current.at(Integer.MinusOne)?.equals(validationTuple) ? values.current : [...values.current, validationTuple]
-    : [validationTuple];
+  values.current =
+    animationInterruptionMode === AnimationInterruptionMode.Continue
+      ? [...values.current, ...(values.current.at(Integer.MinusOne)?.equals(validationTuple) ? [] : [validationTuple])]
+      : [validationTuple];
 
   // prettier-ignore
   const { current: [[validValue, isValueValid]] }: RefObject<[BigDecimal, boolean][]> = values;
