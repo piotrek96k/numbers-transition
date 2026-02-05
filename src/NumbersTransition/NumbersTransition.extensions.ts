@@ -99,16 +99,6 @@ export class List<T> extends Extension<T[]> {
   }
 }
 
-export class Struct<T extends object> extends Extension<T> {
-  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
-    return predicate(this.value);
-  }
-
-  public pipe<U>(mapper: (value: T) => U): U {
-    return mapper(this.value);
-  }
-}
-
 export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> {
   public static invoke<T>(callback: () => T): T {
     return callback();
@@ -116,6 +106,16 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
 
   public static optionalCall<T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
     return typeof callback === 'function' ? callback(...args) : callback;
+  }
+}
+
+export class Struct<T extends object> extends Extension<T> {
+  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
+    return predicate(this.value);
+  }
+
+  public pipe<U>(mapper: (value: T) => U): U {
+    return mapper(this.value);
   }
 }
 

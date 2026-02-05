@@ -86,6 +86,15 @@ declare global {
     ): V;
   }
 
+  interface FunctionConstructor {
+    invoke<T>(callback: () => T): T;
+    optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
+    optionalCall<T extends (...args: any[]) => unknown, U, V extends Parameters<T>, W extends unknown[]>(
+      callback: T | U,
+      ...args: V | W
+    ): ReturnType<T> | U;
+  }
+
   interface ObjectConstructor {
     values<T>(o: { [s: string]: T } | ArrayLike<T>): T[];
     values<T, U extends T[]>(o: { [s: string]: T } | ArrayLike<T>): U;
@@ -94,15 +103,6 @@ declare global {
   interface Object {
     matches<T extends object, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
     pipe<T extends object, U>(this: T, mapper: (value: T) => U): U;
-  }
-
-  interface FunctionConstructor {
-    invoke<T>(callback: () => T): T;
-    optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
-    optionalCall<T extends (...args: any[]) => unknown, U, V extends Parameters<T>, W extends unknown[]>(
-      callback: T | U,
-      ...args: V | W
-    ): ReturnType<T> | U;
   }
 
   interface Math {
