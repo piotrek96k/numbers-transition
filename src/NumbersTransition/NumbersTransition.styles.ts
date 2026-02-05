@@ -345,13 +345,16 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
 
 // prettier-ignore
 const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Keyframes =>
-  Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]>(
-    [AnimationType.Horizontal, AnimationType.Vertical]
-      .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
-      .find(([animation]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => animation === animationType)!
-      .at<Integer.One>(Integer.One),
-    restProps,
-  );
+  [AnimationType.Horizontal, AnimationType.Vertical]
+    .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
+    .find(([animation]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => animation === animationType)!
+    .at<Integer.One>(Integer.One)
+    .pipe<Keyframes | ((props: AnimationWidthProps) => Keyframes), Keyframes>(
+      (animation: ((props: AnimationWidthProps) => Keyframes) | Keyframes): Keyframes =>
+        Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]>(
+          animation, restProps,
+        ),
+    );
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${animationName};
