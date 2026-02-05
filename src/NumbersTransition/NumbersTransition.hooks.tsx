@@ -79,7 +79,7 @@ export const useValue = (
 
   values.current =
     animationInterruptionMode === AnimationInterruptionMode.Continue
-      ? [...values.current, ...(values.current.at(Integer.MinusOne)?.equals(validationTuple) ? [] : [validationTuple])]
+      ? [...values.current, ...[validationTuple].when(!values.current.at(Integer.MinusOne)?.equals(validationTuple))]
       : [validationTuple];
 
   // prettier-ignore
@@ -986,7 +986,7 @@ export const useHorizontalAnimationDigits = (options: UseHorizontalAnimationDigi
     numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None);
 
   return [
-    ...(fillZeros ? Array<number>(numberOfDigitsDifference).fill(Integer.Zero) : []),
+    ...Array<number>(numberOfDigitsDifference).when(fillZeros).fill(Integer.Zero),
     ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
   ];
 };
