@@ -91,9 +91,7 @@ const inputTypes: SelectTypes = {
   optimizationStrategy: OptimizationStrategy,
 };
 
-const argTypes: ComponentArgTypes = Object.fromEntries<InputType>(
-  Object.entries<SelectType>(inputTypes).map<[string, InputType]>(mapInputType),
-);
+const argTypes: ComponentArgTypes = inputTypes.map<SelectType, InputType>(mapInputType);
 
 const basicEffectCss: RuleSet<object> = css<object>`
   font-size: ${Integer.Three}${CssUnit.Rem};

@@ -561,18 +561,10 @@ export const useStyledView = <
       value,
     ];
 
-    const restViewEntries: [string, ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>][] =
-      Object.entries<ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(restView);
-
-    const styledViewEntries: [string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>][] =
-      restViewEntries.map<[string, ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>]>(
-        mapEntry,
-      );
-
-    const styledView: ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] =
-      Object.fromEntries<ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>>(
-        styledViewEntries,
-      );
+    const styledView: ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number] = restView.map<
+      ValueOf<ViewTuple<ViewType.BaseView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>,
+      ValueOf<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number]>
+    >(mapEntry);
 
     return { ...styledView, ...viewProps };
   };

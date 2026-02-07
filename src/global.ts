@@ -101,6 +101,7 @@ declare global {
   }
 
   interface Object {
+    map<T, U>(this: Record<string, T>, mapper: (entry: [string, T]) => [string, U]): Record<string, U>;
     matches<T extends object, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
     pipe<T extends object, U>(this: T, mapper: (value: T) => U): U;
   }

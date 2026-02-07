@@ -1,6 +1,6 @@
 import Extension from 'extension';
 import { Integer } from './NumbersTransition.enums';
-import type { ArrayOfDepth, Optional, OrArray, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> {
   public get int(): number {
@@ -110,6 +110,10 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
 }
 
 export class Struct<T extends object> extends Extension<T> {
+  public map<U>(mapper: (entry: [string, ValueOf<T>]) => [string, U]): Record<string, U> {
+    return Object.fromEntries<U>(Object.entries(this.value).map<[string, U]>(mapper));
+  }
+
   public matches<U extends T>(predicate: (value: T) => value is U): this is U {
     return predicate(this.value);
   }
