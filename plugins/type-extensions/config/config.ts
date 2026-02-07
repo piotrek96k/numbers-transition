@@ -73,13 +73,10 @@ export interface TypeExtensionsConfig {
   extensions: Record<string, Extension>;
 }
 
-const isExported = ({ modifiers }: ClassDeclaration): boolean =>
-  !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.ExportKeyword);
-
 const isPublic = ({ modifiers }: PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration): boolean =>
   !modifiers?.some(({ kind }: ModifierLike): boolean => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword].includes(kind));
 
-const isClass = (node: Node): node is NamedClassDeclaration => isClassDeclaration(node) && !!node.name && isExported(node);
+const isClass = (node: Node): node is NamedClassDeclaration => isClassDeclaration(node) && !!node.name;
 
 const isMethodOrProperty = (member: ClassElement): member is MethodOrPropertyDeclaration =>
   (isMethodDeclaration(member) || isPropertyDeclaration(member) || isGetAccessor(member)) && isIdentifier(member.name) && isPublic(member);

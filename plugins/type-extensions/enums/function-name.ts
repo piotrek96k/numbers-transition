@@ -1,6 +1,16 @@
 export enum FunctionName {
   Assign = 'assign',
+  Constructor = 'constructor',
   Create = 'create',
+  DefineProperties = 'defineProperties',
   Get = 'get',
+  GetOwnPropertyDescriptor = 'getOwnPropertyDescriptor',
+  GetOwnPropertyDescriptors = 'getOwnPropertyDescriptors',
+  GetOwnPropertyNames = 'getOwnPropertyNames',
+  GetPrototypeOf = 'getPrototypeOf',
   Find = 'find',
+  Filter = 'filter',
+  FromEntries = 'fromEntries',
+  Map = 'map',
+  Unshift = 'unshift',
 }

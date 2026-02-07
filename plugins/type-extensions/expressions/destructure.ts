@@ -38,10 +38,8 @@ import { generateAlias } from '../alias/alias';
 import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
-import { ConstName } from '../enums/const-name';
-import { readImportName } from '../imports/imports';
 import { isLiteralExpression } from '../literals/literal-expressions';
-import { buildProxyCallExpression } from '../proxy/runtime-proxy';
+import { buildMergeCallExpression, buildProxyCallExpression } from '../runtime/runtime';
 
 type DestructureDeclaration = BindingElement | VariableDeclaration | ParameterDeclaration;
 
@@ -95,11 +93,6 @@ const shouldUpdateInitializer = (extractedIdentifiers: Set<string>, { initialize
   return !!initializer && visitEachChild(initializer);
 };
 
-const shouldMapExtensionInitializer = (extensions: [string, TypeExtension][], element: BindingElement, identifier: Identifier): boolean =>
-  extensions.some(([, { properties }]: [string, TypeExtension]): boolean =>
-    properties.some(({ name, isProperty }: Property): boolean => identifier.text === name && !isProperty),
-  ) && !element.dotDotDotToken;
-
 const getExtensions = <T extends DestructureDeclaration>({
   name: { elements },
 }: ObjectBindingPatternWrapper<T>): [string, TypeExtension][] => {
@@ -110,11 +103,6 @@ const getExtensions = <T extends DestructureDeclaration>({
     ? foundExtensions
     : extensions;
 };
-
-const getBindingElementIdentifier = ({ propertyName, name }: BindingElement): Identifier =>
-  [propertyName, name].find<Identifier>(
-    (name: PropertyName | BindingName | undefined): name is Identifier => !!name && isIdentifier(name),
-  )!;
 
 const readNestedIdentifiers = ({ elements }: ObjectBindingPattern): string[] =>
   elements
@@ -166,13 +154,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
 
   const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(element.name.elements, extractedIdentifiers);
 
-  const updatedElements: BindingElement[] = updateBindingElementsExtensionInitializer(
-    extensions,
-    elements,
-    factory.createIdentifier(generateAlias(ArgName.Arg, element)),
-  );
-
-  const updatedBindingPattern: ObjectBindingPattern = factory.updateObjectBindingPattern(element.name, updatedElements);
+  const updatedBindingPattern: ObjectBindingPattern = factory.updateObjectBindingPattern(element.name, elements);
   const updatedElement: T = updateElement(extensions, element, updatedBindingPattern);
 
   const updatedVariables: VariableDeclaration[] = extensions.length
@@ -181,7 +163,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
           updatedBindingPattern,
           undefined,
           undefined,
-          buildProxyCallExpression(extensions, factory.createIdentifier(generateAlias(ArgName.Arg, element)), true),
+          buildProxyCallExpression(factory.createIdentifier(generateAlias(ArgName.Arg, element)), extensions),
         ),
         ...variables,
       ]
@@ -258,43 +240,6 @@ const updateBindingElementInitializer = (element: BindingElement): BindingElemen
     undefined,
   );
 
-const mapBindingElementExtensionInitializer =
-  (
-    extensions: [string, TypeExtension][],
-    value: Expression,
-    isLiteral: boolean,
-  ): ((element: [BindingElement, Identifier]) => BindingElement) =>
-  ([element, identifier]: [BindingElement, Identifier]): BindingElement =>
-    shouldMapExtensionInitializer(extensions, element, identifier)
-      ? factory.updateBindingElement(
-          element,
-          element.dotDotDotToken,
-          element.propertyName,
-          element.name,
-          updateInitializerValue(
-            factory.createPropertyAccessExpression(
-              isLiteral
-                ? factory.createNewExpression(factory.createIdentifier(readImportName(extensions[0][0], value)), undefined, [value])
-                : buildProxyCallExpression(extensions, value, false),
-              identifier,
-            ),
-            element.initializer,
-          ),
-        )
-      : element;
-
-const updateBindingElementsExtensionInitializer = (
-  extensions: [string, TypeExtension][],
-  elements: BindingElement[],
-  value: Expression,
-  isLiteral: boolean = false,
-): BindingElement[] =>
-  elements
-    .map<
-      [BindingElement, Identifier]
-    >((element: BindingElement): [BindingElement, Identifier] => [element, getBindingElementIdentifier(element)])
-    .map<BindingElement>(mapBindingElementExtensionInitializer(extensions, value, isLiteral));
-
 const updateBindingElement = (
   extensions: [string, TypeExtension][],
   element: BindingElement,
@@ -326,13 +271,6 @@ const buildVariableDestructureInitializer = (
       ]
     : [variableDeclaration.initializer, []];
 
-const buildVariableDestructureLiteralExpression = ([, { type }]: [string, TypeExtension], initializer: Expression): Expression =>
-  factory.createCallExpression(
-    factory.createIdentifier(readImportName(getContext().constAliases.get(ConstName.Merge)!, initializer)),
-    undefined,
-    [initializer, factory.createStringLiteral(type)],
-  );
-
 const updateVariableObjectDestructureDeclaration =
   (
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
@@ -350,22 +288,15 @@ const updateVariableObjectDestructureDeclaration =
       variableDeclaration,
     );
 
-    const updatedElements: BindingElement[] = updateBindingElementsExtensionInitializer(
-      literalExtension ? [literalExtension] : extensions,
-      elements,
-      initializer,
-      !!literalExtension,
-    );
-
     const variable: VariableDeclaration = factory.updateVariableDeclaration(
       variableDeclaration,
-      factory.updateObjectBindingPattern(variableDeclaration.name, updatedElements),
+      factory.updateObjectBindingPattern(variableDeclaration.name, elements),
       variableDeclaration.exclamationToken,
       variableDeclaration.type,
       extensions.length
         ? literalExtension
-          ? buildVariableDestructureLiteralExpression(literalExtension, initializer)
-          : buildProxyCallExpression(extensions, initializer, true)
+          ? buildMergeCallExpression(initializer, literalExtension[1].type)
+          : buildProxyCallExpression(initializer, extensions)
         : initializer,
     );
 

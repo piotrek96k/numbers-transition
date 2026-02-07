@@ -17,7 +17,7 @@ import {
 import { InternalConfig, TypeExtension, TypeExtensionsConfig } from '../config/config';
 import { Context, getContext, provideContext } from '../context/context';
 import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports } from '../imports/imports';
-import { generateRuntimeProxies } from '../proxy/runtime-proxy';
+import { generateRuntimeProxies } from '../runtime/runtime';
 import { buildVisitor } from '../visitor/visitor';
 
 const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: string, imports: ImportDeclaration[]): string => {

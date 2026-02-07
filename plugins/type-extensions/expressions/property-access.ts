@@ -12,7 +12,7 @@ import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { readImportName } from '../imports/imports';
 import { isLiteralExpression } from '../literals/literal-expressions';
-import { buildProxyCallExpression } from '../proxy/runtime-proxy';
+import { buildProxyCallExpression, buildWrapCallExpression } from '../runtime/runtime';
 
 const isStaticProperty =
   (expression: Expression, propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>
@@ -42,13 +42,9 @@ const buildPropertyAccessLiteralExpression = (
 ): Node | undefined =>
   extensions
     .filter(isLiteralExpression(expression))
-    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, expression))
     .map<Node>(
-      (className: string): Node =>
-        factory.createPropertyAccessExpression(
-          factory.createNewExpression(factory.createIdentifier(className), undefined, [expression]),
-          text,
-        ),
+      ([, { type }]: [string, TypeExtension]): Node =>
+        factory.createPropertyAccessExpression(buildWrapCallExpression(expression, type, text), text),
     )
     .pop();
 
@@ -60,7 +56,7 @@ const buildPropertyAccessExpression = (access: PropertyAccessExpression): (() =>
         (): Node =>
           buildPropertyAccessLiteralExpression(extensions, access) ??
           factory.createPropertyAccessChain(
-            buildProxyCallExpression(extensions, access.expression, false),
+            buildProxyCallExpression(access.expression, extensions, access.name.text),
             isPropertyAccessChain(access) ? factory.createToken(SyntaxKind.QuestionDotToken) : undefined,
             access.name.text,
           ),
