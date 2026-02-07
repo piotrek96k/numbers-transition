@@ -4,7 +4,7 @@ abstract class Extension<T> {
   readonly value!: T;
 
   public constructor(value: T) {
-    Object.defineProperty(this, ArgName.Value, { value, writable: false, enumerable: false, configurable: false });
+    Object.defineProperty<this>(this, ArgName.Value, { value, writable: false, enumerable: false, configurable: false });
   }
 }
 
