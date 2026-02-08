@@ -332,7 +332,6 @@ const useLinearDirection = (animationDirection: AnimationDirection): FixDirectio
   return (easingFunction: OrReadOnly<LinearEasingFunction>): LinearEasingFunction =>
     easingFunction.map<LinearEasingFunction[number], LinearEasingFunction>(
       animationDirection === AnimationDirection.Normal ? copyLinear : reverseLinear,
-      [],
     );
 };
 
@@ -349,7 +348,6 @@ const useCubicBezierDirection = (animationDirection: AnimationDirection): FixDir
   return (easingFunction: OrReadOnly<CubicBezierEasingFunction>): CubicBezierEasingFunction =>
     easingFunction.map<number[], CubicBezierEasingFunction>(
       animationDirection === AnimationDirection.Normal ? copyCubicBezier : reverseCubicBezier,
-      [],
     );
 };
 
