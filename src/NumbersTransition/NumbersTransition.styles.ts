@@ -147,7 +147,7 @@ const animationFillMode = (animationType: AnimationType, animationDirection: Ani
 
 const mapEnumProperty = <E extends Enum<E>>({ enumerable, ...restProperty }: EnumerableProperty<E>): Property => ({
   ...restProperty,
-  syntax: Object.values<string | number>(enumerable).join(`${Text.Space}${Text.VerticalLine}${Text.Space}`),
+  syntax: enumerable.fieldValues<string | number>().join(`${Text.Space}${Text.VerticalLine}${Text.Space}`),
 });
 
 const mapTimeProperty = (name: VariableName): Property => ({

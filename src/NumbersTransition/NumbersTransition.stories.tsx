@@ -77,7 +77,7 @@ type Story = StoryObj<NumbersTransitionProps>;
 
 const mapInputType = ([fieldName, enumObject]: [string, SelectType]): [string, InputType] => [
   fieldName,
-  { options: Object.keys(enumObject ?? {}), mapping: enumObject, control: { type: 'select' } },
+  { options: enumObject?.fieldKeys(), mapping: enumObject, control: { type: 'select' } },
 ];
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
