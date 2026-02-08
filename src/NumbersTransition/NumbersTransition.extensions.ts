@@ -91,7 +91,7 @@ export class List<T> extends Extension<T[]> {
     return predicate ? this.value : [];
   }
 
-  public zip<U>({ length, ...array }: U[]): Zip<T[], U[]> {
+  public zip<U>(...{ length, ...array }: U[]): Zip<T[], U[]> {
     return this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
       ...Array.toArray<T>(value),
       ...((index < length ? [array[index]] : []) satisfies [U] | []),

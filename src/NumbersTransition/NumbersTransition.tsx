@@ -295,12 +295,12 @@ const NumbersTransition = <
       animationTransition !== AnimationTransition.None,
       true,
     ]
-      .zip<TupleOfLength<boolean, Integer.Four>, TupleOfLength<(() => void)[], Integer.Four>>([
+      .zip<TupleOfLength<boolean, Integer.Four>, TupleOfLength<(() => void)[], Integer.Four>>(
         [(): void => setPreviousValueOnEnd(validValue)],
         [(): void => setAnimationTransition(AnimationTransition.SecondToThird)],
         [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
-      ])
+      )
       .when(AnimationId.fieldValues<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
       .findMap<void>(
         ([condition]: [boolean, (() => void)[]]): boolean => condition,

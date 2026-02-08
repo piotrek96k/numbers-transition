@@ -74,8 +74,8 @@ declare global {
       initialValue: U,
     ): V;
     when(predicate: unknown): T[];
-    zip<U extends unknown[]>(array: U): Zip<this, U>;
-    zip<U extends this, V extends unknown[]>(array: V): Zip<U, V>;
+    zip<U extends unknown[]>(...array: U): Zip<this, U>;
+    zip<U extends this, V extends unknown[]>(...array: V): Zip<U, V>;
   }
 
   interface ReadonlyArray<T> {

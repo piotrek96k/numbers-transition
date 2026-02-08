@@ -322,7 +322,7 @@ const createAnimationKeyframes = <T extends object, U>(
   progress: number[] = [],
 ): Keyframes => keyframes<T>`
   ${keyframesValues
-    .zip<number[]>(progress)
+    .zip<number[]>(...progress)
     .map<RuleSet<T>>(createAnimationKeyframeMapper<T, U>(mapKeyframe))
     .reduce<RuleSet<T>>(reduceAnimationKeyframes<T>, css<T>``)}
 `;
@@ -346,7 +346,7 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
 // prettier-ignore
 const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Keyframes =>
   [AnimationType.Horizontal, AnimationType.Vertical]
-    .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>([horizontalAnimation, verticalAnimation])
+    .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>(horizontalAnimation, verticalAnimation)
     .find(([animation]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One)
     .pipe<Keyframes | ((props: AnimationWidthProps) => Keyframes), Keyframes>(

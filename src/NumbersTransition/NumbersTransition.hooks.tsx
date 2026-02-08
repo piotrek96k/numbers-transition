@@ -291,11 +291,11 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
     previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
 
   return AnimationType.fieldValues<AnimationType>()
-    .zip<TupleOfLength<AnimationType, Integer.Three>, TupleOfLength<AnimationDirection, Integer.Three>>([
+    .zip<TupleOfLength<AnimationType, Integer.Three>, TupleOfLength<AnimationDirection, Integer.Three>>(
       AnimationDirection.None,
       horizontalAnimationDirection,
       verticalAnimationDirection,
-    ])
+    )
     .find(([animation]: [AnimationType, AnimationDirection]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One);
 };
@@ -460,21 +460,21 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       : animationDuration.pipe<AnimationDuration | TotalAnimationDuration, [number, number]>(mapAnimationDuration);
 
   const currentAnimationDuration: number = AnimationType.fieldValues<AnimationType>()
-    .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>([
+    .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>(
       Integer.Zero,
       horizontalAnimationDuration,
       verticalAnimationDuration,
-    ])
+    )
     .find(([animation]: [AnimationType, number]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One);
 
   const totalAnimationDuration: number = [AnimationNumber.Zero, AnimationNumber.One, AnimationNumber.Two, AnimationNumber.Three]
-    .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>([
+    .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>(
       Integer.Zero,
       verticalAnimationDuration,
       horizontalAnimationDuration + verticalAnimationDuration,
       Integer.Two * horizontalAnimationDuration + verticalAnimationDuration,
-    ])
+    )
     .find(([animationNumber]: [AnimationNumber, number]): boolean => animationNumber === numberOfAnimations)!
     .at<Integer.One>(Integer.One);
 
@@ -569,7 +569,7 @@ export const useStyledView = <
 
   // prettier-ignore
   return options
-    .zip<TupleOfLength<Styled, Integer.Eight>>(Styled.fieldValues<Styled, TupleOfLength<Styled, Integer.Eight>>())
+    .zip<TupleOfLength<Styled, Integer.Eight>>(...Styled.fieldValues<Styled, TupleOfLength<Styled, Integer.Eight>>())
     .map<
       UnionProduct<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Optional<K | M | O | Q | S | U | W | Y>>,
       ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
@@ -867,11 +867,11 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       (discriminant: number): boolean => discriminant > Integer.Zero,
       (discriminant: number): boolean => discriminant < Integer.Zero,
     ]
-      .zip<TupleOfLength<(disc: number) => boolean, Integer.Three>, TupleOfLength<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>([
+      .zip<TupleOfLength<(disc: number) => boolean, Integer.Three>, TupleOfLength<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>(
         solveForRepeatedRoots, 
         solveForOneRoot, 
         solveForThreeRoots
-      ])
+      )
       .find(([condition]: [(disc: number) => boolean, (coeffs: number[], nextCoeffs: number[], disc: number) => number[]]): boolean => condition(discriminant))!
       .at<Integer.One>(Integer.One)
       .call<undefined, [number[], number[], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
@@ -899,12 +899,12 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 const useStepsSolver = (): Solve<StepsEasingFunction> =>
   ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
     StepPosition.fieldValues<StepPosition>()
-      .zip<TupleOfLength<StepPosition, Integer.Four>, TupleOfLength<number, Integer.Four>>([
+      .zip<TupleOfLength<StepPosition, Integer.Four>, TupleOfLength<number, Integer.Four>>(
         Math.floor(outputValue * steps) / steps,
         Math.ceil(outputValue * steps) / steps,
         Math.ceil(outputValue * (steps - Integer.One)) / steps,
         Math.floor(outputValue * (steps + Integer.One)) / steps,
-      ])
+      )
       .find(([position]: [StepPosition, number]): boolean => position === stepPosition)!
       .at<Integer.One>(Integer.One),
   ];

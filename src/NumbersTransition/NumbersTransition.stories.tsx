@@ -260,10 +260,10 @@ const getInitialRotation = ({
   totalAnimationDuration,
 }: NumbersTransitionTheme): number =>
   [AnimationNumber.Three, AnimationNumber.Two]
-    .zip<[AnimationNumber, AnimationNumber], [number, number]>([
+    .zip<[AnimationNumber, AnimationNumber], [number, number]>(
       (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
       (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration,
-    ])
+    )
     .findMap<number>(
       ([animation]: [AnimationNumber, number]): boolean => animation === animationNumber,
       ([, value]: [AnimationNumber, number]): number => value,
