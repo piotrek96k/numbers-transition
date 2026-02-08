@@ -1041,7 +1041,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 
   useLayoutEffect((): void => setAnimationStartWidth(calculateAnimationStartWidth()), [calculateAnimationStartWidth]);
 
-  return [animationStartWidth, ref.current?.offsetWidth ?? Integer.Zero];
+  return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
 };
 
 export interface AnimationAlgorithm {
