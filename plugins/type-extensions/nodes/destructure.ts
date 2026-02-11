@@ -221,7 +221,7 @@ const mapArrayElement =
   (element: ArrayBindingElement): [ArrayBindingElement, VariableDeclaration[]] =>
     isOmittedExpression(element)
       ? [element, []]
-      : mapElement<BindingElement>(updateBindingElement, updateBindingElementInitializer, extractedIdentifiers)(element);
+      : mapElement<BindingElement>(updateBindingElement, updateArrayBindingElementInitializer, extractedIdentifiers)(element);
 
 const mapArrayBindingElements = (
   elements: NodeArray<ArrayBindingElement>,
@@ -240,6 +240,15 @@ const updateBindingElementInitializer = (element: BindingElement): BindingElemen
     undefined,
   );
 
+const updateArrayBindingElementInitializer = (element: BindingElement): BindingElement =>
+  factory.updateBindingElement(
+    element,
+    element.dotDotDotToken,
+    element.propertyName,
+    factory.createIdentifier(generateAlias(ArgName.Init, element)),
+    undefined,
+  );
+
 const updateBindingElement = (
   extensions: [string, TypeExtension][],
   element: BindingElement,
@@ -253,24 +262,6 @@ const updateBindingElement = (
     element.initializer,
   );
 
-const buildVariableDestructureInitializer = (
-  extensions: [string, TypeExtension][],
-  variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
-): [Expression, VariableDeclaration[]] =>
-  extensions.length && !isIdentifier(variableDeclaration.initializer)
-    ? [
-        factory.createIdentifier(generateAlias(ArgName.Value, variableDeclaration.initializer)),
-        [
-          factory.createVariableDeclaration(
-            generateAlias(ArgName.Value, variableDeclaration.initializer),
-            undefined,
-            undefined,
-            variableDeclaration.initializer,
-          ),
-        ],
-      ]
-    : [variableDeclaration.initializer, []];
-
 const updateVariableObjectDestructureDeclaration =
   (
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
@@ -283,11 +274,6 @@ const updateVariableObjectDestructureDeclaration =
       new Set<string>(),
     );
 
-    const [initializer, initializerVariables]: [Expression, VariableDeclaration[]] = buildVariableDestructureInitializer(
-      extensions,
-      variableDeclaration,
-    );
-
     const variable: VariableDeclaration = factory.updateVariableDeclaration(
       variableDeclaration,
       factory.updateObjectBindingPattern(variableDeclaration.name, elements),
@@ -295,12 +281,12 @@ const updateVariableObjectDestructureDeclaration =
       variableDeclaration.type,
       extensions.length
         ? literalExtension
-          ? buildMergeCallExpression(initializer, literalExtension[1].type)
-          : buildProxyCallExpression(initializer, extensions)
-        : initializer,
+          ? buildMergeCallExpression(variableDeclaration.initializer, literalExtension[1].type)
+          : buildProxyCallExpression(variableDeclaration.initializer, extensions)
+        : variableDeclaration.initializer,
     );
 
-    return [...initializerVariables, variable, ...variables];
+    return [variable, ...variables];
   };
 
 const updateVariableArrayDestructureDeclaration = (

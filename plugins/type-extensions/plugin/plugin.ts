@@ -1,9 +1,14 @@
+import type { TransformHook } from 'rollup';
 import type { Plugin } from 'vite';
 import { InternalConfig, TypeExtensionsConfig, buildInternalConfig, readConfig } from '../config/config';
 import { buildHotUpdateHandler } from '../hmr/hmr';
 import { buildTransformer } from '../transformer/transformer';
 
-const typeExtensions = (configPath: string): Plugin => {
+interface TypeExtensionsPlugin extends Plugin {
+  transform: TransformHook;
+}
+
+const typeExtensions = (configPath: string): TypeExtensionsPlugin => {
   const config: TypeExtensionsConfig = readConfig(configPath);
   const internalConfig: InternalConfig = buildInternalConfig(config);
 
@@ -16,3 +21,5 @@ const typeExtensions = (configPath: string): Plugin => {
 };
 
 export default typeExtensions;
+
+export type { TypeExtensionsPlugin };

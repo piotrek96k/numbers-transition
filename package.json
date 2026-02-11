@@ -15,9 +15,10 @@
   "scripts": {
     "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "storybook": "npm run build:plugins && storybook dev -p 6006",
     "build:plugins": "tsc -p tsconfig.plugins.json && vite build -c vite.plugins.ts",
-    "build": "npm run build:plugins && tsc && vite build",
+    "test:plugins": "npm run build:plugins && tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
+    "storybook": "npm run build:plugins && storybook dev -p 6006",
+    "build": "npm run test:plugins && tsc && vite build",
     "build:storybook": "npm run build && storybook build"
   },
   "peerDependencies": {
@@ -56,6 +57,7 @@
     "ts-patch": "^3.3.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
-    "vite-plugin-dts": "^4.5.4"
+    "vite-plugin-dts": "^4.5.4",
+    "vitest": "^4.0.18"
   }
 }

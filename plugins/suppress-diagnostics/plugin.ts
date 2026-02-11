@@ -15,3 +15,5 @@ const suppressDiagnostics = (
 });
 
 export default suppressDiagnostics;
+
+export type { SuppressDiagnosticsConfig };

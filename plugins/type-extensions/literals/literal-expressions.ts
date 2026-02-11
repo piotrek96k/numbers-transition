@@ -8,6 +8,7 @@ import {
   isNewExpression,
   isNumericLiteral,
   isObjectLiteralExpression,
+  isParenthesizedExpression,
   isRegularExpressionLiteral,
   isStringLiteral,
   isTemplateLiteral,
@@ -18,7 +19,7 @@ import { JsType } from '../enums/js-type';
 const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsType, ((node: Node) => boolean)[]>([
   [
     JsType.Boolean,
-    [(node: Node): boolean => [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((kind: SyntaxKind): boolean => kind === node.kind)],
+    [({ kind }: Node): boolean => [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind)],
   ],
   [JsType.Number, [isNumericLiteral]],
   [JsType.BigInt, [isBigIntLiteral]],
@@ -27,6 +28,8 @@ const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsTyp
   [JsType.Array, [isArrayLiteralExpression]],
   [JsType.Object, [isObjectLiteralExpression, isArrayLiteralExpression, isNewExpression]],
 ]);
+
+const unwrap = (node: Node): Node => (isParenthesizedExpression(node) ? unwrap(node.expression) : node);
 
 const isConstructorCall = (node: Node, type: JsType): boolean =>
   (isCallExpression(node) || isNewExpression(node)) && isIdentifier(node.expression) && node.expression.text === type;
@@ -37,8 +40,8 @@ const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsTy
     checks.reduce(
       (accumulatedCheck: (node: Node) => boolean, check: (node: Node) => boolean): ((node: Node) => boolean) =>
         (node: Node): boolean =>
-          accumulatedCheck(node) || check(node),
-      (node: Node): boolean => isConstructorCall(node, jsType),
+          accumulatedCheck(node) || check(unwrap(node)),
+      (node: Node): boolean => isConstructorCall(unwrap(node), jsType),
     ),
   ]),
 );
