@@ -290,7 +290,7 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
   const verticalAnimationDirection: AnimationDirection =
     previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
 
-  return AnimationType.fieldValues<AnimationType>()
+  return AnimationType.values<AnimationType>()
     .zip<TupleOfLength<AnimationType, Integer.Three>, TupleOfLength<AnimationDirection, Integer.Three>>(
       AnimationDirection.None,
       horizontalAnimationDirection,
@@ -390,7 +390,7 @@ export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOp
   const fixStepsDirection: FixDirection<StepsEasingFunction> = useStepsDirection(animationDirection);
 
   const isExtendedAnimationTimingFunction = (value: UnknownAnimationTimingFunction): value is ExtendedAnimationTimingFunction =>
-    value.fieldKeys().some((key: string): boolean => AnimationKey.fieldValues<AnimationKey>().includes<string>(key));
+    [...value.keys()].some((key: string | number): boolean => AnimationKey.values<AnimationKey>().includes<string | number>(key));
 
   const animationKey: AnimationKey =
     animationType === AnimationType.Horizontal ? AnimationKey.HorizontalAnimation : AnimationKey.VerticalAnimation;
@@ -427,8 +427,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): value is AnimationDuration =>
-    !value.fieldKeys().length ||
-    value.fieldKeys().some((key: string): boolean => AnimationKey.fieldValues<AnimationKey>().includes<string>(key));
+    !value.keys().length || value.keys().some((key: string): boolean => AnimationKey.values<AnimationKey>().includes<string>(key));
 
   const fromAnimationDuration = ({
     horizontalAnimation = Integer.TwoThousand,
@@ -459,7 +458,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       ? [Integer.Zero, Integer.Zero]
       : animationDuration.pipe<AnimationDuration | TotalAnimationDuration, [number, number]>(mapAnimationDuration);
 
-  const currentAnimationDuration: number = AnimationType.fieldValues<AnimationType>()
+  const currentAnimationDuration: number = AnimationType.values<AnimationType>()
     .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>(
       Integer.Zero,
       horizontalAnimationDuration,
@@ -569,7 +568,7 @@ export const useStyledView = <
 
   // prettier-ignore
   return options
-    .zip<TupleOfLength<Styled, Integer.Eight>>(...Styled.fieldValues<Styled, TupleOfLength<Styled, Integer.Eight>>())
+    .zip<TupleOfLength<Styled, Integer.Eight>>(...Styled.values<Styled, TupleOfLength<Styled, Integer.Eight>>())
     .map<
       UnionProduct<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Optional<K | M | O | Q | S | U | W | Y>>,
       ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
@@ -898,7 +897,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 // prettier-ignore
 const useStepsSolver = (): Solve<StepsEasingFunction> =>
   ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
-    StepPosition.fieldValues<StepPosition>()
+    StepPosition.values<StepPosition>()
       .zip<TupleOfLength<StepPosition, Integer.Four>, TupleOfLength<number, Integer.Four>>(
         Math.floor(outputValue * steps) / steps,
         Math.ceil(outputValue * steps) / steps,

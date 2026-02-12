@@ -286,7 +286,7 @@ const NumbersTransition = <
     [validValue, restartAnimation],
   );
 
-  const shouldForwardProp = (prop: string): boolean => [...ForwardProp.fieldValues<ForwardProp>(), ...forwardProps].includes<string>(prop);
+  const shouldForwardProp = (prop: string): boolean => [...ForwardProp.values<ForwardProp>(), ...forwardProps].includes<string>(prop);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
@@ -301,7 +301,7 @@ const NumbersTransition = <
         [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       )
-      .when(AnimationId.fieldValues<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
+      .when(AnimationId.values<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
       .findMap<void>(
         ([condition]: [boolean, (() => void)[]]): boolean => condition,
         ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.invoke<void>),

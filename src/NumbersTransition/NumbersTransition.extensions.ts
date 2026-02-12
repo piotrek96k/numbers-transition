@@ -110,12 +110,8 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
 }
 
 export class Struct<T extends object> extends Extension<T> {
-  public fieldKeys(): string[] {
+  public keys(): string[] {
     return Object.keys(this.value);
-  }
-
-  public fieldValues(): ValueOf<T>[] {
-    return Object.values(this.value);
   }
 
   public map<U>(mapper: (entry: [string, ValueOf<T>]) => [string, U]): Record<string, U> {
@@ -128,6 +124,10 @@ export class Struct<T extends object> extends Extension<T> {
 
   public pipe<U>(mapper: (value: T) => U): U {
     return mapper(this.value);
+  }
+
+  public values(): ValueOf<T>[] {
+    return Object.values(this.value);
   }
 }
 
