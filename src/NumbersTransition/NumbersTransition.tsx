@@ -264,9 +264,11 @@ const NumbersTransition = <
   const renderNegativeElement: boolean = useRenderNegativeElement({
     negativeCharacterAnimationMode,
     animationTransition,
-    previousValue: previousValueOnEndBigInt,
+    previousValueOnStart: previousValueOnStartBigInt,
+    previousValueOnEnd: previousValueOnEndBigInt,
     currentValue: valueBigInt,
     hasSignChanged,
+    restartAnimation,
     renderAnimation,
     numberOfAnimations,
     animationType,

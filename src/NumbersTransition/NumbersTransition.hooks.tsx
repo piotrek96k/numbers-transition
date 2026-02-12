@@ -641,9 +641,11 @@ export const useElementsLength = (options: UseElementsLengthOptions): ElementsLe
 interface UseRenderNegativeElementOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationTransition: AnimationTransition;
-  previousValue: bigint;
+  previousValueOnStart: bigint;
+  previousValueOnEnd: bigint;
   currentValue: bigint;
   hasSignChanged: boolean;
+  restartAnimation: boolean;
   renderAnimation: boolean;
   numberOfAnimations: AnimationNumber;
   animationType: AnimationType;
@@ -653,9 +655,11 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
   const {
     negativeCharacterAnimationMode,
     animationTransition,
-    previousValue,
+    previousValueOnStart,
+    previousValueOnEnd,
     currentValue,
     hasSignChanged,
+    restartAnimation,
     renderAnimation,
     numberOfAnimations,
     animationType,
@@ -670,11 +674,12 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
   const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
     animationType === AnimationType.Horizontal &&
     numberOfAnimations === AnimationNumber.Three &&
-    previousValue < currentValue === (animationTransition === AnimationTransition.None);
+    previousValueOnEnd < currentValue === (animationTransition === AnimationTransition.None);
 
-  const renderNegativeElement: boolean =
-    (!hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
-    renderNegativeElementWhenNumberOfAnimationsIsThree;
+  const renderNegativeElement: boolean = restartAnimation
+    ? previousValueOnStart < Integer.Zero
+    : (!hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
+      renderNegativeElementWhenNumberOfAnimationsIsThree;
 
   return renderNegativeElement;
 };
