@@ -21,15 +21,17 @@ export class Long extends Extension<bigint> {
 }
 
 export class CharSequence extends Extension<string> {
+  public readonly number: number = Number(this.value);
+
   public get bigInt(): bigint {
     return BigInt(this.value);
   }
 
-  public get number(): number {
-    return Number(this.value);
-  }
-
   public readonly compact = (): string => this.value.replace(/\s+/g, ' ').trim();
+
+  public capitalize(): string {
+    return `${this.value[0].toUpperCase()}${this.value.slice(1)}`;
+  }
 }
 
 export class Pattern extends Extension<RegExp> {

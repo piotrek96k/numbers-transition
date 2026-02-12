@@ -16,9 +16,10 @@ declare global {
   }
 
   interface String {
+    number: number;
     readonly bigInt: bigint;
-    readonly number: number;
     compact: () => string;
+    capitalize(): string;
   }
 
   interface RegExp {

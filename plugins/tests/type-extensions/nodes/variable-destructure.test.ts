@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-wrapper-object-types */
 import { expect, it } from 'vitest';
 import { transform } from '../transform/transform';
 
@@ -354,6 +355,16 @@ it<object>('variable destructure in array destructure with dependent initializer
   expect<[bigint, number, number, number]>([one, two, three, four]).toEqual<[bigint, number, number, number]>([1n, 2, 3, 4]);
 });
 
+it<object>('variable destructure rest parameter', (): void => {
+  const string: String = String('   Hello   World   ');
+  const { ...rest }: String = string;
+
+  expect<number>(rest.number).toEqual<number>(Number.NaN);
+  expect<bigint>(rest.bigInt).toBeUndefined();
+  expect<string>(rest.compact()).toEqual<string>('Hello World');
+  expect<() => string>(rest.capitalize).toBeUndefined();
+});
+
 it<object>('variable destructure not implemented', (): void => {
   const { notImplemented }: object = {};
   expect<unknown>(notImplemented).toBeUndefined();
@@ -435,7 +446,7 @@ it<object>('variable destructure inheritance not broken', (): void => {
   expect<string[]>(keys()).toEqual<string[]>(['Hello World']);
 });
 
-it<object>('property access inheritance not broken', (): void => {
+it<object>('variable destructure inheritance not broken', (): void => {
   class Base {
     constructor(protected readonly value: string) {}
 
