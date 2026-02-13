@@ -11,12 +11,11 @@ import {
   createPrinter,
   createSourceFile,
   factory,
-  isImportDeclaration,
   visitEachChild,
 } from 'typescript';
 import { InternalConfig, TypeExtension, TypeExtensionsConfig } from '../config/config';
 import { Context, getContext, provideContext } from '../context/context';
-import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports } from '../imports/imports';
+import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports, splitStatements } from '../imports/imports';
 import { generateRuntimeProxies } from '../runtime/runtime';
 import { buildVisitor } from '../visitor/visitor';
 
@@ -49,11 +48,7 @@ const transformCode = (
   const importPath: string = getExtensionsImportPath(id, extensionsFilePath);
   const sourceFile: SourceFile = createSourceFile(id, code, ScriptTarget.ESNext, true);
 
-  const [imports, restSource]: [ImportDeclaration[], Statement[]] = sourceFile.statements.reduce<[ImportDeclaration[], Statement[]]>(
-    ([imports, restSource]: [ImportDeclaration[], Statement[]], statement: Statement): [ImportDeclaration[], Statement[]] =>
-      isImportDeclaration(statement) ? [[...imports, statement], restSource] : [imports, [...restSource, statement]],
-    [[], []],
-  );
+  const [imports, restSource]: [ImportDeclaration[], Statement[]] = splitStatements(sourceFile.statements);
 
   const [extensionImport, restImports]: [ImportDeclaration[], ImportDeclaration[]] = splitImports(imports, importPath);
   const usedExtensions: Map<string, string> = readUsedExtensions(extensionImport);

@@ -4,14 +4,19 @@ import { cwd } from 'process';
 import {
   ClassDeclaration,
   ClassElement,
+  ExpressionWithTypeArguments,
   GetAccessorDeclaration,
+  HeritageClause,
   Identifier,
+  ImportDeclaration,
   MethodDeclaration,
   ModifierLike,
   Node,
   PropertyDeclaration,
   ScriptKind,
   ScriptTarget,
+  SourceFile,
+  Statement,
   SyntaxKind,
   createSourceFile,
   findConfigFile,
@@ -20,6 +25,7 @@ import {
   isIdentifier,
   isMethodDeclaration,
   isPropertyDeclaration,
+  isStringLiteral,
   parseJsonConfigFileContent,
   readConfigFile,
   sys,
@@ -27,6 +33,8 @@ import {
 import { generateAlias } from '../alias/alias';
 import { ConstName } from '../enums/const-name';
 import { Encoding } from '../enums/encoding';
+import { splitStatements } from '../imports/imports';
+import { ModuleName } from '../enums/module-name';
 
 interface NamedClassDeclaration extends ClassDeclaration {
   name: Identifier;
@@ -73,10 +81,25 @@ export interface TypeExtensionsConfig {
   extensions: Record<string, Extension>;
 }
 
+const isExported = ({ modifiers }: ClassDeclaration): boolean =>
+  !!modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.ExportKeyword);
+
 const isPublic = ({ modifiers }: PropertyDeclaration | MethodDeclaration | GetAccessorDeclaration): boolean =>
   !modifiers?.some(({ kind }: ModifierLike): boolean => [SyntaxKind.PrivateKeyword, SyntaxKind.ProtectedKeyword].includes(kind));
 
-const isClass = (node: Node): node is NamedClassDeclaration => isClassDeclaration(node) && !!node.name;
+const extendsClass = (node: ClassDeclaration, extensionClassName: string): boolean =>
+  !!node.heritageClauses?.some(
+    ({ token, types }: HeritageClause): boolean =>
+      token === SyntaxKind.ExtendsKeyword &&
+      types.some(
+        ({ expression }: ExpressionWithTypeArguments): boolean => isIdentifier(expression) && expression.text === extensionClassName,
+      ),
+  );
+
+const isExtensionClass =
+  (extensionClassName: string | undefined): ((node: Node) => node is NamedClassDeclaration) =>
+  (node: Node): node is NamedClassDeclaration =>
+    isClassDeclaration(node) && !!node.name && isExported(node) && !!extensionClassName && extendsClass(node, extensionClassName);
 
 const isMethodOrProperty = (member: ClassElement): member is MethodOrPropertyDeclaration =>
   (isMethodDeclaration(member) || isPropertyDeclaration(member) || isGetAccessor(member)) && isIdentifier(member.name) && isPublic(member);
@@ -96,15 +119,24 @@ const mapProperty = (member: MethodOrPropertyDeclaration): Property => ({
   isProperty: isPropertyDeclaration(member),
 });
 
-export const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> =>
-  createSourceFile(
+export const buildExtensionsMap = (extensionsFilePath: string, extensions: Record<string, Extension>): Map<string, TypeExtension> => {
+  const sourceFile: SourceFile = createSourceFile(
     resolve(extensionsFilePath),
     readFileSync(resolve(extensionsFilePath), Encoding.Utf8),
     ScriptTarget.ESNext,
     true,
     ScriptKind.TS,
-  )
-    .statements.filter<NamedClassDeclaration>(isClass)
+  );
+
+  const [imports, restSource]: [ImportDeclaration[], Statement[]] = splitStatements(sourceFile.statements);
+
+  const extensionImport: ImportDeclaration | undefined = imports.find(
+    (importDeclaration: ImportDeclaration): boolean =>
+      isStringLiteral(importDeclaration.moduleSpecifier) && importDeclaration.moduleSpecifier.text === ModuleName.Extension,
+  );
+
+  return restSource
+    .filter<NamedClassDeclaration>(isExtensionClass(extensionImport?.importClause?.name?.text))
     .map<[string, Property[]]>(({ name: { text }, members }: NamedClassDeclaration): [string, Property[]] => [
       text,
       members.filter<MethodOrPropertyDeclaration>(isMethodOrProperty).map<Property>(mapProperty),
@@ -115,6 +147,7 @@ export const buildExtensionsMap = (extensionsFilePath: string, extensions: Recor
         map.set(className, { type: extensions[className].type, typeCheck: extensions[className].typeCheck, properties }),
       new Map<string, TypeExtension>(),
     );
+};
 
 export const buildConstAliases = (extensionsFilePath: string): Map<string, string> =>
   new Map<string, string>(

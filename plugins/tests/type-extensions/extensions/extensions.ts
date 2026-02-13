@@ -1,4 +1,4 @@
-import Extension from '../../../type-extensions/extension/extension';
+import Extension from 'extension';
 
 export class Predicate extends Extension<boolean> {
   public readonly int: number = this.value ? 1 : 0;

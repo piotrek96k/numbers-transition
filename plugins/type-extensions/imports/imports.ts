@@ -5,7 +5,10 @@ import {
   NamedImportBindings,
   NamedImports,
   Node,
+  NodeArray,
+  Statement,
   factory,
+  isImportDeclaration,
   isNamedImports,
   isStringLiteral,
 } from 'typescript';
@@ -17,6 +20,13 @@ export const getExtensionsImportPath = (id: string, extensionsFilePath: string):
     .replace(/\\/g, '/')
     .replace(/^(?!\.{1,2}\/)(\/?)/, './')
     .replace(/\.[a-z]+$/, '');
+
+export const splitStatements = (statements: NodeArray<Statement>): [ImportDeclaration[], Statement[]] =>
+  statements.reduce<[ImportDeclaration[], Statement[]]>(
+    ([imports, restSource]: [ImportDeclaration[], Statement[]], statement: Statement): [ImportDeclaration[], Statement[]] =>
+      isImportDeclaration(statement) ? [[...imports, statement], restSource] : [imports, [...restSource, statement]],
+    [[], []],
+  );
 
 export const splitImports = (imports: ImportDeclaration[], importPath: string): [ImportDeclaration[], ImportDeclaration[]] =>
   imports.reduce<[ImportDeclaration[], ImportDeclaration[]]>(
