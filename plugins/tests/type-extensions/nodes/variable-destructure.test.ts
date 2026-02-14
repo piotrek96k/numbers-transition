@@ -290,25 +290,24 @@ it<object>('variable destructure variable property function invocation rename', 
   expect<string>(squash()).toEqual<string>('Hello World');
 });
 
-// TODO: revisit once binding support for this is added
 it<object>('variable destructure literal method invocation', (): void => {
   const { append }: number[] = [1, 2];
-  expect<(element: number) => number[]>(append).toBeDefined();
+  expect<number[]>(append.call<number[], [number], number[]>([3, 4], 5)).toEqual<number[]>([3, 4, 5]);
 });
 
 it<object>('variable destructure literal method invocation rename', (): void => {
   const { append: add }: number[] = [1, 2];
-  expect<(element: number) => number[]>(add).toBeDefined();
+  expect<number[]>(add.call<number[], [number], number[]>([3, 4], 5)).toEqual<number[]>([3, 4, 5]);
 });
 
 it<object>('variable destructure variable method invocation', (): void => {
   const { append }: number[] = [1, 2];
-  expect<(element: number) => number[]>(append).toBeDefined();
+  expect<number[]>(append.call<number[], [number], number[]>([3, 4], 5)).toEqual<number[]>([3, 4, 5]);
 });
 
 it<object>('variable destructure variable method invocation rename', (): void => {
   const { append: add }: number[] = [1, 2];
-  expect<(element: number) => number[]>(add).toBeDefined();
+  expect<number[]>(add.call<number[], [number], number[]>([3, 4], 5)).toEqual<number[]>([3, 4, 5]);
 });
 
 it<object>('variable destructure nested variable', (): void => {
@@ -378,7 +377,7 @@ it<object>('variable destructure existing method not shadowed', (): void => {
   const { keys: objectKeys }: Test = { hello: 'Hello World' };
   const { keys: arrayKeys }: number[] = [0, 1];
 
-  expect<string[]>(objectKeys.call({ value: { hello: 'Hello World' } })).toEqual<string[]>(['hello']);
+  expect<string[]>(objectKeys.call<Test, [], string[]>({ hello: 'Hello World' })).toEqual<string[]>(['hello']);
   expect<number[]>([...arrayKeys.call<number[], [], ArrayIterator<number>>([0, 1])]).toEqual<number[]>([0, 1]);
 });
 
@@ -460,4 +459,19 @@ it<object>('variable destructure inheritance not broken', (): void => {
   const { keys }: Extension = new Extension('Hello World');
 
   expect<string[]>(keys()).toEqual<string[]>(['Hello World']);
+});
+
+it<object>('variable destructure apply function', (): void => {
+  const { append } = [1];
+  expect<number[]>(append.apply<number[], [number], number[]>([1, 2], [3])).toEqual<number[]>([1, 2, 3]);
+});
+
+it<object>('variable destructure call function', (): void => {
+  const { append } = [1];
+  expect<number[]>(append.call<number[], [number], number[]>([1, 2], 3)).toEqual<number[]>([1, 2, 3]);
+});
+
+it<object>('variable destructure bind function', (): void => {
+  const { append } = [1];
+  expect<number[]>(append.bind<(element: number) => number[]>([1, 2])(3)).toEqual<number[]>([1, 2, 3]);
 });

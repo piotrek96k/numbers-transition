@@ -16,7 +16,7 @@ import {
 import { InternalConfig, TypeExtension, TypeExtensionsConfig } from '../config/config';
 import { Context, getContext, provideContext } from '../context/context';
 import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports, splitStatements } from '../imports/imports';
-import { generateRuntimeProxies } from '../runtime/runtime';
+import { injectRuntimeProxies } from '../runtime/runtime';
 import { buildVisitor } from '../visitor/visitor';
 
 const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: string, imports: ImportDeclaration[]): string => {
@@ -32,8 +32,7 @@ const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: s
     factory.updateSourceFile(sourceFile, [
       ...imports,
       ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath)]),
-      ...statements,
-      ...(isExtensionsFile ? generateRuntimeProxies() : []),
+      ...(isExtensionsFile ? injectRuntimeProxies(statements) : statements),
     ]),
   );
 };

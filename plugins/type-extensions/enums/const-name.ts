@@ -1,11 +1,13 @@
 export enum ConstName {
   Descriptions = 'descriptions',
   Extension = 'extension',
+  GetThisValue = 'getThisValue',
   Merge = 'merge',
   Object = 'object',
   Prototype = 'prototype',
   Proxy = 'proxy',
   ReadSources = 'readSources',
+  Self = 'self',
   Sources = 'sources',
   Type = 'type',
   TypeMap = 'typeMap',

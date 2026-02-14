@@ -5,6 +5,7 @@ export enum ArgName {
   Extension = 'extension',
   Init = 'init',
   Key = 'key',
+  Self = 'self',
   Source = 'source',
   Value = 'value',
 }

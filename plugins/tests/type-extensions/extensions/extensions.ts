@@ -27,7 +27,11 @@ export class CharSequence extends Extension<string> {
     return BigInt(this.value);
   }
 
-  public readonly compact = (): string => this.value.replace(/\s+/g, ' ').trim();
+  public readonly compact = (): string =>
+    this.value
+      .replace(/(?<=[()[\]])\s+/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
 
   public capitalize(): string {
     return `${this.value[0].toUpperCase()}${this.value.slice(1)}`;

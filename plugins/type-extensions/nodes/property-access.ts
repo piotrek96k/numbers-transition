@@ -12,7 +12,8 @@ import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { readImportName } from '../imports/imports';
 import { isLiteralExpression } from '../literals/literal-expressions';
-import { buildProxyCallExpression, buildWrapCallExpression } from '../runtime/runtime';
+import { buildProxyCallExpression } from '../runtime/proxy';
+import { buildWrapCallExpression } from '../runtime/wrap';
 
 const isStaticProperty =
   (expression: Expression, propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>

@@ -201,7 +201,6 @@ it<object>('property access variable property function invocation', (): void => 
   expect<string>(string.compact()).toEqual<string>('Hello World');
 });
 
-// TODO: add tests once binding support for this is added
 it<object>('property access literal method invocation', (): void => {
   expect<number[]>([1, 2].append(3)).toEqual<number[]>([1, 2, 3]);
 });
@@ -302,4 +301,16 @@ it<object>('property access inheritance not broken', (): void => {
   }
 
   expect<string[]>(new Extension('Hello World').keys()).toEqual<string[]>(['Hello World']);
+});
+
+it<object>('property access apply function', (): void => {
+  expect<number[]>([1].append.apply<number[], [number], number[]>([1, 2], [3])).toEqual<number[]>([1, 2, 3]);
+});
+
+it<object>('property access call function', (): void => {
+  expect<number[]>([1].append.call<number[], [number], number[]>([1, 2], 3)).toEqual<number[]>([1, 2, 3]);
+});
+
+it<object>('property access bind function', (): void => {
+  expect<number[]>([1].append.bind<(element: number) => number[]>([1, 2])(3)).toEqual<number[]>([1, 2, 3]);
 });

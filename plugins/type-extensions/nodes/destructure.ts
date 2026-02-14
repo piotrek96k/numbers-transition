@@ -39,7 +39,8 @@ import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { isLiteralExpression } from '../literals/literal-expressions';
-import { buildMergeCallExpression, buildProxyCallExpression } from '../runtime/runtime';
+import { buildMergeCallExpression } from '../runtime/merge';
+import { buildProxyCallExpression } from '../runtime/proxy';
 
 type DestructureDeclaration = BindingElement | VariableDeclaration | ParameterDeclaration;
 
