@@ -171,7 +171,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   }
 
   public map<U>(mapper: (entry: [string, ValueOf<T>]) => [string, U]): Record<string, U> {
-    return Object.fromEntries<U>(Object.entries(this.value).map<[string, U]>(mapper));
+    return Object.fromEntries<U>(Object.entries<any>(this.value).map<[string, U]>(mapper));
   }
 
   public matches<U extends T>(predicate: (value: T) => value is U): this is U {
@@ -183,7 +183,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   }
 
   public values(): ValueOf<T>[] {
-    return Object.values(this.value);
+    return Object.values<any>(this.value);
   }
 }
 
