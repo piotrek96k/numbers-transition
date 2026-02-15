@@ -17,6 +17,7 @@ import { ArgName } from '../enums/arg-name';
 import { ConstName } from '../enums/const-name';
 import { FunctionName } from '../enums/function-name';
 import { readImportName } from '../imports/imports';
+import { InternalPropertyName } from '../enums/internal-property-name';
 
 const generateProxyFindFunction = (): ArrowFunction =>
   factory.createArrowFunction(
@@ -26,13 +27,16 @@ const generateProxyFindFunction = (): ArrowFunction =>
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
     factory.createCallExpression(
-      factory.createCallExpression(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier(getContext().constAliases.get(ConstName.TypeCheckMap)!),
-          FunctionName.Get,
+      factory.createPropertyAccessExpression(
+        factory.createCallExpression(
+          factory.createPropertyAccessExpression(
+            factory.createIdentifier(getContext().constAliases.get(ConstName.TypeMap)!),
+            FunctionName.Get,
+          ),
+          undefined,
+          [factory.createIdentifier(ArgName.Cls)],
         ),
-        undefined,
-        [factory.createIdentifier(ArgName.Cls)],
+        InternalPropertyName.IsType,
       ),
       undefined,
       [factory.createIdentifier(ArgName.Value)],
@@ -103,7 +107,7 @@ export const buildProxyCallExpression = (value: Expression, extensions: [string,
     [
       value,
       factory.createArrayLiteralExpression(
-        extensions.map<StringLiteral>(([, { type }]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(type)),
+        extensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
       ),
       ...(key ? [factory.createStringLiteral(key)] : []),
     ],

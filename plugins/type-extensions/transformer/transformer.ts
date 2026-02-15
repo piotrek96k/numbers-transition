@@ -13,7 +13,7 @@ import {
   factory,
   visitEachChild,
 } from 'typescript';
-import { InternalConfig, TypeExtension, TypeExtensionsConfig } from '../config/config';
+import { TypeExtension, TypeExtensionsConfig } from '../config/config';
 import { Context, getContext, provideContext } from '../context/context';
 import { buildExtensionsImport, getExtensionsImportPath, readUsedExtensions, splitImports, splitStatements } from '../imports/imports';
 import { injectRuntimeProxies } from '../runtime/runtime';
@@ -66,8 +66,8 @@ const transformCode = (
 };
 
 export const buildTransformer =
-  (config: TypeExtensionsConfig, internalConfig: InternalConfig): TransformHook =>
+  (extensionsFilePath: string, config: TypeExtensionsConfig): TransformHook =>
   (originalCode: string, id: string): TransformResult =>
-    internalConfig.allowedFiles.has(resolve(id))
-      ? transformCode(config.extensionsFilePath, internalConfig.extensionsMap, internalConfig.constAliases, originalCode, id)
+    config.allowedFiles.has(resolve(id))
+      ? transformCode(extensionsFilePath, config.extensionsMap, config.constAliases, originalCode, id)
       : null;

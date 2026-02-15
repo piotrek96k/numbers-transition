@@ -282,7 +282,7 @@ const updateVariableObjectDestructureDeclaration =
       variableDeclaration.type,
       extensions.length
         ? literalExtension
-          ? buildMergeCallExpression(variableDeclaration.initializer, literalExtension[1].type)
+          ? buildMergeCallExpression(variableDeclaration.initializer, literalExtension[0])
           : buildProxyCallExpression(variableDeclaration.initializer, extensions)
         : variableDeclaration.initializer,
     );

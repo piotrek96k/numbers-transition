@@ -5,8 +5,12 @@ import react from '@vitejs/plugin-react-swc';
 import typeExtensions from './plugins/dist/type-extensions';
 
 const config: UserConfig = {
-  plugins: [typeExtensions('extensions.config.json'), react(), dts({ rollupTypes: true })],
-  resolve: { alias: { extension: resolve('plugins', 'dist', 'extension') } },
+  plugins: [
+    typeExtensions('tsconfig.json', resolve('src', 'NumbersTransition', 'NumbersTransition.extensions.ts')),
+    react(),
+    dts({ rollupTypes: true }),
+  ],
+  resolve: { alias: { 'type-extensions/extension': resolve('plugins', 'dist', 'extension') } },
   build: {
     lib: { entry: resolve('src', 'index.ts'), name: 'numbers-transition' },
     rollupOptions: {

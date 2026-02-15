@@ -17,7 +17,7 @@
     "noFallthroughCasesInSwitch": true,
     "noErrorTruncation": true,
     "noImplicitAny": true,
-    "paths": { "extension": ["./plugins/dist/extension"] },
+    "paths": { "type-extensions/extension": ["./plugins/dist/extension"] },
     "plugins": [{ "transform": "./plugins/dist/suppress-diagnostics", "transformProgram": true, "codes": [2373] }]
   },
   "include": ["src"],

@@ -1,8 +1,15 @@
-import Extension from 'extension';
+import Extension, { ExtensionConstructor } from 'type-extensions/extension';
 import { Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
 
-export class Predicate extends Extension<boolean> {
+export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
+  public static readonly id: string = 'Boolean';
+  public static readonly type: BooleanConstructor = Boolean;
+
+  public static isType(value: unknown): boolean {
+    return typeof value === 'boolean' || value instanceof Boolean;
+  }
+
   public get int(): number {
     return this.value ? Integer.One : Integer.Zero;
   }
@@ -12,7 +19,14 @@ export class Predicate extends Extension<boolean> {
   }
 }
 
-export class Double extends Extension<number> {
+export class Double extends Extension<number> implements ExtensionConstructor<number, typeof Double> {
+  public static readonly id: string = 'Number';
+  public static readonly type: NumberConstructor = Number;
+
+  public static isType(value: unknown): boolean {
+    return typeof value === 'number' || value instanceof Number;
+  }
+
   public static subtract(first: number, second: number): number {
     return first - second;
   }
@@ -26,13 +40,27 @@ export class Double extends Extension<number> {
   }
 }
 
-export class Long extends Extension<bigint> {
+export class Long extends Extension<bigint> implements ExtensionConstructor<bigint, typeof Long> {
+  public static readonly id: string = 'BigInt';
+  public static readonly type: BigIntConstructor = BigInt;
+
+  public static isType(value: unknown): boolean {
+    return typeof value === 'bigint';
+  }
+
   public get digit(): number {
     return Math.abs(Number(this.value % BigInt(Integer.Ten)));
   }
 }
 
-export class CharSequence extends Extension<string> {
+export class CharSequence extends Extension<string> implements ExtensionConstructor<string, typeof CharSequence> {
+  public static readonly id: string = 'String';
+  public static readonly type: StringConstructor = String;
+
+  public static isType(value: unknown): boolean {
+    return typeof value === 'string' || value instanceof String;
+  }
+
   public get bigInt(): bigint {
     return BigInt(this.value);
   }
@@ -42,13 +70,27 @@ export class CharSequence extends Extension<string> {
   }
 }
 
-export class Pattern extends Extension<RegExp> {
+export class Pattern extends Extension<RegExp> implements ExtensionConstructor<RegExp, typeof Pattern> {
+  public static readonly id: string = 'RegExp';
+  public static readonly type: RegExpConstructor = RegExp;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof RegExp;
+  }
+
   public testAny<T>(unknown: unknown): unknown is T {
     return this.value.test(`${unknown}`);
   }
 }
 
-export class List<T> extends Extension<T[]> {
+export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[], typeof List<T>> {
+  public static readonly id: string = 'Array';
+  public static readonly type: ArrayConstructor = Array;
+
+  public static isType(value: unknown): boolean {
+    return Array.isArray<unknown>(value);
+  }
+
   public static toArray<T>(value: OrArray<T>): T[] {
     return Array.isArray<T>(value) ? value : [value];
   }
@@ -99,7 +141,14 @@ export class List<T> extends Extension<T[]> {
   }
 }
 
-export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> {
+export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
+  public static readonly id: string = 'Function';
+  public static readonly type: FunctionConstructor = Function;
+
+  public static isType(value: unknown): boolean {
+    return typeof value === 'function';
+  }
+
   public static invoke<T>(callback: () => T): T {
     return callback();
   }
@@ -109,7 +158,14 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
   }
 }
 
-export class Struct<T extends object> extends Extension<T> {
+export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
+  public static readonly id: string = 'Object';
+  public static readonly type: ObjectConstructor = Object;
+
+  public static isType(value: unknown): boolean {
+    return (typeof value === 'object' || typeof value === 'function') && value !== null;
+  }
+
   public keys(): string[] {
     return Object.keys(this.value);
   }
@@ -131,7 +187,14 @@ export class Struct<T extends object> extends Extension<T> {
   }
 }
 
-export class Calc extends Extension<never> {
+export class Calc extends Extension<never> implements ExtensionConstructor<never, typeof Calc> {
+  public static readonly id: string = 'Math';
+  public static readonly type: Math = Math;
+
+  public static isType(): boolean {
+    return false;
+  }
+
   public static roundTo(value: number, precision: number): number {
     return Math.round(value * Integer.Ten ** precision) / Integer.Ten ** precision;
   }

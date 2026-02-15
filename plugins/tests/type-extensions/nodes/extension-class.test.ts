@@ -7,11 +7,11 @@ const extensionPath: string = resolve(dirname(dirname(fileURLToPath(import.meta.
 
 it<object>('generate runtime methods', (): void => {
   const code: string = `
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     const getThisValue[0-9a-f]+ = \(self, cls\) => self instanceof cls \? self : new cls\(self\);
     
@@ -24,18 +24,6 @@ it<object>('generate runtime methods', (): void => {
         \["RegExp", Pattern\],
         \["Array", List\],
         \["Object", Struct\]
-      \]
-    \),
-
-    typeCheckMap[0-9a-f]+ = new Map\(
-      \[
-        \["Boolean", value => typeof value === "boolean" \|\| value instanceof Boolean\], 
-        \["Number", value => typeof value === "number" \|\| value instanceof Number\], 
-        \["BigInt", value => typeof value === "bigint"\], 
-        \["String", value => typeof value === "string" \|\| value instanceof String\], 
-        \["RegExp", value => value instanceof RegExp\], 
-        \["Array", value => Array\.isArray\(value\)\], 
-        \["Object", value => \(typeof value === "object" \|\| typeof value === "function"\) && value !== null\]
       \]
     \),
 
@@ -68,7 +56,7 @@ it<object>('generate runtime methods', (): void => {
     },
 
     proxy[0-9a-f]+ = \(value, classes, key\) => { 
-      const type = classes\.find\(cls => typeCheckMap[0-9a-f]+\.get\(cls\)\(value\)\); 
+      const type = classes\.find\(cls => typeMap[0-9a-f]+\.get\(cls\).isType\(value\)\); 
       return type \? key \? wrap[0-9a-f]+\(value, type, key\): merge[0-9a-f]+\(value, type\): value; 
     };
   `;
@@ -78,7 +66,7 @@ it<object>('generate runtime methods', (): void => {
 
 it<object>('rewrite method this', (): void => {
   const code: string = `
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     class CharSequence extends Extension<string> {
       public capitalize(): string {
@@ -88,7 +76,7 @@ it<object>('rewrite method this', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     .*
 
@@ -105,7 +93,7 @@ it<object>('rewrite method this', (): void => {
 
 it<object>('rewrite nested arrow function this', (): void => {
   const code: string = `
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     class CharSequence extends Extension<string> {
       public capitalize(): string {
@@ -116,7 +104,7 @@ it<object>('rewrite nested arrow function this', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     .*
 
@@ -134,7 +122,7 @@ it<object>('rewrite nested arrow function this', (): void => {
 
 it<object>('not rewrite nested function this', (): void => {
   const code: string = `
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     class CharSequence extends Extension<string> {
       public capitalize(): string {
@@ -148,7 +136,7 @@ it<object>('not rewrite nested function this', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     .*
 
@@ -169,7 +157,7 @@ it<object>('not rewrite nested function this', (): void => {
 
 it<object>('not rewrite nested class this', (): void => {
   const code: string = `
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     class CharSequence extends Extension<string> {
       public capitalize(): string {
@@ -187,7 +175,7 @@ it<object>('not rewrite nested class this', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension from 'extension';
+    import Extension from 'type-extensions/extension';
 
     .*
 

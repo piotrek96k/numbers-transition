@@ -8,4 +8,15 @@ abstract class Extension<T> {
   }
 }
 
+interface ExtensionClass<T> {
+  new (...args: [T]): Extension<T>;
+  id: string;
+  type: ((...args: any[]) => any) | object;
+  isType(value: unknown): boolean;
+}
+
+type ExtensionConstructor<T, U extends ExtensionClass<T>> = InstanceType<U>;
+
 export default Extension;
+
+export type { ExtensionConstructor };

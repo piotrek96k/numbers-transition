@@ -1,6 +1,10 @@
 {
   "extends": "./tsconfig.plugins.json",
-  "compilerOptions": { "noEmit": true, "types": ["vitest/globals"], "paths": { "extension": ["./plugins/dist/extension"] } },
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["vitest/globals"],
+    "paths": { "type-extensions/extension": ["./plugins/dist/extension"] }
+  },
   "include": ["plugins/tests"],
   "exclude": []
 }

@@ -11,6 +11,5 @@ export enum ConstName {
   Sources = 'sources',
   Type = 'type',
   TypeMap = 'typeMap',
-  TypeCheckMap = 'typeCheckMap',
   Wrap = 'wrap',
 }

@@ -48,5 +48,5 @@ const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsTy
 
 export const isLiteralExpression =
   (node: Node): ((entry: [string, TypeExtension]) => boolean) =>
-  ([, { type }]: [string, TypeExtension]): boolean =>
-    !!literalExpressionsMap.get(type)?.(node);
+  ([id]: [string, TypeExtension]): boolean =>
+    !!literalExpressionsMap.get(id)?.(node);

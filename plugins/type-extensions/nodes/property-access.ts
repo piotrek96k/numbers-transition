@@ -17,9 +17,9 @@ import { buildWrapCallExpression } from '../runtime/wrap';
 
 const isStaticProperty =
   (expression: Expression, propertyName: string): ((entry: [string, TypeExtension]) => boolean) =>
-  ([, { type, properties }]: [string, TypeExtension]): boolean =>
+  ([id, { properties }]: [string, TypeExtension]): boolean =>
     isIdentifier(expression) &&
-    type === expression.text &&
+    id === expression.text &&
     properties.some(({ name, isStatic }: Property): boolean => name === propertyName && isStatic);
 
 const isObjectProperty =
@@ -30,7 +30,7 @@ const isObjectProperty =
 const buildPropertyAccessStaticExpression = ({ expression, name: { text } }: PropertyAccessExpression): (() => Node)[] =>
   [...getContext().extensionsMap]
     .filter(isStaticProperty(expression, text))
-    .map<string>(([className]: [string, TypeExtension]): string => readImportName(className, expression))
+    .map<string>(([, { implementationClass }]: [string, TypeExtension]): string => readImportName(implementationClass, expression))
     .map<() => Node>(
       (className: string): (() => Node) =>
         (): Node =>
@@ -44,8 +44,7 @@ const buildPropertyAccessLiteralExpression = (
   extensions
     .filter(isLiteralExpression(expression))
     .map<Node>(
-      ([, { type }]: [string, TypeExtension]): Node =>
-        factory.createPropertyAccessExpression(buildWrapCallExpression(expression, type, text), text),
+      ([id]: [string, TypeExtension]): Node => factory.createPropertyAccessExpression(buildWrapCallExpression(expression, id, text), text),
     )
     .pop();
 

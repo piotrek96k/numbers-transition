@@ -17,12 +17,18 @@ import {
   isMethodDeclaration,
   visitEachChild,
 } from 'typescript';
+import { TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { buildGetThisValueCallExpression } from '../runtime/get-this-value';
 import { ConstName } from '../enums/const-name';
 
 const isExtensionClassExpression = (node: Node): node is ClassDeclaration =>
-  getContext().isExtensionsFile && isClassDeclaration(node) && !!node.name && getContext().extensionsMap.has(node.name.text);
+  getContext().isExtensionsFile &&
+  isClassDeclaration(node) &&
+  !!node.name &&
+  [...getContext().extensionsMap.values()].some(
+    ({ implementationClass }: TypeExtension): boolean => implementationClass === node.name?.text,
+  );
 
 const isClassMethodDeclaration = (node: ClassElement): node is MethodDeclaration =>
   isMethodDeclaration(node) && !node.modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword);

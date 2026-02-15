@@ -1,3 +1,3 @@
 export enum ModuleName {
-  Extension = 'extension',
+  Extension = 'type-extensions/extension',
 }
