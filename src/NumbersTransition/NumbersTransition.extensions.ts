@@ -65,6 +65,10 @@ export class CharSequence extends Extension<string> implements ExtensionConstruc
     return BigInt(this.value);
   }
 
+  public get number(): number {
+    return parseFloat(this.value);
+  }
+
   public capitalize(): string {
     return `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
   }
@@ -197,5 +201,18 @@ export class Calc extends Extension<never> implements ExtensionConstructor<never
 
   public static roundTo(value: number, precision: number): number {
     return Math.round(value * Integer.Ten ** precision) / Integer.Ten ** precision;
+  }
+}
+
+export class DomElement extends Extension<HTMLElement> implements ExtensionConstructor<HTMLElement, typeof DomElement> {
+  public static readonly id: string = 'HTMLElement';
+  public static readonly type: typeof HTMLElement = HTMLElement;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof HTMLElement;
+  }
+
+  public get computedStyle(): CSSStyleDeclaration {
+    return getComputedStyle(this.value);
   }
 }

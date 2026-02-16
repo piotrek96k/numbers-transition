@@ -22,6 +22,7 @@ declare global {
 
   interface String {
     readonly bigInt: bigint;
+    readonly number: number;
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;
   }
@@ -106,5 +107,9 @@ declare global {
 
   interface Math {
     roundTo(value: number, precision: number): number;
+  }
+
+  interface HTMLElement {
+    readonly computedStyle: CSSStyleDeclaration;
   }
 }
