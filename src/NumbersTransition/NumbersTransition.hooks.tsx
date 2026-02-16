@@ -1023,7 +1023,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     (precision > Integer.Zero).int,
   ].reduce(Number.subtract);
 
-  const mapElementWidth = useCallback<(element: HTMLElement) => number>(
+  const calculateElementWidth = useCallback<(element: HTMLElement) => number>(
     ({
       computedStyle: { boxSizing, width, paddingLeft, paddingRight, borderLeftWidth, borderRightWidth, marginLeft, marginRight },
     }: HTMLElement): number =>
@@ -1042,9 +1042,9 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     (): number =>
       [...(ref.current?.children ?? [])]
         .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
-        .map<number>(mapElementWidth)
+        .map<number>(calculateElementWidth)
         .reduce(Number.sum),
-    [ref, startIndex, mapElementWidth],
+    [ref, startIndex, calculateElementWidth],
   );
 
   useLayoutEffect((): void => setAnimationStartWidth(calculateAnimationStartWidth()), [calculateAnimationStartWidth]);
