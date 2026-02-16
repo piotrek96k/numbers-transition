@@ -65,6 +65,7 @@ import {
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import type { BigDecimal, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import { CharSequence, Double, List, Long, Pattern, Predicate, Struct } from './NumbersTransition.extensions';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -273,6 +274,74 @@ const NumbersTransition = <
     numberOfAnimations,
     animationType,
   });
+
+  const typeMap = new Map([
+      ['Boolean', Predicate],
+      ['Number', Double],
+      ['BigInt', Long],
+      ['String', CharSequence],
+      ['RegExp', Pattern],
+      ['Array', List],
+      ['Object', Struct],
+    ]),
+    readSources = (extension) => {
+      const sources = [extension];
+      let prototype = Object.getPrototypeOf(extension);
+      while (prototype && prototype !== Object.prototype) {
+        sources.unshift(prototype);
+        prototype = Object.getPrototypeOf(prototype);
+      }
+      return sources;
+    };
+
+  const wrap = (value, cls, isStatic, key) =>
+      value?.[key] === void 0 ? (isStatic ? typeMap.get(cls) : new (typeMap.get(cls))(value)) : value,
+    merge = (value, cls, isStatic) => {
+      const object = Object.create(isStatic ? value : Object.getPrototypeOf(value));
+      Object.defineProperties(object, Object.getOwnPropertyDescriptors(isStatic ? value : Object(value)));
+      const descriptions = Object.assign(
+        {},
+        ...readSources(isStatic ? typeMap.get(cls) : new (typeMap.get(cls))(value)).map((source) =>
+          Object.fromEntries(
+            Object.getOwnPropertyNames(source)
+              .filter((key) => key !== 'constructor' && !(key in object))
+              .map((key) => [key, Object.getOwnPropertyDescriptor(source, key)]),
+          ),
+        ),
+      );
+      return Object.defineProperties(object, descriptions);
+    },
+    proxy = (value, tuples, key) => {
+      const found = tuples.find(([cls, isStatic]) => (isStatic ? typeMap.get(cls).type === value : typeMap.get(cls).isType(value)));
+      return found ? (key !== undefined ? wrap(value, found[0], found[1], key) : merge(value, found[0], found[1])) : value;
+    };
+
+  const { sum } = proxy(
+    Number,
+    [
+      ['Number', true],
+      ['Number', false],
+    ],
+    'sum',
+  );
+
+  function distance(value, ctor) {
+    let d = 0;
+    let p = Object.getPrototypeOf(value);
+
+    while (p) {
+      if (p.constructor === ctor) return d;
+      p = Object.getPrototypeOf(p);
+      d++;
+    }
+
+    return Infinity;
+  }
+
+  console.log(sum);
+  console.log(distance([], Array));
+  // console.log(wrap(Number, 'Number', true, 'sum').sum);
+  // console.log(merge(1, 'Number', false));
 
   useEffect(
     (): void => [(): void => setPreviousValueOnEnd(validValue)].when(omitAnimation).forEach(Function.invoke<void>),
