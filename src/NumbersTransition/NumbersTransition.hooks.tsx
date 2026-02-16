@@ -1023,15 +1023,17 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     (precision > Integer.Zero).int,
   ].reduce(Number.subtract);
 
-  const getElementWidth = useCallback<(element: HTMLElement) => number>(
+  const mapElementWidth = useCallback<(element: HTMLElement) => number>(
     ({
       computedStyle: { boxSizing, width, paddingLeft, paddingRight, borderLeftWidth, borderRightWidth, marginLeft, marginRight },
     }: HTMLElement): number =>
       [
-        [width, marginLeft, marginRight],
-        boxSizing === BoxSizing.BorderBox ? [] : [paddingLeft, paddingRight, borderLeftWidth, borderRightWidth],
+        width,
+        marginLeft,
+        marginRight,
+        ...(boxSizing === BoxSizing.BorderBox ? [] : [paddingLeft, paddingRight, borderLeftWidth, borderRightWidth]),
       ]
-        .map<number>((sizes: string[]) => sizes.map<number>(({ number }: string): number => number).reduce(Number.sum, Integer.Zero))
+        .map<number>(({ number }: string): number => number)
         .reduce(Number.sum),
     [],
   );
@@ -1040,9 +1042,9 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     (): number =>
       [...(ref.current?.children ?? [])]
         .filter<HTMLElement>((child: Element, index: number): child is HTMLElement => index >= startIndex && child instanceof HTMLElement)
-        .map<number>(getElementWidth)
+        .map<number>(mapElementWidth)
         .reduce(Number.sum),
-    [ref, startIndex, getElementWidth],
+    [ref, startIndex, mapElementWidth],
   );
 
   useLayoutEffect((): void => setAnimationStartWidth(calculateAnimationStartWidth()), [calculateAnimationStartWidth]);
