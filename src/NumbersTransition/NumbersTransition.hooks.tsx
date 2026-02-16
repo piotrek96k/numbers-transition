@@ -21,6 +21,7 @@ import {
   AnimationTimingFunction,
   AnimationTransition,
   AnimationType,
+  BoxSizing,
   Integer,
   Key,
   NegativeCharacterAnimationMode,
@@ -1022,12 +1023,17 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     (precision > Integer.Zero).int,
   ].reduce(Number.subtract);
 
+  // prettier-ignore
   const getElementWidth = useCallback<(element: HTMLElement) => number>(
     (element: HTMLElement): number =>
       getComputedStyle(element)
-        .pipe<CSSStyleDeclaration, string[]>(({ marginLeft, marginRight }: CSSStyleDeclaration): string[] => [marginLeft, marginRight])
-        .map<number>(parseFloat)
-        .append(element.getBoundingClientRect().width)
+        .pipe<CSSStyleDeclaration, [string[], string[]]>(
+          ({ boxSizing, width, paddingLeft, paddingRight, borderLeftWidth, borderRightWidth, marginLeft, marginRight }: CSSStyleDeclaration): [string[], string[]] => [
+            [width, marginLeft, marginRight],
+            boxSizing === BoxSizing.BorderBox ? [] : [paddingLeft, paddingRight, borderLeftWidth, borderRightWidth],
+          ],
+        )
+        .map<number>((sizes: string[]) => sizes.map<number>(parseFloat).reduce(Number.sum, Integer.Zero))
         .reduce(Number.sum),
     [],
   );
@@ -1043,7 +1049,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 
   useLayoutEffect((): void => setAnimationStartWidth(calculateAnimationStartWidth()), [calculateAnimationStartWidth]);
 
-  return [animationStartWidth, ref.current?.getBoundingClientRect().width ?? Integer.Zero];
+  return [animationStartWidth, ref.current ? parseFloat(getComputedStyle(ref.current).width) : Integer.Zero];
 };
 
 export interface AnimationAlgorithm {
