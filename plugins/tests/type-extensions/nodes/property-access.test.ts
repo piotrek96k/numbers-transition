@@ -130,11 +130,11 @@ it<object>('rewrite property access new expression literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     class Test {
       constructor\(private readonly value: string\) { }
     }
-    export const keys: string\[\] = wrap[0-9a-f]+\(new Test\('Hello World'\), "Object", "keys"\)\.keys\(\);
+    export const keys: string\[\] = \(proxy[0-9a-f]+\(new Test\('Hello World'\), \["Object"\], "keys"\)\.keys\)\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));

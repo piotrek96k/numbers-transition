@@ -124,11 +124,11 @@ it<object>('rewrite variable destructure new expression literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     class Test {
       constructor\(private readonly value: string\) { }
     }
-    export const { keys }: Test = merge[0-9a-f]+\(new Test\('Hello World'\), "Object"\);
+    export const { keys }: Test = proxy[0-9a-f]+\(new Test\('Hello World'\), \["Object"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
