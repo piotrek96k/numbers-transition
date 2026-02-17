@@ -1,6 +1,7 @@
 import Extension, { ExtensionConstructor } from 'type-extensions/extension';
 import { Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
+import { MyArray, MyString, Test } from './Test';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
   public static readonly id: string = 'Boolean';
@@ -72,6 +73,12 @@ export class CharSequence extends Extension<string> implements ExtensionConstruc
   public capitalize(): string {
     return `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
   }
+
+  public toUpperCase(): string {
+    throw new Error('should never happen');
+  }
+
+  public readonly size: number = this.value.length;
 }
 
 export class Pattern extends Extension<RegExp> implements ExtensionConstructor<RegExp, typeof Pattern> {
@@ -143,6 +150,24 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
       ...((index < length ? [array[index]] : []) satisfies [U] | []),
     ]);
   }
+
+  public join(): string {
+    throw 'should never happen';
+  }
+}
+
+export class MyArrayExt<T> extends Extension<MyArray<T>> implements ExtensionConstructor<MyArray<T>, typeof MyArrayExt<T>> {
+  public static readonly id: string = 'MyArray';
+  public static readonly type: typeof MyArray = MyArray;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof MyArray;
+  }
+
+  public join(): string {
+    console.log('my array join');
+    return '';
+  }
 }
 
 export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
@@ -165,6 +190,8 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
 export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
   public static readonly id: string = 'Object';
   public static readonly type: ObjectConstructor = Object;
+
+  public readonly struct: string = 'struct';
 
   public static isType(value: unknown): boolean {
     return (typeof value === 'object' || typeof value === 'function') && value !== null;
@@ -189,6 +216,8 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public values(): ValueOf<T>[] {
     return Object.values<any>(this.value);
   }
+
+  public join(): void {}
 }
 
 export class Calc extends Extension<never> implements ExtensionConstructor<never, typeof Calc> {
@@ -214,5 +243,32 @@ export class DomElement extends Extension<HTMLElement> implements ExtensionConst
 
   public get computedStyle(): CSSStyleDeclaration {
     return getComputedStyle(this.value);
+  }
+}
+
+export class TestExt extends Extension<Test> implements ExtensionConstructor<Test, typeof TestExt> {
+  public static readonly id: string = 'Test';
+  public static readonly type: typeof Test = Test;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof Test;
+  }
+
+  public pipe<U>(mapper: (value: Test) => U): U {
+    console.log('test pipe');
+    return mapper(this.value);
+  }
+}
+
+export class MyStringExt extends Extension<MyString> implements ExtensionConstructor<MyString, typeof MyStringExt> {
+  public static readonly id: string = 'MyString';
+  public static readonly type: typeof MyString = MyString;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof MyString;
+  }
+
+  public toUpperCase(): string {
+    return this.value.toString();
   }
 }

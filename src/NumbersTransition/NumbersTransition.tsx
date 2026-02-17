@@ -35,6 +35,7 @@ import {
   DigitGroupSeparatorCharacter,
   ForwardProp,
   Integer,
+  Key,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
@@ -65,6 +66,19 @@ import {
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
 import type { BigDecimal, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import {
+  CharSequence,
+  Double,
+  List,
+  Long,
+  MyArrayExt,
+  MyStringExt,
+  Pattern,
+  Predicate,
+  Struct,
+  TestExt,
+} from './NumbersTransition.extensions';
+import { MyArray, MyString, Test } from './Test';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -156,6 +170,125 @@ const NumbersTransition = <
     invalidView,
     forwardProps = [],
   }: NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z> = props;
+
+  const typeMap = new Map([
+    ['Boolean', Predicate],
+    ['Number', Double],
+    ['BigInt', Long],
+    ['String', CharSequence],
+    ['RegExp', Pattern],
+    ['Array', List],
+    ['Object', Struct],
+    ['Test', TestExt],
+    ['MyArray', MyArrayExt],
+    ['MyString', MyStringExt],
+  ]);
+
+  const readSources = (extension) => {
+    const sources = [];
+    let proto = Object.getPrototypeOf(extension);
+    while (proto && proto !== Object.prototype) {
+      sources.push(proto);
+      proto = Object.getPrototypeOf(proto);
+    }
+    return sources;
+  };
+
+  const typeDistance = (value, cls) => {
+    let proto = Object.getPrototypeOf(value);
+    let d = 0;
+
+    while (proto) {
+      if (proto.constructor === typeMap.get(cls).type) {
+        return d;
+      }
+      proto = Object.getPrototypeOf(proto);
+      d++;
+    }
+
+    return Infinity;
+  };
+
+  const findOwnerDistance = (value, key) => {
+    let proto = Object.getPrototypeOf(value);
+    let d = 0;
+
+    while (proto) {
+      if (Object.prototype.hasOwnProperty.call(proto, key)) {
+        return d;
+      }
+      proto = Object.getPrototypeOf(proto);
+      d++;
+    }
+
+    return Infinity;
+  };
+
+  const collectExtensionsEntries = (value, types) =>
+    types
+      .map((type) => [readSources(new (typeMap.get(type))(value)), typeDistance(value, type)])
+      .flatMap(([sources, typeDistance]) =>
+        sources.flatMap((source, index) =>
+          Object.getOwnPropertyNames(source)
+            .filter((key) => key !== 'constructor')
+            .map((key) => [key, typeDistance + index, Object.getOwnPropertyDescriptor(source, key)]),
+        ),
+      );
+
+  const resolveByDistance = (entries) => {
+    const table = new Map();
+
+    entries
+      .sort((first, second) => first[0].localeCompare(second[0]) || first[1] - second[1])
+      .forEach((entry) => {
+        if (!table.has(entry[0])) {
+          table.set(entry[0], entry);
+        }
+      });
+
+    return table;
+  };
+
+  const wrap = (value, types, key) => {
+    const [type, distance] = types.map((type) => [type, typeDistance(value, type)]).sort(([, first], [, second]) => first - second)[0];
+    return value?.[key] === void 0 || findOwnerDistance(value, key) > distance ? new (typeMap.get(type))(value) : value;
+  };
+
+  const merge = (value, types) => {
+    const object = Object.create(Object.getPrototypeOf(value));
+    const entries = resolveByDistance(collectExtensionsEntries(value, types));
+    Object.defineProperties(object, Object.getOwnPropertyDescriptors(Object(value)));
+    console.log([...entries.values()].filter(([key, distance]) => !(key in object) || findOwnerDistance(value, key) > distance));
+    [...entries.values()]
+      .filter(([key, distance]) => !(key in object) || findOwnerDistance(value, key) > distance)
+      .forEach(([key, , descriptor]) => Object.defineProperty(object, key, descriptor));
+
+    return object;
+    // const descriptions = Object.assign(
+    //   {},
+    //   ...readSources(new (typeMap.get(types[0]))(value))
+    //     .reverse()
+    //     .map((source) =>
+    //       Object.fromEntries(
+    //         Object.getOwnPropertyNames(source)
+    //           .filter((key) => key !== 'constructor' && !(key in object))
+    //           .map((key) => [key, Object.getOwnPropertyDescriptor(source, key)]),
+    //       ),
+    //     ),
+    // );
+    // return Object.defineProperties(object, descriptions);
+  };
+
+  const proxy = (value: unknown, types: string[], key: string) => {
+    const foundTypes = types.filter((type) => typeMap.get(type).isType(value));
+    return foundTypes.length ? (key ? wrap(value, foundTypes, key) : merge(value, foundTypes)) : value;
+  };
+
+  console.log('value');
+  // console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
+  // console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
+  // console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
+  // console.log(proxy(new MyString('hello'), ['String', 'MyString'], 'toUpperCase').toUpperCase());
 
   const identifier: string = useId();
 
