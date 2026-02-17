@@ -197,30 +197,24 @@ const NumbersTransition = <
     let prototype = Object.getPrototypeOf(value);
     let d = 0;
 
-    while (prototype && prototype !== Object.prototype) {
-      if (prototype.constructor === typeMap.get(cls).type) {
-        return d;
-      }
+    while (prototype && prototype !== Object.prototype && prototype.constructor !== typeMap.get(cls).type) {
       prototype = Object.getPrototypeOf(prototype);
       d++;
     }
 
-    return Infinity;
+    return d;
   };
 
   const findOwnerDistance = (value, key) => {
     let prototype = Object.getPrototypeOf(value);
     let d = 0;
 
-    while (prototype) {
-      if (Object.prototype.hasOwnProperty.call(prototype, key)) {
-        return d;
-      }
+    while (prototype && !Object.prototype.hasOwnProperty.call(prototype, key)) {
       prototype = Object.getPrototypeOf(prototype);
       d++;
     }
 
-    return Infinity;
+    return d;
   };
 
   const wrap = (value, types, key) => {
@@ -259,8 +253,8 @@ const NumbersTransition = <
   console.log('value');
   console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
   console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
-  // console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
-  // console.log(proxy(new MyString('hello'), ['String', 'MyString'], 'toUpperCase').toUpperCase());
+  console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
+  console.log(proxy(new MyString('hello'), ['String', 'MyString'], 'toUpperCase').toUpperCase());
 
   const identifier: string = useId();
 
