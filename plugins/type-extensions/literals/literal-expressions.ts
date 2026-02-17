@@ -26,7 +26,7 @@ const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsTyp
   [JsType.String, [isStringLiteral, isTemplateLiteral]],
   [JsType.RegExp, [isRegularExpressionLiteral]],
   [JsType.Array, [isArrayLiteralExpression]],
-  [JsType.Object, [isObjectLiteralExpression, isArrayLiteralExpression, isNewExpression]],
+  [JsType.Object, [isObjectLiteralExpression, isArrayLiteralExpression]],
 ]);
 
 const unwrap = (node: Node): Node => (isParenthesizedExpression(node) ? unwrap(node.expression) : node);
