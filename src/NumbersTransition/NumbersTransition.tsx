@@ -184,25 +184,24 @@ const NumbersTransition = <
     ['MyString', MyStringExt],
   ]);
 
-  const readSources = (extension) => {
+  const readSources = (prototype) => {
     const sources = [];
-    let proto = Object.getPrototypeOf(extension);
-    while (proto && proto !== Object.prototype) {
-      sources.push(proto);
-      proto = Object.getPrototypeOf(proto);
+    while (prototype && prototype !== Object.prototype) {
+      sources.push(prototype);
+      prototype = Object.getPrototypeOf(prototype);
     }
     return sources;
   };
 
   const typeDistance = (value, cls) => {
-    let proto = Object.getPrototypeOf(value);
+    let prototype = Object.getPrototypeOf(value);
     let d = 0;
 
-    while (proto) {
-      if (proto.constructor === typeMap.get(cls).type) {
+    while (prototype && prototype !== Object.prototype) {
+      if (prototype.constructor === typeMap.get(cls).type) {
         return d;
       }
-      proto = Object.getPrototypeOf(proto);
+      prototype = Object.getPrototypeOf(prototype);
       d++;
     }
 
@@ -210,43 +209,18 @@ const NumbersTransition = <
   };
 
   const findOwnerDistance = (value, key) => {
-    let proto = Object.getPrototypeOf(value);
+    let prototype = Object.getPrototypeOf(value);
     let d = 0;
 
-    while (proto) {
-      if (Object.prototype.hasOwnProperty.call(proto, key)) {
+    while (prototype) {
+      if (Object.prototype.hasOwnProperty.call(prototype, key)) {
         return d;
       }
-      proto = Object.getPrototypeOf(proto);
+      prototype = Object.getPrototypeOf(prototype);
       d++;
     }
 
     return Infinity;
-  };
-
-  const collectExtensionsEntries = (value, types) =>
-    types
-      .map((type) => [readSources(new (typeMap.get(type))(value)), typeDistance(value, type)])
-      .flatMap(([sources, typeDistance]) =>
-        sources.flatMap((source, index) =>
-          Object.getOwnPropertyNames(source)
-            .filter((key) => key !== 'constructor')
-            .map((key) => [key, typeDistance + index, Object.getOwnPropertyDescriptor(source, key)]),
-        ),
-      );
-
-  const resolveByDistance = (entries) => {
-    const table = new Map();
-
-    entries
-      .sort((first, second) => first[0].localeCompare(second[0]) || first[1] - second[1])
-      .forEach((entry) => {
-        if (!table.has(entry[0])) {
-          table.set(entry[0], entry);
-        }
-      });
-
-    return table;
   };
 
   const wrap = (value, types, key) => {
@@ -256,37 +230,35 @@ const NumbersTransition = <
 
   const merge = (value, types) => {
     const object = Object.create(Object.getPrototypeOf(value));
-    const entries = resolveByDistance(collectExtensionsEntries(value, types));
     Object.defineProperties(object, Object.getOwnPropertyDescriptors(Object(value)));
-    console.log([...entries.values()].filter(([key, distance]) => !(key in object) || findOwnerDistance(value, key) > distance));
-    [...entries.values()]
+
+    const properties = types
+      .map((type) => [readSources(typeMap.get(type)?.prototype), typeDistance(value, type)])
+      .flatMap(([sources, typeDistance]) =>
+        sources.flatMap((source, index) =>
+          Object.getOwnPropertyNames(source)
+            .filter((key) => key !== 'constructor')
+            .map((key) => [key, typeDistance + index, Object.getOwnPropertyDescriptor(source, key)]),
+        ),
+      )
+      .sort((first, second) => first[0].localeCompare(second[0]) || second[1] - first[1])
+      .reduce((map, entry) => map.set(entry[0], entry), new Map());
+
+    [...properties.values()]
       .filter(([key, distance]) => !(key in object) || findOwnerDistance(value, key) > distance)
       .forEach(([key, , descriptor]) => Object.defineProperty(object, key, descriptor));
 
     return object;
-    // const descriptions = Object.assign(
-    //   {},
-    //   ...readSources(new (typeMap.get(types[0]))(value))
-    //     .reverse()
-    //     .map((source) =>
-    //       Object.fromEntries(
-    //         Object.getOwnPropertyNames(source)
-    //           .filter((key) => key !== 'constructor' && !(key in object))
-    //           .map((key) => [key, Object.getOwnPropertyDescriptor(source, key)]),
-    //       ),
-    //     ),
-    // );
-    // return Object.defineProperties(object, descriptions);
   };
 
   const proxy = (value: unknown, types: string[], key: string) => {
     const foundTypes = types.filter((type) => typeMap.get(type).isType(value));
-    return foundTypes.length ? (key ? wrap(value, foundTypes, key) : merge(value, foundTypes)) : value;
+    return foundTypes.length ? (key !== undefined ? wrap(value, foundTypes, key) : merge(value, foundTypes)) : value;
   };
 
   console.log('value');
-  // console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
-  // console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
+  console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
+  console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
   // console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
   // console.log(proxy(new MyString('hello'), ['String', 'MyString'], 'toUpperCase').toUpperCase());
 
