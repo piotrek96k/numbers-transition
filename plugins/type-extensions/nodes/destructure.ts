@@ -100,9 +100,7 @@ const getExtensions = <T extends DestructureDeclaration>({
   const extensions: [string, TypeExtension][] = [...getContext().extensionsMap];
   const foundExtensions: [string, TypeExtension][] = extensions.filter(isDestructureProperty(elements));
 
-  return foundExtensions.length || elements.every(({ dotDotDotToken }: BindingElement): boolean => !dotDotDotToken)
-    ? foundExtensions
-    : extensions;
+  return elements.some(({ dotDotDotToken }: BindingElement): boolean => !!dotDotDotToken) ? extensions : foundExtensions;
 };
 
 const readNestedIdentifiers = ({ elements }: ObjectBindingPattern): string[] =>
