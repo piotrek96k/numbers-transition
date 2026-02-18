@@ -13,7 +13,7 @@ export const generateGetThisValueFunction = (): VariableDeclaration =>
       undefined,
       [
         factory.createParameterDeclaration(undefined, undefined, ArgName.Self),
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Cls),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Type),
       ],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
@@ -21,12 +21,12 @@ export const generateGetThisValueFunction = (): VariableDeclaration =>
         factory.createBinaryExpression(
           factory.createIdentifier(ArgName.Self),
           factory.createToken(SyntaxKind.InstanceOfKeyword),
-          factory.createIdentifier(ArgName.Cls),
+          factory.createIdentifier(ArgName.Type),
         ),
         factory.createToken(SyntaxKind.QuestionToken),
         factory.createIdentifier(ArgName.Self),
         factory.createToken(SyntaxKind.ColonToken),
-        factory.createNewExpression(factory.createIdentifier(ArgName.Cls), undefined, [factory.createIdentifier(ArgName.Self)]),
+        factory.createNewExpression(factory.createIdentifier(ArgName.Type), undefined, [factory.createIdentifier(ArgName.Self)]),
       ),
     ),
   );

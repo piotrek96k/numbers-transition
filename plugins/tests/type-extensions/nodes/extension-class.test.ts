@@ -13,7 +13,7 @@ it<object>('generate runtime methods', (): void => {
   const expectedOutput: string = String.raw`
     import Extension from 'type-extensions/extension';
 
-    const getThisValue[0-9a-f]+ = \(self, cls\) => self instanceof cls \? self : new cls\(self\);
+    const getThisValue[0-9a-f]+ = \(self, type\) => self instanceof type \? self : new type\(self\);
     
     const typeMap[0-9a-f]+ = new Map\(
       \[
@@ -37,14 +37,14 @@ it<object>('generate runtime methods', (): void => {
       return sources; 
     };
 
-    export const wrap[0-9a-f]+ = \(value, cls, key\) => value\?.\[key\] === void 0 \? new \(typeMap[0-9a-f]+\.get\(cls\)\)\(value\) : value,
+    export const wrap[0-9a-f]+ = \(value, type, key\) => value\?.\[key\] === void 0 \? new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\) : value,
 
-    merge[0-9a-f]+ = \(value, cls\) => { 
+    merge[0-9a-f]+ = \(value, type\) => { 
       const object = Object\.create\(Object\.getPrototypeOf\(value\)\); 
       Object\.defineProperties\(object, Object\.getOwnPropertyDescriptors\(Object\(value\)\)\); 
       const descriptions = Object\.assign\(
         {}, 
-        \.\.\.readSources[0-9a-f]+\(new \(typeMap[0-9a-f]+\.get\(cls\)\)\(value\)\)\.map\(source => 
+        \.\.\.readSources[0-9a-f]+\(new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\)\)\.map\(source => 
           Object\.fromEntries\(
             Object\.getOwnPropertyNames\(source\)
               \.filter\(key => key !== "constructor" && !\(key in object\)\)
@@ -55,8 +55,8 @@ it<object>('generate runtime methods', (): void => {
       return Object\.defineProperties\(object, descriptions\);
     },
 
-    proxy[0-9a-f]+ = \(value, classes, key\) => { 
-      const type = classes\.find\(cls => typeMap[0-9a-f]+\.get\(cls\).isType\(value\)\); 
+    proxy[0-9a-f]+ = \(value, types, key\) => { 
+      const type = types\.find\(type => typeMap[0-9a-f]+\.get\(type\).isType\(value\)\); 
       return type \? key \? wrap[0-9a-f]+\(value, type, key\): merge[0-9a-f]+\(value, type\): value; 
     };
   `;

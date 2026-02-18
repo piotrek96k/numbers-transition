@@ -13,7 +13,7 @@ export const generateExtensionNewExpression = (): NewExpression =>
           FunctionName.Get,
         ),
         undefined,
-        [factory.createIdentifier(ArgName.Cls)],
+        [factory.createIdentifier(ArgName.Type)],
       ),
     ),
     undefined,

@@ -23,7 +23,7 @@ const generateProxyFindFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
-    [factory.createParameterDeclaration(undefined, undefined, ArgName.Cls)],
+    [factory.createParameterDeclaration(undefined, undefined, ArgName.Type)],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
     factory.createCallExpression(
@@ -34,7 +34,7 @@ const generateProxyFindFunction = (): ArrowFunction =>
             FunctionName.Get,
           ),
           undefined,
-          [factory.createIdentifier(ArgName.Cls)],
+          [factory.createIdentifier(ArgName.Type)],
         ),
         InternalPropertyName.IsType,
       ),
@@ -45,7 +45,7 @@ const generateProxyFindFunction = (): ArrowFunction =>
 
 const generateProxyFindCall = (): CallExpression =>
   factory.createCallExpression(
-    factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Classes), FunctionName.Find),
+    factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Types), FunctionName.Find),
     undefined,
     [generateProxyFindFunction()],
   );
@@ -91,7 +91,7 @@ export const generateProxyFunction = (): VariableDeclaration =>
     factory.createArrowFunction(
       undefined,
       undefined,
-      [ArgName.Value, ArgName.Classes, ArgName.Key].map<ParameterDeclaration>(
+      [ArgName.Value, ArgName.Types, ArgName.Key].map<ParameterDeclaration>(
         (param: string): ParameterDeclaration => factory.createParameterDeclaration(undefined, undefined, param),
       ),
       undefined,

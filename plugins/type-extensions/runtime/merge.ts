@@ -179,7 +179,7 @@ export const generateMergeFunction = (): VariableDeclaration =>
       undefined,
       undefined,
       [
-        ...[ArgName.Value, ArgName.Cls].map<ParameterDeclaration>(
+        ...[ArgName.Value, ArgName.Type].map<ParameterDeclaration>(
           (param: string): ParameterDeclaration => factory.createParameterDeclaration(undefined, undefined, param),
         ),
       ],

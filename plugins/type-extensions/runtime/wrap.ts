@@ -32,7 +32,7 @@ export const generateWrapFunction = (): VariableDeclaration =>
       undefined,
       [
         factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Cls),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Type),
         factory.createParameterDeclaration(undefined, undefined, ArgName.Key),
       ],
       undefined,
