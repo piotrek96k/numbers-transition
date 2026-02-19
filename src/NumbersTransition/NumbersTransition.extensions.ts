@@ -1,7 +1,7 @@
 import Extension, { ExtensionConstructor } from 'type-extensions/extension';
 import { Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
-import { MyArray, MyString, Test } from './Test';
+import { A, B, C, MyArray, MyString, Test } from './Test';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
   public static readonly id: string = 'Boolean';
@@ -154,6 +154,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   public join(): string {
     throw 'should never happen';
   }
+
+  public map() {
+    throw 'should never happen';
+  }
 }
 
 export class MyArrayExt<T> extends Extension<MyArray<T>> implements ExtensionConstructor<MyArray<T>, typeof MyArrayExt<T>> {
@@ -165,8 +169,7 @@ export class MyArrayExt<T> extends Extension<MyArray<T>> implements ExtensionCon
   }
 
   public join(): string {
-    console.log('my array join');
-    return '';
+    return this.value;
   }
 }
 
@@ -270,5 +273,44 @@ export class MyStringExt extends Extension<MyString> implements ExtensionConstru
 
   public toUpperCase(): string {
     return this.value.toString();
+  }
+}
+
+export class ExtA extends Extension<A> implements ExtensionConstructor<A, typeof ExtA> {
+  public static readonly id: string = 'A';
+  public static readonly type: typeof A = A;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof A;
+  }
+
+  get foo() {
+    return 'Ext A';
+  }
+}
+
+export class ExtB extends Extension<B> implements ExtensionConstructor<B, typeof ExtB> {
+  public static readonly id: string = 'B';
+  public static readonly type: typeof B = B;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof B;
+  }
+
+  get foo() {
+    return 'Ext B';
+  }
+}
+
+export class ExtC extends Extension<C> implements ExtensionConstructor<C, typeof ExtC> {
+  public static readonly id: string = 'C';
+  public static readonly type: typeof C = C;
+
+  public static isType(value: unknown): boolean {
+    return value instanceof C;
+  }
+
+  get foo() {
+    return 'Ext C';
   }
 }

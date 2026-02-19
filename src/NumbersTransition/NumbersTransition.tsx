@@ -69,6 +69,9 @@ import type { BigDecimal, ReactEvent, TupleOfLength, UncheckedBigDecimal } from 
 import {
   CharSequence,
   Double,
+  ExtA,
+  ExtB,
+  ExtC,
   List,
   Long,
   MyArrayExt,
@@ -78,7 +81,7 @@ import {
   Struct,
   TestExt,
 } from './NumbersTransition.extensions';
-import { MyArray, MyString, Test } from './Test';
+import { A, B, C, MyArray, MyString, Test } from './Test';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -182,6 +185,9 @@ const NumbersTransition = <
     ['Test', TestExt],
     ['MyArray', MyArrayExt],
     ['MyString', MyStringExt],
+    ['A', ExtA],
+    ['B', ExtB],
+    ['C', ExtC],
   ]);
 
   const readSources = (prototype) => {
@@ -193,11 +199,11 @@ const NumbersTransition = <
     return sources;
   };
 
-  const typeDistance = (value, cls) => {
-    let prototype = Object.getPrototypeOf(value);
+  const typeDistance = (prototype, cls) => {
+    const type = typeMap.get(cls).type.prototype;
     let d = 0;
 
-    while (prototype && prototype !== Object.prototype && prototype.constructor !== typeMap.get(cls).type) {
+    while (prototype && prototype !== Object.prototype && prototype !== type) {
       prototype = Object.getPrototypeOf(prototype);
       d++;
     }
@@ -205,8 +211,7 @@ const NumbersTransition = <
     return d;
   };
 
-  const findOwnerDistance = (value, key) => {
-    let prototype = Object.getPrototypeOf(value);
+  const findOwnerDistance = (prototype, key) => {
     let d = 0;
 
     while (prototype && !Object.prototype.hasOwnProperty.call(prototype, key)) {
@@ -227,20 +232,20 @@ const NumbersTransition = <
     Object.defineProperties(object, Object.getOwnPropertyDescriptors(Object(value)));
 
     const properties = types
-      .map((type) => [readSources(typeMap.get(type)?.prototype), typeDistance(value, type)])
+      .map((type) => [readSources(new (typeMap.get(type))(value)), typeDistance(value, type)])
       .flatMap(([sources, typeDistance]) =>
         sources.flatMap((source, index) =>
           Object.getOwnPropertyNames(source)
             .filter((key) => key !== 'constructor')
-            .map((key) => [key, typeDistance + index, Object.getOwnPropertyDescriptor(source, key)]),
+            .map((key) => [key, typeDistance, index, Object.getOwnPropertyDescriptor(source, key)]),
         ),
       )
-      .sort((first, second) => first[0].localeCompare(second[0]) || second[1] - first[1])
+      .sort((first, second) => first[0].localeCompare(second[0]) || second[1] - first[1] || second[2] - first[2])
       .reduce((map, entry) => map.set(entry[0], entry), new Map());
 
     [...properties.values()]
-      .filter(([key, distance]) => !(key in object) || findOwnerDistance(value, key) > distance)
-      .forEach(([key, , descriptor]) => Object.defineProperty(object, key, descriptor));
+      .filter(([key, typeDistance]) => !(key in object) || findOwnerDistance(value, key) > typeDistance)
+      .forEach(([key, , , descriptor]) => Object.defineProperty(object, key, descriptor));
 
     return object;
   };
@@ -251,10 +256,13 @@ const NumbersTransition = <
   };
 
   console.log('value');
-  console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
-  console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
-  console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
-  console.log(proxy(new MyString('hello'), ['String', 'MyString'], 'toUpperCase').toUpperCase());
+  console.log(proxy(new B(), ['A', 'B', 'C']).foo);
+  // console.log(proxy(new Test(), ['Object', 'Test']).pipe((val) => val));
+  // console.log(proxy([1, 2, 3], ['Array', 'Object']).join());
+  // console.log(proxy(new MyArray(1, 2, 3), ['Array', 'MyArray', 'Object']).join());
+  // console.log(proxy(new MyString('hello'), ['String', 'MyString']).join());
+
+  // console.log(findOwnerDistance(new MyArray(1, 2, 3), 'join'));
 
   const identifier: string = useId();
 
