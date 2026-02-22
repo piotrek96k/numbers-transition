@@ -116,6 +116,8 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
+  const splitFloatingPoint = (value: BigDecimal): string[] => `${value}`.split(RegularExpression.DecimalSeparator);
+
   const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
     const [{ bigInt: digits }, { bigInt: restDigits, length }]: [string, string] =
       precision >= Integer.Zero
@@ -132,9 +134,9 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
   };
 
+  // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .map<string[], [string[], string[], string[]]>((value: BigDecimal): string[] => `${value}`.split(RegularExpression.DecimalSeparator))
-    .map<string, [string, string, string]>(parseFloatingPoint);
+    .mapEach<[string[], string], [[string[], string[], string[]], [string, string, string]]>(splitFloatingPoint, parseFloatingPoint);
 
   const digits: [number[], number[], number[]] = characters.map<number[], [number[], number[], number[]]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
@@ -948,8 +950,7 @@ export const useNegativeElementAnimationTimingFunction = (
 
   const points: [number, number][] = [animationVisibilities.lastIndexOf(true), animationVisibilities.indexOf(false)]
     .when(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single)
-    .map<number>((input: number): number => input / (animationVisibilities.length - Integer.One))
-    .map<number[]>(solve)
+    .mapEach<[number, number[]]>((input: number): number => input / (animationVisibilities.length - Integer.One), solve)
     .flatMap<[number, number]>((vals: number[], index: number): [number, number][] => vals.flatMap<[number, number]>(mapToLinear(index)))
     .sort(([, first]: [number, number], [, second]: [number, number]): number => first - second);
 
@@ -1089,9 +1090,10 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     value / NumberPrecision.Value + (value - (value / NumberPrecision.Value) * NumberPrecision.Value >= NumberPrecision.HalfValue).bigInt;
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One).keys()]
-      .map<bigint>(({ bigInt }: number): bigint => start + bigInt)
-      .map<number>(({ digit }: bigint): number => digit);
+    [...Array<unknown>(Number(end - start) + Integer.One).keys()].mapEach<[bigint, number]>(
+      ({ bigInt }: number): bigint => start + bigInt,
+      ({ digit }: bigint): number => digit,
+    );
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
