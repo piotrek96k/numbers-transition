@@ -84,43 +84,43 @@ const testCases: TestCase[] = Object.values<Class>(Class).flatMap<TestCase>((cls
     ),
 );
 
-const createClassFields = (cls: Class): string => `
-  public readonly ${Field.FieldToField}: string = '${Field.FieldToField}:${cls}';
-  public readonly ${Field.FieldToArrowFunction}: string = '${Field.FieldToArrowFunction}:${cls}';
-  public readonly ${Field.FieldToGetter}: string = '${Field.FieldToGetter}:${cls}';
-  public readonly ${Field.FieldToMethod}: string = '${Field.FieldToMethod}:${cls}';
+const createFields = (
+  cls: Class,
+  fields: Field[],
+  arrowFunctions: Field[],
+  getters: Field[],
+  methods: Field[],
+  extension: string = '',
+): string => `
+  ${fields.map<string>((field: Field): string => `public readonly ${field}: string = '${field}:${cls}${extension}';`)}
 
-  public readonly ${Field.ArrowFunctionToField} = (): string => '${Field.ArrowFunctionToField}:${cls}';
-  public readonly ${Field.ArrowFunctionToArrowFunction} = (): string => '${Field.ArrowFunctionToArrowFunction}:${cls}';
-  public readonly ${Field.ArrowFunctionToGetter} = (): string => '${Field.ArrowFunctionToGetter}:${cls}';
-  public readonly ${Field.ArrowFunctionToMethod} = (): string => '${Field.ArrowFunctionToMethod}:${cls}';
+  ${arrowFunctions.map<string>((field: Field): string => `public readonly ${field} = (): string => '${field}:${cls}${extension}';`)}
 
-  public get ${Field.GetterToField}(): string {
-    return '${Field.GetterToField}:${cls}';
-  }
-  public get ${Field.GetterToArrowFunction}(): string {
-    return '${Field.GetterToArrowFunction}:${cls}';
-  }
-  public get ${Field.GetterToGetter}(): string {
-    return '${Field.GetterToGetter}:${cls}';
-  }
-  public get ${Field.GetterToMethod}(): string {
-    return '${Field.GetterToMethod}:${cls}';
-  }
+  ${getters.map<string>(
+    (field: Field): string => `
+      public get ${field}(): string {
+        return '${field}:${cls}${extension}';
+      }
+    `,
+  )}
 
-  public ${Field.MethodToField}(): string {
-    return '${Field.MethodToField}:${cls}';
-  }
-  public ${Field.MethodToArrowFunction}(): string {
-    return '${Field.MethodToArrowFunction}:${cls}';
-  }
-  public ${Field.MethodToGetter}(): string {
-    return '${Field.MethodToGetter}:${cls}';
-  }
-  public ${Field.MethodToMethod}(): string {
-    return '${Field.MethodToMethod}:${cls}';
-  }
+  ${methods.map<string>(
+    (field: Field): string => `
+      public ${field}(): string {
+        return '${field}:${cls}${extension}';
+      }
+    `,
+  )}
 `;
+
+const createClassFields = (cls: Class): string =>
+  createFields(
+    cls,
+    [Field.FieldToField, Field.FieldToArrowFunction, Field.FieldToGetter, Field.FieldToMethod],
+    [Field.ArrowFunctionToField, Field.ArrowFunctionToArrowFunction, Field.ArrowFunctionToGetter, Field.ArrowFunctionToMethod],
+    [Field.GetterToField, Field.GetterToArrowFunction, Field.GetterToGetter, Field.GetterToMethod],
+    [Field.MethodToField, Field.MethodToArrowFunction, Field.MethodToGetter, Field.MethodToMethod],
+  );
 
 const createClass = (classIndex: number, caseIndex: number): string => `
   export class ${classes[classIndex]} ${classIndex ? `extends ${classes[classIndex - 1]}` : ''} {
@@ -136,43 +136,15 @@ const createExtensionsImports = (classIndexes: number[]): string => `
   ${classIndexes.length ? `import { ${classIndexes.map<Class>((classIndex: number): Class => classes[classIndex]).join()} } from './${basename(File.Classes, extname(File.Classes))}';` : ''}
 `;
 
-const createExtensionClassFields = (cls: Class): string => `
-  public readonly ${Field.FieldToField}: string = '${Field.FieldToField}:${cls}${Extension.Value}';
-  public readonly ${Field.FieldToArrowFunction} = (): string => '${Field.FieldToArrowFunction}:${cls}${Extension.Value}';
-  public get ${Field.FieldToGetter}(): string {
-    return '${Field.FieldToGetter}:${cls}${Extension.Value}';
-  }
-  public ${Field.FieldToMethod}(): string {
-    return '${Field.FieldToMethod}:${cls}${Extension.Value}';
-  }
-
-  public readonly ${Field.ArrowFunctionToField}: string = '${Field.ArrowFunctionToField}:${cls}${Extension.Value}';
-  public readonly ${Field.ArrowFunctionToArrowFunction} = (): string => '${Field.ArrowFunctionToArrowFunction}:${cls}${Extension.Value}';
-  public get ${Field.ArrowFunctionToGetter}(): string {
-    return '${Field.ArrowFunctionToGetter}:${cls}${Extension.Value}';
-  }
-  public ${Field.ArrowFunctionToMethod}(): string {
-    return '${Field.ArrowFunctionToMethod}:${cls}${Extension.Value}';
-  }
-
-  public readonly ${Field.GetterToField}: string = '${Field.GetterToField}:${cls}${Extension.Value}';
-  public readonly ${Field.GetterToArrowFunction} = (): string => '${Field.GetterToArrowFunction}:${cls}${Extension.Value}';
-  public get ${Field.GetterToGetter}(): string {
-    return '${Field.GetterToGetter}:${cls}${Extension.Value}';
-  }
-  public ${Field.GetterToMethod}(): string {
-    return '${Field.GetterToMethod}:${cls}${Extension.Value}';
-  }
-    
-  public readonly ${Field.MethodToField}: string = '${Field.MethodToField}:${cls}${Extension.Value}';
-  public readonly ${Field.MethodToArrowFunction} = (): string => '${Field.MethodToArrowFunction}:${cls}${Extension.Value}';
-  public get ${Field.MethodToGetter}(): string {
-    return '${Field.MethodToGetter}:${cls}${Extension.Value}';
-  }
-  public ${Field.MethodToMethod}(): string {
-    return '${Field.MethodToMethod}:${cls}${Extension.Value}';
-  }
-`;
+const createExtensionClassFields = (cls: Class): string =>
+  createFields(
+    cls,
+    [Field.FieldToField, Field.ArrowFunctionToField, Field.GetterToField, Field.MethodToField],
+    [Field.FieldToArrowFunction, Field.ArrowFunctionToArrowFunction, Field.GetterToArrowFunction, Field.MethodToArrowFunction],
+    [Field.FieldToGetter, Field.ArrowFunctionToGetter, Field.GetterToGetter, Field.MethodToGetter],
+    [Field.FieldToMethod, Field.ArrowFunctionToMethod, Field.GetterToMethod, Field.MethodToMethod],
+    Extension.Value,
+  );
 
 const createExtensionClass = (classIndex: number): string => `
   export class ${classes[classIndex]}${Extension.Value} extends Extension<${classes[classIndex]}> implements ExtensionConstructor<${classes[classIndex]}, typeof ${classes[classIndex]}${Extension.Value}> {
@@ -199,48 +171,49 @@ const createExtensionClasses = (cases: [number, number][]): string => {
     );
 };
 
+const createExecuteExpressionMapper =
+  (first: (field: Field) => string, second: (field: Field) => string, third: (field: Field) => string): ((field: Field) => string) =>
+  (field: Field): string => {
+    switch (field) {
+      case Field.FieldToField:
+      case Field.FieldToGetter:
+      case Field.GetterToField:
+      case Field.GetterToGetter:
+        return first(field);
+      case Field.FieldToArrowFunction:
+      case Field.FieldToMethod:
+      case Field.ArrowFunctionToField:
+      case Field.ArrowFunctionToGetter:
+      case Field.GetterToArrowFunction:
+      case Field.GetterToMethod:
+      case Field.MethodToField:
+      case Field.MethodToGetter:
+        return second(field);
+      case Field.ArrowFunctionToArrowFunction:
+      case Field.ArrowFunctionToMethod:
+      case Field.MethodToArrowFunction:
+      case Field.MethodToMethod:
+        return third(field);
+    }
+  };
+
 const createPropertyAccessExecute = (cls: Class): string => `
   export const executePropertyAccess = (): string[] => {
     const instance: ${cls} = new ${cls}();
 
-    const ${Field.FieldToField} : string | undefined = instance.${Field.FieldToField};
-    const ${Field.FieldToArrowFunction}: string | undefined = typeof instance.${Field.FieldToArrowFunction} === 'function' ? instance.${Field.FieldToArrowFunction}() : instance.${Field.FieldToArrowFunction};
-    const ${Field.FieldToGetter}: string | undefined = instance.${Field.FieldToGetter};
-    const ${Field.FieldToMethod}: string | undefined = typeof instance.${Field.FieldToMethod} === 'function' ? instance.${Field.FieldToMethod}() : instance.${Field.FieldToMethod};
+    ${Object.values<Field>(Field)
+      .map<string>(
+        createExecuteExpressionMapper(
+          (field: Field): string => `const ${field}: string | undefined = instance.${field};`,
+          (field: Field): string =>
+            `const ${field}: string | undefined = typeof instance.${field} === 'function' ? instance.${field}() : instance.${field};`,
+          (field: Field): string =>
+            `const ${field}: string | undefined = typeof instance.${field} === 'function' ? instance.${field}() : instance.${field};`,
+        ),
+      )
+      .join('\n')}
 
-    const ${Field.ArrowFunctionToField}: string | undefined = typeof instance.${Field.ArrowFunctionToField} === 'function' ? instance.${Field.ArrowFunctionToField}() : instance.${Field.ArrowFunctionToField};
-    const ${Field.ArrowFunctionToArrowFunction}: string | undefined = instance.${Field.ArrowFunctionToArrowFunction}?.();
-    const ${Field.ArrowFunctionToGetter}: string | undefined = typeof instance.${Field.ArrowFunctionToGetter} === 'function' ? instance.${Field.ArrowFunctionToGetter}() : instance.${Field.ArrowFunctionToGetter};
-    const ${Field.ArrowFunctionToMethod}: string | undefined = instance.${Field.ArrowFunctionToMethod}?.();
-
-    const ${Field.GetterToField}: string | undefined = instance.${Field.GetterToField};
-    const ${Field.GetterToArrowFunction}: string | undefined = typeof instance.${Field.GetterToArrowFunction} === 'function' ? instance.${Field.GetterToArrowFunction}() : instance.${Field.GetterToArrowFunction};
-    const ${Field.GetterToGetter}: string | undefined = instance.${Field.GetterToGetter};
-    const ${Field.GetterToMethod}: string | undefined = typeof instance.${Field.GetterToMethod} === 'function' ? instance.${Field.GetterToMethod}() : instance.${Field.GetterToMethod};
-
-    const ${Field.MethodToField}: string | undefined = typeof instance.${Field.MethodToField} === 'function' ? instance.${Field.MethodToField}() : instance.${Field.MethodToField};
-    const ${Field.MethodToArrowFunction}: string | undefined = instance.${Field.MethodToArrowFunction}?.();
-    const ${Field.MethodToGetter}: string | undefined = typeof instance.${Field.MethodToGetter} === 'function' ? instance.${Field.MethodToGetter}() : instance.${Field.MethodToGetter};
-    const ${Field.MethodToMethod}: string | undefined = instance.${Field.MethodToMethod}?.();
-
-    return [
-      ${Field.FieldToField},
-      ${Field.FieldToArrowFunction},
-      ${Field.FieldToGetter},
-      ${Field.FieldToMethod},
-      ${Field.ArrowFunctionToField},
-      ${Field.ArrowFunctionToArrowFunction},
-      ${Field.ArrowFunctionToGetter},
-      ${Field.ArrowFunctionToMethod},
-      ${Field.GetterToField},
-      ${Field.GetterToArrowFunction},
-      ${Field.GetterToGetter},
-      ${Field.GetterToMethod},
-      ${Field.MethodToField},
-      ${Field.MethodToArrowFunction},
-      ${Field.MethodToGetter},
-      ${Field.MethodToMethod},
-    ];
+    return [${Object.values<Field>(Field).join()}];
   };
 `;
 
@@ -248,45 +221,18 @@ const createDestructureExecute = (cls: Class): string => `
   export const executeDestructure = (): string[] => {
     const instance: ${cls} = new ${cls}();
 
-    const {
-      ${Field.FieldToField},
-      ${Field.FieldToArrowFunction},
-      ${Field.FieldToGetter},
-      ${Field.FieldToMethod},
-
-      ${Field.ArrowFunctionToField},
-      ${Field.ArrowFunctionToArrowFunction},
-      ${Field.ArrowFunctionToGetter},
-      ${Field.ArrowFunctionToMethod},
-
-      ${Field.GetterToField},
-      ${Field.GetterToArrowFunction},
-      ${Field.GetterToGetter},
-      ${Field.GetterToMethod},
-
-      ${Field.MethodToField},
-      ${Field.MethodToArrowFunction},
-      ${Field.MethodToGetter},
-      ${Field.MethodToMethod},
-    }: ${cls} = instance;
+    const { ${Object.values<Field>(Field).join()} }: ${cls} = instance;
 
     return [
-      ${Field.FieldToField},
-      typeof ${Field.FieldToArrowFunction} === 'function' ? ${Field.FieldToArrowFunction}() : ${Field.FieldToArrowFunction},
-      ${Field.FieldToGetter},
-      typeof ${Field.FieldToMethod} === 'function' ? ${Field.FieldToMethod}() : ${Field.FieldToMethod},
-      typeof ${Field.ArrowFunctionToField} === 'function' ? ${Field.ArrowFunctionToField}() : ${Field.ArrowFunctionToField},
-      ${Field.ArrowFunctionToArrowFunction}?.(),
-      typeof ${Field.ArrowFunctionToGetter} === 'function' ? ${Field.ArrowFunctionToGetter}() : ${Field.ArrowFunctionToGetter},
-      ${Field.ArrowFunctionToMethod}?.(),
-      ${Field.GetterToField},
-      typeof ${Field.GetterToArrowFunction} === 'function' ? ${Field.GetterToArrowFunction}() : ${Field.GetterToArrowFunction},
-      ${Field.GetterToGetter},
-      typeof ${Field.GetterToMethod} === 'function' ? ${Field.GetterToMethod}() : ${Field.GetterToMethod},
-      typeof ${Field.MethodToField} === 'function' ? ${Field.MethodToField}() : ${Field.MethodToField},
-      ${Field.MethodToArrowFunction}?.(),
-      typeof ${Field.MethodToGetter} === 'function' ? ${Field.MethodToGetter}() : ${Field.MethodToGetter},
-      ${Field.MethodToMethod}?.(),
+      ${Object.values<Field>(Field)
+        .map<string>(
+          createExecuteExpressionMapper(
+            (field: Field): string => field,
+            (field: Field): string => `typeof ${field} === 'function' ? ${field}() : ${field}`,
+            (field: Field): string => `${field}?.()`,
+          ),
+        )
+        .join()}
     ];
   };
 `;
