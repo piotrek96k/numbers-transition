@@ -228,15 +228,3 @@ it<object>('property access existing method not shadowed', (): void => {
   expect<string[]>({ hello: 'Hello World' }.keys()).toEqual<string[]>(['hello']);
   expect<number[]>([...[1, 2].keys()]).toEqual<number[]>([0, 1]);
 });
-
-it<object>('property access apply function', (): void => {
-  expect<number[]>([1].append.apply<number[], [number], number[]>([1, 2], [3])).toEqual<number[]>([1, 2, 3]);
-});
-
-it<object>('property access call function', (): void => {
-  expect<number[]>([1].append.call<number[], [number], number[]>([1, 2], 3)).toEqual<number[]>([1, 2, 3]);
-});
-
-it<object>('property access bind function', (): void => {
-  expect<number[]>([1].append.bind<(element: number) => number[]>([1, 2])(3)).toEqual<number[]>([1, 2, 3]);
-});

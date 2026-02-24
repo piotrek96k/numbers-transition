@@ -85,19 +85,6 @@ export class Pattern extends Extension<RegExp> implements ExtensionConstructor<R
   }
 }
 
-export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[], typeof List<T>> {
-  public static readonly id: string = 'Array';
-  public static readonly type: ArrayConstructor = Array;
-
-  public static isType(value: unknown): boolean {
-    return Array.isArray(value);
-  }
-
-  public append(element: T): T[] {
-    return [...this.value, element];
-  }
-}
-
 export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
   public static readonly id: string = 'Object';
   public static readonly type: ObjectConstructor = Object;
@@ -108,5 +95,18 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
 
   public keys(): string[] {
     return Object.keys(this.value);
+  }
+}
+
+export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[], typeof List<T>> {
+  public static readonly id: string = 'Array';
+  public static readonly type: ArrayConstructor = Array;
+
+  public static isType(value: unknown): boolean {
+    return Array.isArray(value);
+  }
+
+  public append(element: T): T[] {
+    return [...this.value, element];
   }
 }

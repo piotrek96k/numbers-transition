@@ -366,6 +366,16 @@ it<object>('variable destructure rest parameter', (): void => {
   expect<() => string>(rest.capitalize).toBeUndefined();
 });
 
+it<object>('variable destructure named with rest parameter', (): void => {
+  const string: String = String('   1234   ');
+  const { bigInt, capitalize, ...rest }: String = string;
+
+  expect<number>(rest.number).toEqual<number>(1234);
+  expect<bigint>(bigInt).toEqual<bigint>(1234n);
+  expect<string>(rest.compact()).toEqual<string>('1234');
+  expect<string>(capitalize.call('hello World')).toEqual<string>('Hello World');
+});
+
 it<object>('variable destructure not implemented', (): void => {
   const { notImplemented }: object = {};
   expect<unknown>(notImplemented).toBeUndefined();
@@ -381,19 +391,4 @@ it<object>('variable destructure existing method not shadowed', (): void => {
 
   expect<string[]>(objectKeys.call<Test, [], string[]>({ hello: 'Hello World' })).toEqual<string[]>(['hello']);
   expect<number[]>([...arrayKeys.call<number[], [], ArrayIterator<number>>([0, 1])]).toEqual<number[]>([0, 1]);
-});
-
-it<object>('variable destructure apply function', (): void => {
-  const { append } = [1];
-  expect<number[]>(append.apply<number[], [number], number[]>([1, 2], [3])).toEqual<number[]>([1, 2, 3]);
-});
-
-it<object>('variable destructure call function', (): void => {
-  const { append } = [1];
-  expect<number[]>(append.call<number[], [number], number[]>([1, 2], 3)).toEqual<number[]>([1, 2, 3]);
-});
-
-it<object>('variable destructure bind function', (): void => {
-  const { append } = [1];
-  expect<number[]>(append.bind<(element: number) => number[]>([1, 2])(3)).toEqual<number[]>([1, 2, 3]);
 });

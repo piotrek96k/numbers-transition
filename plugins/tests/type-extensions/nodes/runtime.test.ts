@@ -23,8 +23,8 @@ it<object>('generate runtime methods', (): void => {
         \["BigInt", Long\],
         \["String", CharSequence\],
         \["RegExp", Pattern\],
-        \["Array", List\],
-        \["Object", Struct\]
+        \["Object", Struct\],
+        \["Array", List\]
       \]
     \),
 
