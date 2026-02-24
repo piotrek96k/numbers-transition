@@ -1,11 +1,11 @@
 import { CallExpression, Identifier, SyntaxKind, VariableDeclaration, factory } from 'typescript';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
-import { ConstName } from '../enums/const-name';
+import { VariableName } from '../enums/variable-name';
 
 export const generateGetThisValueFunction = (): VariableDeclaration =>
   factory.createVariableDeclaration(
-    factory.createIdentifier(getContext().constAliases.get(ConstName.GetThisValue)!),
+    factory.createIdentifier(getContext().constAliases.get(VariableName.GetThisValue)!),
     undefined,
     undefined,
     factory.createArrowFunction(
@@ -31,8 +31,8 @@ export const generateGetThisValueFunction = (): VariableDeclaration =>
     ),
   );
 
-export const buildGetThisValueCallExpression = (cls: Identifier): CallExpression =>
-  factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(ConstName.GetThisValue)!), undefined, [
+export const buildGetThisValueFunctionCall = (cls: Identifier): CallExpression =>
+  factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(VariableName.GetThisValue)!), undefined, [
     factory.createThis(),
     cls,
   ]);

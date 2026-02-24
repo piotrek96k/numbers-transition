@@ -31,7 +31,7 @@ const buildNewCode = (sourceFile: SourceFile, source: Statement[], importPath: s
   return createPrinter({ newLine: NewLineKind.LineFeed }).printFile(
     factory.updateSourceFile(sourceFile, [
       ...imports,
-      ...(isExtensionsFile ? [] : [buildExtensionsImport(importPath)]),
+      ...(isExtensionsFile || !getContext().usedExtensions.size ? [] : [buildExtensionsImport(importPath)]),
       ...(isExtensionsFile ? injectRuntimeProxies(statements) : statements),
     ]),
   );

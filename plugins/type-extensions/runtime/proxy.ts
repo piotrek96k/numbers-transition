@@ -1,108 +1,103 @@
 import {
   ArrowFunction,
   CallExpression,
+  ConciseBody,
   Expression,
   NodeFlags,
-  ParameterDeclaration,
   ReturnStatement,
   StringLiteral,
   SyntaxKind,
   VariableDeclaration,
-  VariableStatement,
   factory,
 } from 'typescript';
 import { TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
-import { ConstName } from '../enums/const-name';
-import { FunctionName } from '../enums/function-name';
+import { PropertyName } from '../enums/property-name';
+import { StaticPropertyName } from '../enums/static-property-name';
+import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
-import { InternalPropertyName } from '../enums/internal-property-name';
+import { buildMergeFunctionCall } from './merge';
+import { generateTypeMapGetCall } from './type-map';
+import { buildWrapCall } from './wrap';
 
-const generateProxyFindFunction = (): ArrowFunction =>
+const generateFilterFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
     [factory.createParameterDeclaration(undefined, undefined, ArgName.Type)],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createCallExpression(factory.createPropertyAccessExpression(generateTypeMapGetCall(), StaticPropertyName.IsType), undefined, [
+      factory.createIdentifier(ArgName.Value),
+    ]),
+  );
+
+const generateFoundTypesVariable = (): VariableDeclaration =>
+  factory.createVariableDeclaration(
+    VariableName.Found,
+    undefined,
+    undefined,
     factory.createCallExpression(
-      factory.createPropertyAccessExpression(
-        factory.createCallExpression(
-          factory.createPropertyAccessExpression(
-            factory.createIdentifier(getContext().constAliases.get(ConstName.TypeMap)!),
-            FunctionName.Get,
-          ),
-          undefined,
-          [factory.createIdentifier(ArgName.Type)],
-        ),
-        InternalPropertyName.IsType,
-      ),
+      factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Types), PropertyName.Filter),
       undefined,
-      [factory.createIdentifier(ArgName.Value)],
+      [generateFilterFunction()],
     ),
   );
 
-const generateProxyFindCall = (): CallExpression =>
-  factory.createCallExpression(
-    factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Types), FunctionName.Find),
-    undefined,
-    [generateProxyFindFunction()],
-  );
-
-const generateProxyFindExpression = (): VariableStatement =>
-  factory.createVariableStatement(
-    undefined,
-    factory.createVariableDeclarationList(
-      [factory.createVariableDeclaration(ConstName.Type, undefined, undefined, generateProxyFindCall())],
-      NodeFlags.Const,
-    ),
-  );
-
-const generateProxyFunctionResult = (): ReturnStatement =>
+const generateProxyFunctionReturn = (): ReturnStatement =>
   factory.createReturnStatement(
     factory.createConditionalExpression(
-      factory.createIdentifier(ConstName.Type),
+      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Found), PropertyName.Length),
       factory.createToken(SyntaxKind.QuestionToken),
       factory.createConditionalExpression(
-        factory.createIdentifier(ArgName.Key),
-        factory.createToken(SyntaxKind.QuestionToken),
-        factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(ConstName.Wrap)!), undefined, [
-          factory.createIdentifier(ArgName.Value),
-          factory.createIdentifier(ConstName.Type),
+        factory.createBinaryExpression(
           factory.createIdentifier(ArgName.Key),
-        ]),
-        factory.createToken(SyntaxKind.ColonToken),
-        factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(ConstName.Merge)!), undefined, [
+          factory.createToken(SyntaxKind.ExclamationEqualsEqualsToken),
+          factory.createVoidZero(),
+        ),
+        factory.createToken(SyntaxKind.QuestionToken),
+        buildWrapCall(
           factory.createIdentifier(ArgName.Value),
-          factory.createIdentifier(ConstName.Type),
-        ]),
+          factory.createIdentifier(VariableName.Found),
+          factory.createIdentifier(ArgName.Key),
+        ),
+        factory.createToken(SyntaxKind.ColonToken),
+        buildMergeFunctionCall(factory.createIdentifier(ArgName.Value), factory.createIdentifier(VariableName.Found)),
       ),
       factory.createToken(SyntaxKind.ColonToken),
       factory.createIdentifier(ArgName.Value),
     ),
   );
 
+const generateProxyFunctionBody = (): ConciseBody =>
+  factory.createBlock([
+    factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateFoundTypesVariable()], NodeFlags.Const)),
+    generateProxyFunctionReturn(),
+  ]);
+
 export const generateProxyFunction = (): VariableDeclaration =>
   factory.createVariableDeclaration(
-    factory.createIdentifier(getContext().constAliases.get(ConstName.Proxy)!),
+    factory.createIdentifier(getContext().constAliases.get(VariableName.Proxy)!),
     undefined,
     undefined,
     factory.createArrowFunction(
       undefined,
       undefined,
-      [ArgName.Value, ArgName.Types, ArgName.Key].map<ParameterDeclaration>(
-        (param: string): ParameterDeclaration => factory.createParameterDeclaration(undefined, undefined, param),
-      ),
+      [
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Types),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Key),
+      ],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
-      factory.createBlock([generateProxyFindExpression(), generateProxyFunctionResult()]),
+      generateProxyFunctionBody(),
     ),
   );
 
-export const buildProxyCallExpression = (value: Expression, extensions: [string, TypeExtension][], key?: string): CallExpression =>
+export const buildProxyFunctionCall = (value: Expression, extensions: [string, TypeExtension][], key?: string): CallExpression =>
   factory.createCallExpression(
-    factory.createIdentifier(readImportName(getContext().constAliases.get(ConstName.Proxy)!, value)),
+    factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Proxy)!, value)),
     undefined,
     [
       value,

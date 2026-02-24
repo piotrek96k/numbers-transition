@@ -39,8 +39,8 @@ import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { isLiteralExpression } from '../literals/literal-expressions';
-import { buildMergeCallExpression } from '../runtime/merge';
-import { buildProxyCallExpression } from '../runtime/proxy';
+import { buildMergeFunctionCall } from '../runtime/merge';
+import { buildProxyFunctionCall } from '../runtime/proxy';
 
 type DestructureDeclaration = BindingElement | VariableDeclaration | ParameterDeclaration;
 
@@ -162,7 +162,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
           updatedBindingPattern,
           undefined,
           undefined,
-          buildProxyCallExpression(factory.createIdentifier(generateAlias(ArgName.Arg, element)), extensions),
+          buildProxyFunctionCall(factory.createIdentifier(generateAlias(ArgName.Arg, element)), extensions),
         ),
         ...variables,
       ]
@@ -261,7 +261,7 @@ const updateBindingElement = (
     element.initializer,
   );
 
-const updateVariableObjectDestructureDeclaration =
+const updateVariableObjectDestructure =
   (
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
   ): ((extensions: [string, TypeExtension][]) => VariableDeclaration[]) =>
@@ -280,15 +280,18 @@ const updateVariableObjectDestructureDeclaration =
       variableDeclaration.type,
       extensions.length
         ? literalExtension
-          ? buildMergeCallExpression(variableDeclaration.initializer, literalExtension[0])
-          : buildProxyCallExpression(variableDeclaration.initializer, extensions)
+          ? buildMergeFunctionCall(
+              variableDeclaration.initializer,
+              factory.createArrayLiteralExpression([factory.createStringLiteral(literalExtension[0])]),
+            )
+          : buildProxyFunctionCall(variableDeclaration.initializer, extensions)
         : variableDeclaration.initializer,
     );
 
     return [variable, ...variables];
   };
 
-const updateVariableArrayDestructureDeclaration = (
+const updateVariableArrayDestructure = (
   variableDeclaration: InitializerArrayBindingPatternWrapper<VariableDeclaration>,
 ): VariableDeclaration[] => {
   const [elements, variables]: [ArrayBindingElement[], VariableDeclaration[]] = mapArrayBindingElements(
@@ -306,13 +309,13 @@ const updateVariableArrayDestructureDeclaration = (
   return [variable, ...variables];
 };
 
-const mapVariableDeclaration = (variableDeclaration: VariableDeclaration): VariableDeclaration | VariableDeclaration[] =>
+const mapVariable = (variableDeclaration: VariableDeclaration): VariableDeclaration | VariableDeclaration[] =>
   isInitializerObjectBindingPatternWrapper<VariableDeclaration>(variableDeclaration)
     ? [getExtensions<VariableDeclaration>(variableDeclaration)].flatMap<VariableDeclaration>(
-        updateVariableObjectDestructureDeclaration(variableDeclaration),
+        updateVariableObjectDestructure(variableDeclaration),
       )
     : isInitializerArrayBindingPatternWrapper<VariableDeclaration>(variableDeclaration)
-      ? updateVariableArrayDestructureDeclaration(variableDeclaration)
+      ? updateVariableArrayDestructure(variableDeclaration)
       : variableDeclaration;
 
 const buildVariableDestructureExpression =
@@ -323,14 +326,14 @@ const buildVariableDestructureExpression =
       variableStatement.modifiers,
       factory.updateVariableDeclarationList(
         variableStatement.declarationList,
-        variableStatement.declarationList.declarations.flatMap<VariableDeclaration>(mapVariableDeclaration),
+        variableStatement.declarationList.declarations.flatMap<VariableDeclaration>(mapVariable),
       ),
     );
 
 export const buildVariableDestructureExpressions = (node: Node): (() => Node)[] =>
   isVariableStatement(node) ? [buildVariableDestructureExpression(node)] : [];
 
-const updateParameterDeclarationInitializer = (parameter: ParameterDeclaration): ParameterDeclaration =>
+const updateParameterInitializer = (parameter: ParameterDeclaration): ParameterDeclaration =>
   factory.updateParameterDeclaration(
     parameter,
     parameter.modifiers,
@@ -341,7 +344,7 @@ const updateParameterDeclarationInitializer = (parameter: ParameterDeclaration):
     undefined,
   );
 
-const updateParameterDeclaration = (
+const updateParameter = (
   extensions: [string, TypeExtension][],
   parameter: ParameterDeclaration,
   bindingPattern: BindingPattern,
@@ -413,7 +416,7 @@ const updateMethodDeclaration = (methodDeclaration: MethodDeclaration, parameter
     body ?? methodDeclaration.body,
   );
 
-const updateGenericFunctionDeclaration = (
+const updateGenericFunction = (
   declaration: GenericFunctionDeclaration,
   parameters: ParameterDeclaration[],
   body: Block | undefined,
@@ -427,17 +430,17 @@ const updateGenericFunctionDeclaration = (
     (declaration: GenericFunctionDeclaration | false): declaration is GenericFunctionDeclaration => !!declaration,
   )!;
 
-const buildArgumentDestructureFunctionExpression =
+const buildArgumentDestructureFunction =
   (node: GenericFunctionDeclaration): (() => Node) =>
   (): Node => {
     const [parameters, variables]: [ParameterDeclaration[], VariableDeclaration[]] = node.parameters
       .map<
         [ParameterDeclaration, VariableDeclaration[]]
-      >(mapElement<ParameterDeclaration>(updateParameterDeclaration, updateParameterDeclarationInitializer, new Set<string>()))
+      >(mapElement<ParameterDeclaration>(updateParameter, updateParameterInitializer, new Set<string>()))
       .reduce<[ParameterDeclaration[], VariableDeclaration[]]>(reduceElementVariables<ParameterDeclaration>, [[], []]);
 
-    return updateGenericFunctionDeclaration(node, parameters, updateFunctionBody(node, variables));
+    return updateGenericFunction(node, parameters, updateFunctionBody(node, variables));
   };
 
 export const buildArgumentDestructureFunctionExpressions = (node: Node): (() => Node)[] =>
-  isFunction(node) ? [buildArgumentDestructureFunctionExpression(node)] : [];
+  isFunction(node) ? [buildArgumentDestructureFunction(node)] : [];

@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-wrapper-object-types */
 import { expect, it } from 'vitest';
-import { transform } from '../transform/transform';
+import { transformer } from '../transformer/transformer';
+
+const transform: (code: string, ide?: string) => string = transformer();
 
 // TODO: add tests for static once supported
 it<object>('rewrite variable destructure boolean literal', (): void => {
@@ -11,8 +13,8 @@ it<object>('rewrite variable destructure boolean literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { int: zero }: boolean = merge[0-9a-f]+\(false, "Boolean"\);
-    export const { int: one }: boolean = merge[0-9a-f]+\(true, "Boolean"\);
+    export const { int: zero }: boolean = merge[0-9a-f]+\(false, \["Boolean"\]\);
+    export const { int: one }: boolean = merge[0-9a-f]+\(true, \["Boolean"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -25,7 +27,7 @@ it<object>('rewrite variable destructure number literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { bigInt }: number = merge[0-9a-f]+\(0, "Number"\);
+    export const { bigInt }: number = merge[0-9a-f]+\(0, \["Number"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -38,7 +40,7 @@ it<object>('rewrite variable destructure bigint literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { number }: bigint = merge[0-9a-f]+\(1n, "BigInt"\);
+    export const { number }: bigint = merge[0-9a-f]+\(1n, \["BigInt"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -51,7 +53,7 @@ it<object>('rewrite variable destructure string literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', "String"\);
+    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', \["String"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -64,7 +66,7 @@ it<object>('rewrite variable destructure regexp literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, "RegExp"\);
+    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, \["RegExp"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -77,7 +79,7 @@ it<object>('rewrite variable destructure array literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], "Array"\);
+    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \["Array"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -96,7 +98,7 @@ it<object>('rewrite variable destructure object literal', (): void => {
     interface Test {
       hello: string;
     }
-    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, "Object"\);
+    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, \["Object"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -109,7 +111,7 @@ it<object>('rewrite variable destructure array literal with object extension', (
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], "Object"\);
+    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \["Object"\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -126,7 +128,7 @@ it<object>('rewrite variable destructure new expression literal', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     class Test {
-      constructor\(private readonly value: string\) { }
+      constructor\(private readonly value: string\) {}
     }
     export const { keys }: Test = proxy[0-9a-f]+\(new Test\('Hello World'\), \["Object"\]\);
   `;
@@ -379,86 +381,6 @@ it<object>('variable destructure existing method not shadowed', (): void => {
 
   expect<string[]>(objectKeys.call<Test, [], string[]>({ hello: 'Hello World' })).toEqual<string[]>(['hello']);
   expect<number[]>([...arrayKeys.call<number[], [], ArrayIterator<number>>([0, 1])]).toEqual<number[]>([0, 1]);
-});
-
-it<object>('variable destructure existing getter not shadowed', (): void => {
-  class Base {
-    constructor(private readonly values: string[]) {}
-
-    public get keys(): string[] {
-      return this.values;
-    }
-  }
-
-  const { keys }: Base = new Base(['key', 'value']);
-
-  expect<string[]>(keys).toEqual<string[]>(['key', 'value']);
-});
-
-it<object>('variable destructure existing property not shadowed', (): void => {
-  class Base {
-    constructor(public readonly keys: string[]) {}
-  }
-
-  const { keys }: Base = new Base(['key', 'value']);
-
-  expect<string[]>(keys).toEqual<string[]>(['key', 'value']);
-});
-
-it<object>('variable destructure inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-  }
-
-  class Extension extends Base {}
-
-  const { keys }: Extension = new Extension('Hello World');
-
-  expect<string[]>(keys.call({ value: new Extension('Hello World') })).toEqual<string[]>(['value']);
-});
-
-it<object>('variable destructure inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-
-    keys = (): [string] => [this.value];
-  }
-
-  class Extension extends Base {}
-
-  const { keys }: Extension = new Extension('Hello World');
-
-  expect<string[]>(keys()).toEqual<string[]>(['Hello World']);
-});
-
-it<object>('variable destructure inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-  }
-
-  class Extension extends Base {
-    keys = (): [string] => [this.value];
-  }
-
-  const { keys }: Extension = new Extension('Hello World');
-
-  expect<string[]>(keys()).toEqual<string[]>(['Hello World']);
-});
-
-it<object>('variable destructure inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-
-    keys = (): [string] => ['key'];
-  }
-
-  class Extension extends Base {
-    keys = (): [string] => [this.value];
-  }
-
-  const { keys }: Extension = new Extension('Hello World');
-
-  expect<string[]>(keys()).toEqual<string[]>(['Hello World']);
 });
 
 it<object>('variable destructure apply function', (): void => {

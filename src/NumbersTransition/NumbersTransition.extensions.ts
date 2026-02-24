@@ -87,6 +87,35 @@ export class Pattern extends Extension<RegExp> implements ExtensionConstructor<R
   }
 }
 
+export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
+  public static readonly id: string = 'Object';
+  public static readonly type: ObjectConstructor = Object;
+
+  public static isType(value: unknown): boolean {
+    return (typeof value === 'object' || typeof value === 'function') && value !== null;
+  }
+
+  public keys(): string[] {
+    return Object.keys(this.value);
+  }
+
+  public map<U>(mapper: (entry: [string, ValueOf<T>]) => [string, U]): Record<string, U> {
+    return Object.fromEntries<U>(Object.entries<any>(this.value).map<[string, U]>(mapper));
+  }
+
+  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
+    return predicate(this.value);
+  }
+
+  public pipe<U>(mapper: (value: T) => U): U {
+    return mapper(this.value);
+  }
+
+  public values(): ValueOf<T>[] {
+    return Object.values<any>(this.value);
+  }
+}
+
 export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[], typeof List<T>> {
   public static readonly id: string = 'Array';
   public static readonly type: ArrayConstructor = Array;
@@ -162,35 +191,6 @@ export class Method<T extends (...args: unknown[]) => unknown> extends Extension
   }
 }
 
-export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
-  public static readonly id: string = 'Object';
-  public static readonly type: ObjectConstructor = Object;
-
-  public static isType(value: unknown): boolean {
-    return (typeof value === 'object' || typeof value === 'function') && value !== null;
-  }
-
-  public keys(): string[] {
-    return Object.keys(this.value);
-  }
-
-  public map<U>(mapper: (entry: [string, ValueOf<T>]) => [string, U]): Record<string, U> {
-    return Object.fromEntries<U>(Object.entries<any>(this.value).map<[string, U]>(mapper));
-  }
-
-  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
-    return predicate(this.value);
-  }
-
-  public pipe<U>(mapper: (value: T) => U): U {
-    return mapper(this.value);
-  }
-
-  public values(): ValueOf<T>[] {
-    return Object.values<any>(this.value);
-  }
-}
-
 export class Calc extends Extension<never> implements ExtensionConstructor<never, typeof Calc> {
   public static readonly id: string = 'Math';
   public static readonly type: Math = Math;
@@ -204,7 +204,7 @@ export class Calc extends Extension<never> implements ExtensionConstructor<never
   }
 }
 
-export class DomElement extends Extension<HTMLElement> implements ExtensionConstructor<HTMLElement, typeof DomElement> {
+export class Element extends Extension<HTMLElement> implements ExtensionConstructor<HTMLElement, typeof Element> {
   public static readonly id: string = 'HTMLElement';
   public static readonly type: typeof HTMLElement = HTMLElement;
 

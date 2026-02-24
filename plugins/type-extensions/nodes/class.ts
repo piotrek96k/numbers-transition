@@ -19,10 +19,10 @@ import {
 } from 'typescript';
 import { TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
-import { buildGetThisValueCallExpression } from '../runtime/get-this-value';
-import { ConstName } from '../enums/const-name';
+import { VariableName } from '../enums/variable-name';
+import { buildGetThisValueFunctionCall } from '../runtime/get-this-value';
 
-const isExtensionClassExpression = (node: Node): node is ClassDeclaration =>
+const isExtensionClass = (node: Node): node is ClassDeclaration =>
   getContext().isExtensionsFile &&
   isClassDeclaration(node) &&
   !!node.name &&
@@ -30,7 +30,7 @@ const isExtensionClassExpression = (node: Node): node is ClassDeclaration =>
     ({ implementationClass }: TypeExtension): boolean => implementationClass === node.name?.text,
   );
 
-const isClassMethodDeclaration = (node: ClassElement): node is MethodDeclaration =>
+const isClassMethod = (node: ClassElement): node is MethodDeclaration =>
   isMethodDeclaration(node) && !node.modifiers?.some(({ kind }: ModifierLike): boolean => kind === SyntaxKind.StaticKeyword);
 
 const hasOwnThis = (node: Node): boolean =>
@@ -38,31 +38,31 @@ const hasOwnThis = (node: Node): boolean =>
 
 const rewriteThis = (node: Node): Node =>
   node.kind === SyntaxKind.ThisKeyword
-    ? factory.createIdentifier(getContext().constAliases.get(ConstName.Self)!)
+    ? factory.createIdentifier(getContext().constAliases.get(VariableName.Self)!)
     : hasOwnThis(node)
       ? node
       : visitEachChild(node, rewriteThis, undefined);
 
-const createSelfVariableStatement = (cls: Identifier): VariableStatement =>
+const createSelfVariable = (cls: Identifier): VariableStatement =>
   factory.createVariableStatement(
     undefined,
     factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          getContext().constAliases.get(ConstName.Self)!,
+          getContext().constAliases.get(VariableName.Self)!,
           undefined,
           undefined,
-          buildGetThisValueCallExpression(cls),
+          buildGetThisValueFunctionCall(cls),
         ),
       ],
       NodeFlags.Const,
     ),
   );
 
-const updateClassMethodDeclarationBody = (cls: Identifier, node: Block): Block =>
-  factory.updateBlock(node, [createSelfVariableStatement(cls), ...visitEachChild(node, rewriteThis, undefined).statements]);
+const updateClassMethodBody = (cls: Identifier, node: Block): Block =>
+  factory.updateBlock(node, [createSelfVariable(cls), ...visitEachChild(node, rewriteThis, undefined).statements]);
 
-const updateClassMethodDeclaration = (cls: Identifier, node: MethodDeclaration): MethodDeclaration =>
+const updateClassMethod = (cls: Identifier, node: MethodDeclaration): MethodDeclaration =>
   factory.updateMethodDeclaration(
     node,
     node.modifiers,
@@ -72,23 +72,23 @@ const updateClassMethodDeclaration = (cls: Identifier, node: MethodDeclaration):
     node.typeParameters,
     node.parameters,
     node.type,
-    node.body ? updateClassMethodDeclarationBody(cls, node.body) : node.body,
+    node.body ? updateClassMethodBody(cls, node.body) : node.body,
   );
 
-const updateClassElement =
+const updateClass =
   (className: Identifier): ((node: ClassElement) => ClassElement) =>
   (node: ClassElement): ClassElement =>
-    isClassMethodDeclaration(node) ? updateClassMethodDeclaration(className, node) : node;
+    isClassMethod(node) ? updateClassMethod(className, node) : node;
 
-const updateExtensionClassExpression = (node: ClassDeclaration): ClassDeclaration =>
+const updateExtensionClass = (node: ClassDeclaration): ClassDeclaration =>
   factory.updateClassDeclaration(
     node,
     node.modifiers,
     node.name,
     node.typeParameters,
     node.heritageClauses,
-    node.members.map<ClassElement>(updateClassElement(node.name!)),
+    node.members.map<ClassElement>(updateClass(node.name!)),
   );
 
 export const buildExtensionClassExpressions = (node: Node): (() => Node)[] =>
-  isExtensionClassExpression(node) ? [(): ClassDeclaration => updateExtensionClassExpression(node)] : [];
+  isExtensionClass(node) ? [(): ClassDeclaration => updateExtensionClass(node)] : [];

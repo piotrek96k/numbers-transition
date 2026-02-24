@@ -1,15 +1,17 @@
-export enum ConstName {
-  Descriptions = 'descriptions',
-  Extension = 'extension',
+export enum VariableName {
+  Distance = 'distance',
+  FindOwnerDistance = 'findOwnerDistance',
+  Found = 'found',
   GetThisValue = 'getThisValue',
   Merge = 'merge',
   Object = 'object',
-  Prototype = 'prototype',
+  Properties = 'properties',
   Proxy = 'proxy',
   ReadSources = 'readSources',
   Self = 'self',
   Sources = 'sources',
   Type = 'type',
+  TypeDistance = 'typeDistance',
   TypeMap = 'typeMap',
   Wrap = 'wrap',
 }

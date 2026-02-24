@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
-import { transform } from '../transform/transform';
+import { transformer } from '../transformer/transformer';
+
+const transform: (code: string, ide?: string) => string = transformer();
 
 // TODO: revisit static once new model is created
 it<object>('rewrite property access static literal', (): void => {
@@ -23,8 +25,8 @@ it<object>('rewrite property access boolean literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const zero: number = wrap[0-9a-f]+\(false, "Boolean", "int"\)\.int;
-    export const one: number = wrap[0-9a-f]+\(true, "Boolean", "int"\)\.int;
+    export const zero: number = wrap[0-9a-f]+\(false, \["Boolean"\], "int"\)\.int;
+    export const one: number = wrap[0-9a-f]+\(true, \["Boolean"\], "int"\)\.int;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -37,7 +39,7 @@ it<object>('rewrite property access number literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const zero: bigint = wrap[0-9a-f]+\(\(0\), "Number", "bigInt"\)\.bigInt;
+    export const zero: bigint = wrap[0-9a-f]+\(\(0\), \["Number"\], "bigInt"\)\.bigInt;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -50,7 +52,7 @@ it<object>('rewrite property access bigint literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const one: number = wrap[0-9a-f]+\(1n, "BigInt", "number"\)\.number;
+    export const one: number = wrap[0-9a-f]+\(1n, \["BigInt"\], "number"\)\.number;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -63,7 +65,7 @@ it<object>('rewrite property access string literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const squashed: string = wrap[0-9a-f]+\('   Hello   World   ', "String", "compact"\)\.compact\(\);
+    export const squashed: string = wrap[0-9a-f]+\('   Hello   World   ', \["String"\], "compact"\)\.compact\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -76,7 +78,7 @@ it<object>('rewrite property access regexp literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const matches: string\[\] = wrap[0-9a-f]+\(/\[A-Za-z\]/g, "RegExp", "matches"\)\.matches\('Hello World'\);
+    export const matches: string\[\] = wrap[0-9a-f]+\(/\[A-Za-z\]/g, \["RegExp"\], "matches"\)\.matches\('Hello World'\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -89,7 +91,7 @@ it<object>('rewrite property access array literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const array: number\[\] = wrap[0-9a-f]+\(\[1, 2\], "Array", "append"\)\.append\(3\);
+    export const array: number\[\] = wrap[0-9a-f]+\(\[1, 2\], \["Array"\], "append"\)\.append\(3\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -102,7 +104,7 @@ it<object>('rewrite property access object literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const keys: string\[\] = wrap[0-9a-f]+\(\{ hello: 'Hello World' \}, "Object", "keys"\)\.keys\(\);
+    export const keys: string\[\] = wrap[0-9a-f]+\({ hello: 'Hello World' }, \["Object"\], "keys"\)\.keys\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -115,7 +117,7 @@ it<object>('rewrite property access array literal with object extension', (): vo
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const keys: string\[\] = wrap[0-9a-f]+\(\[1, 2\], "Object", "keys"\)\.keys\(\);
+    export const keys: string\[\] = wrap[0-9a-f]+\(\[1, 2\], \["Object"\], "keys"\)\.keys\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -132,7 +134,7 @@ it<object>('rewrite property access new expression literal', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     class Test {
-      constructor\(private readonly value: string\) { }
+      constructor\(private readonly value: string\) {}
     }
     export const keys: string\[\] = \(proxy[0-9a-f]+\(new Test\('Hello World'\), \["Object"\], "keys"\)\.keys\)\(\);
   `;
@@ -225,82 +227,6 @@ it<object>('property access not implemented', (): void => {
 it<object>('property access existing method not shadowed', (): void => {
   expect<string[]>({ hello: 'Hello World' }.keys()).toEqual<string[]>(['hello']);
   expect<number[]>([...[1, 2].keys()]).toEqual<number[]>([0, 1]);
-});
-
-it<object>('property access existing getter not shadowed', (): void => {
-  class Base {
-    constructor(private readonly values: string[]) {}
-
-    public get keys(): string[] {
-      return this.values;
-    }
-  }
-
-  expect<string[]>(new Base(['key', 'value']).keys).toEqual<string[]>(['key', 'value']);
-});
-
-it<object>('property access existing property not shadowed', (): void => {
-  class Base {
-    constructor(public readonly keys: string[]) {}
-  }
-
-  expect<string[]>(new Base(['key', 'value']).keys).toEqual<string[]>(['key', 'value']);
-});
-
-it<object>('property access inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-  }
-
-  class Extension extends Base {}
-
-  expect<string[]>(new Extension('Hello World').keys()).toEqual<string[]>(['value']);
-});
-
-it<object>('property access inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-
-    keys(): [string] {
-      return [this.value];
-    }
-  }
-
-  class Extension extends Base {}
-
-  expect<string[]>(new Extension('Hello World').keys()).toEqual<string[]>(['Hello World']);
-});
-
-it<object>('property access inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-  }
-
-  class Extension extends Base {
-    keys(): [string] {
-      return [this.value];
-    }
-  }
-
-  expect<string[]>(new Extension('Hello World').keys()).toEqual<string[]>(['Hello World']);
-});
-
-it<object>('property access inheritance not broken', (): void => {
-  class Base {
-    constructor(protected readonly value: string) {}
-
-    keys(): [string] {
-      return ['key'];
-    }
-  }
-
-  class Extension extends Base {
-    keys(): [string] {
-      return [this.value];
-    }
-  }
-
-  expect<string[]>(new Extension('Hello World').keys()).toEqual<string[]>(['Hello World']);
 });
 
 it<object>('property access apply function', (): void => {

@@ -1,68 +1,10 @@
 import { dirname, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { expect, it } from 'vitest';
-import { transform } from '../transform/transform';
+import { transformer } from '../transformer/transformer';
 
 const extensionPath: string = resolve(dirname(dirname(fileURLToPath(import.meta.url))), 'extensions', 'extensions.ts');
-
-it<object>('generate runtime methods', (): void => {
-  const code: string = `
-    import Extension from 'type-extensions/extension';
-  `;
-
-  const expectedOutput: string = String.raw`
-    import Extension from 'type-extensions/extension';
-
-    const getThisValue[0-9a-f]+ = \(self, type\) => self instanceof type \? self : new type\(self\);
-    
-    const typeMap[0-9a-f]+ = new Map\(
-      \[
-        \["Boolean", Predicate\],
-        \["Number", Double\],
-        \["BigInt", Long\],
-        \["String", CharSequence\],
-        \["RegExp", Pattern\],
-        \["Array", List\],
-        \["Object", Struct\]
-      \]
-    \),
-
-    readSources[0-9a-f]+ = extension => { 
-      const sources = \[extension\]; 
-      let prototype = Object\.getPrototypeOf\(extension\); 
-      while \(prototype && prototype !== Object\.prototype\) { 
-        sources\.unshift\(prototype\); 
-        prototype = Object\.getPrototypeOf\(prototype\); 
-      } 
-      return sources; 
-    };
-
-    export const wrap[0-9a-f]+ = \(value, type, key\) => value\?.\[key\] === void 0 \? new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\) : value,
-
-    merge[0-9a-f]+ = \(value, type\) => { 
-      const object = Object\.create\(Object\.getPrototypeOf\(value\)\); 
-      Object\.defineProperties\(object, Object\.getOwnPropertyDescriptors\(Object\(value\)\)\); 
-      const descriptions = Object\.assign\(
-        {}, 
-        \.\.\.readSources[0-9a-f]+\(new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\)\)\.map\(source => 
-          Object\.fromEntries\(
-            Object\.getOwnPropertyNames\(source\)
-              \.filter\(key => key !== "constructor" && !\(key in object\)\)
-              \.map\(key => \[key, Object\.getOwnPropertyDescriptor\(source, key\)\]\)
-          \)
-        \)
-      \); 
-      return Object\.defineProperties\(object, descriptions\);
-    },
-
-    proxy[0-9a-f]+ = \(value, types, key\) => { 
-      const type = types\.find\(type => typeMap[0-9a-f]+\.get\(type\).isType\(value\)\); 
-      return type \? key \? wrap[0-9a-f]+\(value, type, key\): merge[0-9a-f]+\(value, type\): value; 
-    };
-  `;
-
-  expect<string>(transform(code, extensionPath).compact()).toMatch(RegExp(expectedOutput.compact()));
-});
+const transform: (code: string, id?: string) => string = transformer(extensionPath);
 
 it<object>('rewrite method this', (): void => {
   const code: string = `

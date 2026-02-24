@@ -5,7 +5,6 @@ import {
   Expression,
   ExpressionStatement,
   NodeFlags,
-  ParameterDeclaration,
   ReturnStatement,
   SyntaxKind,
   VariableDeclaration,
@@ -14,22 +13,26 @@ import {
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { ClassName } from '../enums/class-name';
-import { ConstName } from '../enums/const-name';
 import { FunctionName } from '../enums/function-name';
+import { PropertyName } from '../enums/property-name';
+import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
-import { generateExtensionNewExpression } from './extension-new-expression';
+import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
+import { buildReadSourcesFunctionCall } from './read-sources';
+import { generateNewTypeMapGetCall } from './type-map';
+import { buildTypeDistanceFunctionCall } from './type-distance';
 
 const generateObjectVariable = (): VariableDeclaration =>
   factory.createVariableDeclaration(
-    ConstName.Object,
+    VariableName.Object,
     undefined,
     undefined,
     factory.createCallExpression(
-      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.Create),
+      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.Create),
       undefined,
       [
         factory.createCallExpression(
-          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetPrototypeOf),
+          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
           undefined,
           [factory.createIdentifier(ArgName.Value)],
         ),
@@ -37,14 +40,40 @@ const generateObjectVariable = (): VariableDeclaration =>
     ),
   );
 
-const generateGetOwnPropertyNamesCall = (): CallExpression =>
-  factory.createCallExpression(
-    factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetOwnPropertyNames),
-    undefined,
-    [factory.createIdentifier(ArgName.Source)],
+const generateGetOwnPropertyDescriptors = (): ExpressionStatement =>
+  factory.createExpressionStatement(
+    factory.createCallExpression(
+      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.DefineProperties),
+      undefined,
+      [
+        factory.createIdentifier(VariableName.Object),
+        factory.createCallExpression(
+          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetOwnPropertyDescriptors),
+          undefined,
+          [factory.createCallExpression(factory.createIdentifier(ClassName.Object), undefined, [factory.createIdentifier(ArgName.Value)])],
+        ),
+      ],
+    ),
   );
 
-const generatePropertyNamesFilterFunction = (): ArrowFunction =>
+const generateTypesMapFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [factory.createParameterDeclaration(undefined, undefined, ArgName.Type)],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createArrayLiteralExpression([buildReadSourcesFunctionCall(generateNewTypeMapGetCall()), buildTypeDistanceFunctionCall()]),
+  );
+
+const generateTypesMapFunctionCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Types), PropertyName.Map),
+    undefined,
+    [generateTypesMapFunction()],
+  );
+
+const generateSourceFilterFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
@@ -52,29 +81,27 @@ const generatePropertyNamesFilterFunction = (): ArrowFunction =>
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
     factory.createBinaryExpression(
-      factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Key),
-        SyntaxKind.ExclamationEqualsEqualsToken,
-        factory.createStringLiteral(FunctionName.Constructor),
-      ),
-      SyntaxKind.AmpersandAmpersandToken,
-      factory.createPrefixUnaryExpression(
-        SyntaxKind.ExclamationToken,
-        factory.createBinaryExpression(
-          factory.createIdentifier(ArgName.Key),
-          SyntaxKind.InKeyword,
-          factory.createIdentifier(ConstName.Object),
-        ),
-      ),
+      factory.createIdentifier(ArgName.Key),
+      factory.createToken(SyntaxKind.ExclamationEqualsEqualsToken),
+      factory.createStringLiteral(FunctionName.Constructor),
     ),
   );
 
-const generatePropertyNamesFilterCall = (): CallExpression =>
-  factory.createCallExpression(factory.createPropertyAccessExpression(generateGetOwnPropertyNamesCall(), FunctionName.Filter), undefined, [
-    generatePropertyNamesFilterFunction(),
-  ]);
+const generateSourceFilterFunctionCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(
+      factory.createCallExpression(
+        factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetOwnPropertyNames),
+        undefined,
+        [factory.createIdentifier(ArgName.Source)],
+      ),
+      PropertyName.Filter,
+    ),
+    undefined,
+    [generateSourceFilterFunction()],
+  );
 
-const generatePropertyNamesMapFunction = (): ArrowFunction =>
+const generateSourceMapFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
@@ -83,105 +110,240 @@ const generatePropertyNamesMapFunction = (): ArrowFunction =>
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
     factory.createArrayLiteralExpression([
       factory.createIdentifier(ArgName.Key),
+      factory.createIdentifier(ArgName.Distance),
+      factory.createIdentifier(ArgName.Index),
       factory.createCallExpression(
-        factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetOwnPropertyDescriptor),
+        factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetOwnPropertyDescriptor),
         undefined,
         [factory.createIdentifier(ArgName.Source), factory.createIdentifier(ArgName.Key)],
       ),
     ]),
   );
 
-const generatePropertyNamesMapCall = (): CallExpression =>
-  factory.createCallExpression(factory.createPropertyAccessExpression(generatePropertyNamesFilterCall(), FunctionName.Map), undefined, [
-    generatePropertyNamesMapFunction(),
+const generateSourceMapFunctionCall = (): CallExpression =>
+  factory.createCallExpression(factory.createPropertyAccessExpression(generateSourceFilterFunctionCall(), PropertyName.Map), undefined, [
+    generateSourceMapFunction(),
   ]);
 
-const generateFromEntriesCall = (): CallExpression =>
-  factory.createCallExpression(
-    factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.FromEntries),
-    undefined,
-    [generatePropertyNamesMapCall()],
-  );
-
-const generateSourceMapFunction = (): ArrowFunction =>
+const generateSourcesFlatMapFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
-    [factory.createParameterDeclaration(undefined, undefined, ArgName.Source)],
+    [
+      factory.createParameterDeclaration(undefined, undefined, ArgName.Source),
+      factory.createParameterDeclaration(undefined, undefined, ArgName.Index),
+    ],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
-    generateFromEntriesCall(),
+    generateSourceMapFunctionCall(),
   );
 
-const generateSourcesMapCall = (): CallExpression =>
+const generateSourcesFlatMapFunctionCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Sources), PropertyName.FlatMap),
+    undefined,
+    [generateSourcesFlatMapFunction()],
+  );
+
+const generateTypesFlatMapFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [
+      factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        factory.createArrayBindingPattern([
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Sources), undefined),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Distance), undefined),
+        ]),
+      ),
+    ],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    generateSourcesFlatMapFunctionCall(),
+  );
+
+const generateTypesFlatMapFunctionCallExpression = (): CallExpression =>
+  factory.createCallExpression(factory.createPropertyAccessExpression(generateTypesMapFunctionCall(), PropertyName.FlatMap), undefined, [
+    generateTypesFlatMapFunction(),
+  ]);
+
+const generateTypesSortFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [
+      factory.createParameterDeclaration(undefined, undefined, ArgName.First),
+      factory.createParameterDeclaration(undefined, undefined, ArgName.Second),
+    ],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createBinaryExpression(
+      factory.createBinaryExpression(
+        factory.createCallExpression(
+          factory.createPropertyAccessExpression(
+            factory.createElementAccessExpression(factory.createIdentifier(ArgName.First), 0),
+            PropertyName.LocaleCompare,
+          ),
+          undefined,
+          [factory.createElementAccessExpression(factory.createIdentifier(ArgName.Second), 0)],
+        ),
+        factory.createToken(SyntaxKind.BarBarToken),
+        factory.createBinaryExpression(
+          factory.createElementAccessExpression(factory.createIdentifier(ArgName.Second), 1),
+          factory.createToken(SyntaxKind.MinusToken),
+          factory.createElementAccessExpression(factory.createIdentifier(ArgName.First), 1),
+        ),
+      ),
+      factory.createToken(SyntaxKind.BarBarToken),
+      factory.createBinaryExpression(
+        factory.createElementAccessExpression(factory.createIdentifier(ArgName.Second), 2),
+        factory.createToken(SyntaxKind.MinusToken),
+        factory.createElementAccessExpression(factory.createIdentifier(ArgName.First), 2),
+      ),
+    ),
+  );
+
+const generateTypesSortFunctionCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(generateTypesFlatMapFunctionCallExpression(), PropertyName.Sort),
+    undefined,
+    [generateTypesSortFunction()],
+  );
+
+const generateTypesReduceFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [
+      factory.createParameterDeclaration(undefined, undefined, ArgName.Map),
+      factory.createParameterDeclaration(undefined, undefined, ArgName.Entry),
+    ],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createCallExpression(
+      factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Map), PropertyName.Set),
+      undefined,
+      [factory.createElementAccessExpression(factory.createIdentifier(ArgName.Entry), 0), factory.createIdentifier(ArgName.Entry)],
+    ),
+  );
+
+const generateTypesReduceFunctionCall = (): CallExpression =>
+  factory.createCallExpression(factory.createPropertyAccessExpression(generateTypesSortFunctionCall(), PropertyName.Reduce), undefined, [
+    generateTypesReduceFunction(),
+    factory.createNewExpression(factory.createIdentifier(ClassName.Map), undefined, []),
+  ]);
+
+const generatePropertiesVariable = (): VariableDeclaration =>
+  factory.createVariableDeclaration(VariableName.Properties, undefined, undefined, generateTypesReduceFunctionCall());
+
+const generatePropertiesFilterFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [
+      factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        factory.createArrayBindingPattern([
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Key), undefined),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Distance), undefined),
+        ]),
+      ),
+    ],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createBinaryExpression(
+      factory.createPrefixUnaryExpression(
+        SyntaxKind.ExclamationToken,
+        factory.createBinaryExpression(
+          factory.createIdentifier(ArgName.Key),
+          factory.createToken(SyntaxKind.InKeyword),
+          factory.createIdentifier(VariableName.Object),
+        ),
+      ),
+      factory.createToken(SyntaxKind.BarBarToken),
+      factory.createBinaryExpression(
+        buildFindOwnerDistanceFunctionCall(),
+        factory.createToken(SyntaxKind.GreaterThanToken),
+        factory.createIdentifier(ArgName.Distance),
+      ),
+    ),
+  );
+
+const generatePropertiesFilterFunctionCall = (): CallExpression =>
   factory.createCallExpression(
     factory.createPropertyAccessExpression(
-      factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(ConstName.ReadSources)!), undefined, [
-        generateExtensionNewExpression(),
-      ]),
-      FunctionName.Map,
-    ),
-    undefined,
-    [generateSourceMapFunction()],
-  );
-
-const generateDescriptionsVariable = (): VariableDeclaration =>
-  factory.createVariableDeclaration(
-    ConstName.Descriptions,
-    undefined,
-    undefined,
-    factory.createCallExpression(
-      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.Assign),
-      undefined,
-      [factory.createObjectLiteralExpression(), factory.createSpreadElement(generateSourcesMapCall())],
-    ),
-  );
-
-const generateGetOwnPropertyDescriptors = (): ExpressionStatement =>
-  factory.createExpressionStatement(
-    factory.createCallExpression(
-      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.DefineProperties),
-      undefined,
-      [
-        factory.createIdentifier(ConstName.Object),
-        factory.createCallExpression(
-          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetOwnPropertyDescriptors),
-          undefined,
-          [factory.createCallExpression(factory.createIdentifier(ClassName.Object), undefined, [factory.createIdentifier(ArgName.Value)])],
+      factory.createArrayLiteralExpression([
+        factory.createSpreadElement(
+          factory.createCallExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Properties), PropertyName.Values),
+            undefined,
+            [],
+          ),
         ),
-      ],
+      ]),
+      PropertyName.Filter,
+    ),
+    undefined,
+    [generatePropertiesFilterFunction()],
+  );
+
+const generatePropertiesForEachFunction = (): ArrowFunction =>
+  factory.createArrowFunction(
+    undefined,
+    undefined,
+    [
+      factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        factory.createArrayBindingPattern([
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Key), undefined),
+          factory.createOmittedExpression(),
+          factory.createOmittedExpression(),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Descriptor), undefined),
+        ]),
+      ),
+    ],
+    undefined,
+    factory.createToken(SyntaxKind.EqualsGreaterThanToken),
+    factory.createCallExpression(
+      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.DefineProperty),
+      undefined,
+      [factory.createIdentifier(VariableName.Object), factory.createIdentifier(ArgName.Key), factory.createIdentifier(ArgName.Descriptor)],
     ),
   );
 
-const generateMergeFunctionResult = (): ReturnStatement =>
-  factory.createReturnStatement(
-    factory.createCallExpression(
-      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.DefineProperties),
-      undefined,
-      [factory.createIdentifier(ConstName.Object), factory.createIdentifier(ConstName.Descriptions)],
-    ),
+const generatePropertiesForEachFunctionCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(generatePropertiesFilterFunctionCall(), PropertyName.ForEach),
+    undefined,
+    [generatePropertiesForEachFunction()],
   );
+
+const generateMergeFunctionReturn = (): ReturnStatement => factory.createReturnStatement(factory.createIdentifier(VariableName.Object));
 
 const generateMergeFunctionBody = (): Block =>
   factory.createBlock([
     factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateObjectVariable()], NodeFlags.Const)),
     generateGetOwnPropertyDescriptors(),
-    factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateDescriptionsVariable()], NodeFlags.Const)),
-    generateMergeFunctionResult(),
+    factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generatePropertiesVariable()], NodeFlags.Const)),
+    factory.createExpressionStatement(generatePropertiesForEachFunctionCall()),
+    generateMergeFunctionReturn(),
   ]);
 
 export const generateMergeFunction = (): VariableDeclaration =>
   factory.createVariableDeclaration(
-    factory.createIdentifier(getContext().constAliases.get(ConstName.Merge)!),
+    factory.createIdentifier(getContext().constAliases.get(VariableName.Merge)!),
     undefined,
     undefined,
     factory.createArrowFunction(
       undefined,
       undefined,
       [
-        ...[ArgName.Value, ArgName.Type].map<ParameterDeclaration>(
-          (param: string): ParameterDeclaration => factory.createParameterDeclaration(undefined, undefined, param),
-        ),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Types),
       ],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
@@ -189,9 +351,9 @@ export const generateMergeFunction = (): VariableDeclaration =>
     ),
   );
 
-export const buildMergeCallExpression = (value: Expression, type: string): CallExpression =>
+export const buildMergeFunctionCall = (value: Expression, types: Expression): CallExpression =>
   factory.createCallExpression(
-    factory.createIdentifier(readImportName(getContext().constAliases.get(ConstName.Merge)!, value)),
+    factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Merge)!, value)),
     undefined,
-    [value, factory.createStringLiteral(type)],
+    [value, types],
   );

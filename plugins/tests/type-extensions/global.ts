@@ -18,8 +18,9 @@ declare global {
   interface String {
     number: number;
     readonly bigInt: bigint;
-    compact: () => string;
     capitalize(): string;
+    compact: () => string;
+    pascalCaseToText: () => string;
   }
 
   interface RegExp {

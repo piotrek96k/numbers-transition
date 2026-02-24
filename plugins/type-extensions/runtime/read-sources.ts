@@ -1,47 +1,30 @@
-import { Block, NodeFlags, SyntaxKind, VariableDeclaration, WhileStatement, factory } from 'typescript';
+import { Block, CallExpression, Expression, NodeFlags, SyntaxKind, VariableDeclaration, WhileStatement, factory } from 'typescript';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { ClassName } from '../enums/class-name';
-import { ConstName } from '../enums/const-name';
-import { FunctionName } from '../enums/function-name';
+import { PropertyName } from '../enums/property-name';
+import { VariableName } from '../enums/variable-name';
 
 const generateSourcesVariable = (): VariableDeclaration =>
-  factory.createVariableDeclaration(
-    ConstName.Sources,
-    undefined,
-    undefined,
-    factory.createArrayLiteralExpression([factory.createIdentifier(ConstName.Extension)]),
-  );
-
-const generatePrototypeVariable = (): VariableDeclaration =>
-  factory.createVariableDeclaration(
-    ConstName.Prototype,
-    undefined,
-    undefined,
-    factory.createCallExpression(
-      factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetPrototypeOf),
-      undefined,
-      [factory.createIdentifier(ConstName.Extension)],
-    ),
-  );
+  factory.createVariableDeclaration(VariableName.Sources, undefined, undefined, factory.createArrayLiteralExpression([]));
 
 const generateWhileLoopBody = (): Block =>
   factory.createBlock([
     factory.createExpressionStatement(
       factory.createCallExpression(
-        factory.createPropertyAccessExpression(factory.createIdentifier(ConstName.Sources), FunctionName.Unshift),
+        factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Sources), PropertyName.Push),
         undefined,
-        [factory.createIdentifier(ConstName.Prototype)],
+        [factory.createIdentifier(ArgName.Prototype)],
       ),
     ),
     factory.createExpressionStatement(
       factory.createBinaryExpression(
-        factory.createIdentifier(ConstName.Prototype),
+        factory.createIdentifier(ArgName.Prototype),
         SyntaxKind.EqualsToken,
         factory.createCallExpression(
-          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), FunctionName.GetPrototypeOf),
+          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
           undefined,
-          [factory.createIdentifier(ConstName.Prototype)],
+          [factory.createIdentifier(ArgName.Prototype)],
         ),
       ),
     ),
@@ -50,12 +33,12 @@ const generateWhileLoopBody = (): Block =>
 const generateWhileLoop = (): WhileStatement =>
   factory.createWhileStatement(
     factory.createBinaryExpression(
-      factory.createIdentifier(ConstName.Prototype),
+      factory.createIdentifier(ArgName.Prototype),
       SyntaxKind.AmpersandAmpersandToken,
       factory.createBinaryExpression(
-        factory.createIdentifier(ConstName.Prototype),
+        factory.createIdentifier(ArgName.Prototype),
         SyntaxKind.ExclamationEqualsEqualsToken,
-        factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), ConstName.Prototype),
+        factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.Prototype),
       ),
     ),
     generateWhileLoopBody(),
@@ -63,20 +46,22 @@ const generateWhileLoop = (): WhileStatement =>
 
 export const generateReadSourcesFunction = (): VariableDeclaration =>
   factory.createVariableDeclaration(
-    factory.createIdentifier(getContext().constAliases.get(ConstName.ReadSources)!),
+    factory.createIdentifier(getContext().constAliases.get(VariableName.ReadSources)!),
     undefined,
     undefined,
     factory.createArrowFunction(
       undefined,
       undefined,
-      [factory.createParameterDeclaration(undefined, undefined, ArgName.Extension)],
+      [factory.createParameterDeclaration(undefined, undefined, ArgName.Prototype)],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock([
         factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateSourcesVariable()], NodeFlags.Const)),
-        factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generatePrototypeVariable()], NodeFlags.Let)),
         generateWhileLoop(),
-        factory.createReturnStatement(factory.createIdentifier(ConstName.Sources)),
+        factory.createReturnStatement(factory.createIdentifier(VariableName.Sources)),
       ]),
     ),
   );
+
+export const buildReadSourcesFunctionCall = (source: Expression): CallExpression =>
+  factory.createCallExpression(factory.createIdentifier(getContext().constAliases.get(VariableName.ReadSources)!), undefined, [source]);

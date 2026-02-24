@@ -35,11 +35,11 @@ import {
   sys,
 } from 'typescript';
 import { generateAlias } from '../alias/alias';
-import { ConstName } from '../enums/const-name';
 import { Encoding } from '../enums/encoding';
-import { splitStatements } from '../imports/imports';
 import { ModuleName } from '../enums/module-name';
-import { InternalPropertyName } from '../enums/internal-property-name';
+import { StaticPropertyName } from '../enums/static-property-name';
+import { VariableName } from '../enums/variable-name';
+import { splitStatements } from '../imports/imports';
 
 interface NamedClassDeclaration extends ClassDeclaration {
   name: Identifier;
@@ -115,17 +115,17 @@ const isStringLiteralGetter = (property: MethodOrPropertyDeclaration): property 
 const isIdProperty = (
   property: MethodOrPropertyDeclaration,
 ): property is IdentifierPropertyDeclaration | IdentifierGetAccessorDeclaration =>
-  property.name.text === InternalPropertyName.Id &&
+  property.name.text === StaticPropertyName.Id &&
   isStatic(property) &&
   (isStringLiteralProperty(property) || isStringLiteralGetter(property));
 
 const isTypeProperty = (property: MethodOrPropertyDeclaration): boolean =>
-  property.name.text === InternalPropertyName.Type &&
+  property.name.text === StaticPropertyName.Type &&
   isStatic(property) &&
   ((isPropertyDeclaration(property) && !!property.initializer) || (isGetAccessor(property) && !!property.body));
 
 const isIsTypeProperty = (property: MethodOrPropertyDeclaration): boolean =>
-  property.name.text === InternalPropertyName.IsType && isStatic(property);
+  property.name.text === StaticPropertyName.IsType && isStatic(property);
 
 const isInternalProperty = (property: MethodOrPropertyDeclaration): boolean =>
   [isIdProperty, isTypeProperty, isIsTypeProperty].some((checker: (property: MethodOrPropertyDeclaration) => boolean): boolean =>
@@ -133,7 +133,7 @@ const isInternalProperty = (property: MethodOrPropertyDeclaration): boolean =>
   );
 
 const hasAllInternalProperties = ([, [{ length }]]: [string, [MethodOrPropertyDeclaration[], MethodOrPropertyDeclaration[]]]): boolean =>
-  Object.values(InternalPropertyName).length === length;
+  Object.values(StaticPropertyName).length === length;
 
 const readId = (property: IdentifierPropertyDeclaration | IdentifierGetAccessorDeclaration): string =>
   isPropertyDeclaration(property)
@@ -209,7 +209,7 @@ export const buildExtensionsMap = (extensionsFilePath: string): Map<string, Type
 
 export const buildConstAliases = (extensionsFilePath: string): Map<string, string> =>
   new Map<string, string>(
-    Object.values<ConstName>(ConstName).map<[string, string]>((value: ConstName): [string, string] => [
+    Object.values<VariableName>(VariableName).map<[string, string]>((value: VariableName): [string, string] => [
       value,
       generateAlias(value, extensionsFilePath),
     ]),

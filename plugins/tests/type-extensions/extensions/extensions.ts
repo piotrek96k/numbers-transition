@@ -55,15 +55,21 @@ export class CharSequence extends Extension<string> implements ExtensionConstruc
     return BigInt(this.value);
   }
 
-  public readonly compact = (): string =>
-    this.value
-      .replace(/(?<=[()[\]])\s+/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
   public capitalize(): string {
     return `${this.value[0].toUpperCase()}${this.value.slice(1)}`;
   }
+
+  public readonly compact = (): string =>
+    this.value
+      .replace(/\s*(?<token>[()[\]{}]|\\\(|\\\)|\\\[|\\\]|\\\.)\s*/g, '$<token>')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+  public readonly pascalCaseToText = (): string =>
+    this.value
+      .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+      .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2')
+      .toLowerCase();
 }
 
 export class Pattern extends Extension<RegExp> implements ExtensionConstructor<RegExp, typeof Pattern> {
