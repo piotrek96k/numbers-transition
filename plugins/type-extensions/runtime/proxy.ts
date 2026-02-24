@@ -18,7 +18,7 @@ import { StaticPropertyName } from '../enums/static-property-name';
 import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
 import { buildMergeFunctionCall } from './merge';
-import { generateTypeMapGetCall } from './type-map';
+import { generateTypeMapGetCall, generateTypeMapKeysCall } from './type-map';
 import { buildWrapCall } from './wrap';
 
 const generateFilterFunction = (): ArrowFunction =>
@@ -86,7 +86,14 @@ export const generateProxyFunction = (): VariableDeclaration =>
       undefined,
       [
         factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Types),
+        factory.createParameterDeclaration(
+          undefined,
+          undefined,
+          ArgName.Types,
+          undefined,
+          undefined,
+          factory.createArrayLiteralExpression([factory.createSpreadElement(generateTypeMapKeysCall())]),
+        ),
         factory.createParameterDeclaration(undefined, undefined, ArgName.Key),
       ],
       undefined,
@@ -101,9 +108,13 @@ export const buildProxyFunctionCall = (value: Expression, extensions: [string, T
     undefined,
     [
       value,
-      factory.createArrayLiteralExpression(
-        extensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
-      ),
-      ...(key ? [factory.createStringLiteral(key)] : []),
+      ...(extensions.length
+        ? [
+            factory.createArrayLiteralExpression(
+              extensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
+            ),
+            ...(key ? [factory.createStringLiteral(key)] : []),
+          ]
+        : []),
     ],
   );

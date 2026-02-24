@@ -15,6 +15,16 @@ export const generateTypeMap = (): VariableDeclaration =>
     ),
   );
 
+export const generateTypeMapKeysCall = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(
+      factory.createIdentifier(getContext().constAliases.get(VariableName.TypeMap)!),
+      PropertyName.Keys,
+    ),
+    undefined,
+    [],
+  );
+
 export const generateTypeMapGetCall = (): CallExpression =>
   factory.createCallExpression(
     factory.createPropertyAccessExpression(

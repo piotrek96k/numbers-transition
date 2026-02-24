@@ -81,7 +81,7 @@ it<object>('generate runtime methods', (): void => {
       return object;
     },
 
-    proxy[0-9a-f]+ = \(value, types, key\) => { 
+    proxy[0-9a-f]+ = \(value, types = \[\.\.\.typeMap[0-9a-f]+\.keys\(\)\] , key\) => { 
       const found = types\.filter\(type => typeMap[0-9a-f]+\.get\(type\)\.isType\(value\)\);
       return found\.length \? key \!== void 0 \? wrap[0-9a-f]+\(value, found, key\) : merge[0-9a-f]+\(value, found\) : value;
     };

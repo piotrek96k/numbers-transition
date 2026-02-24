@@ -12,6 +12,7 @@ export enum PropertyName {
   GetOwnPropertyNames = 'getOwnPropertyNames',
   GetPrototypeOf = 'getPrototypeOf',
   HasOwnProperty = 'hasOwnProperty',
+  Keys = 'keys',
   Length = 'length',
   LocaleCompare = 'localeCompare',
   Map = 'map',

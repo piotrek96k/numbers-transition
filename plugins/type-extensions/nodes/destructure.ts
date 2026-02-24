@@ -96,11 +96,14 @@ const shouldUpdateInitializer = (extractedIdentifiers: Set<string>, { initialize
 
 const getExtensions = <T extends DestructureDeclaration>({
   name: { elements },
-}: ObjectBindingPatternWrapper<T>): [string, TypeExtension][] => {
-  const extensions: [string, TypeExtension][] = [...getContext().extensionsMap];
-  const foundExtensions: [string, TypeExtension][] = extensions.filter(isDestructureProperty(elements));
+}: ObjectBindingPatternWrapper<T>): [string, TypeExtension][] | undefined => {
+  const foundExtensions: [string, TypeExtension][] = [...getContext().extensionsMap].filter(isDestructureProperty(elements));
 
-  return elements.some(({ dotDotDotToken }: BindingElement): boolean => !!dotDotDotToken) ? extensions : foundExtensions;
+  return elements.some(({ dotDotDotToken }: BindingElement): boolean => !!dotDotDotToken)
+    ? []
+    : foundExtensions.length
+      ? foundExtensions
+      : undefined;
 };
 
 const readNestedIdentifiers = ({ elements }: ObjectBindingPattern): string[] =>
@@ -144,11 +147,11 @@ const updateInitializer = <T extends DestructureDeclaration>(
 
 const updateObjectBindingPattern = <T extends DestructureDeclaration>(
   element: ObjectBindingPatternWrapper<T>,
-  updateElement: (extensions: [string, TypeExtension][], element: T, objectBindingPattern: ObjectBindingPattern) => T,
+  updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, objectBindingPattern: ObjectBindingPattern) => T,
   extractedIdentifiers: Set<string>,
 ): [T, VariableDeclaration[]] => {
-  const extensions: [string, TypeExtension][] = getExtensions<T>(element);
-  const identifiers: string[] = extensions.length ? readNestedIdentifiers(element.name) : [];
+  const extensions: [string, TypeExtension][] | undefined = getExtensions<T>(element);
+  const identifiers: string[] = extensions?.length ? readNestedIdentifiers(element.name) : [];
   identifiers.forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
 
   const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(element.name.elements, extractedIdentifiers);
@@ -156,7 +159,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
   const updatedBindingPattern: ObjectBindingPattern = factory.updateObjectBindingPattern(element.name, elements);
   const updatedElement: T = updateElement(extensions, element, updatedBindingPattern);
 
-  const updatedVariables: VariableDeclaration[] = extensions.length
+  const updatedVariables: VariableDeclaration[] = extensions
     ? [
         factory.createVariableDeclaration(
           updatedBindingPattern,
@@ -173,7 +176,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
 
 const updateArrayBindingPattern = <T extends DestructureDeclaration>(
   element: ArrayBindingPatternWrapper<T>,
-  updateElement: (extensions: [string, TypeExtension][], element: T, bindingPattern: BindingPattern) => T,
+  updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, bindingPattern: BindingPattern) => T,
   extractedIdentifiers: Set<string>,
 ): [T, VariableDeclaration[]] => {
   const [elements, variables]: [ArrayBindingElement[], VariableDeclaration[]] = mapArrayBindingElements(
@@ -182,14 +185,14 @@ const updateArrayBindingPattern = <T extends DestructureDeclaration>(
   );
 
   const updatedBindingPattern: ArrayBindingPattern = factory.updateArrayBindingPattern(element.name, elements);
-  const updatedElement: T = updateElement([], element, updatedBindingPattern);
+  const updatedElement: T = updateElement(undefined, element, updatedBindingPattern);
 
   return [updatedElement, variables];
 };
 
 const mapElement =
   <T extends DestructureDeclaration>(
-    updateElement: (extensions: [string, TypeExtension][], element: T, bindingPattern: BindingPattern) => T,
+    updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, bindingPattern: BindingPattern) => T,
     updateElementInitializer: (element: T) => T,
     extractedIdentifiers: Set<string>,
   ): ((element: T) => [T, VariableDeclaration[]]) =>
@@ -249,7 +252,7 @@ const updateArrayBindingElementInitializer = (element: BindingElement): BindingE
   );
 
 const updateBindingElement = (
-  extensions: [string, TypeExtension][],
+  extensions: [string, TypeExtension][] | undefined,
   element: BindingElement,
   bindingPattern: BindingPattern,
 ): BindingElement =>
@@ -257,16 +260,16 @@ const updateBindingElement = (
     element,
     element.dotDotDotToken,
     element.propertyName,
-    extensions.length ? factory.createIdentifier(generateAlias(ArgName.Arg, element)) : bindingPattern,
+    extensions ? factory.createIdentifier(generateAlias(ArgName.Arg, element)) : bindingPattern,
     element.initializer,
   );
 
 const updateVariableObjectDestructure =
   (
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
-  ): ((extensions: [string, TypeExtension][]) => VariableDeclaration[]) =>
-  (extensions: [string, TypeExtension][]): VariableDeclaration[] => {
-    const literalExtension: [string, TypeExtension] | undefined = extensions.find(isLiteralExpression(variableDeclaration.initializer));
+  ): ((extensions: [string, TypeExtension][] | undefined) => VariableDeclaration[]) =>
+  (extensions: [string, TypeExtension][] | undefined): VariableDeclaration[] => {
+    const literalExtension: [string, TypeExtension] | undefined = extensions?.find(isLiteralExpression(variableDeclaration.initializer));
 
     const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(
       variableDeclaration.name.elements,
@@ -278,7 +281,7 @@ const updateVariableObjectDestructure =
       factory.updateObjectBindingPattern(variableDeclaration.name, elements),
       variableDeclaration.exclamationToken,
       variableDeclaration.type,
-      extensions.length
+      extensions
         ? literalExtension
           ? buildMergeFunctionCall(
               variableDeclaration.initializer,
@@ -345,7 +348,7 @@ const updateParameterInitializer = (parameter: ParameterDeclaration): ParameterD
   );
 
 const updateParameter = (
-  extensions: [string, TypeExtension][],
+  extensions: [string, TypeExtension][] | undefined,
   parameter: ParameterDeclaration,
   bindingPattern: BindingPattern,
 ): ParameterDeclaration =>
@@ -353,7 +356,7 @@ const updateParameter = (
     parameter,
     parameter.modifiers,
     parameter.dotDotDotToken,
-    extensions.length ? factory.createIdentifier(generateAlias(ArgName.Arg, parameter)) : bindingPattern,
+    extensions ? factory.createIdentifier(generateAlias(ArgName.Arg, parameter)) : bindingPattern,
     parameter.questionToken,
     parameter.type,
     parameter.initializer,
