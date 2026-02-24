@@ -364,13 +364,16 @@ it.each<TestCase>(testCases)('$title', async ({ cls, cases }: TestCase): Promise
     dirname(import.meta.dirname),
     `${Dirname.Generated}${cases.map<string>((tuple: [number, number]): string => tuple.join('')).join('')}`,
   );
-  mkdirSync(dir);
 
-  const [propertyAccess, destructure]: (string | undefined)[][] = await executeGeneratedCode(dir, cls, cases);
-  const expectedValue: (string | undefined)[] = createAssertion(cases);
+  try {
+    mkdirSync(dir);
 
-  expect<(string | undefined)[]>(propertyAccess).toEqual<(string | undefined)[]>(expectedValue);
-  expect<(string | undefined)[]>(destructure).toEqual<(string | undefined)[]>(expectedValue);
+    const [propertyAccess, destructure]: (string | undefined)[][] = await executeGeneratedCode(dir, cls, cases);
+    const expectedValue: (string | undefined)[] = createAssertion(cases);
 
-  rmSync(dir, { recursive: true });
+    expect<(string | undefined)[]>(propertyAccess).toEqual<(string | undefined)[]>(expectedValue);
+    expect<(string | undefined)[]>(destructure).toEqual<(string | undefined)[]>(expectedValue);
+  } finally {
+    rmSync(dir, { recursive: true });
+  }
 });
