@@ -18,6 +18,7 @@ import {
   ObjectBindingPattern,
   ParameterDeclaration,
   PropertyName,
+  StringLiteral,
   SyntaxKind,
   VariableDeclaration,
   VariableStatement,
@@ -269,7 +270,9 @@ const updateVariableObjectDestructure =
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
   ): ((extensions: [string, TypeExtension][] | undefined) => VariableDeclaration[]) =>
   (extensions: [string, TypeExtension][] | undefined): VariableDeclaration[] => {
-    const literalExtension: [string, TypeExtension] | undefined = extensions?.find(isLiteralExpression(variableDeclaration.initializer));
+    const literalExtensions: [string, TypeExtension][] | undefined = extensions?.filter(
+      isLiteralExpression(variableDeclaration.initializer),
+    );
 
     const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(
       variableDeclaration.name.elements,
@@ -282,10 +285,12 @@ const updateVariableObjectDestructure =
       variableDeclaration.exclamationToken,
       variableDeclaration.type,
       extensions
-        ? literalExtension
+        ? literalExtensions?.length
           ? buildMergeFunctionCall(
               variableDeclaration.initializer,
-              factory.createArrayLiteralExpression([factory.createStringLiteral(literalExtension[0])]),
+              factory.createArrayLiteralExpression(
+                literalExtensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
+              ),
             )
           : buildProxyFunctionCall(variableDeclaration.initializer, extensions)
         : variableDeclaration.initializer,

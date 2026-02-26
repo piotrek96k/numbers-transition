@@ -2,6 +2,7 @@ import {
   Expression,
   Node,
   PropertyAccessExpression,
+  StringLiteral,
   SyntaxKind,
   factory,
   isIdentifier,
@@ -40,21 +41,22 @@ const buildStaticPropertyAccess = ({ expression, name: { text } }: PropertyAcces
 const buildLiteralPropertyAccess = (
   extensions: [string, TypeExtension][],
   { expression, name: { text } }: PropertyAccessExpression,
-): Node | undefined =>
-  extensions
-    .filter(isLiteralExpression(expression))
-    .map<Node>(
-      ([id]: [string, TypeExtension]): Node =>
-        factory.createPropertyAccessExpression(
-          buildWrapCall(
-            expression,
-            factory.createArrayLiteralExpression([factory.createStringLiteral(id)]),
-            factory.createStringLiteral(text),
+): Node | undefined => {
+  const literalExtensions: [string, TypeExtension][] = extensions.filter(isLiteralExpression(expression));
+
+  return literalExtensions.length
+    ? factory.createPropertyAccessExpression(
+        buildWrapCall(
+          expression,
+          factory.createArrayLiteralExpression(
+            literalExtensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
           ),
-          text,
+          factory.createStringLiteral(text),
         ),
-    )
-    .pop();
+        text,
+      )
+    : undefined;
+};
 
 const buildPropertyAccess = (access: PropertyAccessExpression): (() => Node)[] =>
   [[...getContext().extensionsMap].filter(isObjectProperty(access.name.text))]

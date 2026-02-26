@@ -16,17 +16,29 @@ import {
 import { TypeExtension } from '../config/config';
 import { JsType } from '../enums/js-type';
 
+const isBooleanLiteral = ({ kind }: Node): boolean =>
+  [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind);
+
 const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsType, ((node: Node) => boolean)[]>([
-  [
-    JsType.Boolean,
-    [({ kind }: Node): boolean => [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind)],
-  ],
+  [JsType.Boolean, [isBooleanLiteral]],
   [JsType.Number, [isNumericLiteral]],
   [JsType.BigInt, [isBigIntLiteral]],
   [JsType.String, [isStringLiteral, isTemplateLiteral]],
   [JsType.RegExp, [isRegularExpressionLiteral]],
   [JsType.Array, [isArrayLiteralExpression]],
-  [JsType.Object, [isObjectLiteralExpression, isArrayLiteralExpression]],
+  [
+    JsType.Object,
+    [
+      isBooleanLiteral,
+      isNumericLiteral,
+      isBigIntLiteral,
+      isStringLiteral,
+      isTemplateLiteral,
+      isRegularExpressionLiteral,
+      isArrayLiteralExpression,
+      isObjectLiteralExpression,
+    ],
+  ],
 ]);
 
 const unwrap = (node: Node): Node => (isParenthesizedExpression(node) ? unwrap(node.expression) : node);

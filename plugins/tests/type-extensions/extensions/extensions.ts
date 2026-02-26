@@ -90,7 +90,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public static readonly type: ObjectConstructor = Object;
 
   public static isType(value: unknown): boolean {
-    return (typeof value === 'object' || typeof value === 'function') && value !== null;
+    return value !== undefined && value !== null;
   }
 
   public keys(): string[] {
