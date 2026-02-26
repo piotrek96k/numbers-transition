@@ -129,12 +129,12 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 
   public static isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
-    return Array.depth<unknown>(array) === depth;
+    return this.depth<unknown>(array) === depth;
   }
 
   public static depth<T>(array: T): number {
     return Array.isArray<T>(array)
-      ? Integer.One + array.map<number>(Array.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
+      ? Integer.One + array.map<number>(this.depth, List).reduce((curr: number, nxt: number): number => (curr === nxt ? nxt : Number.NaN))
       : Integer.Zero;
   }
 
@@ -168,7 +168,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
   public zip<U>(...{ length, ...array }: U[]): Zip<T[], U[]> {
     return this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
-      ...Array.toArray<T>(value),
+      ...List.toArray<T>(value),
       ...((index < length ? [array[index]] : []) satisfies [U] | []),
     ]);
   }
