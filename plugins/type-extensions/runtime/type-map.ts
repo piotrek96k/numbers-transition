@@ -32,7 +32,7 @@ export const generateTypeMapGetCall = (): CallExpression =>
       PropertyName.Get,
     ),
     undefined,
-    [factory.createIdentifier(ArgName.Type)],
+    [factory.createIdentifier(PropertyName.Id)],
   );
 
 export const generateNewTypeMapGetCall = (): NewExpression =>

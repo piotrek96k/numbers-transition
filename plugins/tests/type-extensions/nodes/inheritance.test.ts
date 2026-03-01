@@ -35,8 +35,10 @@ enum Field {
   MethodToMethod = 'methodToMethod',
 }
 
-enum Extension {
-  Value = 'Extension',
+enum Type {
+  Extension = 'extension',
+  Static = 'static',
+  Instance = 'instance',
 }
 
 enum File {
@@ -79,7 +81,7 @@ const testCases: TestCase[] = Object.values<Class>(Class).flatMap<TestCase>((cls
       ({ cls, cases }: Omit<TestCase, 'title'>): TestCase => ({
         cls,
         cases,
-        title: cases.reduce<string>(buildTitle, `${cls.pascalCaseToText()} instance with:`),
+        title: cases.reduce<string>(buildTitle, `${cls.pascalCaseToText()} with:`),
       }),
     ),
 );
@@ -90,36 +92,51 @@ const createFields = (
   arrowFunctions: Field[],
   getters: Field[],
   methods: Field[],
-  extension: string = '',
+  isExtension: boolean,
+  isStatic: boolean,
 ): string => `
-  ${fields.map<string>((field: Field): string => `public readonly ${field}: string = '${field}:${cls}${extension}';`)}
+  ${fields.map<string>(
+    (field: Field): string => `
+      public${isStatic ? ` ${Type.Static} ` : ' '}readonly ${field}: string = '${field}${isStatic ? Type.Static.capitalize() : ''}:${cls}${isExtension ? Type.Extension.capitalize() : ''}';
+    `,
+  )}
 
-  ${arrowFunctions.map<string>((field: Field): string => `public readonly ${field} = (): string => '${field}:${cls}${extension}';`)}
+  ${arrowFunctions.map<string>(
+    (field: Field): string => `
+      public${isStatic ? ` ${Type.Static} ` : ' '}readonly ${field} = (): string => '${field}${isStatic ? Type.Static.capitalize() : ''}:${cls}${isExtension ? Type.Extension.capitalize() : ''}';
+    `,
+  )}
 
   ${getters.map<string>(
     (field: Field): string => `
-      public get ${field}(): string {
-        return '${field}:${cls}${extension}';
+      public${isStatic ? ` ${Type.Static} ` : ' '}get ${field}(): string {
+        return '${field}${isStatic ? Type.Static.capitalize() : ''}:${cls}${isExtension ? Type.Extension.capitalize() : ''}';
       }
     `,
   )}
 
   ${methods.map<string>(
     (field: Field): string => `
-      public ${field}(): string {
-        return '${field}:${cls}${extension}';
+      public${isStatic ? ` ${Type.Static} ` : ' '}${field}(): string {
+        return '${field}${isStatic ? Type.Static.capitalize() : ''}:${cls}${isExtension ? Type.Extension.capitalize() : ''}';
       }
     `,
   )}
 `;
 
+const createObjectAndStaticFields = (...args: [Class, Field[], Field[], Field[], Field[], boolean]): string =>
+  [true, false]
+    .map<string>((isStatic: boolean): string => createFields(...args, isStatic))
+    .reduce((previous: string, current: string): string => `${previous} ${current}`);
+
 const createClassFields = (cls: Class): string =>
-  createFields(
+  createObjectAndStaticFields(
     cls,
     [Field.FieldToField, Field.FieldToArrowFunction, Field.FieldToGetter, Field.FieldToMethod],
     [Field.ArrowFunctionToField, Field.ArrowFunctionToArrowFunction, Field.ArrowFunctionToGetter, Field.ArrowFunctionToMethod],
     [Field.GetterToField, Field.GetterToArrowFunction, Field.GetterToGetter, Field.GetterToMethod],
     [Field.MethodToField, Field.MethodToArrowFunction, Field.MethodToGetter, Field.MethodToMethod],
+    false,
   );
 
 const createClass = (classIndex: number, caseIndex: number): string => `
@@ -137,17 +154,17 @@ const createExtensionsImports = (classIndexes: number[]): string => `
 `;
 
 const createExtensionClassFields = (cls: Class): string =>
-  createFields(
+  createObjectAndStaticFields(
     cls,
     [Field.FieldToField, Field.ArrowFunctionToField, Field.GetterToField, Field.MethodToField],
     [Field.FieldToArrowFunction, Field.ArrowFunctionToArrowFunction, Field.GetterToArrowFunction, Field.MethodToArrowFunction],
     [Field.FieldToGetter, Field.ArrowFunctionToGetter, Field.GetterToGetter, Field.MethodToGetter],
     [Field.FieldToMethod, Field.ArrowFunctionToMethod, Field.GetterToMethod, Field.MethodToMethod],
-    Extension.Value,
+    true,
   );
 
 const createExtensionClass = (classIndex: number): string => `
-  export class ${classes[classIndex]}${Extension.Value} extends Extension<${classes[classIndex]}> implements ExtensionConstructor<${classes[classIndex]}, typeof ${classes[classIndex]}${Extension.Value}> {
+  export class ${classes[classIndex]}${Type.Extension.capitalize()} extends Extension<${classes[classIndex]}> implements ExtensionConstructor<${classes[classIndex]}, typeof ${classes[classIndex]}${Type.Extension.capitalize()}> {
     public static readonly id: string = '${classes[classIndex]}';
     public static readonly type: typeof ${classes[classIndex]} = ${classes[classIndex]};
 
@@ -199,21 +216,31 @@ const createExecuteExpressionMapper =
 
 const createPropertyAccessExecute = (cls: Class): string => `
   export const executePropertyAccess = (): string[] => {
-    const instance: ${cls} = new ${cls}();
+    const ${Type.Instance}: ${cls} = new ${cls}();
 
-    ${Object.values<Field>(Field)
-      .map<string>(
-        createExecuteExpressionMapper(
-          (field: Field): string => `const ${field}: string | undefined = instance.${field};`,
-          (field: Field): string =>
-            `const ${field}: string | undefined = typeof instance.${field} === 'function' ? instance.${field}() : instance.${field};`,
-          (field: Field): string =>
-            `const ${field}: string | undefined = typeof instance.${field} === 'function' ? instance.${field}() : instance.${field};`,
-        ),
+    ${[true, false]
+      .map<string>((isStatic: boolean): string =>
+        Object.values<Field>(Field)
+          .map<string>(
+            createExecuteExpressionMapper(
+              (field: Field): string =>
+                `const ${field}${isStatic ? Type.Static.capitalize() : ''}: string | undefined = ${isStatic ? cls : Type.Instance}.${field};`,
+              (field: Field): string =>
+                `const ${field}${isStatic ? Type.Static.capitalize() : ''}: string | undefined = typeof ${isStatic ? cls : Type.Instance}.${field} === 'function' ? ${isStatic ? cls : Type.Instance}.${field}() : ${isStatic ? cls : Type.Instance}.${field};`,
+              (field: Field): string =>
+                `const ${field}${isStatic ? Type.Static.capitalize() : ''}: string | undefined = typeof ${isStatic ? cls : Type.Instance}.${field} === 'function' ? ${isStatic ? cls : Type.Instance}.${field}() : ${isStatic ? cls : Type.Instance}.${field};`,
+            ),
+          )
+          .join('\n'),
       )
       .join('\n')}
 
-    return [${Object.values<Field>(Field).join()}];
+    return [
+      ${Object.values<Field>(Field)
+        .map<string>((field: Field): string => `${field}${Type.Static.capitalize()}`)
+        .join()}, 
+      ${Object.values<Field>(Field).join()},
+    ];
   };
 `;
 
@@ -221,18 +248,25 @@ const createDestructureExecute = (cls: Class): string => `
   export const executeDestructure = (): string[] => {
     const instance: ${cls} = new ${cls}();
 
-    const { ${Object.values<Field>(Field).join()} }: ${cls} = instance;
+    const { ${Object.values<Field>(Field).map<string>((field: Field): string => `${field}: ${field}${Type.Static.capitalize()}`)} } = ${cls};
+
+    const { ${Object.values<Field>(Field).join()} }: ${cls} = ${Type.Instance};
 
     return [
-      ${Object.values<Field>(Field)
-        .map<string>(
-          createExecuteExpressionMapper(
-            (field: Field): string => field,
-            (field: Field): string => `typeof ${field} === 'function' ? ${field}() : ${field}`,
-            (field: Field): string => `${field}?.()`,
-          ),
+      ${[true, false]
+        .map<string>((isStatic: boolean): string =>
+          Object.values<Field>(Field)
+            .map<string>(
+              createExecuteExpressionMapper(
+                (field: Field): string => `${field}${isStatic ? Type.Static.capitalize() : ''}`,
+                (field: Field): string =>
+                  `typeof ${field}${isStatic ? Type.Static.capitalize() : ''} === 'function' ? ${field}${isStatic ? Type.Static.capitalize() : ''}() : ${field}${isStatic ? Type.Static.capitalize() : ''}`,
+                (field: Field): string => `${field}${isStatic ? Type.Static.capitalize() : ''}?.()`,
+              ),
+            )
+            .join(),
         )
-        .join()}
+        .join()},
     ];
   };
 `;
@@ -272,8 +306,26 @@ const findExtensionPropertiesAssertion = (cases: [number, number][]): string | u
     ([, caseIndex]: [number, number]): boolean => caseIndex === Case.NotDefinedFieldsExtended,
   );
 
-  return foundCase && `${classes[foundCase[0]]}${Extension.Value}`;
+  return foundCase && `${classes[foundCase[0]]}${Type.Extension.capitalize()}`;
 };
+
+const findDefinedPropertiesAssertion = (cases: [number, number][]): [number, number] | undefined =>
+  cases.findLast(([, caseIndex]: [number, number]): boolean => caseIndex !== Case.NotDefinedFieldsNotExtended);
+
+const createDefinedAssertion = (cases: [number, number][], isStatic: boolean): (string | undefined)[] => {
+  const foundCase: [number, number] | undefined = findDefinedPropertiesAssertion(cases);
+
+  return foundCase
+    ? Object.values<Field>(Field)
+        .slice(isStatic ? 0 : numberOfFields / 2)
+        .map<string>(
+          (field: Field): string =>
+            `${field}${isStatic ? Type.Static.capitalize() : ''}:${classes[foundCase[0]]}${foundCase[1] === Case.NotDefinedFieldsExtended ? Type.Extension.capitalize() : ''}`,
+        )
+    : Array<undefined>(isStatic ? numberOfFields : numberOfFields / 2).fill(undefined);
+};
+
+const createStaticAssertion = (cases: [number, number][]): (string | undefined)[] => createDefinedAssertion(cases, true);
 
 const createPropertiesAssertion = (cases: [number, number][]): (string | undefined)[] => {
   const id: string | undefined = findNativePropertiesAssertion(cases) ?? findExtensionPropertiesAssertion(cases);
@@ -285,22 +337,10 @@ const createPropertiesAssertion = (cases: [number, number][]): (string | undefin
     : Array<undefined>(numberOfFields / 2).fill(undefined);
 };
 
-const createPrototypeAssertion = (cases: [number, number][]): (string | undefined)[] => {
-  const foundCase: [number, number] | undefined = cases.findLast(
-    ([, caseIndex]: [number, number]): boolean => caseIndex !== Case.NotDefinedFieldsNotExtended,
-  );
-
-  return foundCase
-    ? Object.values<Field>(Field)
-        .slice(numberOfFields / 2)
-        .map<string>(
-          (field: Field): string =>
-            `${field}:${classes[foundCase[0]]}${foundCase[1] === Case.NotDefinedFieldsExtended ? Extension.Value : ''}`,
-        )
-    : Array<undefined>(numberOfFields / 2).fill(undefined);
-};
+const createPrototypeAssertion = (cases: [number, number][]): (string | undefined)[] => createDefinedAssertion(cases, false);
 
 const createAssertion = (cases: [number, number][]): (string | undefined)[] => [
+  ...createStaticAssertion(cases),
   ...createPropertiesAssertion(cases),
   ...createPrototypeAssertion(cases),
 ];

@@ -13,8 +13,8 @@ import {
   isStringLiteral,
   isTemplateLiteral,
 } from 'typescript';
-import { TypeExtension } from '../config/config';
 import { JsType } from '../enums/js-type';
+import { RuntimeExtension } from '../runtime/types-argument';
 
 const isBooleanLiteral = ({ kind }: Node): boolean =>
   [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind);
@@ -59,6 +59,6 @@ const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsTy
 );
 
 export const isLiteralExpression =
-  (node: Node): ((entry: [string, TypeExtension]) => boolean) =>
-  ([id]: [string, TypeExtension]): boolean =>
-    !!literalExpressionsMap.get(id)?.(node);
+  (node: Node): ((entry: RuntimeExtension) => boolean) =>
+  ({ id, isStatic }: RuntimeExtension): boolean =>
+    !isStatic && !!literalExpressionsMap.get(id)?.(node);

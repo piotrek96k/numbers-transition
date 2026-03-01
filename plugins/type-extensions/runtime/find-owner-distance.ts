@@ -12,12 +12,12 @@ const generateWhileLoopBody = (): Block =>
   factory.createBlock([
     factory.createExpressionStatement(
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         factory.createToken(SyntaxKind.EqualsToken),
         factory.createCallExpression(
           factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
           undefined,
-          [factory.createIdentifier(ArgName.Prototype)],
+          [factory.createIdentifier(ArgName.Value)],
         ),
       ),
     ),
@@ -27,7 +27,7 @@ const generateWhileLoopBody = (): Block =>
 const generateWhileLoop = (): WhileStatement =>
   factory.createWhileStatement(
     factory.createBinaryExpression(
-      factory.createIdentifier(ArgName.Prototype),
+      factory.createIdentifier(ArgName.Value),
       SyntaxKind.AmpersandAmpersandToken,
       factory.createPrefixUnaryExpression(
         SyntaxKind.ExclamationToken,
@@ -40,7 +40,7 @@ const generateWhileLoop = (): WhileStatement =>
             PropertyName.Call,
           ),
           undefined,
-          [factory.createIdentifier(ArgName.Prototype), factory.createIdentifier(ArgName.Key)],
+          [factory.createIdentifier(ArgName.Value), factory.createIdentifier(ArgName.Key)],
         ),
       ),
     ),
@@ -56,7 +56,7 @@ export const generateFindOwnerDistanceFunction = (): VariableDeclaration =>
       undefined,
       undefined,
       [
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Prototype),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
         factory.createParameterDeclaration(undefined, undefined, ArgName.Key),
       ],
       undefined,

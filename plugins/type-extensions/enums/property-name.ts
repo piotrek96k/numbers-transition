@@ -12,6 +12,8 @@ export enum PropertyName {
   GetOwnPropertyNames = 'getOwnPropertyNames',
   GetPrototypeOf = 'getPrototypeOf',
   HasOwnProperty = 'hasOwnProperty',
+  Id = 'id',
+  IsStatic = 'isStatic',
   Keys = 'keys',
   Length = 'length',
   LocaleCompare = 'localeCompare',

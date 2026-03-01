@@ -4,7 +4,59 @@ import { transformer } from '../transformer/transformer';
 
 const transform: (code: string, ide?: string) => string = transformer();
 
-// TODO: add tests for static once supported
+it<object>('rewrite variable destructure static literal', (): void => {
+  const code: string = `
+    const { sum }: NumberConstructor = Number;
+    export const number: number = [1, 2, 3].reduce(sum);
+  `;
+
+  const expectedOutput: string = String.raw`
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    const { sum }: NumberConstructor = proxy[0-9a-f]+\(Number, \[{ id: "Number", isStatic: true }\]\);
+    export const number: number = \[1, 2, 3\].reduce\(sum\);
+  `;
+
+  expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
+});
+
+it<object>('rewrite variable destructure static variable', (): void => {
+  const code: string = `
+    const numeric: NumberConstructor = Number;
+    const { sum }: NumberConstructor = numeric;
+    export const number: number = [1, 2, 3].reduce(sum);
+  `;
+
+  const expectedOutput: string = String.raw`
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    const numeric: NumberConstructor = Number;
+    const { sum }: NumberConstructor = proxy[0-9a-f]+\(numeric, \[{ id: "Number", isStatic: true }\]\);
+    export const number: number = \[1, 2, 3\].reduce\(sum\);
+  `;
+
+  expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
+});
+
+it<object>('rewrite variable destructure static and object', (): void => {
+  const code: string = `
+    const string: string = 'hello World';
+    const { capitalize: staticCapitalize }: StringConstructor = String;
+    const { capitalize: objectCapitalize }: string = string;
+    export const staticString: string = staticCapitalize(string);
+    export const objectString: string = objectCapitalize();
+  `;
+
+  const expectedOutput: string = String.raw`
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    const string: string = 'hello World';
+    const { capitalize: staticCapitalize }: StringConstructor = proxy[0-9a-f]+\(String, \[{ id: "String", isStatic: true }, { id: "String", isStatic: false }\]\);
+    const { capitalize: objectCapitalize }: string = proxy[0-9a-f]+\(string, \[{ id: "String", isStatic: true }, { id: "String", isStatic: false }\]\);
+    export const staticString: string = staticCapitalize\(string\);
+    export const objectString: string = objectCapitalize\(\);
+  `;
+
+  expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
+});
+
 it<object>('rewrite variable destructure boolean literal', (): void => {
   const code: string = `
     export const { int: zero }: boolean = false;
@@ -13,8 +65,8 @@ it<object>('rewrite variable destructure boolean literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { int: zero }: boolean = merge[0-9a-f]+\(false, \["Boolean"\]\);
-    export const { int: one }: boolean = merge[0-9a-f]+\(true, \["Boolean"\]\);
+    export const { int: zero }: boolean = merge[0-9a-f]+\(false, \[{ id: "Boolean", isStatic: false }\]\);
+    export const { int: one }: boolean = merge[0-9a-f]+\(true, \[{ id: "Boolean", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -27,7 +79,7 @@ it<object>('rewrite variable destructure number literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { bigInt }: number = merge[0-9a-f]+\(0, \["Number"\]\);
+    export const { bigInt }: number = merge[0-9a-f]+\(0, \[{ id: "Number", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -40,7 +92,7 @@ it<object>('rewrite variable destructure bigint literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { number }: bigint = merge[0-9a-f]+\(1n, \["BigInt"\]\);
+    export const { number }: bigint = merge[0-9a-f]+\(1n, \[{ id: "BigInt", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -53,7 +105,7 @@ it<object>('rewrite variable destructure string literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', \["String"\]\);
+    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', \[{ id: "String", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -66,7 +118,7 @@ it<object>('rewrite variable destructure regexp literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, \["RegExp"\]\);
+    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, \[{ id: "RegExp", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -79,7 +131,7 @@ it<object>('rewrite variable destructure array literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \["Array"\]\);
+    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ id: "Array", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -98,7 +150,7 @@ it<object>('rewrite variable destructure object literal', (): void => {
     interface Test {
       hello: string;
     }
-    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, \["Object"\]\);
+    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, \[{ id: "Object", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -111,7 +163,7 @@ it<object>('rewrite variable destructure array literal with object extension', (
 
   const expectedOutput: string = String.raw`
     import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \["Object"\]\);
+    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ id: "Object", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -130,7 +182,7 @@ it<object>('rewrite variable destructure new expression literal', (): void => {
     class Test {
       constructor\(private readonly value: string\) {}
     }
-    export const { keys }: Test = proxy[0-9a-f]+\(new Test\('Hello World'\), \["Object"\]\);
+    export const { keys }: Test = proxy[0-9a-f]+\(new Test\('Hello World'\), \[{ id: "Object", isStatic: true }, { id: "Object", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -145,7 +197,7 @@ it<object>('rewrite variable destructure variable', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: string = '1234';
-    export const { number }: string = proxy[0-9a-f]+\(numeric, \["BigInt", "String"\]\);
+    export const { number }: string = proxy[0-9a-f]+\(numeric, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -160,8 +212,8 @@ it<object>('rewrite variable destructure nested variable', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: string = '1234';
-    export const { number: arg[0-9a-f]+ }: string = proxy[0-9a-f]+\(numeric, \["BigInt", "String"\]\),
-    { bigInt } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["Number", "String"\]\);
+    export const { number: arg[0-9a-f]+ }: string = proxy[0-9a-f]+\(numeric, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\]\),
+    { bigInt } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -175,8 +227,8 @@ it<object>('rewrite variable destructure in array destructure', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     export const \[arg[0-9a-f]+, arg[0-9a-f]+\]: number\[\] = \[1, 2\],
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["Number", "String"\]\),
-    { bigInt: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["Number", "String"\]\);
+    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\]\),
+    { bigInt: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -200,9 +252,9 @@ it<object>('rewrite variable destructure with dependent initializer', (): void =
       three\?: number;
     }
     export const { one: arg[0-9a-f]+, two: init[0-9a-f]+, three: init[0-9a-f]+ }: Test = { one: 1 },
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["Number", "String"\]\),
+    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\]\),
     arg[0-9a-f]+ = init[0-9a-f]+ \?\? one \+ 1n,
-    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["BigInt", "String"\]\),
+    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\]\),
     three = init[0-9a-f]+ \?\? two \+ 1;
   `;
 
@@ -217,13 +269,37 @@ it<object>('rewrite variable destructure in array destructure with dependent ini
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     export const \[arg[0-9a-f]+, init[0-9a-f]+, init[0-9a-f]+, four\]: \[ number, bigint \| undefined, number \| undefined, number \] = \[1, undefined, undefined, 4\],
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["Number", "String"\]\),
+    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\]\),
     arg[0-9a-f]+ = init[0-9a-f]+ \?\? one \+ 1n,
-    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \["BigInt", "String"\]\),
+    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\]\),
     three = init[0-9a-f]+ \?\? two \+ 1;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
+});
+
+it<object>('variable destructure static literal property', (): void => {
+  const { sum }: NumberConstructor = Number;
+  expect<number>([1, 2, 3].reduce(sum)).toEqual<number>(6);
+});
+
+it<object>('variable destructure static variable property', (): void => {
+  const numeric: NumberConstructor = Number;
+  const { sum }: NumberConstructor = numeric;
+  expect<number>([1, 2, 3].reduce(sum)).toEqual<number>(6);
+});
+
+it<object>('variable destructure static and object property', (): void => {
+  const string: string = 'hello World';
+  const { capitalize: staticCapitalize }: StringConstructor = String;
+  const { capitalize: objectCapitalize }: string = string;
+  expect<string>(staticCapitalize(string)).toEqual<string>('Hello World');
+  expect<string>(objectCapitalize.call<string, [], string>(string)).toEqual<string>('Hello World');
+});
+
+it<object>('variable destructure static existing method not shadowed', (): void => {
+  const { keys }: ObjectConstructor = Object;
+  expect<string[]>(keys({ hello: 'Hello World' })).toEqual<string[]>(['hello']);
 });
 
 it<object>('variable destructure literal property', (): void => {
@@ -373,7 +449,7 @@ it<object>('variable destructure named with rest parameter', (): void => {
   expect<number>(rest.number).toEqual<number>(1234);
   expect<bigint>(bigInt).toEqual<bigint>(1234n);
   expect<string>(rest.compact()).toEqual<string>('1234');
-  expect<string>(capitalize.call('hello World')).toEqual<string>('Hello World');
+  expect<string>(capitalize.call<string, [], string>('hello World')).toEqual<string>('Hello World');
 });
 
 it<object>('variable destructure not implemented', (): void => {

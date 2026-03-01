@@ -14,17 +14,17 @@ const generateWhileLoopBody = (): Block =>
       factory.createCallExpression(
         factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Sources), PropertyName.Push),
         undefined,
-        [factory.createIdentifier(ArgName.Prototype)],
+        [factory.createIdentifier(ArgName.Value)],
       ),
     ),
     factory.createExpressionStatement(
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         SyntaxKind.EqualsToken,
         factory.createCallExpression(
           factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
           undefined,
-          [factory.createIdentifier(ArgName.Prototype)],
+          [factory.createIdentifier(ArgName.Value)],
         ),
       ),
     ),
@@ -33,10 +33,10 @@ const generateWhileLoopBody = (): Block =>
 const generateWhileLoop = (): WhileStatement =>
   factory.createWhileStatement(
     factory.createBinaryExpression(
-      factory.createIdentifier(ArgName.Prototype),
+      factory.createIdentifier(ArgName.Value),
       SyntaxKind.AmpersandAmpersandToken,
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         SyntaxKind.ExclamationEqualsEqualsToken,
         factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.Prototype),
       ),
@@ -52,7 +52,7 @@ export const generateReadSourcesFunction = (): VariableDeclaration =>
     factory.createArrowFunction(
       undefined,
       undefined,
-      [factory.createParameterDeclaration(undefined, undefined, ArgName.Prototype)],
+      [factory.createParameterDeclaration(undefined, undefined, ArgName.Value)],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock([

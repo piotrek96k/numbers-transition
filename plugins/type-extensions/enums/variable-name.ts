@@ -1,7 +1,10 @@
 export enum VariableName {
+  CheckType = 'checkType',
+  DefaultTypes = 'defaultTypes',
   Distance = 'distance',
   FindOwnerDistance = 'findOwnerDistance',
   Found = 'found',
+  GetExtension = 'getExtension',
   GetThisValue = 'getThisValue',
   Merge = 'merge',
   Object = 'object',

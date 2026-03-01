@@ -49,6 +49,10 @@ export class CharSequence extends Extension<string> implements ExtensionConstruc
     return typeof value === 'string' || value instanceof String;
   }
 
+  public static capitalize(value: string): string {
+    return `${value[0].toUpperCase()}${value.slice(1)}`;
+  }
+
   public readonly number: number = Number(this.value);
 
   public get bigInt(): bigint {
@@ -91,6 +95,10 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
 
   public static isType(value: unknown): boolean {
     return value !== undefined && value !== null;
+  }
+
+  public static keys(): string[] {
+    return ['never'];
   }
 
   public keys(): string[] {

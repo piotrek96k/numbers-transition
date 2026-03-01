@@ -15,6 +15,10 @@ declare global {
     readonly number: number;
   }
 
+  interface StringConstructor {
+    capitalize(value: string): string;
+  }
+
   interface String {
     number: number;
     readonly bigInt: bigint;

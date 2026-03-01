@@ -14,9 +14,10 @@ import { ArgName } from '../enums/arg-name';
 import { PropertyName } from '../enums/property-name';
 import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
+import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
+import { RuntimeExtension, buildTypesArgument } from './types-argument';
 import { buildTypeDistanceFunctionCall } from './type-distance';
-import { generateNewTypeMapGetCall } from './type-map';
 
 const generateMapFunction = (): ArrowFunction =>
   factory.createArrowFunction(
@@ -103,7 +104,7 @@ const generateWrapFunctionReturn = (): ReturnStatement =>
         ),
       ),
       factory.createToken(SyntaxKind.QuestionToken),
-      generateNewTypeMapGetCall(),
+      buildGetExtensionFunctionCall(),
       factory.createToken(SyntaxKind.ColonToken),
       factory.createIdentifier(ArgName.Value),
     ),
@@ -137,9 +138,9 @@ export const generateWrapFunction = (): VariableDeclaration =>
     ),
   );
 
-export const buildWrapCall = (value: Expression, types: Expression, key: Expression): CallExpression =>
+export const buildWrapCall = (value: Expression, types: Expression | RuntimeExtension[], key: Expression): CallExpression =>
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Wrap)!, value)),
     undefined,
-    [value, types, key],
+    [value, Array.isArray(types) ? buildTypesArgument(types) : types, key],
   );

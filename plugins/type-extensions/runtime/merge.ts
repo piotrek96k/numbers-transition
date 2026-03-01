@@ -17,9 +17,10 @@ import { FunctionName } from '../enums/function-name';
 import { PropertyName } from '../enums/property-name';
 import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
+import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
 import { buildReadSourcesFunctionCall } from './read-sources';
-import { generateNewTypeMapGetCall } from './type-map';
+import { RuntimeExtension, buildTypesArgument } from './types-argument';
 import { buildTypeDistanceFunctionCall } from './type-distance';
 
 const generateObjectVariable = (): VariableDeclaration =>
@@ -63,7 +64,7 @@ const generateTypesMapFunction = (): ArrowFunction =>
     [factory.createParameterDeclaration(undefined, undefined, ArgName.Type)],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
-    factory.createArrayLiteralExpression([buildReadSourcesFunctionCall(generateNewTypeMapGetCall()), buildTypeDistanceFunctionCall()]),
+    factory.createArrayLiteralExpression([buildReadSourcesFunctionCall(buildGetExtensionFunctionCall()), buildTypeDistanceFunctionCall()]),
   );
 
 const generateTypesMapFunctionCall = (): CallExpression =>
@@ -351,9 +352,9 @@ export const generateMergeFunction = (): VariableDeclaration =>
     ),
   );
 
-export const buildMergeFunctionCall = (value: Expression, types: Expression): CallExpression =>
+export const buildMergeFunctionCall = (value: Expression, types: Expression | RuntimeExtension[]): CallExpression =>
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Merge)!, value)),
     undefined,
-    [value, types],
+    [value, Array.isArray(types) ? buildTypesArgument(types) : types],
   );

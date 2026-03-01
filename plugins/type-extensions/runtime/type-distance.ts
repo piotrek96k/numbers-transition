@@ -6,14 +6,25 @@ import { ClassName } from '../enums/class-name';
 import { PropertyName } from '../enums/property-name';
 import { generateTypeMapGetCall } from './type-map';
 
+const generateTypeVariable = (): VariableDeclaration =>
+  factory.createVariableDeclaration(
+    VariableName.Type,
+    undefined,
+    undefined,
+    factory.createPropertyAccessExpression(generateTypeMapGetCall(), PropertyName.Type),
+  );
+
 const generateFoundVariable = (): VariableDeclaration =>
   factory.createVariableDeclaration(
     VariableName.Found,
     undefined,
     undefined,
-    factory.createPropertyAccessExpression(
-      factory.createPropertyAccessExpression(generateTypeMapGetCall(), PropertyName.Type),
-      PropertyName.Prototype,
+    factory.createConditionalExpression(
+      factory.createIdentifier(PropertyName.IsStatic),
+      factory.createToken(SyntaxKind.QuestionToken),
+      factory.createIdentifier(VariableName.Type),
+      factory.createToken(SyntaxKind.ColonToken),
+      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Prototype),
     ),
   );
 
@@ -24,12 +35,12 @@ const generateWhileLoopBody = (): Block =>
   factory.createBlock([
     factory.createExpressionStatement(
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         factory.createToken(SyntaxKind.EqualsToken),
         factory.createCallExpression(
           factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
           undefined,
-          [factory.createIdentifier(ArgName.Prototype)],
+          [factory.createIdentifier(ArgName.Value)],
         ),
       ),
     ),
@@ -40,17 +51,17 @@ const generateWhileLoop = (): WhileStatement =>
   factory.createWhileStatement(
     factory.createBinaryExpression(
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         SyntaxKind.AmpersandAmpersandToken,
         factory.createBinaryExpression(
-          factory.createIdentifier(ArgName.Prototype),
+          factory.createIdentifier(ArgName.Value),
           SyntaxKind.ExclamationEqualsEqualsToken,
           factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.Prototype),
         ),
       ),
       SyntaxKind.AmpersandAmpersandToken,
       factory.createBinaryExpression(
-        factory.createIdentifier(ArgName.Prototype),
+        factory.createIdentifier(ArgName.Value),
         SyntaxKind.ExclamationEqualsEqualsToken,
         factory.createIdentifier(VariableName.Found),
       ),
@@ -67,13 +78,23 @@ export const generateTypeDistanceFunction = (): VariableDeclaration =>
       undefined,
       undefined,
       [
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Prototype),
-        factory.createParameterDeclaration(undefined, undefined, ArgName.Type),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
+        factory.createParameterDeclaration(
+          undefined,
+          undefined,
+          factory.createObjectBindingPattern([
+            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Id), undefined),
+            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.IsStatic), undefined),
+          ]),
+        ),
       ],
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock([
-        factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateFoundVariable()], NodeFlags.Const)),
+        factory.createVariableStatement(
+          undefined,
+          factory.createVariableDeclarationList([generateTypeVariable(), generateFoundVariable()], NodeFlags.Const),
+        ),
         factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateDistanceVariable()], NodeFlags.Let)),
         generateWhileLoop(),
         factory.createReturnStatement(factory.createIdentifier(VariableName.Distance)),

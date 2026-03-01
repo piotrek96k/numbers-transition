@@ -1,4 +1,7 @@
 import { NodeArray, NodeFlags, Statement, SyntaxKind, factory } from 'typescript';
+import { generateDefaultTypes } from './default-types';
+import { generateFindOwnerDistanceFunction } from './find-owner-distance';
+import { generateGetExtensionFunction } from './get-extension';
 import { generateGetThisValueFunction } from './get-this-value';
 import { generateMergeFunction } from './merge';
 import { generateProxyFunction } from './proxy';
@@ -6,7 +9,6 @@ import { generateReadSourcesFunction } from './read-sources';
 import { generateTypeDistanceFunction } from './type-distance';
 import { generateTypeMap } from './type-map';
 import { generateWrapFunction } from './wrap';
-import { generateFindOwnerDistanceFunction } from './find-owner-distance';
 
 export const injectRuntimeProxies = (statements: NodeArray<Statement>): Statement[] => [
   factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateGetThisValueFunction()], NodeFlags.Const)),
@@ -14,7 +16,14 @@ export const injectRuntimeProxies = (statements: NodeArray<Statement>): Statemen
   factory.createVariableStatement(
     undefined,
     factory.createVariableDeclarationList(
-      [generateTypeMap(), generateReadSourcesFunction(), generateTypeDistanceFunction(), generateFindOwnerDistanceFunction()],
+      [
+        generateTypeMap(),
+        generateDefaultTypes(),
+        generateReadSourcesFunction(),
+        generateTypeDistanceFunction(),
+        generateFindOwnerDistanceFunction(),
+        generateGetExtensionFunction(),
+      ],
       NodeFlags.Const,
     ),
   ),

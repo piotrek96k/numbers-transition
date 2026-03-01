@@ -1,35 +1,93 @@
 import {
   ArrowFunction,
+  BinaryExpression,
   CallExpression,
   ConciseBody,
   Expression,
   NodeFlags,
   ReturnStatement,
-  StringLiteral,
   SyntaxKind,
   VariableDeclaration,
   factory,
 } from 'typescript';
-import { TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { PropertyName } from '../enums/property-name';
 import { StaticPropertyName } from '../enums/static-property-name';
 import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
+import { Typeof } from '../enums/typeof';
+import { buildDefaultTypesIdentifier } from './default-types';
 import { buildMergeFunctionCall } from './merge';
-import { generateTypeMapGetCall, generateTypeMapKeysCall } from './type-map';
+import { RuntimeExtension, buildTypesArgument } from './types-argument';
+import { generateTypeMapGetCall } from './type-map';
 import { buildWrapCall } from './wrap';
+
+const generateTypeVariable = (): VariableDeclaration =>
+  factory.createVariableDeclaration(VariableName.Type, undefined, undefined, generateTypeMapGetCall());
+
+const generateStaticTypeCheck = (): BinaryExpression =>
+  factory.createBinaryExpression(
+    factory.createBinaryExpression(
+      factory.createIdentifier(ArgName.Value),
+      factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
+      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+    ),
+    factory.createToken(SyntaxKind.BarBarToken),
+    factory.createBinaryExpression(
+      factory.createBinaryExpression(
+        factory.createTypeOfExpression(
+          factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+        ),
+        factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
+        factory.createStringLiteral(Typeof.Function),
+      ),
+      factory.createToken(SyntaxKind.AmpersandAmpersandToken),
+      factory.createBinaryExpression(
+        factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Value), PropertyName.Prototype),
+        factory.createToken(SyntaxKind.InstanceOfKeyword),
+        factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+      ),
+    ),
+  );
+
+const generateObjectTypeCheck = (): CallExpression =>
+  factory.createCallExpression(
+    factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), StaticPropertyName.IsType),
+    undefined,
+    [factory.createIdentifier(ArgName.Value)],
+  );
+
+const generateFilterFunctionReturn = (): ReturnStatement =>
+  factory.createReturnStatement(
+    factory.createConditionalExpression(
+      factory.createIdentifier(PropertyName.IsStatic),
+      factory.createToken(SyntaxKind.QuestionToken),
+      generateStaticTypeCheck(),
+      factory.createToken(SyntaxKind.ColonToken),
+      generateObjectTypeCheck(),
+    ),
+  );
 
 const generateFilterFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
     undefined,
-    [factory.createParameterDeclaration(undefined, undefined, ArgName.Type)],
+    [
+      factory.createParameterDeclaration(
+        undefined,
+        undefined,
+        factory.createObjectBindingPattern([
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Id), undefined),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.IsStatic), undefined),
+        ]),
+      ),
+    ],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
-    factory.createCallExpression(factory.createPropertyAccessExpression(generateTypeMapGetCall(), StaticPropertyName.IsType), undefined, [
-      factory.createIdentifier(ArgName.Value),
+    factory.createBlock([
+      factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateTypeVariable()], NodeFlags.Const)),
+      generateFilterFunctionReturn(),
     ]),
   );
 
@@ -86,14 +144,7 @@ export const generateProxyFunction = (): VariableDeclaration =>
       undefined,
       [
         factory.createParameterDeclaration(undefined, undefined, ArgName.Value),
-        factory.createParameterDeclaration(
-          undefined,
-          undefined,
-          ArgName.Types,
-          undefined,
-          undefined,
-          factory.createArrayLiteralExpression([factory.createSpreadElement(generateTypeMapKeysCall())]),
-        ),
+        factory.createParameterDeclaration(undefined, undefined, ArgName.Types, undefined, undefined, buildDefaultTypesIdentifier()),
         factory.createParameterDeclaration(undefined, undefined, ArgName.Key),
       ],
       undefined,
@@ -102,19 +153,9 @@ export const generateProxyFunction = (): VariableDeclaration =>
     ),
   );
 
-export const buildProxyFunctionCall = (value: Expression, extensions: [string, TypeExtension][], key?: string): CallExpression =>
+export const buildProxyFunctionCall = (value: Expression, extensions: RuntimeExtension[], key?: string): CallExpression =>
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Proxy)!, value)),
     undefined,
-    [
-      value,
-      ...(extensions.length
-        ? [
-            factory.createArrayLiteralExpression(
-              extensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
-            ),
-            ...(key ? [factory.createStringLiteral(key)] : []),
-          ]
-        : []),
-    ],
+    [value, ...(extensions.length ? [buildTypesArgument(extensions), ...(key ? [factory.createStringLiteral(key)] : [])] : [])],
   );

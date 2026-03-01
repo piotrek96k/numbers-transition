@@ -28,44 +28,49 @@ it<object>('generate runtime methods', (): void => {
       \]
     \),
 
-    readSources[0-9a-f]+ = prototype => { 
+    defaultTypes[0-9a-f]+ = \[\.\.\.typeMap[0-9a-f]+\.keys\(\)\]\.flatMap\(id => \[{ id, isStatic: false }, { id, isStatic: true }\]\),
+
+    readSources[0-9a-f]+ = value => { 
       const sources = \[\]; 
-      while \(prototype && prototype !== Object\.prototype\) { 
-        sources\.push\(prototype\); 
-        prototype = Object\.getPrototypeOf\(prototype\); 
+      while \(value && value !== Object\.prototype\) { 
+        sources\.push\(value\); 
+        value = Object\.getPrototypeOf\(value\); 
       } 
       return sources; 
     },
 
-    typeDistance[0-9a-f]+ = \(prototype, type\) => {
-      const found = typeMap[0-9a-f]+\.get\(type\)\.type\.prototype;
+    typeDistance[0-9a-f]+ = \(value, { id, isStatic }\) => {
+      const type = typeMap[0-9a-f]+\.get\(id\)\.type,
+      found = isStatic \? type : type\.prototype;
       let distance = 0;
-      while \(prototype && prototype !== Object\.prototype\ && prototype !== found\) {
-        prototype = Object\.getPrototypeOf\(prototype\);
+      while \(value && value !== Object\.prototype\ && value !== found\) {
+        value = Object\.getPrototypeOf\(value\);
         distance\+\+;
       }
       return distance;
     },
 
-    findOwnerDistance[0-9a-f]+ = \(prototype, key\) => {
+    findOwnerDistance[0-9a-f]+ = \(value, key\) => {
       let distance = 0;
-      while \(prototype && !Object\.prototype\.hasOwnProperty\.call\(prototype, key\)\) {
-        prototype = Object\.getPrototypeOf\(prototype\);
+      while \(value && !Object\.prototype\.hasOwnProperty\.call\(value, key\)\) {
+        value = Object\.getPrototypeOf\(value\);
         distance\+\+;
       }
       return distance;
-    };
+    },
+
+    getExtension[0-9a-f]+ = \(value, { id, isStatic }\) => isStatic \? typeMap[0-9a-f]+\.get\(id\) : new \(typeMap[0-9a-f]+\.get\(id\)\)\(value\);
 
     export const wrap[0-9a-f]+ = \(value, types, key\) => {
       const \[type, distance\] = types\.map\(type => \[type, typeDistance[0-9a-f]+\(value, type\)\]\)\.sort\(\(\[, first\], \[, second\]\) => first - second\)\[0\];
-      return value\?\.\[key\] === void 0 \|\| findOwnerDistance[0-9a-f]+\(value, key\) > distance \? new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\) : value;
+      return value\?\.\[key\] === void 0 \|\| findOwnerDistance[0-9a-f]+\(value, key\) > distance \? getExtension[0-9a-f]+\(value, type\) : value;
     },
 
     merge[0-9a-f]+ = \(value, types\) => { 
       const object = Object\.create\(Object\.getPrototypeOf\(value\)\); 
       Object\.defineProperties\(object, Object\.getOwnPropertyDescriptors\(Object\(value\)\)\); 
       const properties = types
-        \.map\(type => \[readSources[0-9a-f]+\(new \(typeMap[0-9a-f]+\.get\(type\)\)\(value\)\), typeDistance[0-9a-f]+\(value, type\)\]\)
+        \.map\(type => \[readSources[0-9a-f]+\(getExtension[0-9a-f]+\(value, type\)\), typeDistance[0-9a-f]+\(value, type\)\]\)
         \.flatMap\(\(\[sources, distance\]\) =>
           sources\.flatMap\(\(source, index\) =>
             Object\.getOwnPropertyNames\(source\)
@@ -81,8 +86,13 @@ it<object>('generate runtime methods', (): void => {
       return object;
     },
 
-    proxy[0-9a-f]+ = \(value, types = \[\.\.\.typeMap[0-9a-f]+\.keys\(\)\] , key\) => { 
-      const found = types\.filter\(type => typeMap[0-9a-f]+\.get\(type\)\.isType\(value\)\);
+    proxy[0-9a-f]+ = \(value, types = defaultTypes[0-9a-f]+, key\) => { 
+      const found = types\.filter\(\({ id, isStatic }\) => {
+        const type = typeMap[0-9a-f]+\.get\(id\);
+        return isStatic 
+          \? value === type\.type \|\| typeof type\.type === "function" && value\.prototype instanceof type\.type
+          : type\.isType\(value\);
+      }\);
       return found\.length \? key \!== void 0 \? wrap[0-9a-f]+\(value, found, key\) : merge[0-9a-f]+\(value, found\) : value;
     };
   `;

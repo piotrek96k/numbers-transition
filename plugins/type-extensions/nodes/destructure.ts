@@ -18,7 +18,6 @@ import {
   ObjectBindingPattern,
   ParameterDeclaration,
   PropertyName,
-  StringLiteral,
   SyntaxKind,
   VariableDeclaration,
   VariableStatement,
@@ -42,6 +41,7 @@ import { ArgName } from '../enums/arg-name';
 import { isLiteralExpression } from '../literals/literal-expressions';
 import { buildMergeFunctionCall } from '../runtime/merge';
 import { buildProxyFunctionCall } from '../runtime/proxy';
+import { RuntimeExtension } from '../runtime/types-argument';
 
 type DestructureDeclaration = BindingElement | VariableDeclaration | ParameterDeclaration;
 
@@ -75,14 +75,16 @@ const isInitializerArrayBindingPatternWrapper = <T extends DestructureDeclaratio
   node: T,
 ): node is InitializerArrayBindingPatternWrapper<T> => isArrayBindingPatternWrapper(node) && node.initializer !== undefined;
 
-const isDestructureProperty = (elements: NodeArray<BindingElement>): ((entry: [string, TypeExtension]) => boolean) => {
+const filterDestructureProperty = (elements: NodeArray<BindingElement>): ((entry: [string, TypeExtension]) => RuntimeExtension[]) => {
   const destructured: Identifier[] = elements
     .filter(({ dotDotDotToken }: BindingElement) => !dotDotDotToken)
     .map<PropertyName | BindingName>(({ propertyName, name }: BindingElement) => propertyName ?? name)
     .filter<Identifier>(isIdentifier);
 
-  return ([, { properties }]: [string, TypeExtension]): boolean =>
-    properties.some(({ name }: Property): boolean => destructured.some(({ text }: Identifier): boolean => text === name));
+  return ([id, { properties }]: [string, TypeExtension]): RuntimeExtension[] =>
+    properties
+      .filter(({ name }: Property): boolean => destructured.some(({ text }: Identifier): boolean => text === name))
+      .map<RuntimeExtension>(({ isStatic }: Property): RuntimeExtension => ({ id, isStatic }));
 };
 
 const isFunction = (node: Node): node is GenericFunctionDeclaration =>
@@ -97,8 +99,10 @@ const shouldUpdateInitializer = (extractedIdentifiers: Set<string>, { initialize
 
 const getExtensions = <T extends DestructureDeclaration>({
   name: { elements },
-}: ObjectBindingPatternWrapper<T>): [string, TypeExtension][] | undefined => {
-  const foundExtensions: [string, TypeExtension][] = [...getContext().extensionsMap].filter(isDestructureProperty(elements));
+}: ObjectBindingPatternWrapper<T>): RuntimeExtension[] | undefined => {
+  const foundExtensions: RuntimeExtension[] = [...getContext().extensionsMap].flatMap<RuntimeExtension>(
+    filterDestructureProperty(elements),
+  );
 
   return elements.some(({ dotDotDotToken }: BindingElement): boolean => !!dotDotDotToken)
     ? []
@@ -148,10 +152,10 @@ const updateInitializer = <T extends DestructureDeclaration>(
 
 const updateObjectBindingPattern = <T extends DestructureDeclaration>(
   element: ObjectBindingPatternWrapper<T>,
-  updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, objectBindingPattern: ObjectBindingPattern) => T,
+  updateElement: (extensions: RuntimeExtension[] | undefined, element: T, objectBindingPattern: ObjectBindingPattern) => T,
   extractedIdentifiers: Set<string>,
 ): [T, VariableDeclaration[]] => {
-  const extensions: [string, TypeExtension][] | undefined = getExtensions<T>(element);
+  const extensions: RuntimeExtension[] | undefined = getExtensions<T>(element);
   const identifiers: string[] = extensions?.length ? readNestedIdentifiers(element.name) : [];
   identifiers.forEach((identifier: string): unknown => extractedIdentifiers.add(identifier));
 
@@ -177,7 +181,7 @@ const updateObjectBindingPattern = <T extends DestructureDeclaration>(
 
 const updateArrayBindingPattern = <T extends DestructureDeclaration>(
   element: ArrayBindingPatternWrapper<T>,
-  updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, bindingPattern: BindingPattern) => T,
+  updateElement: (extensions: RuntimeExtension[] | undefined, element: T, bindingPattern: BindingPattern) => T,
   extractedIdentifiers: Set<string>,
 ): [T, VariableDeclaration[]] => {
   const [elements, variables]: [ArrayBindingElement[], VariableDeclaration[]] = mapArrayBindingElements(
@@ -193,7 +197,7 @@ const updateArrayBindingPattern = <T extends DestructureDeclaration>(
 
 const mapElement =
   <T extends DestructureDeclaration>(
-    updateElement: (extensions: [string, TypeExtension][] | undefined, element: T, bindingPattern: BindingPattern) => T,
+    updateElement: (extensions: RuntimeExtension[] | undefined, element: T, bindingPattern: BindingPattern) => T,
     updateElementInitializer: (element: T) => T,
     extractedIdentifiers: Set<string>,
   ): ((element: T) => [T, VariableDeclaration[]]) =>
@@ -253,7 +257,7 @@ const updateArrayBindingElementInitializer = (element: BindingElement): BindingE
   );
 
 const updateBindingElement = (
-  extensions: [string, TypeExtension][] | undefined,
+  extensions: RuntimeExtension[] | undefined,
   element: BindingElement,
   bindingPattern: BindingPattern,
 ): BindingElement =>
@@ -268,11 +272,9 @@ const updateBindingElement = (
 const updateVariableObjectDestructure =
   (
     variableDeclaration: InitializerObjectBindingPatternWrapper<VariableDeclaration>,
-  ): ((extensions: [string, TypeExtension][] | undefined) => VariableDeclaration[]) =>
-  (extensions: [string, TypeExtension][] | undefined): VariableDeclaration[] => {
-    const literalExtensions: [string, TypeExtension][] | undefined = extensions?.filter(
-      isLiteralExpression(variableDeclaration.initializer),
-    );
+  ): ((extensions: RuntimeExtension[] | undefined) => VariableDeclaration[]) =>
+  (extensions: RuntimeExtension[] | undefined): VariableDeclaration[] => {
+    const literalExtensions: RuntimeExtension[] | undefined = extensions?.filter(isLiteralExpression(variableDeclaration.initializer));
 
     const [elements, variables]: [BindingElement[], VariableDeclaration[]] = mapBindingElements(
       variableDeclaration.name.elements,
@@ -286,12 +288,7 @@ const updateVariableObjectDestructure =
       variableDeclaration.type,
       extensions
         ? literalExtensions?.length
-          ? buildMergeFunctionCall(
-              variableDeclaration.initializer,
-              factory.createArrayLiteralExpression(
-                literalExtensions.map<StringLiteral>(([id]: [string, TypeExtension]): StringLiteral => factory.createStringLiteral(id)),
-              ),
-            )
+          ? buildMergeFunctionCall(variableDeclaration.initializer, literalExtensions)
           : buildProxyFunctionCall(variableDeclaration.initializer, extensions)
         : variableDeclaration.initializer,
     );
@@ -353,7 +350,7 @@ const updateParameterInitializer = (parameter: ParameterDeclaration): ParameterD
   );
 
 const updateParameter = (
-  extensions: [string, TypeExtension][] | undefined,
+  extensions: RuntimeExtension[] | undefined,
   parameter: ParameterDeclaration,
   bindingPattern: BindingPattern,
 ): ParameterDeclaration =>
