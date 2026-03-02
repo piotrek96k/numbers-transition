@@ -134,7 +134,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
   public static depth<T>(array: T): number {
     return Array.isArray<T>(array)
-      ? Integer.One + array.map<number>(this.depth, List).reduce((curr: number, nxt: number): number => (curr === nxt ? nxt : Number.NaN))
+      ? Integer.One + array.map<number>(List.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
       : Integer.Zero;
   }
 
