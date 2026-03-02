@@ -92,7 +92,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public static readonly literalType: LiteralType[] = Object.values<LiteralType>(LiteralType);
 
   public static isType(value: unknown): boolean {
-    return value !== undefined && value !== null;
+    return [undefined, null].every((nullish: undefined | null): boolean => value !== nullish);
   }
 
   public keys(): string[] {
