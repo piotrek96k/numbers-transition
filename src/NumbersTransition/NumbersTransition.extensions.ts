@@ -103,7 +103,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
     return Object.fromEntries<U>(Object.entries<any>(this.value).map<[string, U]>(mapper));
   }
 
-  public matches<U extends T>(predicate: (value: T) => value is U): this is U {
+  public matches<U extends T>(predicate: (value: T) => value is U): this is Struct<U> {
     return predicate(this.value);
   }
 
