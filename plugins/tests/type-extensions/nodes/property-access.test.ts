@@ -10,7 +10,7 @@ it<object>('rewrite property access static literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const number: number = \[1, 2, 3\]\.reduce\(proxy[0-9a-f]+\(Number, \[{ id: "Number", isStatic: true }\], "sum"\)\.sum\);
+    export const number: number = \[1, 2, 3\]\.reduce\(proxy[0-9a-f]+\(Number, \[{ id: "Double", isStatic: true }\], "sum"\)\.sum\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -25,7 +25,7 @@ it<object>('rewrite property access static variable', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: NumberConstructor = Number;
-    export const number: number = \[1, 2, 3\]\.reduce\(proxy[0-9a-f]+\(numeric, \[{ id: "Number", isStatic: true }\], "sum"\)\.sum\);
+    export const number: number = \[1, 2, 3\]\.reduce\(proxy[0-9a-f]+\(numeric, \[{ id: "Double", isStatic: true }\], "sum"\)\.sum\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -41,8 +41,8 @@ it<object>('rewrite property access static and object', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const string: string = 'hello World';
-    export const staticString: string = \(proxy[0-9a-f]+\(String, \[{ id: "String", isStatic: true }, { id: "String", isStatic: false }\], "capitalize"\)\.capitalize\)\(string\);
-    export const objectString: string = \(proxy[0-9a-f]+\(string, \[{ id: "String", isStatic: true }, { id: "String", isStatic: false }\], "capitalize"\)\.capitalize\)\(\);
+    export const staticString: string = \(proxy[0-9a-f]+\(String, \[{ id: "CharSequence", isStatic: true }, { id: "CharSequence", isStatic: false }\], "capitalize"\)\.capitalize\)\(string\);
+    export const objectString: string = \(proxy[0-9a-f]+\(string, \[{ id: "CharSequence", isStatic: true }, { id: "CharSequence", isStatic: false }\], "capitalize"\)\.capitalize\)\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -56,8 +56,8 @@ it<object>('rewrite property access boolean literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const zero: number = wrap[0-9a-f]+\(false, \[{ id: "Boolean", isStatic: false }\], "int"\)\.int;
-    export const one: number = wrap[0-9a-f]+\(true, \[{ id: "Boolean", isStatic: false }\], "int"\)\.int;
+    export const zero: number = wrap[0-9a-f]+\(false, \[{ id: "Predicate", isStatic: false }\], "int"\)\.int;
+    export const one: number = wrap[0-9a-f]+\(true, \[{ id: "Predicate", isStatic: false }\], "int"\)\.int;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -70,7 +70,7 @@ it<object>('rewrite property access number literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const zero: bigint = wrap[0-9a-f]+\(\(0\), \[{ id: "Number", isStatic: false }\], "bigInt"\)\.bigInt;
+    export const zero: bigint = wrap[0-9a-f]+\(\(0\), \[{ id: "Double", isStatic: false }\], "bigInt"\)\.bigInt;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -83,7 +83,7 @@ it<object>('rewrite property access bigint literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const one: number = wrap[0-9a-f]+\(1n, \[{ id: "BigInt", isStatic: false }\], "number"\)\.number;
+    export const one: number = wrap[0-9a-f]+\(1n, \[{ id: "Long", isStatic: false }\], "number"\)\.number;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -96,7 +96,7 @@ it<object>('rewrite property access string literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const squashed: string = wrap[0-9a-f]+\('   Hello   World   ', \[{ id: "String", isStatic: false }\], "compact"\)\.compact\(\);
+    export const squashed: string = wrap[0-9a-f]+\('   Hello   World   ', \[{ id: "CharSequence", isStatic: false }\], "compact"\)\.compact\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -109,7 +109,7 @@ it<object>('rewrite property access regexp literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const matches: string\[\] = wrap[0-9a-f]+\(/\[A-Za-z\]/g, \[{ id: "RegExp", isStatic: false }\], "matches"\)\.matches\('Hello World'\);
+    export const matches: string\[\] = wrap[0-9a-f]+\(/\[A-Za-z\]/g, \[{ id: "Pattern", isStatic: false }\], "matches"\)\.matches\('Hello World'\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -122,7 +122,7 @@ it<object>('rewrite property access array literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const array: number\[\] = wrap[0-9a-f]+\(\[1, 2\], \[{ id: "Array", isStatic: false }\], "append"\)\.append\(3\);
+    export const array: number\[\] = wrap[0-9a-f]+\(\[1, 2\], \[{ id: "List", isStatic: false }\], "append"\)\.append\(3\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -135,7 +135,7 @@ it<object>('rewrite property access object literal', (): void => {
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const keys: string\[\] = wrap[0-9a-f]+\({ hello: 'Hello World' }, \[{ id: "Object", isStatic: false }\], "keys"\)\.keys\(\);
+    export const keys: string\[\] = wrap[0-9a-f]+\({ hello: 'Hello World' }, \[{ id: "Struct", isStatic: false }\], "keys"\)\.keys\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -148,7 +148,7 @@ it<object>('rewrite property access array literal with object extension', (): vo
 
   const expectedOutput: string = String.raw`
     import { wrap[0-9a-f]+ as wrap[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const keys: string\[\] = wrap[0-9a-f]+\(\[1, 2\], \[{ id: "Object", isStatic: false }\], "keys"\)\.keys\(\);
+    export const keys: string\[\] = wrap[0-9a-f]+\(\[1, 2\], \[{ id: "Struct", isStatic: false }\], "keys"\)\.keys\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -167,7 +167,7 @@ it<object>('rewrite property access new expression literal', (): void => {
     class Test {
       constructor\(private readonly value: string\) {}
     }
-    export const keys: string\[\] = \(proxy[0-9a-f]+\(new Test\('Hello World'\), \[{ id: "Object", isStatic: true }, { id: "Object", isStatic: false }\], "keys"\)\.keys\)\(\);
+    export const keys: string\[\] = \(proxy[0-9a-f]+\(new Test\('Hello World'\), \[{ id: "Struct", isStatic: true }, { id: "Struct", isStatic: false }\], "keys"\)\.keys\)\(\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -182,7 +182,7 @@ it<object>('rewrite property access variable', (): void => {
   const expectedOutput: string = String.raw`
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: string = '1234';
-    export const number: number = proxy[0-9a-f]+\(numeric, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\], "number"\)\.number;
+    export const number: number = proxy[0-9a-f]+\(numeric, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\], "number"\)\.number;
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -198,8 +198,8 @@ it<object>('rewrite property access nested variable', (): void => {
     import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: string = '1234';
     export const bigInt: bigint = proxy[0-9a-f]+\(
-      \(proxy[0-9a-f]+\(numeric, \[{ id: "BigInt", isStatic: false }, { id: "String", isStatic: false }\], "number"\)\.number\), 
-      \[{ id: "Number", isStatic: false }, { id: "String", isStatic: false }\], 
+      \(proxy[0-9a-f]+\(numeric, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\], "number"\)\.number\), 
+      \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\], 
       "bigInt"\
     )\.bigInt;
   `;

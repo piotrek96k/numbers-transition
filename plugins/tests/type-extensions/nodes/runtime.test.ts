@@ -18,13 +18,13 @@ it<object>('generate runtime methods', (): void => {
     
     const typeMap[0-9a-f]+ = new Map\(
       \[
-        \["Boolean", Predicate\],
-        \["Number", Double\],
-        \["BigInt", Long\],
-        \["String", CharSequence\],
-        \["RegExp", Pattern\],
-        \["Object", Struct\],
-        \["Array", List\]
+        \["Predicate", Predicate\],
+        \["Double", Double\],
+        \["Long", Long\],
+        \["CharSequence", CharSequence\],
+        \["Pattern", Pattern\],
+        \["Struct", Struct\],
+        \["List", List\]
       \]
     \),
 

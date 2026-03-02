@@ -1,4 +1,5 @@
 import { ExtensionPropertyName } from '../enums/extension-property-name';
+import { LiteralType } from './../enums/literal-type';
 
 abstract class Extension<T> {
   readonly value!: T;
@@ -10,13 +11,15 @@ abstract class Extension<T> {
 
 interface ExtensionClass<T> {
   new (...args: [T]): Extension<T>;
-  id: string;
   type: ((...args: any[]) => any) | object;
+  literalType?: LiteralType[];
   isType(value: unknown): boolean;
 }
 
 type ExtensionConstructor<T, U extends ExtensionClass<T>> = InstanceType<U>;
 
 export default Extension;
+
+export { LiteralType };
 
 export type { ExtensionConstructor };

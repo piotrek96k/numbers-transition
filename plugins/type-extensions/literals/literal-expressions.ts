@@ -3,62 +3,35 @@ import {
   SyntaxKind,
   isArrayLiteralExpression,
   isBigIntLiteral,
-  isCallExpression,
-  isIdentifier,
-  isNewExpression,
   isNumericLiteral,
   isObjectLiteralExpression,
   isParenthesizedExpression,
   isRegularExpressionLiteral,
-  isStringLiteral,
-  isTemplateLiteral,
+  isStringLiteralLike,
 } from 'typescript';
-import { JsType } from '../enums/js-type';
+import { getContext } from '../context/context';
+import { LiteralType } from '../enums/literal-type';
 import { RuntimeExtension } from '../runtime/types-argument';
 
 const isBooleanLiteral = ({ kind }: Node): boolean =>
   [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind);
 
-const literalChecksMap: Map<JsType, ((node: Node) => boolean)[]> = new Map<JsType, ((node: Node) => boolean)[]>([
-  [JsType.Boolean, [isBooleanLiteral]],
-  [JsType.Number, [isNumericLiteral]],
-  [JsType.BigInt, [isBigIntLiteral]],
-  [JsType.String, [isStringLiteral, isTemplateLiteral]],
-  [JsType.RegExp, [isRegularExpressionLiteral]],
-  [JsType.Array, [isArrayLiteralExpression]],
-  [
-    JsType.Object,
-    [
-      isBooleanLiteral,
-      isNumericLiteral,
-      isBigIntLiteral,
-      isStringLiteral,
-      isTemplateLiteral,
-      isRegularExpressionLiteral,
-      isArrayLiteralExpression,
-      isObjectLiteralExpression,
-    ],
-  ],
-]);
-
 const unwrap = (node: Node): Node => (isParenthesizedExpression(node) ? unwrap(node.expression) : node);
 
-const isConstructorCall = (node: Node, type: JsType): boolean =>
-  (isCallExpression(node) || isNewExpression(node)) && isIdentifier(node.expression) && node.expression.text === type;
-
-const literalExpressionsMap: Map<string, (node: Node) => boolean> = new Map<JsType, (node: Node) => boolean>(
-  [...literalChecksMap].map<[JsType, (node: Node) => boolean]>(([jsType, checks]: [JsType, ((node: Node) => boolean)[]]) => [
-    jsType,
-    checks.reduce(
-      (accumulatedCheck: (node: Node) => boolean, check: (node: Node) => boolean): ((node: Node) => boolean) =>
-        (node: Node): boolean =>
-          accumulatedCheck(node) || check(unwrap(node)),
-      (node: Node): boolean => isConstructorCall(unwrap(node), jsType),
-    ),
-  ]),
-);
+const literalChecksMap: Map<LiteralType, (node: Node) => boolean> = new Map<LiteralType, (node: Node) => boolean>([
+  [LiteralType.Boolean, isBooleanLiteral],
+  [LiteralType.Number, isNumericLiteral],
+  [LiteralType.BigInt, isBigIntLiteral],
+  [LiteralType.String, isStringLiteralLike],
+  [LiteralType.RegExp, isRegularExpressionLiteral],
+  [LiteralType.Object, isObjectLiteralExpression],
+  [LiteralType.Array, isArrayLiteralExpression],
+]);
 
 export const isLiteralExpression =
   (node: Node): ((entry: RuntimeExtension) => boolean) =>
   ({ id, isStatic }: RuntimeExtension): boolean =>
-    !isStatic && !!literalExpressionsMap.get(id)?.(node);
+    !isStatic &&
+    getContext()
+      .extensionsMap.get(id)!
+      .literalTypes.some((literalType: LiteralType): boolean => literalChecksMap.get(literalType)!(unwrap(node)));

@@ -1,5 +1,5 @@
 export enum StaticPropertyName {
-  Id = 'id',
   Type = 'type',
+  LiteralType = 'literalType',
   IsType = 'isType',
 }

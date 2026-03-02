@@ -1,4 +1,8 @@
-export enum JsType {
+export enum LiteralTypeName {
+  Value = 'LiteralType',
+}
+
+export enum LiteralType {
   Boolean = 'Boolean',
   Number = 'Number',
   BigInt = 'BigInt',

@@ -10,8 +10,8 @@ export const generateTypeMap = (): VariableDeclaration =>
   generateMap(
     getContext().constAliases.get(VariableName.TypeMap)!,
     [...getContext().extensionsMap].map<ArrayLiteralExpression>(
-      ([id, { implementationClass }]: [string, TypeExtension]): ArrayLiteralExpression =>
-        factory.createArrayLiteralExpression([factory.createStringLiteral(id), factory.createIdentifier(implementationClass)]),
+      ([id]: [string, TypeExtension]): ArrayLiteralExpression =>
+        factory.createArrayLiteralExpression([factory.createStringLiteral(id), factory.createIdentifier(id)]),
     ),
   );
 

@@ -1,14 +1,14 @@
 import { Node, Visitor, visitEachChild } from 'typescript';
+import { getContext } from '../context/context';
 import { buildExtensionClassExpressions } from '../nodes/class';
 import { buildArgumentDestructureFunctionExpressions, buildVariableDestructureExpressions } from '../nodes/destructure';
 import { buildPropertyAccessExpressions } from '../nodes/property-access';
 
 const modifyNode = (node: Node): Node =>
   [
-    buildPropertyAccessExpressions,
-    buildVariableDestructureExpressions,
-    buildArgumentDestructureFunctionExpressions,
-    buildExtensionClassExpressions,
+    ...(getContext().isExtensionsFile
+      ? [buildExtensionClassExpressions]
+      : [buildPropertyAccessExpressions, buildVariableDestructureExpressions, buildArgumentDestructureFunctionExpressions]),
     (): (() => Node)[] => [(): Node => node],
   ]
     .flatMap<() => Node>((builder: (node: Node) => (() => Node)[]): (() => Node)[] => builder(node))

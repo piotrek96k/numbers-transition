@@ -165,7 +165,6 @@ const createExtensionClassFields = (cls: Class): string =>
 
 const createExtensionClass = (classIndex: number): string => `
   export class ${classes[classIndex]}${Type.Extension.capitalize()} extends Extension<${classes[classIndex]}> implements ExtensionConstructor<${classes[classIndex]}, typeof ${classes[classIndex]}${Type.Extension.capitalize()}> {
-    public static readonly id: string = '${classes[classIndex]}';
     public static readonly type: typeof ${classes[classIndex]} = ${classes[classIndex]};
 
     public static isType(value: unknown): boolean {
