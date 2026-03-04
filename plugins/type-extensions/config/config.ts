@@ -169,10 +169,13 @@ const isInternalProperty = (property: MethodOrPropertyDeclaration, literalTypeNa
     (checker: (property: MethodOrPropertyDeclaration) => boolean): boolean => checker(property),
   );
 
-const hasRequiredInternalProperties = ([, [{ length }]]: [
+const hasRequiredInternalProperties = ([, [internalProperties]]: [
   string,
   [MethodOrPropertyDeclaration[], MethodOrPropertyDeclaration[]],
-]): boolean => [StaticPropertyName.Type, StaticPropertyName.LiteralType].length <= length;
+]): boolean =>
+  [StaticPropertyName.Type, StaticPropertyName.IsType].every((propName: StaticPropertyName): boolean =>
+    internalProperties.some(({ name: { text } }: MethodOrPropertyDeclaration): boolean => text === propName),
+  );
 
 const readLiteralType = (property: IdentifierPropertyDeclaration | IdentifierGetAccessorDeclaration): LiteralType[] => {
   const enumProperty: ArrayLiteralExpression | CallExpression = <ArrayLiteralExpression | CallExpression>(
