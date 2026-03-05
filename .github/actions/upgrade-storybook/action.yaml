@@ -1,4 +1,7 @@
 name: Upgrade Storybook
+inputs:
+  token:
+    required: true
 runs:
   using: 'composite'
   steps:
@@ -23,6 +26,3 @@ runs:
         delete-branch: true
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
-inputs:
-  token:
-    required: true
