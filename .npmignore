@@ -9,7 +9,6 @@ src
 storybook-static
 .gitattributes
 .gitignore
-.huskyrc.json
 .lintstagedrc.json
 .prettierrc.json
 eslint.config.ts
