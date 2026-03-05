@@ -1,4 +1,5 @@
-name: Deploy Storybook to GitHub Pages
+name: Storybook
+run-name: ${{ github.event_name == 'pull_request' && 'Build Storybook' || 'Deploy Storybook to GitHub Pages' }}
 on:
   push:
     branches:
@@ -34,7 +35,8 @@ jobs:
       - name: Deploy Storybook
         uses: ./.github/actions/deploy-storybook
   clean:
-    needs: deploy
+    needs: [build, deploy]
+    if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
