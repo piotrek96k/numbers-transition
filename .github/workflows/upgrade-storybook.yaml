@@ -15,3 +15,5 @@ jobs:
           persist-credentials: false
       - name: Upgrade Storybook
         uses: ./.github/actions/upgrade-storybook
+        with:
+          token: ${{ secrets.PAT_TOKEN }}

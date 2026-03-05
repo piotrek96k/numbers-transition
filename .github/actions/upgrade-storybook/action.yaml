@@ -18,7 +18,11 @@ runs:
       if: steps.old.outputs.version != steps.new.outputs.version
       uses: peter-evans/create-pull-request@v6
       with:
+        token: ${{ inputs.token }}
         branch: storybook/auto-upgrade
         delete-branch: true
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
+inputs:
+  token:
+    required: true
