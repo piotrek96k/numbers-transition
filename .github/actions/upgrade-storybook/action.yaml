@@ -18,14 +18,11 @@ runs:
         VERSION=$(node -p "require('./package.json').devDependencies.storybook.replace(/[^0-9.]/g, '')")
         echo "NEW_VERSION=${VERSION}" >> $GITHUB_ENV
       shell: bash
-    - name: Check For Changes
-      run: git diff --quiet || echo "UPGRADE_STORYBOOK=true" >> $GITHUB_ENV
-      shell: bash
     - name: Create PR
-      if: env.UPGRADE_STORYBOOK == 'true'
+      if: env.NEW_VERSION != env.OLD_VERSION
       uses: peter-evans/create-pull-request@v6
       with:
         branch: storybook/auto-upgrade
-        delete-branch: false
+        delete-branch: true
         commit-message: 'Bump storybook from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}'
         title: 'Bump storybook from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}'
