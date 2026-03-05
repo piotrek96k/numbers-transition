@@ -5,24 +5,20 @@ runs:
     - name: Install Dependencies
       run: npm ci
       shell: bash
-    - name: Get Old Version
-      run: |
-        VERSION=$(node -p "require('./package.json').devDependencies.storybook.replace(/[^0-9.]/g, '')")
-        echo "OLD_VERSION=${VERSION}" >> $GITHUB_ENV
-      shell: bash
+    - name: Read Old Version
+      id: old
+      uses: ./.github/actions/read-storybook-version
     - name: Upgrade Storybook
       run: npx storybook@latest upgrade
       shell: bash
-    - name: Get New Version
-      run: |
-        VERSION=$(node -p "require('./package.json').devDependencies.storybook.replace(/[^0-9.]/g, '')")
-        echo "NEW_VERSION=${VERSION}" >> $GITHUB_ENV
-      shell: bash
+    - name: Read New Version
+      id: new
+      uses: ./.github/actions/read-storybook-version
     - name: Create PR
-      if: env.NEW_VERSION != env.OLD_VERSION
+      if: steps.old.outputs.version != steps.new.outputs.version
       uses: peter-evans/create-pull-request@v6
       with:
         branch: storybook/auto-upgrade
         delete-branch: true
-        commit-message: 'Bump storybook from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}'
-        title: 'Bump storybook from ${{ env.OLD_VERSION }} to ${{ env.NEW_VERSION }}'
+        commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
+        title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'

@@ -1,0 +1,13 @@
+name: Read Storybook Version
+outputs:
+  version:
+    description: Storybook version
+    value: ${{ steps.read.outputs.version }}
+runs:
+  using: composite
+  steps:
+    - id: read
+      run: |
+        VERSION=$(jq -r '.devDependencies.storybook // .dependencies.storybook' package.json | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+      shell: bash
