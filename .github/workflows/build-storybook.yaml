@@ -1,0 +1,29 @@
+name: Build Storybook
+on:
+  pull_request:
+    branches:
+      - master
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Build Storybook
+        uses: ./.github/actions/build-storybook
+  clean:
+    needs: build
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Clean Storybook Artifacts
+        uses: ./.github/actions/clean-storybook
