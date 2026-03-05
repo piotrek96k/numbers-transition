@@ -9,6 +9,7 @@ runs:
       run: |
         VERSION=$(node -p "require('./package.json').devDependencies.storybook.replace(/[^0-9.]/g, '')")
         echo "OLD_VERSION=${VERSION}" >> $GITHUB_ENV
+      shell: bash
     - name: Upgrade Storybook
       run: npx storybook@latest upgrade
       shell: bash
@@ -16,8 +17,10 @@ runs:
       run: |
         VERSION=$(node -p "require('./package.json').devDependencies.storybook.replace(/[^0-9.]/g, '')")
         echo "NEW_VERSION=${VERSION}" >> $GITHUB_ENV
+      shell: bash
     - name: Check For Changes
       run: git diff --quiet || echo "UPGRADE_STORYBOOK=true" >> $GITHUB_ENV
+      shell: bash
     - name: Create PR
       if: env.UPGRADE_STORYBOOK == 'true'
       uses: peter-evans/create-pull-request@v6
