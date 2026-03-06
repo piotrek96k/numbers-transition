@@ -16,8 +16,8 @@ import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
 import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
-import { RuntimeExtension, buildTypesArgument } from './types-argument';
 import { buildTypeDistanceFunctionCall } from './type-distance';
+import { RuntimeExtension, buildTypesArgument } from './types';
 
 const generateMapFunction = (): ArrowFunction =>
   factory.createArrowFunction(
@@ -142,5 +142,5 @@ export const buildWrapCall = (value: Expression, types: Expression | RuntimeExte
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Wrap)!, value)),
     undefined,
-    [value, Array.isArray(types) ? buildTypesArgument(types) : types, key],
+    [value, Array.isArray(types) ? buildTypesArgument(value, types) : types, key],
   );

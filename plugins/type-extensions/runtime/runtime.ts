@@ -7,7 +7,7 @@ import { generateMergeFunction } from './merge';
 import { generateProxyFunction } from './proxy';
 import { generateReadSourcesFunction } from './read-sources';
 import { generateTypeDistanceFunction } from './type-distance';
-import { generateTypeMap } from './type-map';
+import { generateTypes } from './types';
 import { generateWrapFunction } from './wrap';
 
 export const injectRuntimeProxies = (statements: NodeArray<Statement>): Statement[] => [
@@ -17,7 +17,7 @@ export const injectRuntimeProxies = (statements: NodeArray<Statement>): Statemen
     undefined,
     factory.createVariableDeclarationList(
       [
-        generateTypeMap(),
+        generateTypes(),
         generateDefaultTypes(),
         generateReadSourcesFunction(),
         generateTypeDistanceFunction(),

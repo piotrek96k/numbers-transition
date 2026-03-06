@@ -3,7 +3,6 @@ import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
 import { PropertyName } from '../enums/property-name';
 import { VariableName } from '../enums/variable-name';
-import { generateNewTypeMapGetCall, generateTypeMapGetCall } from './type-map';
 
 export const generateGetExtensionFunction = (): VariableDeclaration =>
   factory.createVariableDeclaration(
@@ -19,7 +18,7 @@ export const generateGetExtensionFunction = (): VariableDeclaration =>
           undefined,
           undefined,
           factory.createObjectBindingPattern([
-            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Id), undefined),
+            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Type), undefined),
             factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.IsStatic), undefined),
           ]),
         ),
@@ -29,9 +28,9 @@ export const generateGetExtensionFunction = (): VariableDeclaration =>
       factory.createConditionalExpression(
         factory.createIdentifier(PropertyName.IsStatic),
         factory.createToken(SyntaxKind.QuestionToken),
-        generateTypeMapGetCall(),
+        factory.createIdentifier(PropertyName.Type),
         factory.createToken(SyntaxKind.ColonToken),
-        generateNewTypeMapGetCall(),
+        factory.createNewExpression(factory.createIdentifier(PropertyName.Type), undefined, [factory.createIdentifier(ArgName.Value)]),
       ),
     ),
   );

@@ -16,19 +16,9 @@ it<object>('generate runtime methods', (): void => {
 
     const getThisValue[0-9a-f]+ = \(self, type\) => self instanceof type \? self : new type\(self\);
     
-    const typeMap[0-9a-f]+ = new Map\(
-      \[
-        \["Predicate", Predicate\],
-        \["Double", Double\],
-        \["Long", Long\],
-        \["CharSequence", CharSequence\],
-        \["Pattern", Pattern\],
-        \["Struct", Struct\],
-        \["List", List\]
-      \]
-    \),
+    const types[0-9a-f]+ = \[Predicate, Double, Long, CharSequence, Pattern, Struct, List\],
 
-    defaultTypes[0-9a-f]+ = \[\.\.\.typeMap[0-9a-f]+\.keys\(\)\]\.flatMap\(id => \[{ id, isStatic: false }, { id, isStatic: true }\]\),
+    defaultTypes[0-9a-f]+ = types[0-9a-f]+\.flatMap\(type => \[{ type, isStatic: false }, { type, isStatic: true }\]\),
 
     readSources[0-9a-f]+ = value => { 
       const sources = \[\]; 
@@ -39,9 +29,8 @@ it<object>('generate runtime methods', (): void => {
       return sources; 
     },
 
-    typeDistance[0-9a-f]+ = \(value, { id, isStatic }\) => {
-      const type = typeMap[0-9a-f]+\.get\(id\)\.type,
-      found = isStatic \? type : type\.prototype;
+    typeDistance[0-9a-f]+ = \(value, { type, isStatic }\) => {
+      const found = isStatic \? type\.type : type\.type\.prototype;
       let distance = 0;
       while \(value && value !== Object\.prototype\ && value !== found\) {
         value = Object\.getPrototypeOf\(value\);
@@ -59,7 +48,7 @@ it<object>('generate runtime methods', (): void => {
       return distance;
     },
 
-    getExtension[0-9a-f]+ = \(value, { id, isStatic }\) => isStatic \? typeMap[0-9a-f]+\.get\(id\) : new \(typeMap[0-9a-f]+\.get\(id\)\)\(value\);
+    getExtension[0-9a-f]+ = \(value, { type, isStatic }\) => isStatic \? type : new type\(value\);
 
     export const wrap[0-9a-f]+ = \(value, types, key\) => {
       const \[type, distance\] = types\.map\(type => \[type, typeDistance[0-9a-f]+\(value, type\)\]\)\.sort\(\(\[, first\], \[, second\]\) => first - second\)\[0\];
@@ -87,12 +76,8 @@ it<object>('generate runtime methods', (): void => {
     },
 
     proxy[0-9a-f]+ = \(value, types = defaultTypes[0-9a-f]+, key\) => { 
-      const found = types\.filter\(\({ id, isStatic }\) => {
-        const type = typeMap[0-9a-f]+\.get\(id\);
-        return isStatic 
-          \? value === type\.type \|\| typeof type\.type === "function" && value\.prototype instanceof type\.type
-          : type\.isType\(value\);
-      }\);
+      const found = types\.filter\(\({ type, isStatic }\) => 
+        isStatic \? value === type\.type \|\| typeof type\.type === "function" && value\.prototype instanceof type\.type : type\.isType\(value\)\);
       return found\.length \? key \!== void 0 \? wrap[0-9a-f]+\(value, found, key\) : merge[0-9a-f]+\(value, found\) : value;
     };
   `;

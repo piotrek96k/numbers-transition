@@ -4,7 +4,6 @@ export enum ArgName {
   Distance = 'distance',
   Entry = 'entry',
   First = 'first',
-  Id = 'id',
   Index = 'index',
   Init = 'init',
   Key = 'key',

@@ -20,8 +20,8 @@ import { readImportName } from '../imports/imports';
 import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
 import { buildReadSourcesFunctionCall } from './read-sources';
-import { RuntimeExtension, buildTypesArgument } from './types-argument';
 import { buildTypeDistanceFunctionCall } from './type-distance';
+import { RuntimeExtension, buildTypesArgument } from './types';
 
 const generateObjectVariable = (): VariableDeclaration =>
   factory.createVariableDeclaration(
@@ -356,5 +356,5 @@ export const buildMergeFunctionCall = (value: Expression, types: Expression | Ru
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Merge)!, value)),
     undefined,
-    [value, Array.isArray(types) ? buildTypesArgument(types) : types],
+    [value, Array.isArray(types) ? buildTypesArgument(value, types) : types],
   );

@@ -11,7 +11,7 @@ import {
 } from 'typescript';
 import { getContext } from '../context/context';
 import { LiteralType } from '../enums/literal-type';
-import { RuntimeExtension } from '../runtime/types-argument';
+import { RuntimeExtension } from '../runtime/types';
 
 const isBooleanLiteral = ({ kind }: Node): boolean =>
   [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind);

@@ -4,15 +4,6 @@ import { ArgName } from '../enums/arg-name';
 import { VariableName } from '../enums/variable-name';
 import { ClassName } from '../enums/class-name';
 import { PropertyName } from '../enums/property-name';
-import { generateTypeMapGetCall } from './type-map';
-
-const generateTypeVariable = (): VariableDeclaration =>
-  factory.createVariableDeclaration(
-    VariableName.Type,
-    undefined,
-    undefined,
-    factory.createPropertyAccessExpression(generateTypeMapGetCall(), PropertyName.Type),
-  );
 
 const generateFoundVariable = (): VariableDeclaration =>
   factory.createVariableDeclaration(
@@ -22,9 +13,12 @@ const generateFoundVariable = (): VariableDeclaration =>
     factory.createConditionalExpression(
       factory.createIdentifier(PropertyName.IsStatic),
       factory.createToken(SyntaxKind.QuestionToken),
-      factory.createIdentifier(VariableName.Type),
+      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
       factory.createToken(SyntaxKind.ColonToken),
-      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Prototype),
+      factory.createPropertyAccessExpression(
+        factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+        PropertyName.Prototype,
+      ),
     ),
   );
 
@@ -83,7 +77,7 @@ export const generateTypeDistanceFunction = (): VariableDeclaration =>
           undefined,
           undefined,
           factory.createObjectBindingPattern([
-            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Id), undefined),
+            factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Type), undefined),
             factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.IsStatic), undefined),
           ]),
         ),
@@ -91,10 +85,7 @@ export const generateTypeDistanceFunction = (): VariableDeclaration =>
       undefined,
       factory.createToken(SyntaxKind.EqualsGreaterThanToken),
       factory.createBlock([
-        factory.createVariableStatement(
-          undefined,
-          factory.createVariableDeclarationList([generateTypeVariable(), generateFoundVariable()], NodeFlags.Const),
-        ),
+        factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateFoundVariable()], NodeFlags.Const)),
         factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateDistanceVariable()], NodeFlags.Let)),
         generateWhileLoop(),
         factory.createReturnStatement(factory.createIdentifier(VariableName.Distance)),

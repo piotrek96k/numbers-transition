@@ -3,7 +3,7 @@ import { Property, TypeExtension } from '../config/config';
 import { getContext } from '../context/context';
 import { isLiteralExpression } from '../literals/literal-expressions';
 import { buildProxyFunctionCall } from '../runtime/proxy';
-import { RuntimeExtension } from '../runtime/types-argument';
+import { RuntimeExtension } from '../runtime/types';
 import { buildWrapCall } from '../runtime/wrap';
 
 const filterPropertyAccess =

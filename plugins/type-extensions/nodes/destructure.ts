@@ -41,7 +41,7 @@ import { ArgName } from '../enums/arg-name';
 import { isLiteralExpression } from '../literals/literal-expressions';
 import { buildMergeFunctionCall } from '../runtime/merge';
 import { buildProxyFunctionCall } from '../runtime/proxy';
-import { RuntimeExtension } from '../runtime/types-argument';
+import { RuntimeExtension } from '../runtime/types';
 
 type DestructureDeclaration = BindingElement | VariableDeclaration | ParameterDeclaration;
 

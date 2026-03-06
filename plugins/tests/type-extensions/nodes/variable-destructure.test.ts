@@ -11,8 +11,8 @@ it<object>('rewrite variable destructure static literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
-    const { sum }: NumberConstructor = proxy[0-9a-f]+\(Number, \[{ id: "Double", isStatic: true }\]\);
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+, Double as Double[0-9a-f]+ } from "\.\./extensions/extensions";
+    const { sum }: NumberConstructor = proxy[0-9a-f]+\(Number, \[{ type: Double[0-9a-f]+, isStatic: true }\]\);
     export const number: number = \[1, 2, 3\].reduce\(sum\);
   `;
 
@@ -27,9 +27,9 @@ it<object>('rewrite variable destructure static variable', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+, Double as Double[0-9a-f]+ } from "\.\./extensions/extensions";
     const numeric: NumberConstructor = Number;
-    const { sum }: NumberConstructor = proxy[0-9a-f]+\(numeric, \[{ id: "Double", isStatic: true }\]\);
+    const { sum }: NumberConstructor = proxy[0-9a-f]+\(numeric, \[{ type: Double[0-9a-f]+, isStatic: true }\]\);
     export const number: number = \[1, 2, 3\].reduce\(sum\);
   `;
 
@@ -46,10 +46,16 @@ it<object>('rewrite variable destructure static and object', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+, CharSequence as CharSequence[0-9a-f]+ } from "\.\./extensions/extensions";
     const string: string = 'hello World';
-    const { capitalize: staticCapitalize }: StringConstructor = proxy[0-9a-f]+\(String, \[{ id: "CharSequence", isStatic: true }, { id: "CharSequence", isStatic: false }\]\);
-    const { capitalize: objectCapitalize }: string = proxy[0-9a-f]+\(string, \[{ id: "CharSequence", isStatic: true }, { id: "CharSequence", isStatic: false }\]\);
+    const { capitalize: staticCapitalize }: StringConstructor = proxy[0-9a-f]+\(
+      String, 
+      \[{ type: CharSequence[0-9a-f]+, isStatic: true }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \);
+    const { capitalize: objectCapitalize }: string = proxy[0-9a-f]+\(
+      string, 
+      \[{ type: CharSequence[0-9a-f]+, isStatic: true }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \);
     export const staticString: string = staticCapitalize\(string\);
     export const objectString: string = objectCapitalize\(\);
   `;
@@ -64,9 +70,9 @@ it<object>('rewrite variable destructure boolean literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { int: zero }: boolean = merge[0-9a-f]+\(false, \[{ id: "Predicate", isStatic: false }\]\);
-    export const { int: one }: boolean = merge[0-9a-f]+\(true, \[{ id: "Predicate", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Predicate as Predicate[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { int: zero }: boolean = merge[0-9a-f]+\(false, \[{ type: Predicate[0-9a-f]+, isStatic: false }\]\);
+    export const { int: one }: boolean = merge[0-9a-f]+\(true, \[{ type: Predicate[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -78,8 +84,8 @@ it<object>('rewrite variable destructure number literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { bigInt }: number = merge[0-9a-f]+\(0, \[{ id: "Double", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Double as Double[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { bigInt }: number = merge[0-9a-f]+\(0, \[{ type: Double[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -91,8 +97,8 @@ it<object>('rewrite variable destructure bigint literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { number }: bigint = merge[0-9a-f]+\(1n, \[{ id: "Long", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Long as Long[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { number }: bigint = merge[0-9a-f]+\(1n, \[{ type: Long[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -104,8 +110,8 @@ it<object>('rewrite variable destructure string literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', \[{ id: "CharSequence", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, CharSequence as CharSequence[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { compact }: string = merge[0-9a-f]+\('   Hello   World   ', \[{ type: CharSequence[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -117,8 +123,8 @@ it<object>('rewrite variable destructure regexp literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, \[{ id: "Pattern", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Pattern as Pattern[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { matches }: RegExp = merge[0-9a-f]+\(/\[A-Za-z\]/g, \[{ type: Pattern[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -130,8 +136,8 @@ it<object>('rewrite variable destructure array literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ id: "List", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, List as List[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { append }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ type: List[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -146,11 +152,11 @@ it<object>('rewrite variable destructure object literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Struct as Struct[0-9a-f]+ } from "\.\./extensions/extensions";
     interface Test {
       hello: string;
     }
-    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, \[{ id: "Struct", isStatic: false }\]\);
+    export const { keys }: Hello = merge[0-9a-f]+\({ hello: 'Hello World' }, \[{ type: Struct[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -162,8 +168,8 @@ it<object>('rewrite variable destructure array literal with object extension', (
   `;
 
   const expectedOutput: string = String.raw`
-    import { merge[0-9a-f]+ as merge[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ id: "Struct", isStatic: false }\]\);
+    import { merge[0-9a-f]+ as merge[0-9a-f]+, Struct as Struct[0-9a-f]+ } from "\.\./extensions/extensions";
+    export const { keys }: number\[\] = merge[0-9a-f]+\(\[1, 2\], \[{ type: Struct[0-9a-f]+, isStatic: false }\]\);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -178,11 +184,14 @@ it<object>('rewrite variable destructure new expression literal', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { proxy[0-9a-f]+ as proxy[0-9a-f]+, Struct as Struct[0-9a-f]+ } from "\.\./extensions/extensions";
     class Test {
       constructor\(private readonly value: string\) {}
     }
-    export const { keys }: Test = proxy[0-9a-f]+\(new Test\('Hello World'\), \[{ id: "Struct", isStatic: true }, { id: "Struct", isStatic: false }\]\);
+    export const { keys }: Test = proxy[0-9a-f]+\(
+      new Test\('Hello World'\), 
+      \[{ type: Struct[0-9a-f]+, isStatic: true }, { type: Struct[0-9a-f]+, isStatic: false }\]
+    \);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -195,9 +204,16 @@ it<object>('rewrite variable destructure variable', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { 
+      proxy[0-9a-f]+ as proxy[0-9a-f]+,
+      Long as Long[0-9a-f]+, 
+      CharSequence as CharSequence[0-9a-f]+ 
+    } from "\.\./extensions/extensions";
     const numeric: string = '1234';
-    export const { number }: string = proxy[0-9a-f]+\(numeric, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\]\);
+    export const { number }: string = proxy[0-9a-f]+\(
+      numeric, 
+      \[{ type: Long[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -210,10 +226,21 @@ it<object>('rewrite variable destructure nested variable', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { 
+      proxy[0-9a-f]+ as proxy[0-9a-f]+, 
+      Double as Double[0-9a-f]+,
+      CharSequence as CharSequence[0-9a-f]+, 
+      Long as Long[0-9a-f]+
+    } from "\.\./extensions/extensions";
     const numeric: string = '1234';
-    export const { number: arg[0-9a-f]+ }: string = proxy[0-9a-f]+\(numeric, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
-    { bigInt } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\]\);
+    export const { number: arg[0-9a-f]+ }: string = proxy[0-9a-f]+\(
+      numeric, 
+      \[{ type: Long[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
+    { bigInt } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Double[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -225,10 +252,20 @@ it<object>('rewrite variable destructure in array destructure', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { 
+      proxy[0-9a-f]+ as proxy[0-9a-f]+, 
+      Double as Double[0-9a-f]+, 
+      CharSequence as CharSequence[0-9a-f]+ 
+    } from "\.\./extensions/extensions";
     export const \[arg[0-9a-f]+, arg[0-9a-f]+\]: number\[\] = \[1, 2\],
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
-    { bigInt: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\]\);
+    { bigInt: one } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Double[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
+    { bigInt: two } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Double[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \);
   `;
 
   expect<string>(transform(code).compact()).toMatch(RegExp(expectedOutput.compact()));
@@ -245,16 +282,27 @@ it<object>('rewrite variable destructure with dependent initializer', (): void =
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
+    import { 
+      proxy[0-9a-f]+ as proxy[0-9a-f]+,
+      Double as Double[0-9a-f]+,
+      CharSequence as CharSequence[0-9a-f]+, 
+      Long as Long[0-9a-f]+
+    } from "\.\./extensions/extensions";
     interface Test {
       one: number;
       two\?: bigint;
       three\?: number;
     }
     export const { one: arg[0-9a-f]+, two: init[0-9a-f]+, three: init[0-9a-f]+ }: Test = { one: 1 },
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
+    { bigInt: one } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Double[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
     arg[0-9a-f]+ = init[0-9a-f]+ \?\? one \+ 1n,
-    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
+    { number: two } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Long[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
     three = init[0-9a-f]+ \?\? two \+ 1;
   `;
 
@@ -263,15 +311,28 @@ it<object>('rewrite variable destructure with dependent initializer', (): void =
 
 it<object>('rewrite variable destructure in array destructure with dependent initializer', (): void => {
   const code: string = `
-    export const [{ bigInt: one }, { number: two } = one + 1n, three = two + 1, four]: [number, bigint | undefined, number | undefined, number] = [1, undefined, undefined, 4];
+    export const [{ bigInt: one }, { number: two } = one + 1n, three = two + 1, four]: [number, bigint | undefined, number | undefined, number] = 
+      [1, undefined, undefined, 4];
   `;
 
   const expectedOutput: string = String.raw`
-    import { proxy[0-9a-f]+ as proxy[0-9a-f]+ } from "\.\./extensions/extensions";
-    export const \[arg[0-9a-f]+, init[0-9a-f]+, init[0-9a-f]+, four\]: \[ number, bigint \| undefined, number \| undefined, number \] = \[1, undefined, undefined, 4\],
-    { bigInt: one } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Double", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
+    import { 
+      proxy[0-9a-f]+ as proxy[0-9a-f]+,
+      Double as Double[0-9a-f]+,
+      CharSequence as CharSequence[0-9a-f]+, 
+      Long as Long[0-9a-f]+
+    } from "\.\./extensions/extensions";
+    export const \[arg[0-9a-f]+, init[0-9a-f]+, init[0-9a-f]+, four\]: \[ number, bigint \| undefined, number \| undefined, number \] = 
+      \[1, undefined, undefined, 4\],
+    { bigInt: one } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Double[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
     arg[0-9a-f]+ = init[0-9a-f]+ \?\? one \+ 1n,
-    { number: two } = proxy[0-9a-f]+\(arg[0-9a-f]+, \[{ id: "Long", isStatic: false }, { id: "CharSequence", isStatic: false }\]\),
+    { number: two } = proxy[0-9a-f]+\(
+      arg[0-9a-f]+, 
+      \[{ type: Long[0-9a-f]+, isStatic: false }, { type: CharSequence[0-9a-f]+, isStatic: false }\]
+    \),
     three = init[0-9a-f]+ \?\? two \+ 1;
   `;
 

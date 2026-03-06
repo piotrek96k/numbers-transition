@@ -1,5 +1,4 @@
 export enum VariableName {
-  CheckType = 'checkType',
   DefaultTypes = 'defaultTypes',
   Distance = 'distance',
   FindOwnerDistance = 'findOwnerDistance',
@@ -14,7 +13,7 @@ export enum VariableName {
   Self = 'self',
   Sources = 'sources',
   Type = 'type',
+  Types = 'types',
   TypeDistance = 'typeDistance',
-  TypeMap = 'typeMap',
   Wrap = 'wrap',
 }

@@ -19,12 +19,8 @@ import { readImportName } from '../imports/imports';
 import { Typeof } from '../enums/typeof';
 import { buildDefaultTypesIdentifier } from './default-types';
 import { buildMergeFunctionCall } from './merge';
-import { RuntimeExtension, buildTypesArgument } from './types-argument';
-import { generateTypeMapGetCall } from './type-map';
+import { RuntimeExtension, buildTypesArgument } from './types';
 import { buildWrapCall } from './wrap';
-
-const generateTypeVariable = (): VariableDeclaration =>
-  factory.createVariableDeclaration(VariableName.Type, undefined, undefined, generateTypeMapGetCall());
 
 const generateStaticTypeCheck = (): BinaryExpression =>
   factory.createBinaryExpression(
@@ -58,17 +54,6 @@ const generateObjectTypeCheck = (): CallExpression =>
     [factory.createIdentifier(ArgName.Value)],
   );
 
-const generateFilterFunctionReturn = (): ReturnStatement =>
-  factory.createReturnStatement(
-    factory.createConditionalExpression(
-      factory.createIdentifier(PropertyName.IsStatic),
-      factory.createToken(SyntaxKind.QuestionToken),
-      generateStaticTypeCheck(),
-      factory.createToken(SyntaxKind.ColonToken),
-      generateObjectTypeCheck(),
-    ),
-  );
-
 const generateFilterFunction = (): ArrowFunction =>
   factory.createArrowFunction(
     undefined,
@@ -78,17 +63,20 @@ const generateFilterFunction = (): ArrowFunction =>
         undefined,
         undefined,
         factory.createObjectBindingPattern([
-          factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Id), undefined),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.Type), undefined),
           factory.createBindingElement(undefined, undefined, factory.createIdentifier(PropertyName.IsStatic), undefined),
         ]),
       ),
     ],
     undefined,
     factory.createToken(SyntaxKind.EqualsGreaterThanToken),
-    factory.createBlock([
-      factory.createVariableStatement(undefined, factory.createVariableDeclarationList([generateTypeVariable()], NodeFlags.Const)),
-      generateFilterFunctionReturn(),
-    ]),
+    factory.createConditionalExpression(
+      factory.createIdentifier(PropertyName.IsStatic),
+      factory.createToken(SyntaxKind.QuestionToken),
+      generateStaticTypeCheck(),
+      factory.createToken(SyntaxKind.ColonToken),
+      generateObjectTypeCheck(),
+    ),
   );
 
 const generateFoundTypesVariable = (): VariableDeclaration =>
@@ -157,5 +145,5 @@ export const buildProxyFunctionCall = (value: Expression, extensions: RuntimeExt
   factory.createCallExpression(
     factory.createIdentifier(readImportName(getContext().constAliases.get(VariableName.Proxy)!, value)),
     undefined,
-    [value, ...(extensions.length ? [buildTypesArgument(extensions), ...(key ? [factory.createStringLiteral(key)] : [])] : [])],
+    [value, ...(extensions.length ? [buildTypesArgument(value, extensions), ...(key ? [factory.createStringLiteral(key)] : [])] : [])],
   );
