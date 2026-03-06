@@ -3,8 +3,6 @@ on:
   pull_request:
 permissions:
   contents: read
-  pages: write
-  id-token: write
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
