@@ -63,7 +63,7 @@ declare global {
       thisArg?: W,
     ): V;
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
-    includes<U>(searchElement: T extends U ? U : never, fromIndex?: number): boolean;
+    intersects(array: T[]): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
     mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(

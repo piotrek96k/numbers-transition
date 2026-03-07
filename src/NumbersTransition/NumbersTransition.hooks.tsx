@@ -393,7 +393,7 @@ export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOp
   const fixStepsDirection: FixDirection<StepsEasingFunction> = useStepsDirection(animationDirection);
 
   const isExtendedAnimationTimingFunction = (value: UnknownAnimationTimingFunction): value is ExtendedAnimationTimingFunction =>
-    [...value.keys()].some((key: string | number): boolean => AnimationKey.values<AnimationKey>().includes<string | number>(key));
+    [...value.keys()].intersects(AnimationKey.values<AnimationKey>());
 
   const animationKey: AnimationKey =
     animationType === AnimationType.Horizontal ? AnimationKey.HorizontalAnimation : AnimationKey.VerticalAnimation;
@@ -430,7 +430,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): value is AnimationDuration =>
-    !value.keys().length || value.keys().some((key: string): boolean => AnimationKey.values<AnimationKey>().includes<string>(key));
+    !value.keys().length || value.keys().intersects(AnimationKey.values<AnimationKey>());
 
   const fromAnimationDuration = ({
     horizontalAnimation = Integer.TwoThousand,

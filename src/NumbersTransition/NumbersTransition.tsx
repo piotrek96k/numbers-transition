@@ -288,7 +288,7 @@ const NumbersTransition = <
     [validValue, restartAnimation],
   );
 
-  const shouldForwardProp = (prop: string): boolean => [...ForwardProp.values<ForwardProp>(), ...forwardProps].includes<string>(prop);
+  const shouldForwardProp = (prop: string): boolean => [...ForwardProp.values<ForwardProp>(), ...forwardProps].includes(prop);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [

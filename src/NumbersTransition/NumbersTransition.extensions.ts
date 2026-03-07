@@ -158,6 +158,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return element === undefined ? fallback : callback(element);
   }
 
+  public intersects(array: T[]): boolean {
+    return this.value.some((value: T): boolean => array.includes(value));
+  }
+
   public mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {
     return mappers.reduce<T[]>((array: T[], mapper: (value: T, index: number, array: T[]) => T): T[] => array.map<T>(mapper), this.value);
   }
