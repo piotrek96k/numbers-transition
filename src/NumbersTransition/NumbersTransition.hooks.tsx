@@ -978,11 +978,11 @@ export const useHorizontalAnimationDigits = (options: UseHorizontalAnimationDigi
 
   const { numberOfAnimations, animationDirection }: NumbersTransitionTheme = useTheme();
 
-  const fillZeros: boolean =
-    numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None);
-
+  // prettier-ignore
   return [
-    ...Array<number>(numberOfDigitsDifference).when(fillZeros).fill(Integer.Zero),
+    ...Array<number>(numberOfDigitsDifference)
+      .when(numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None))
+      .fill(Integer.Zero),
     ...(animationDirection === AnimationDirection.Normal ? previousValueDigits : currentValueDigits),
   ];
 };
