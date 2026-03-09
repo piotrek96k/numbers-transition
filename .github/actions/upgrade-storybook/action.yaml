@@ -5,20 +5,42 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Check If Upgrade PR Branch Exists
+      id: pr
+      run: |
+        if git ls-remote --heads origin storybook/auto-upgrade | grep -q storybook/auto-upgrade; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
+    - name: Determine If Upgrade Should Run
+      id: upgrade
+      run: |
+        if [ "${{ github.event_name }}" != "push" ] || [ "${{ steps.pr.outputs.exists }}" = "true" ]; then
+          echo "run=true" >> $GITHUB_OUTPUT
+        else
+          echo "run=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash
     - name: Install Dependencies
+      if: steps.upgrade.outputs.run == 'true'
       run: npm ci
       shell: bash
     - name: Read Old Version
+      if: steps.upgrade.outputs.run == 'true'
       id: old
       uses: ./.github/actions/read-storybook-version
     - name: Upgrade Storybook
+      if: steps.upgrade.outputs.run == 'true'
       run: npx storybook@latest upgrade
       shell: bash
     - name: Read New Version
+      if: steps.upgrade.outputs.run == 'true'
       id: new
       uses: ./.github/actions/read-storybook-version
     - name: Create PR
-      if: steps.old.outputs.version != steps.new.outputs.version
+      if: steps.upgrade.outputs.run == 'true' && steps.old.outputs.version != steps.new.outputs.version
       uses: peter-evans/create-pull-request@v6
       with:
         token: ${{ inputs.token }}
@@ -27,3 +49,9 @@ runs:
         delete-branch: true
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
+    - name: Close Existing PR
+      if: github.event_name == 'push' && steps.pr.outputs.exists == 'true' && steps.old.outputs.version == steps.new.outputs.version
+      run: gh pr close storybook/auto-upgrade --delete-branch
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+      shell: bash
