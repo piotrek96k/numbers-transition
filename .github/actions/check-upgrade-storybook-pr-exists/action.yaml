@@ -1,0 +1,17 @@
+name: Check Upgrade Storybook PR Exists
+outputs:
+  exists:
+    description: Storybook Upgrade PR Exists
+    value: ${{ steps.read.outputs.exists }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Check if upgrade PR branch exists
+      id: read
+      run: |
+        if git ls-remote --heads origin storybook/auto-upgrade | grep -q storybook/auto-upgrade; then
+          echo "exists=true" >> $GITHUB_OUTPUT
+        else
+          echo "exists=false" >> $GITHUB_OUTPUT
+        fi
+      shell: bash

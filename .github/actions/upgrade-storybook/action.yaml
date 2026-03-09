@@ -23,6 +23,7 @@ runs:
       with:
         token: ${{ inputs.token }}
         branch: storybook/auto-upgrade
+        base: master
         delete-branch: true
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
