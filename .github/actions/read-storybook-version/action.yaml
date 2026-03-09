@@ -1,7 +1,7 @@
 name: Read Storybook Version
 outputs:
   version:
-    description: Storybook version
+    description: Storybook Version
     value: ${{ steps.read.outputs.version }}
 runs:
   using: composite
