@@ -18,5 +18,7 @@ tsconfig.eslint.json
 tsconfig.json
 tsconfig.node.json
 tsconfig.plugins.json
+tsconfig.plugins.test.json
 vite.config.ts
+vite.plugins.test.ts
 vite.plugins.ts
