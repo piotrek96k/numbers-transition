@@ -96,7 +96,7 @@ export interface NumbersTransitionProps<
   animationInterruptionMode?: AnimationInterruptionMode;
   animationAlgorithm?: AnimationAlgorithm;
   optimizationStrategy?: OptimizationStrategy;
-  deferChunkSize?: number;
+  renderBatchSize?: number;
   invalidValue?: string;
   view?: View<K, L>;
   characterView?: View<M, N>;
@@ -144,7 +144,7 @@ const NumbersTransition = <
     animationInterruptionMode,
     animationAlgorithm,
     optimizationStrategy,
-    deferChunkSize,
+    renderBatchSize,
     invalidValue = `${Number.NaN}`,
     view,
     characterView,
@@ -363,7 +363,7 @@ const NumbersTransition = <
       negativeCharacterAnimationMode={negativeCharacterAnimationMode}
       animationAlgorithm={animationAlgorithm}
       optimizationStrategy={optimizationStrategy}
-      deferChunkSize={deferChunkSize}
+      renderBatchSize={renderBatchSize}
     />
   );
 

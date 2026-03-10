@@ -207,7 +207,7 @@ export enum NegativeCharacter {
 export enum OptimizationStrategy {
   None = 'none',
   Split = 'split',
-  Delay = 'delay',
+  Batch = 'batch',
 }
 
 export enum Key {

@@ -110,7 +110,7 @@ const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
   animationTimingFunction: AnimationTimingFunction.Ease,
   animationInterruptionMode: AnimationInterruptionMode.Interrupt,
   optimizationStrategy: OptimizationStrategy.None,
-  deferChunkSize: Integer.TwoThousandFiveHundred,
+  renderBatchSize: Integer.TwoThousandFiveHundred,
   view: { css: basicEffectCss },
 };
 

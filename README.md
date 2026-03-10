@@ -27,6 +27,8 @@
   - [animationTimingFunction](#animationtimingfunction)
   - [animationInterruptionMode](#animationinterruptionmode)
   - [animationAlgorithm](#animationalgorithm)
+  - [optimizationStrategy](#optimizationstrategy)
+  - [renderBatchSize](#renderbatchsize)
 - [Constants](#constants)
   - [AnimationTimingFunction](#animationtimingfunction-1)
 - [Types](#types)
@@ -49,6 +51,7 @@
   - [UnknownAnimationTimingFunction](#unknownanimationtimingfunction)
   - [AnimationInterruptionMode](#animationinterruptionmode-1)
   - [AnimationAlgorithm](#animationalgorithm-1)
+  - [OptimizationStrategy](#optimizationstrategy-1)
 - [License](#license)
 
 ---
@@ -160,7 +163,7 @@ const Example: FC = () => {
 ### `animationDuration`
 
 - **Type:** <code>[AnimationDuration](#animationduration-1) | [TotalAnimationDuration](#totalanimationduration) | undefined</code>
-- **Default:** `{ horizontalAnimation: 2000, verticalAnimation: 5000 }`
+- **Default:** `{ horizontalAnimation: 2_000, verticalAnimation: 5_000 }`
 - **Description:** Animation duration in milliseconds.
   - If the provided object is of type <code>[AnimationDuration](#animationduration-1)</code>, it sets the horizontal and vertical animation durations (if a duration is zero, that animation is skipped).
   - If the provided object is of type <code>[TotalAnimationDuration](#totalanimationduration)</code>, it sets the total duration of all animations and a ratio, which is the ratio of vertical animation duration to horizontal animation duration (ratio = 0 disables vertical animation; ratio = ∞ disables horizontal animation).
@@ -188,6 +191,21 @@ const Example: FC = () => {
 - **Description:** Controls how intermediate digits are generated between two numbers during the vertical animation.
   - `incrementThreshold` — Maximum number of sequential increments generated for a digit column. If the calculated number of intermediate digits for that column is **less than** this value, the algorithm generates a simple sequential sequence (e.g. `1 → 2 → 3 → 4`). If the number of digits **reaches or exceeds** this threshold, the algorithm switches to a non-sequential generation strategy to avoid long counting animations for large number differences.
   - `numberOfDigitsIncrease` — Controls how many additional intermediate digits are generated for each subsequent column **to the right**. As the animation propagates from more significant digits to less significant ones, each column receives the previous column’s number of digits plus `numberOfDigitsIncrease`. Increasing this value produces longer and smoother digit rolling, but also increases the number of rendered elements, which may impact performance for large numbers.
+
+### `optimizationStrategy`
+
+- **Type:** <code>[OptimizationStrategy](#optimizationstrategy-1) | undefined</code>
+- **Default:** <code>[OptimizationStrategy](#optimizationstrategy-1).None</code>
+- **Description:** Controls how the component updates DOM elements when a large number of elements must be generated. For large numbers or aggressive <code>[animationAlgorithm](#animationalgorithm)</code> settings, the component may need to create many elements. This option allows the work to be split into smaller batches of <code>[renderBatchSize](#renderbatchsize)</code> elements to prevent long blocking updates. In most cases, adjusting <code>[animationAlgorithm](#animationalgorithm)</code> is a better way to control the number of generated elements, and this option should only be used when further optimization is necessary.
+  - <code>[OptimizationStrategy](#optimizationstrategy-1).None</code> — No optimization. All elements are created in a single update.
+  - <code>[OptimizationStrategy](#optimizationstrategy-1).Split</code> — Element creation is split into multiple updates. Each batch is rendered and its animation starts immediately after that batch is mounted.
+  - <code>[OptimizationStrategy](#optimizationstrategy-1).Batch</code> — Element creation is also split into multiple updates, but animations start only after **all** elements are created. This allows the browser to remain responsive during rendering while still starting all animations at the same time.
+
+### `renderBatchSize`
+
+- **Type:** `number | undefined`
+- **Default:** `2_500`
+- **Description:** Number of elements created per update when using an optimization strategy other than <code>[OptimizationStrategy](#optimizationstrategy-1).None</code>. Smaller values split rendering into more batches, improving UI responsiveness but increasing the total time required to fully prepare the animation.
 
 ---
 
@@ -440,6 +458,18 @@ const Example: FC = () => {
   ```
 - **Description:** Configuration object that controls how intermediate digits are generated between two numbers for vertical animation.
 - **See also:** <code>[animationAlgorithm](#animationalgorithm)</code>
+
+### `OptimizationStrategy`
+
+- ```ts
+  enum OptimizationStrategy {
+    None = 'none',
+    Split = 'split',
+    Batch = 'batch',
+  }
+  ```
+- **Description:** Defines how DOM updates are batched when a large number of elements must be generated for the animation.
+- **See also:** <code>[optimizationStrategy](#optimizationStrategy)</code> <code>[renderBatchSize](#renderbatchsize)</code>
 
 ---
 

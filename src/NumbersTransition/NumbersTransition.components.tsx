@@ -97,7 +97,7 @@ const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose,
 
 interface DeferProps {
   children: ReactElement<ChildrenProps>[];
-  chunkSize: number;
+  renderBatchSize: number;
   countElements: (child: ReactElement<ChildrenProps>) => number;
   onBeforeMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
   onPartialMount: (child: ReactElement<ChildrenProps>, index: number, elementsToMount: number) => GenericReactNode<ChildrenProps>;
@@ -105,9 +105,9 @@ interface DeferProps {
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
-  const { children, chunkSize, countElements, onBeforeMount, onPartialMount, onAfterMount }: DeferProps = props;
+  const { children, renderBatchSize, countElements, onBeforeMount, onPartialMount, onAfterMount }: DeferProps = props;
 
-  const [mountedElements, setMountedElements]: [number, Dispatch<SetStateAction<number>>] = useState<number>(chunkSize);
+  const [mountedElements, setMountedElements]: [number, Dispatch<SetStateAction<number>>] = useState<number>(renderBatchSize);
 
   const countAggregatedSums = useCallback<(aggregatedSums: number[], child: ReactElement<ChildrenProps>) => number[]>(
     (aggregatedSums: number[], child: ReactElement<ChildrenProps>): number[] => [
@@ -125,10 +125,10 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   useEffect(
     (): void =>
-      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + chunkSize))]
+      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + renderBatchSize))]
         .when(mountedElements < aggregatedSums.at(Integer.MinusOne)!)
         .forEach(Function.invoke<unknown>),
-    [chunkSize, mountedElements, aggregatedSums],
+    [renderBatchSize, mountedElements, aggregatedSums],
   );
 
   const mapBeforeMount = (child: ReactElement<ChildrenProps>, index: number, numberOfElements: number): GenericReactNode<ChildrenProps> =>
@@ -627,7 +627,7 @@ export interface VerticalAnimationElementProps<
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
   animationAlgorithm?: AnimationAlgorithm;
   optimizationStrategy?: OptimizationStrategy;
-  deferChunkSize?: number;
+  renderBatchSize?: number;
 }
 
 export const VerticalAnimationElement = <
@@ -652,7 +652,7 @@ export const VerticalAnimationElement = <
     negativeCharacterAnimationMode,
     animationAlgorithm,
     optimizationStrategy = OptimizationStrategy.None,
-    deferChunkSize = Integer.TwoThousandFiveHundred,
+    renderBatchSize = Integer.TwoThousandFiveHundred,
     previousValue,
     currentValue,
     maxNumberOfDigits,
@@ -751,11 +751,11 @@ export const VerticalAnimationElement = <
 
   const encloseDefer = (children: ReactElement<ChildrenProps>[]): ReactNode => (
     <Defer
-      chunkSize={deferChunkSize}
+      renderBatchSize={renderBatchSize}
       countElements={countElements}
       onBeforeMount={onElementMount<[]>(onBeforeElementMount)}
       onPartialMount={onElementMount<[number]>(onPartialElementMount)}
-      {...(optimizationStrategy === OptimizationStrategy.Delay && { onAfterMount })}
+      {...(optimizationStrategy === OptimizationStrategy.Batch && { onAfterMount })}
     >
       {children}
     </Defer>
