@@ -7,21 +7,11 @@ runs:
   steps:
     - name: Check If Upgrade PR Branch Exists
       id: pr
-      run: |
-        if git ls-remote --heads origin storybook/auto-upgrade | grep -q storybook/auto-upgrade; then
-          echo "exists=true" >> $GITHUB_OUTPUT
-        else
-          echo "exists=false" >> $GITHUB_OUTPUT
-        fi
+      run: echo "exists=$(git ls-remote --heads origin storybook/auto-upgrade | grep -q storybook/auto-upgrade && echo true || echo false)" >> $GITHUB_OUTPUT
       shell: bash
     - name: Determine If Upgrade Should Run
       id: upgrade
-      run: |
-        if [ "${{ github.event_name }}" != "push" ] || [ "${{ steps.pr.outputs.exists }}" = "true" ]; then
-          echo "run=true" >> $GITHUB_OUTPUT
-        else
-          echo "run=false" >> $GITHUB_OUTPUT
-        fi
+      run: echo "run=${{ github.event_name != 'push' || steps.pr.outputs.exists == 'true' }}" >> $GITHUB_OUTPUT
       shell: bash
     - name: Install Dependencies
       if: steps.upgrade.outputs.run == 'true'
