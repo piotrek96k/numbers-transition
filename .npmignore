@@ -12,7 +12,6 @@ storybook-static
 .lintstagedrc.json
 .prettierrc.json
 eslint.config.ts
-extensions.config.json
 package-lock.json
 tsconfig.eslint.json
 tsconfig.json
