@@ -29,6 +29,7 @@
   - [animationAlgorithm](#animationalgorithm)
   - [optimizationStrategy](#optimizationstrategy)
   - [renderBatchSize](#renderbatchsize)
+  - [invalidValue](#invalidvalue)
 - [Constants](#constants)
   - [AnimationTimingFunction](#animationtimingfunction-1)
 - [Types](#types)
@@ -206,6 +207,12 @@ const Example: FC = () => {
 - **Type:** `number | undefined`
 - **Default:** `2_500`
 - **Description:** Number of elements created per update when using an optimization strategy other than <code>[OptimizationStrategy](#optimizationstrategy-1).None</code>. Smaller values split rendering into more batches, improving UI responsiveness but increasing the total time required to fully prepare the animation.
+
+### `invalidValue`
+
+- **Type:** `string | undefined`
+- **Default:** <code>\`${Number.NaN}\`</code>
+- **Description:** The string displayed when a non-numeric or otherwise invalid <code>[value](#value)</code> is provided to the component.
 
 ---
 
