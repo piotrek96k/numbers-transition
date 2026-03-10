@@ -1,7 +1,7 @@
 # NumbersTransition
 
 [![npm version](https://img.shields.io/npm/v/numbers-transition.svg?style=flat)](https://www.npmjs.com/package/numbers-transition)
-[![Storybook Deployment](https://github.com/piotrek96k/numbers-transition/actions/workflows/storybook.yaml/badge.svg)](https://github.com/piotrek96k/numbers-transition/actions/workflows/storybook.yaml)
+[![Storybook Deployment](https://github.com/piotrek96k/numbers-transition/actions/workflows/deploy-storybook.yaml/badge.svg)](https://github.com/piotrek96k/numbers-transition/actions/workflows/deploy-storybook.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
 
@@ -26,6 +26,7 @@
   - [animationDuration](#animationduration)
   - [animationTimingFunction](#animationtimingfunction)
   - [animationInterruptionMode](#animationinterruptionmode)
+  - [animationAlgorithm](#animationalgorithm)
 - [Constants](#constants)
   - [AnimationTimingFunction](#animationtimingfunction-1)
 - [Types](#types)
@@ -46,6 +47,8 @@
   - [EasingFunction](#easingfunction)
   - [ExtendedAnimationTimingFunction](#extendedanimationtimingfunction)
   - [UnknownAnimationTimingFunction](#unknownanimationtimingfunction)
+  - [AnimationInterruptionMode](#animationinterruptionmode-1)
+  - [AnimationAlgorithm](#animationalgorithm-1)
 - [License](#license)
 
 ---
@@ -177,6 +180,14 @@ const Example: FC = () => {
 - **Description:** Controls how the component behaves when the value changes while an animation is still in progress. There are two modes:
   - <code>[AnimationInterruptionMode](#animationinterruptionmode-1).Interrupt</code> Immediately stops the current animation, forces it to finish, and starts a new one from the final state. This makes transitions more responsive when values update rapidly.
   - <code>[AnimationInterruptionMode](#animationinterruptionmode-1).Continue</code> Lets the current animation(s) finish before starting the next update. If multiple value changes occur during this time, they are queued. This preserves smooth, sequential transitions at the cost of responsiveness.
+
+### `animationAlgorithm`
+
+- **Type:** <code>[AnimationAlgorithm](#animationalgorithm-1) | undefined</code>
+- **Default:** `{ incrementThreshold: 14, numberOfDigitsIncrease: 7 }`
+- **Description:** Controls how intermediate digits are generated between two numbers during the vertical animation.
+  - `incrementThreshold` — Maximum number of sequential increments generated for a digit column. If the calculated number of intermediate digits for that column is **less than** this value, the algorithm generates a simple sequential sequence (e.g. `1 → 2 → 3 → 4`). If the number of digits **reaches or exceeds** this threshold, the algorithm switches to a non-sequential generation strategy to avoid long counting animations for large number differences.
+  - `numberOfDigitsIncrease` — Controls how many additional intermediate digits are generated for each subsequent column **to the right**. As the animation propagates from more significant digits to less significant ones, each column receives the previous column’s number of digits plus `numberOfDigitsIncrease`. Increasing this value produces longer and smoother digit rolling, but also increases the number of rendered elements, which may impact performance for large numbers.
 
 ---
 
@@ -418,6 +429,17 @@ const Example: FC = () => {
   ```
 - **Description:** Defines how the component handles new updates while an animation is still running.
 - **See also:** <code>[animationInterruptionMode](#animationinterruptionmode)</code>
+
+### `AnimationAlgorithm`
+
+- ```ts
+  interface AnimationAlgorithm {
+    incrementThreshold?: number;
+    numberOfDigitsIncrease?: number;
+  }
+  ```
+- **Description:** Configuration object that controls how intermediate digits are generated between two numbers for vertical animation.
+- **See also:** <code>[animationAlgorithm](#animationalgorithm)</code>
 
 ---
 

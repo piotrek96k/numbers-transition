@@ -1054,7 +1054,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 };
 
 export interface AnimationAlgorithm {
-  incrementMaxLength?: number;
+  incrementThreshold?: number;
   numberOfDigitsIncrease?: number;
 }
 
@@ -1067,7 +1067,7 @@ interface UseVerticalAnimationDigitsOptions {
 
 export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOptions): number[][] => {
   const {
-    animationAlgorithm: { incrementMaxLength = Integer.Fourteen, numberOfDigitsIncrease = Integer.Seven } = {},
+    animationAlgorithm: { incrementThreshold = Integer.Fourteen, numberOfDigitsIncrease = Integer.Seven } = {},
     maxNumberOfDigits,
     previousValue,
     currentValue,
@@ -1079,7 +1079,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : (first > second).int))
       .pipe<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
-        end - start < incrementMaxLength ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
+        end - start < incrementThreshold ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
 
   // prettier-ignore
@@ -1096,7 +1096,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     );
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
-    [...Array<unknown>(incrementMaxLength + numberOfDigitsIncrease * index).keys()]
+    [...Array<unknown>(incrementThreshold + numberOfDigitsIncrease * index).keys()]
       .mapEach<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
       .pipe<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
