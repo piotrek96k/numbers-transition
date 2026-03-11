@@ -37,24 +37,24 @@ import {
 } from './NumbersTransition.styles';
 import type { EnumType, EnumValue, Falsy, Remove, Select } from './NumbersTransition.types';
 
-type NumbersTransitionProps = typeof NumbersTransition<
-  object,
-  number,
-  object,
-  unknown,
-  object,
-  number,
-  object,
-  unknown,
-  object,
-  unknown,
-  object,
-  unknown,
-  object,
-  unknown,
-  object,
-  unknown
->;
+type NumbersTransitionProps<
+  K extends object = object,
+  L = unknown,
+  M extends object = object,
+  N = unknown,
+  O extends object = object,
+  P = unknown,
+  Q extends object = object,
+  R = unknown,
+  S extends object = object,
+  T = unknown,
+  U extends object = object,
+  V = unknown,
+  W extends object = object,
+  X = unknown,
+  Y extends object = object,
+  Z = unknown,
+> = typeof NumbersTransition<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>;
 
 type SelectType =
   | typeof DigitGroupSeparatorCharacter
@@ -73,7 +73,24 @@ type SelectTypes = {
 
 type ComponentArgTypes = Partial<ArgTypes<ComponentProps<NumbersTransitionProps>>>;
 
-type Story = StoryObj<NumbersTransitionProps>;
+type Story<
+  K extends object = object,
+  L = unknown,
+  M extends object = object,
+  N = unknown,
+  O extends object = object,
+  P = unknown,
+  Q extends object = object,
+  R = unknown,
+  S extends object = object,
+  T = unknown,
+  U extends object = object,
+  V = unknown,
+  W extends object = object,
+  X = unknown,
+  Y extends object = object,
+  Z = unknown,
+> = StoryObj<NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>;
 
 const mapInputType = ([fieldName, enumObject]: [string, SelectType]): [string, InputType] => [
   fieldName,
@@ -191,12 +208,12 @@ const opacityAnimationCss: RuleSet<object> = css<object>`
   animation-iteration-count: ${Integer.One};
 `;
 
-const opacityAnimationArgs: ComponentProps<NumbersTransitionProps> = {
+const opacityAnimationArgs: ComponentProps<NumbersTransitionProps<object, number>> = {
   ...basicEffectArgs,
   view: { css: opacityAnimationCss, animation: opacityAnimationFactory },
 };
 
-export const OpacityAnimation: Story = { argTypes, args: opacityAnimationArgs };
+export const OpacityAnimation: Story<object, number> = { argTypes, args: opacityAnimationArgs };
 
 const rotateKeyframeFunction = (keyframeValue: number): RuleSet<object> => css<object>`
   transform: rotateY(${keyframeValue}${CssUnit.Turn});
@@ -277,11 +294,11 @@ const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTra
   animation-iteration-count: ${Integer.One};
 `;
 
-const rotateAnimationArgs: ComponentProps<NumbersTransitionProps> = {
+const rotateAnimationArgs: ComponentProps<NumbersTransitionProps<object, unknown, object, unknown, object, number>> = {
   ...basicEffectArgs,
   digitView: { css: rotateAnimationCssFactory, animation: [horizontalRotateAnimationFactory, verticalRotateAnimationFactory] },
 };
 
-export const RotateAnimation: Story = { argTypes, args: rotateAnimationArgs };
+export const RotateAnimation: Story<object, unknown, object, unknown, object, number> = { argTypes, args: rotateAnimationArgs };
 
 export default meta;
