@@ -1,11 +1,10 @@
-import type { TransformHook } from 'rollup';
-import type { Plugin } from 'vite';
+import type { Plugin, Rolldown } from 'vite';
 import { TypeExtensionsConfig, buildConfig } from '../config/config';
 import { buildHotUpdateHandler } from '../hmr/hmr';
 import { buildTransformer } from '../transformer/transformer';
 
 interface TypeExtensionsPlugin extends Plugin {
-  transform: TransformHook;
+  transform: (this: Rolldown.TransformPluginContext, code: string, id: string) => Rolldown.SourceDescription | null;
 }
 
 const typeExtensions = (tsConfig: string, extensionsFilePath: string): TypeExtensionsPlugin => {

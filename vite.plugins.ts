@@ -25,7 +25,7 @@ const config: UserConfig = {
   plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), rollupTypes: true })],
   build: {
     lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
-    rollupOptions: { external: ['async_hooks', 'crypto', 'fs', 'path', 'process', 'typescript'] },
+    rolldownOptions: { external: ['async_hooks', 'crypto', 'fs', 'path', 'process', 'typescript'], checks: { pluginTimings: false } },
     outDir: resolve('plugins', 'dist'),
     minify: 'terser',
   },

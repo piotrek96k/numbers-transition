@@ -1,5 +1,5 @@
 import { resolve } from 'path';
-import type { TransformHook, TransformResult } from 'rollup';
+import type { Rolldown } from 'vite';
 import {
   ImportDeclaration,
   NewLineKind,
@@ -43,7 +43,7 @@ const transformCode = (
   constAliases: Map<string, string>,
   code: string,
   id: string,
-): TransformResult => {
+): Rolldown.SourceDescription => {
   const importPath: string = getExtensionsImportPath(id, extensionsFilePath);
   const sourceFile: SourceFile = createSourceFile(id, code, ScriptTarget.ESNext, true);
 
@@ -66,8 +66,8 @@ const transformCode = (
 };
 
 export const buildTransformer =
-  (extensionsFilePath: string, config: TypeExtensionsConfig): TransformHook =>
-  (originalCode: string, id: string): TransformResult =>
+  (extensionsFilePath: string, config: TypeExtensionsConfig): ((code: string, id: string) => Rolldown.SourceDescription | null) =>
+  (originalCode: string, id: string): Rolldown.SourceDescription | null =>
     config.allowedFiles.has(resolve(id))
       ? transformCode(extensionsFilePath, config.extensionsMap, config.constAliases, originalCode, id)
       : null;
