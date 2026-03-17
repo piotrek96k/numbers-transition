@@ -10,7 +10,7 @@ runs:
         name: storybook
         path: artifacts
     - name: Upload Storybook Artifact to Github Pages
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         path: artifacts
     - name: Deploy to GitHub Pages
