@@ -31,7 +31,7 @@ runs:
       uses: ./.github/actions/read-storybook-version
     - name: Create PR
       if: steps.upgrade.outputs.run == 'true' && steps.old.outputs.version != steps.new.outputs.version
-      uses: peter-evans/create-pull-request@v6
+      uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ inputs.token }}
         branch: storybook/auto-upgrade
