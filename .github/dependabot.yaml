@@ -12,8 +12,9 @@ updates:
       - dependency-name: 'react-dom'
       - dependency-name: 'styled-components'
     ignore:
-      - dependency-name: "*storybook*"
+      - dependency-name: '*storybook*'
   - package-ecosystem: 'github-actions'
     directory: '/'
     schedule:
       interval: 'daily'
+    open-pull-requests-limit: 10
