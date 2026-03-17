@@ -125,6 +125,19 @@ export enum Color {
   Transparent = 'transparent',
 }
 
+export enum Cursor {
+  Grab = 'grab',
+  Grabbing = 'grabbing',
+}
+
+export enum UserSelect {
+  None = 'none',
+}
+
+export enum TouchAction {
+  None = 'none',
+}
+
 export enum AnimationFillMode {
   Forwards = 'forwards',
   Backwards = 'backwards',
@@ -212,6 +225,22 @@ export enum OptimizationStrategy {
 
 export enum Key {
   Length = 'length',
+}
+
+export enum StorybookInputType {
+  Select = 'select',
+}
+
+export enum DragAndDropForwardProp {
+  OnAnimationEndCapture = 'onAnimationEndCapture',
+  OnPointerDown = 'onPointerDown',
+  OnPointerMove = 'onPointerMove',
+  OnPointerUp = 'onPointerUp',
+  OnPointerCancel = 'onPointerCancel',
+}
+
+export enum DragAndDropVariableName {
+  Transform = '--transform',
 }
 
 export enum Text {

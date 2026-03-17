@@ -6,7 +6,7 @@ export class Predicate extends Extension<boolean> implements ExtensionConstructo
   public static readonly type: BooleanConstructor = Boolean;
   public static readonly literalType: LiteralType[] = [LiteralType.Boolean];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is boolean {
     return typeof value === 'boolean' || value instanceof Boolean;
   }
 
@@ -23,7 +23,7 @@ export class Double extends Extension<number> implements ExtensionConstructor<nu
   public static readonly type: NumberConstructor = Number;
   public static readonly literalType: LiteralType[] = [LiteralType.Number];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is number {
     return typeof value === 'number' || value instanceof Number;
   }
 
@@ -44,7 +44,7 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
   public static readonly type: BigIntConstructor = BigInt;
   public static readonly literalType: LiteralType[] = [LiteralType.BigInt];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is bigint {
     return typeof value === 'bigint';
   }
 
@@ -57,7 +57,7 @@ export class CharSequence extends Extension<string> implements ExtensionConstruc
   public static readonly type: StringConstructor = String;
   public static readonly literalType: LiteralType[] = [LiteralType.String];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is string {
     return typeof value === 'string' || value instanceof String;
   }
 
@@ -78,7 +78,7 @@ export class Pattern extends Extension<RegExp> implements ExtensionConstructor<R
   public static readonly type: RegExpConstructor = RegExp;
   public static readonly literalType: LiteralType[] = [LiteralType.RegExp];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is RegExp {
     return value instanceof RegExp;
   }
 
@@ -91,7 +91,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public static readonly type: ObjectConstructor = Object;
   public static readonly literalType: LiteralType[] = Object.values<LiteralType>(LiteralType);
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is object {
     return [undefined, null].every((nullish: undefined | null): boolean => value !== nullish);
   }
 
@@ -120,7 +120,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   public static readonly type: ArrayConstructor = Array;
   public static readonly literalType: LiteralType[] = [LiteralType.Array];
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is unknown[] {
     return Array.isArray<unknown>(value);
   }
 
@@ -139,7 +139,8 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 
   public append(element: T): T[] {
-    return [...this.value, element];
+    this.value.push(element);
+    return this.value;
   }
 
   public equals<U extends T>({ length, ...array }: U[]): boolean {
@@ -178,26 +179,35 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 }
 
-export class Method<T extends (...args: unknown[]) => unknown> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
+export class Method<T extends (...args: any[]) => any> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
   public static readonly type: FunctionConstructor = Function;
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is (...args: any[]) => any {
     return typeof value === 'function';
   }
 
-  public static invoke<T>(callback: () => T): T {
-    return callback();
+  public static invoke<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
+    return callback(...args);
   }
 
-  public static optionalCall<T extends (...args: unknown[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
-    return typeof callback === 'function' ? callback(...args) : callback;
+  public static optionalCall<T extends (...args: any[]) => any, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U {
+    return Method.isType(callback) ? callback(...args) : callback;
+  }
+
+  public bindWhen(condition: boolean | ((...args: Parameters<T>) => boolean)): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+    return (...args: Parameters<T>): Optional<ReturnType<T>> =>
+      Method.optionalCall<(...args: Parameters<T>) => boolean, boolean>(condition, ...args) ? this.value(...args) : undefined;
+  }
+
+  public callWhen(condition: boolean | ((...args: Parameters<T>) => boolean), ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return Method.optionalCall<(...args: Parameters<T>) => boolean, boolean>(condition, ...args) ? this.value(...args) : undefined;
   }
 }
 
 export class Calc extends Extension<never> implements ExtensionConstructor<never, typeof Calc> {
   public static readonly type: Math = Math;
 
-  public static isType(): boolean {
+  public static isType(): false {
     return false;
   }
 
@@ -209,7 +219,7 @@ export class Calc extends Extension<never> implements ExtensionConstructor<never
 export class Element extends Extension<HTMLElement> implements ExtensionConstructor<HTMLElement, typeof Element> {
   public static readonly type: typeof HTMLElement = HTMLElement;
 
-  public static isType(value: unknown): boolean {
+  public static isType(value: unknown): value is HTMLElement {
     return value instanceof HTMLElement;
   }
 

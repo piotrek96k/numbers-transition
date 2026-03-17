@@ -97,12 +97,22 @@ declare global {
   }
 
   interface FunctionConstructor {
-    invoke<T>(callback: () => T): T;
+    invoke<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
     optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
     optionalCall<T extends (...args: any[]) => unknown, U, V extends Parameters<T>, W extends unknown[]>(
       callback: T | U,
       ...args: V | W
     ): ReturnType<T> | U;
+  }
+
+  interface Function {
+    bindWhen<T extends (...args: any[]) => unknown>(
+      condition: boolean | ((...args: Parameters<T>) => boolean),
+    ): (...args: Parameters<T>) => Optional<ReturnType<T>>;
+    callWhen<T extends (...args: any[]) => unknown>(
+      condition: boolean | ((...args: Parameters<T>) => boolean),
+      ...args: Parameters<T>
+    ): Optional<ReturnType<T>>;
   }
 
   interface Math {

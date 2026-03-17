@@ -1,7 +1,7 @@
-import type { ComponentProps } from 'react';
+import { ComponentProps, Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
 import { RuleSet, css } from 'styled-components';
-import type { ArgTypes, Meta, StoryObj } from '@storybook/react-vite';
-import type { InputType } from 'storybook/internal/types';
+import type { InputType, PartialStoryFn, StoryContext } from 'storybook/internal/types';
+import type { ArgTypes, Meta, ReactRenderer, StoryObj } from '@storybook/react-vite';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDirection,
@@ -15,14 +15,21 @@ import {
   BoxSizing,
   Color,
   CssUnit,
+  Cursor,
   DecimalSeparatorCharacter,
   DigitGroupSeparatorCharacter,
+  DragAndDropForwardProp,
+  DragAndDropVariableName,
   Integer,
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
+  RegularExpression,
   StepPosition,
+  StorybookInputType,
   Text,
+  TouchAction,
+  UserSelect,
   VariableName,
 } from './NumbersTransition.enums';
 import {
@@ -35,9 +42,10 @@ import {
   NumbersTransitionTheme,
   VerticalAnimation,
 } from './NumbersTransition.styles';
-import type { EnumType, EnumValue, Falsy, Remove, Select } from './NumbersTransition.types';
+import type { EnumType, EnumValue, Falsy, Nullable, Optional, Remove, Select, UncheckedBigDecimal } from './NumbersTransition.types';
+import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 
-type NumbersTransitionProps<
+type NumbersTransitionComponent<
   K extends object = object,
   L = unknown,
   M extends object = object,
@@ -65,13 +73,13 @@ type SelectType =
   | typeof OptimizationStrategy;
 
 type SelectTypes = {
-  [K in keyof Select<Required<ComponentProps<NumbersTransitionProps>>, EnumValue<SelectType>>]: EnumType<
+  [K in keyof Select<Required<ComponentProps<NumbersTransitionComponent>>, EnumValue<SelectType>>]: EnumType<
     SelectType,
-    Required<ComponentProps<NumbersTransitionProps>>[K]
+    Required<ComponentProps<NumbersTransitionComponent>>[K]
   >;
 };
 
-type ComponentArgTypes = Partial<ArgTypes<ComponentProps<NumbersTransitionProps>>>;
+type ComponentArgTypes = Partial<ArgTypes<ComponentProps<NumbersTransitionComponent>>>;
 
 type Story<
   K extends object = object,
@@ -90,11 +98,11 @@ type Story<
   X = unknown,
   Y extends object = object,
   Z = unknown,
-> = StoryObj<NumbersTransitionProps<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>;
+> = StoryObj<NumbersTransitionComponent<K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>>;
 
 const mapInputType = ([fieldName, enumObject]: [string, SelectType]): [string, InputType] => [
   fieldName,
-  { options: enumObject?.keys(), mapping: enumObject, control: { type: 'select' } },
+  { options: enumObject?.keys(), mapping: enumObject, control: { type: StorybookInputType.Select } },
 ];
 
 const meta: Meta<typeof NumbersTransition> = { component: NumbersTransition };
@@ -115,7 +123,7 @@ const basicEffectCss: RuleSet<object> = css<object>`
   color: ${Color.Yellow};
 `;
 
-const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
+const basicEffectArgs: ComponentProps<NumbersTransitionComponent> = {
   initialValue: Integer.Zero,
   value: [...Array<unknown>(Integer.Ten).keys()].reduce<string>((txt: string, index: number): string => `${index}${txt}${index}`, Text.Dot),
   precision: Integer.Ten,
@@ -133,7 +141,7 @@ const basicEffectArgs: ComponentProps<NumbersTransitionProps> = {
 
 export const BasicEffect: Story = { argTypes, args: basicEffectArgs };
 
-const stepsArgs: ComponentProps<NumbersTransitionProps> = {
+const stepsArgs: ComponentProps<NumbersTransitionComponent> = {
   ...basicEffectArgs,
   animationTimingFunction: {
     horizontalAnimation: { steps: Integer.Five, stepPosition: StepPosition.JumpEnd },
@@ -156,7 +164,7 @@ const marginCss: RuleSet<object> = css<object>`
   }
 `;
 
-const marginArgs: ComponentProps<NumbersTransitionProps> = { ...basicEffectArgs, view: { css: marginCss } };
+const marginArgs: ComponentProps<NumbersTransitionComponent> = { ...basicEffectArgs, view: { css: marginCss } };
 
 export const Margin: Story = { argTypes, args: marginArgs };
 
@@ -184,7 +192,7 @@ const borderCss: RuleSet<object> = css<object>`
   }
 `;
 
-const borderArgs: ComponentProps<NumbersTransitionProps> = { ...basicEffectArgs, view: { css: borderCss } };
+const borderArgs: ComponentProps<NumbersTransitionComponent> = { ...basicEffectArgs, view: { css: borderCss } };
 
 export const Border: Story = { argTypes, args: borderArgs };
 
@@ -208,7 +216,7 @@ const opacityAnimationCss: RuleSet<object> = css<object>`
   animation-iteration-count: ${Integer.One};
 `;
 
-const opacityAnimationArgs: ComponentProps<NumbersTransitionProps<object, number>> = {
+const opacityAnimationArgs: ComponentProps<NumbersTransitionComponent<object, number>> = {
   ...basicEffectArgs,
   view: { css: opacityAnimationCss, animation: opacityAnimationFactory },
 };
@@ -294,11 +302,243 @@ const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTra
   animation-iteration-count: ${Integer.One};
 `;
 
-const rotateAnimationArgs: ComponentProps<NumbersTransitionProps<object, unknown, object, unknown, object, number>> = {
+const rotateAnimationArgs: ComponentProps<NumbersTransitionComponent<object, unknown, object, unknown, object, number>> = {
   ...basicEffectArgs,
   digitView: { css: rotateAnimationCssFactory, animation: [horizontalRotateAnimationFactory, verticalRotateAnimationFactory] },
 };
 
 export const RotateAnimation: Story<object, unknown, object, unknown, object, number> = { argTypes, args: rotateAnimationArgs };
+
+interface DragAndDropContainerProps {
+  onAnimationEndCapture: () => void;
+}
+
+const dragAndDropCss: RuleSet<object> = css<object>`
+  ${basicEffectCss};
+  user-select: ${UserSelect.None};
+  touch-action: ${TouchAction.None};
+`;
+
+interface DragAndDropDigitProps {
+  isDragging: boolean;
+  onPointerDown: (event: PointerEvent<HTMLElement>) => void;
+  onPointerMove: (event: PointerEvent<HTMLElement>) => void;
+  onPointerUp: (event: PointerEvent<HTMLElement>) => void;
+  onPointerCancel: (event: PointerEvent<HTMLElement>) => void;
+}
+
+const dragAndDropDigitCssFactory: CssRuleFactory<Partial<DragAndDropDigitProps>> = ({
+  theme: { numberOfAnimations },
+}: NumbersTransitionExecutionContext): RuleSet<Partial<DragAndDropDigitProps>> | Falsy =>
+  numberOfAnimations === AnimationNumber.Zero &&
+  css<Partial<DragAndDropDigitProps>>`
+    cursor: ${({ isDragging }: NumbersTransitionExecutionContext & Partial<DragAndDropDigitProps>): string =>
+      isDragging ? Cursor.Grabbing : Cursor.Grab};
+    transform: translateX(var(${DragAndDropVariableName.Transform}));
+    transition: transform ${Integer.OneHundred}${CssUnit.Millisecond};
+  `;
+
+type DragAndDropNumbersTransitionProps = ComponentProps<
+  NumbersTransitionComponent<Partial<DragAndDropContainerProps>, unknown, object, unknown, Partial<DragAndDropDigitProps>>
+>;
+
+interface DragAndDropDigitsProps {
+  Story: PartialStoryFn<ReactRenderer, DragAndDropNumbersTransitionProps>;
+  context: StoryContext<ReactRenderer, DragAndDropNumbersTransitionProps>;
+}
+
+const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
+  const {
+    Story,
+    context: {
+      args: { value: providedValue, animationDuration: providedAnimationDuration, ...restArgs },
+    },
+  }: DragAndDropDigitsProps = props;
+
+  const [activePointer, setActivePointer]: [Nullable<number>, Dispatch<SetStateAction<Nullable<number>>>] =
+    useState<Nullable<number>>(null);
+  const [dragValue, setDragValue]: [Nullable<string>, Dispatch<SetStateAction<Nullable<string>>>] = useState<Nullable<string>>(null);
+
+  const baseValue: RefObject<Optional<UncheckedBigDecimal>> = useRef<Optional<UncheckedBigDecimal>>(providedValue);
+  const timeout: RefObject<Optional<NodeJS.Timeout>> = useRef<Optional<NodeJS.Timeout>>(undefined);
+
+  const elements: RefObject<[HTMLElement[], DOMRect[], number[], number[], number[]]> = useRef<
+    [HTMLElement[], DOMRect[], number[], number[], number[]]
+  >([[], [], [], [], []]);
+
+  const dragIndex: RefObject<number> = useRef<number>(Integer.Zero);
+  const startOffset: RefObject<number> = useRef<number>(Integer.Zero);
+
+  useEffect(
+    (): void =>
+      [(): unknown => (baseValue.current = providedValue)]
+        .when(dragValue === null && !timeout.current)
+        .forEach(Function.invoke<() => unknown>),
+    [providedValue, dragValue],
+  );
+
+  const filterElements = (child: Element): child is HTMLElement =>
+    child instanceof HTMLElement && RegularExpression.Digit.test(child.textContent);
+
+  const reduceElements = (
+    [digits, rects, centers, transforms, currentTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]],
+    [digit, rect]: [HTMLElement, DOMRect],
+  ): [HTMLElement[], DOMRect[], number[], number[], number[]] => [
+    digits.append(digit),
+    rects.append(rect),
+    centers.append(rect.left + rect.width / Integer.Two),
+    transforms.append(digit.style.getPropertyValue(DragAndDropVariableName.Transform).number || Integer.Zero),
+    currentTransforms.append(Integer.Zero),
+  ];
+
+  const updateTransform =
+    (transform: (index: number) => number): ((element: HTMLElement, index?: number) => void) =>
+    ({ style }: HTMLElement, index: number = Integer.Zero): void =>
+      style.setProperty(DragAndDropVariableName.Transform, `${transform(index)}${CssUnit.Pixel}`);
+
+  const reduceToNewValue =
+    (reorderedDigits: string[]): ((acc: [string[], number], character: string) => [string[], number]) =>
+    ([characters, index]: [string[], number], character: string): [string[], number] =>
+      RegularExpression.Digit.test(character)
+        ? [characters.append(reorderedDigits[index]), index + Integer.One]
+        : [characters.append(character), index];
+
+  const readNewValue = (digits: string[]): string =>
+    [...`${baseValue.current}`]
+      .reduce<[string[], number]>(reduceToNewValue(digits), [[], Integer.Zero])
+      .at<Integer.Zero>(Integer.Zero)
+      .join(Text.Empty);
+
+  const scheduleUpdate = (value: string): NodeJS.Timeout =>
+    (timeout.current = setTimeout(
+      (): void => [(): void => (timeout.current = undefined), (): void => setDragValue(value)].forEach(Function.invoke<() => void>),
+      Integer.TwoThousand,
+    ));
+
+  const onPointerDown = ({ currentTarget, clientX, pointerId }: PointerEvent<HTMLElement>): void => {
+    clearTimeout(timeout.current);
+    currentTarget.setPointerCapture(pointerId);
+
+    const currentElements: [HTMLElement[], DOMRect[], number[], number[], number[]] = [...currentTarget.parentElement!.children]
+      .filter<HTMLElement>(filterElements)
+      .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
+      .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
+      .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]);
+
+    elements.current = currentElements;
+    dragIndex.current = currentElements[Integer.Zero].indexOf(currentTarget);
+    startOffset.current = clientX;
+    setActivePointer(pointerId);
+  };
+
+  const onPointerMove = ({ clientX }: PointerEvent<HTMLElement>): void => {
+    const [digits, rects, centers, transforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
+    const dragIdx: number = dragIndex.current;
+    const min: number = centers.at(Integer.Zero)! - centers[dragIdx];
+    const max: number = centers.at(Integer.MinusOne)! - centers[dragIdx];
+
+    const dragOffset: number = Math.max(Math.min(clientX - startOffset.current, max), min);
+    const dragCenter: number = centers[dragIdx] + dragOffset;
+
+    const getTransform = (index: number): number =>
+      [
+        centers[index] > dragCenter - rects[dragIdx].width / Integer.Two ? centers[index + Integer.One] - centers[index] : Integer.Zero,
+        centers[index] < dragCenter + rects[dragIdx].width / Integer.Two ? centers[index - Integer.One] - centers[index] : Integer.Zero,
+      ]
+        .zip<[number, number], [boolean, boolean]>(index < dragIdx, index > dragIdx)
+        .findMap<number>(
+          ([, condition]: [number, boolean]): boolean => condition,
+          ([transform]: [number, boolean]): number => transform,
+          dragOffset,
+        );
+
+    const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
+
+    elements.current[Integer.Four] = currentTransforms;
+
+    digits.forEach(updateTransform((index: number): number => transforms[index] + currentTransforms[index]));
+  };
+
+  const onPointerUp = ({ currentTarget, pointerId }: PointerEvent<HTMLElement>): void => {
+    const [digits, , centers, transforms, currentTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
+    const dragIdx: number = dragIndex.current;
+
+    const reorderedDigits: [string, number][] = digits
+      .map<[string, number]>(({ textContent }: HTMLElement, index: number): [string, number] => [textContent, index])
+      .sort(
+        ([, first]: [string, number], [, second]: [string, number]): number =>
+          centers[first] + currentTransforms[first] - (centers[second] + currentTransforms[second]),
+      );
+
+    const freeIndex: number = reorderedDigits.findIndex(([, index]: [string, number]): boolean => index === dragIdx);
+    const newValue: string = readNewValue(reorderedDigits.map<string>(([digit]: [string, number]): string => digit));
+    const isNewValueValid: boolean = RegularExpression.BigDecimal.test(newValue);
+
+    [
+      (): void =>
+        currentTarget.pipe<HTMLElement, void>(updateTransform((): number => centers[freeIndex] - centers[dragIdx] + transforms[dragIdx])),
+      (): void => digits.forEach(updateTransform((index: number): number => transforms[index])),
+    ]
+      .zip<[() => void, () => void], [boolean, boolean]>(isNewValueValid, true)
+      .findMap<void>(
+        ([, condition]: [() => void, boolean]): boolean => condition,
+        ([callback]: [() => void, boolean]): void => callback(),
+      );
+
+    currentTarget.releasePointerCapture(pointerId);
+    setActivePointer(null);
+    scheduleUpdate(isNewValueValid ? newValue : readNewValue(digits.map<string>(({ textContent }: HTMLElement): string => textContent)));
+  };
+
+  const onPointerCancel = (): void => setActivePointer(null);
+
+  const isActivePointer = ({ pointerId }: PointerEvent<HTMLElement>): boolean => pointerId === activePointer;
+
+  const forwardProps = ({ numberOfAnimations }: NumbersTransitionTheme): DragAndDropForwardProp[] =>
+    numberOfAnimations === AnimationNumber.Zero
+      ? [
+          DragAndDropForwardProp.OnPointerDown,
+          DragAndDropForwardProp.OnPointerMove,
+          DragAndDropForwardProp.OnPointerUp,
+          DragAndDropForwardProp.OnPointerCancel,
+        ]
+      : [DragAndDropForwardProp.OnAnimationEndCapture];
+
+  const value: Optional<UncheckedBigDecimal> = timeout.current ? baseValue.current : (dragValue ?? providedValue);
+
+  const animationDuration: Optional<AnimationDuration | TotalAnimationDuration> =
+    dragValue === null ? providedAnimationDuration : { horizontalAnimation: Integer.Zero, verticalAnimation: Integer.Zero };
+
+  const view: View<Partial<DragAndDropContainerProps>, unknown> = {
+    css: dragAndDropCss,
+    viewProps: {
+      onAnimationEndCapture: (): void => setDragValue.callWhen<Dispatch<SetStateAction<Nullable<string>>>>(dragValue !== null, null),
+    },
+  };
+
+  const digitView: View<Partial<DragAndDropDigitProps>, unknown> = {
+    css: dragAndDropDigitCssFactory,
+    viewProps: {
+      isDragging: activePointer !== null,
+      onPointerDown: onPointerDown.bindWhen<(event: PointerEvent<HTMLElement>) => void>(activePointer === null),
+      onPointerMove: onPointerMove.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
+      onPointerUp: onPointerUp.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
+      onPointerCancel: onPointerCancel.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
+    },
+  };
+
+  return <Story args={{ ...restArgs, value, animationDuration, view, digitView, forwardProps }} />;
+};
+
+export const DragAndDrop: Story<Partial<DragAndDropContainerProps>, unknown, object, unknown, Partial<DragAndDropDigitProps>> = {
+  argTypes,
+  args: { ...basicEffectArgs, animationInterruptionMode: AnimationInterruptionMode.Continue },
+  decorators: [
+    (
+      Story: PartialStoryFn<ReactRenderer, DragAndDropNumbersTransitionProps>,
+      context: StoryContext<ReactRenderer, DragAndDropNumbersTransitionProps>,
+    ) => <DragAndDropDigits Story={Story} context={context} />,
+  ],
+};
 
 export default meta;

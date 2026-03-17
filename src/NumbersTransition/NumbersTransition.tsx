@@ -106,7 +106,7 @@ export interface NumbersTransitionProps<
   digitGroupSeparatorView?: View<U, V>;
   negativeCharacterView?: View<W, X>;
   invalidView?: View<Y, Z>;
-  forwardProps?: string[];
+  forwardProps?: ((theme: NumbersTransitionTheme) => string[]) | string[];
 }
 
 const NumbersTransition = <
@@ -275,7 +275,7 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => [(): void => setPreviousValueOnEnd(validValue)].when(omitAnimation).forEach(Function.invoke<void>),
+    (): void => setPreviousValueOnEnd.callWhen<Dispatch<SetStateAction<BigDecimal>>>(omitAnimation, validValue),
     [validValue, omitAnimation],
   );
 
@@ -284,11 +284,29 @@ const NumbersTransition = <
       [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
         .when(restartAnimation)
         .append<() => unknown>((): unknown => (previousValueOnStart.current = validValue))
-        .forEach(Function.invoke<unknown>),
+        .forEach(Function.invoke<() => unknown>),
     [validValue, restartAnimation],
   );
 
-  const shouldForwardProp = (prop: string): boolean => [...ForwardProp.values<ForwardProp>(), ...forwardProps].includes(prop);
+  const theme: NumbersTransitionTheme = {
+    ...elementsLength,
+    numberOfAnimations,
+    animationNumber,
+    animationType,
+    animationDirection,
+    mapEasingFunction,
+    animationTimingFunction,
+    animationDuration,
+    horizontalAnimationDuration,
+    verticalAnimationDuration,
+    totalAnimationDuration,
+  };
+
+  const shouldForwardProp = (prop: string): boolean =>
+    [
+      ...ForwardProp.values<ForwardProp>(),
+      ...Function.optionalCall<(theme: NumbersTransitionTheme) => string[], string[]>(forwardProps, theme),
+    ].includes(prop);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [
@@ -306,22 +324,8 @@ const NumbersTransition = <
       .when(AnimationId.values<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
       .findMap<void>(
         ([condition]: [boolean, (() => void)[]]): boolean => condition,
-        ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.invoke<void>),
+        ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.invoke<() => void>),
       );
-
-  const theme: NumbersTransitionTheme = {
-    ...elementsLength,
-    numberOfAnimations,
-    animationNumber,
-    animationType,
-    animationDirection,
-    mapEasingFunction,
-    animationTimingFunction,
-    animationDuration,
-    horizontalAnimationDuration,
-    verticalAnimationDuration,
-    totalAnimationDuration,
-  };
 
   const negativeProps: NegativeProps<W, X> = { negativeCharacter, negativeCharacterStyledView };
 
