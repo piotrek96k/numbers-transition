@@ -109,11 +109,9 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   const [mountedElements, setMountedElements]: [number, Dispatch<SetStateAction<number>>] = useState<number>(renderBatchSize);
 
-  const countAggregatedSums = useCallback<(aggregatedSums: number[], child: ReactElement<ChildrenProps>) => number[]>(
-    (aggregatedSums: number[], child: ReactElement<ChildrenProps>): number[] => [
-      ...aggregatedSums,
-      (aggregatedSums.at(Integer.MinusOne) ?? Integer.Zero) + countElements(child),
-    ],
+  // prettier-ignore
+  const countAggregatedSums = useCallback<(sums: number[], child: ReactElement<ChildrenProps>) => number[]>(
+    (sums: number[], child: ReactElement<ChildrenProps>): number[] => [...sums, (sums.at(Integer.MinusOne) ?? Integer.Zero) + countElements(child)],
     [countElements],
   );
 
