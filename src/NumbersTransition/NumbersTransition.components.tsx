@@ -127,7 +127,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     (): void =>
       [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + renderBatchSize))]
         .when(mountedElements < aggregatedSums.at(Integer.MinusOne)!)
-        .forEach(Function.invoke<() => unknown>),
+        .forEach(Function.call<() => unknown>),
     [renderBatchSize, mountedElements, aggregatedSums],
   );
 

@@ -98,7 +98,7 @@ export const useValue = (
       (): unknown => values.current.length && rerender(),
     ]
       .when(validValue === previousValue || !isValueValid)
-      .forEach(Function.invoke<() => unknown>),
+      .forEach(Function.call<() => unknown>),
   );
 
   return [validValue, isValueValid];

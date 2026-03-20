@@ -373,7 +373,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     (): void =>
       [(): unknown => (baseValue.current = providedValue)]
         .when(dragValue === null && !timeout.current)
-        .forEach(Function.invoke<() => unknown>),
+        .forEach(Function.call<() => unknown>),
     [providedValue, dragValue],
   );
 
@@ -411,7 +411,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
   const scheduleUpdate = (value: string): NodeJS.Timeout =>
     (timeout.current = setTimeout(
-      (): void => [(): void => (timeout.current = undefined), (): void => setDragValue(value)].forEach(Function.invoke<() => void>),
+      (): void => [(): void => (timeout.current = undefined), (): void => setDragValue(value)].forEach(Function.call<() => void>),
       Integer.TwoThousand,
     ));
 

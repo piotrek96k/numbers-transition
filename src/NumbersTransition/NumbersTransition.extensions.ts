@@ -124,18 +124,18 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return Array.isArray<unknown>(value);
   }
 
-  public static toArray<T>(value: OrArray<T>): T[] {
-    return Array.isArray<T>(value) ? value : [value];
+  public static depth<T>(array: T): number {
+    return Array.isArray<T>(array)
+      ? Integer.One + array.map<number>(List.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
+      : Integer.Zero;
   }
 
   public static isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
     return this.depth<unknown>(array) === depth;
   }
 
-  public static depth<T>(array: T): number {
-    return Array.isArray<T>(array)
-      ? Integer.One + array.map<number>(List.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
-      : Integer.Zero;
+  public static toArray<T>(value: OrArray<T>): T[] {
+    return Array.isArray<T>(value) ? value : [value];
   }
 
   public append(element: T): T[] {
@@ -186,7 +186,7 @@ export class Method<T extends (...args: any[]) => any> extends Extension<T> impl
     return typeof value === 'function';
   }
 
-  public static invoke<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
+  public static call<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
     return callback(...args);
   }
 

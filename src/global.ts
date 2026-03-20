@@ -97,7 +97,7 @@ declare global {
   }
 
   interface FunctionConstructor {
-    invoke<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
+    call<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
     optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
     optionalCall<T extends (...args: any[]) => unknown, U, V extends Parameters<T>, W extends unknown[]>(
       callback: T | U,

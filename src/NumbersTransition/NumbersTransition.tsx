@@ -284,7 +284,7 @@ const NumbersTransition = <
       [(): void => setPreviousValueOnEnd(previousValueOnStart.current), (): void => setAnimationTransition(AnimationTransition.None)]
         .when(restartAnimation)
         .append<() => unknown>((): unknown => (previousValueOnStart.current = validValue))
-        .forEach(Function.invoke<() => unknown>),
+        .forEach(Function.call<() => unknown>),
     [validValue, restartAnimation],
   );
 
@@ -324,7 +324,7 @@ const NumbersTransition = <
       .when(AnimationId.values<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
       .findMap<void>(
         ([condition]: [boolean, (() => void)[]]): boolean => condition,
-        ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.invoke<() => void>),
+        ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.call<() => void>),
       );
 
   const negativeProps: NegativeProps<W, X> = { negativeCharacter, negativeCharacterStyledView };
