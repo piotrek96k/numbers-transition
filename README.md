@@ -102,8 +102,8 @@ const Example: FC = () => {
 
   return (
     <>
-      <button onClick={() => setValue((previous) => previous + 1_000_000)}>Add Million</button>
       <NumbersTransition value={value} />
+      <button onClick={() => setValue((previous) => previous + 1_000_000)}>Add Million</button>
     </>
   );
 };
