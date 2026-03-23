@@ -453,9 +453,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
         );
 
     const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
-
     elements.current[Integer.Four] = currentTransforms;
-
     digits.forEach(updateTransform((index: number): number => transforms[index] + currentTransforms[index]));
   };
 
