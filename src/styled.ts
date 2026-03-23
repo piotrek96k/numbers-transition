@@ -21,7 +21,7 @@ declare module 'styled-components' {
     [key: `${Text.Minus}${Text.Minus}${string}`]: Optional<string | number>;
   }
 
-  interface ExoticComponentWithDisplayName<T extends BaseObject = {}> extends ExoticComponent<T> {
+  interface ExoticComponentWithDisplayName<T extends BaseObject = BaseObject> extends ExoticComponent<T> {
     defaultProps?: Partial<T>;
     displayName?: string;
   }
