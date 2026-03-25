@@ -8,7 +8,7 @@ import type {
   ReactElement,
   ReactNode,
 } from 'react';
-import type { CSSProperties, FastOmit, IStyledComponent, SupportedHTMLElements } from 'styled-components';
+import type { CSSProperties, FastOmit, IStyledComponent, StyleFunction, StyledObject, SupportedHTMLElements } from 'styled-components';
 import type { Runtime, Text } from './NumbersTransition/NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
 import type { Nullable, Optional } from './NumbersTransition/NumbersTransition.types';
@@ -32,6 +32,7 @@ declare module 'styled-components' {
   type StyledComponentBase<T extends object> = IStyledComponent<Runtime.Web, T>;
   type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
 
+  export type Styles<T extends BaseObject> = TemplateStringsArray | StyledObject<T> | StyleFunction<T>;
   export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
   export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
     Substitute<ComponentPropsWithRef<T> & BaseObject, U>

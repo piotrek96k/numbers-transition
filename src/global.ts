@@ -107,10 +107,10 @@ declare global {
 
   interface Function {
     bindWhen<T extends (...args: any[]) => unknown>(
-      condition: boolean | ((...args: Parameters<T>) => boolean),
+      condition: unknown | ((...args: Parameters<T>) => unknown),
     ): (...args: Parameters<T>) => Optional<ReturnType<T>>;
     callWhen<T extends (...args: any[]) => unknown>(
-      condition: boolean | ((...args: Parameters<T>) => boolean),
+      condition: unknown | ((...args: Parameters<T>) => unknown),
       ...args: Parameters<T>
     ): Optional<ReturnType<T>>;
   }
@@ -121,5 +121,9 @@ declare global {
 
   interface HTMLElement {
     readonly computedStyle: CSSStyleDeclaration;
+  }
+
+  interface CSSStyleDeclaration {
+    readonly transformProperty: string;
   }
 }

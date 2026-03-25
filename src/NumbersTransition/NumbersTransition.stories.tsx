@@ -387,7 +387,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     digits.append(digit),
     rects.append(rect),
     centers.append(rect.left + rect.width / Integer.Two),
-    transforms.append(digit.style.getPropertyValue(DragAndDropVariableName.Transform).number || Integer.Zero),
+    transforms.append(digit.style.transformProperty.number || Integer.Zero),
     currentTransforms.append(Integer.Zero),
   ];
 

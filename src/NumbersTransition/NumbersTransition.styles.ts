@@ -4,10 +4,12 @@ import styled, {
   BaseObject,
   ExecutionProps,
   HTMLDetailedElement,
+  Interpolation,
   Keyframes,
   RuleSet,
   StyledComponent,
   StyledHTMLAttributes,
+  Styles,
   css,
   keyframes,
 } from 'styled-components';
@@ -422,9 +424,10 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
     )
     .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
-// prettier-ignore
 const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
-  [css<object>`animation-name: ${animationsKeyframes};`].when(animationsKeyframes).at(Integer.Zero);
+  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes)`
+    animation-name: ${animationsKeyframes};
+  `;
 
 const animationFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
@@ -446,9 +449,10 @@ interface VisibilityProps {
   visible?: boolean;
 }
 
-// prettier-ignore
 const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
-  [css<object>`color: ${Color.Transparent};`].when(!visible).at(Integer.Zero);
+  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(!visible)`
+    color: ${Color.Transparent};
+  `;
 
 interface ContainerProps<T extends object, U> extends NumbersTransitionExecutionContext, StyledView<Styled.Container, T, U> {}
 

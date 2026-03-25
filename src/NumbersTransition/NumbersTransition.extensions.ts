@@ -1,5 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import { Integer } from './NumbersTransition.enums';
+import { DragAndDropVariableName, Integer } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -194,13 +194,13 @@ export class Method<T extends (...args: any[]) => any> extends Extension<T> impl
     return Method.isType(callback) ? callback(...args) : callback;
   }
 
-  public bindWhen(condition: boolean | ((...args: Parameters<T>) => boolean)): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+  public bindWhen(condition: unknown | ((...args: Parameters<T>) => unknown)): (...args: Parameters<T>) => Optional<ReturnType<T>> {
     return (...args: Parameters<T>): Optional<ReturnType<T>> =>
-      Method.optionalCall<(...args: Parameters<T>) => boolean, boolean>(condition, ...args) ? this.value(...args) : undefined;
+      Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args) ? this.value(...args) : undefined;
   }
 
-  public callWhen(condition: boolean | ((...args: Parameters<T>) => boolean), ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return Method.optionalCall<(...args: Parameters<T>) => boolean, boolean>(condition, ...args) ? this.value(...args) : undefined;
+  public callWhen(condition: unknown | ((...args: Parameters<T>) => unknown), ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args) ? this.value(...args) : undefined;
   }
 }
 
@@ -225,5 +225,17 @@ export class Element extends Extension<HTMLElement> implements ExtensionConstruc
 
   public get computedStyle(): CSSStyleDeclaration {
     return getComputedStyle(this.value);
+  }
+}
+
+export class Style extends Extension<CSSStyleDeclaration> implements ExtensionConstructor<CSSStyleDeclaration, typeof Style> {
+  public static readonly type: typeof CSSStyleDeclaration = CSSStyleDeclaration;
+
+  public static isType(value: unknown): value is CSSStyleDeclaration {
+    return value instanceof CSSStyleDeclaration;
+  }
+
+  public get transformProperty(): string {
+    return this.value.getPropertyValue(DragAndDropVariableName.Transform);
   }
 }
