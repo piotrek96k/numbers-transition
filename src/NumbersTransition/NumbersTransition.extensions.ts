@@ -179,7 +179,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 }
 
-export class Method<T extends (...args: any[]) => any> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
+export class Callable<T extends (...args: any[]) => any> extends Extension<T> implements ExtensionConstructor<T, typeof Callable<T>> {
   public static readonly type: FunctionConstructor = Function;
   public static readonly literalType: LiteralType[] = [LiteralType.Function];
 
@@ -192,7 +192,7 @@ export class Method<T extends (...args: any[]) => any> extends Extension<T> impl
   }
 
   public static optionalCall<T extends (...args: any[]) => any, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U {
-    return Method.isType(callback) ? callback(...args) : callback;
+    return Callable.isType(callback) ? callback(...args) : callback;
   }
 
   public bindWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
@@ -200,7 +200,7 @@ export class Method<T extends (...args: any[]) => any> extends Extension<T> impl
   }
 
   public callWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(cond, ...args)
+    return Callable.optionalCall<(...args: Parameters<T>) => unknown, unknown>(cond, ...args)
       ? this.value.call<U, Parameters<T>, ReturnType<T>>(self, ...args)
       : undefined;
   }
