@@ -10,4 +10,5 @@ export enum LiteralType {
   RegExp = 'RegExp',
   Object = 'Object',
   Array = 'Array',
+  Function = 'Function',
 }

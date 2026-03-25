@@ -181,6 +181,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
 export class Method<T extends (...args: any[]) => any> extends Extension<T> implements ExtensionConstructor<T, typeof Method<T>> {
   public static readonly type: FunctionConstructor = Function;
+  public static readonly literalType: LiteralType[] = [LiteralType.Function];
 
   public static isType(value: unknown): value is (...args: any[]) => any {
     return typeof value === 'function';

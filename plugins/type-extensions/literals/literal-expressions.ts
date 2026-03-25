@@ -2,7 +2,9 @@ import {
   Node,
   SyntaxKind,
   isArrayLiteralExpression,
+  isArrowFunction,
   isBigIntLiteral,
+  isFunctionExpression,
   isNumericLiteral,
   isObjectLiteralExpression,
   isParenthesizedExpression,
@@ -13,19 +15,17 @@ import { getContext } from '../context/context';
 import { LiteralType } from '../enums/literal-type';
 import { RuntimeExtension } from '../runtime/types';
 
-const isBooleanLiteral = ({ kind }: Node): boolean =>
-  [SyntaxKind.TrueKeyword, SyntaxKind.FalseKeyword].some((key: SyntaxKind): boolean => key === kind);
-
 const unwrap = (node: Node): Node => (isParenthesizedExpression(node) ? unwrap(node.expression) : node);
 
 const literalChecksMap: Map<LiteralType, (node: Node) => boolean> = new Map<LiteralType, (node: Node) => boolean>([
-  [LiteralType.Boolean, isBooleanLiteral],
+  [LiteralType.Boolean, ({ kind }: Node): boolean => SyntaxKind.TrueKeyword === kind || SyntaxKind.FalseKeyword === kind],
   [LiteralType.Number, isNumericLiteral],
   [LiteralType.BigInt, isBigIntLiteral],
   [LiteralType.String, isStringLiteralLike],
   [LiteralType.RegExp, isRegularExpressionLiteral],
   [LiteralType.Object, isObjectLiteralExpression],
   [LiteralType.Array, isArrayLiteralExpression],
+  [LiteralType.Function, (node: Node): boolean => isFunctionExpression(node) || isArrowFunction(node)],
 ]);
 
 export const isLiteralExpression =
