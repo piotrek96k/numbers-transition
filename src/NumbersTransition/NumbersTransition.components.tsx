@@ -123,9 +123,11 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   useEffect(
     (): void =>
-      [(): unknown => requestAnimationFrame((): void => setMountedElements((previous: number): number => previous + renderBatchSize))]
-        .when(mountedElements < aggregatedSums.at(Integer.MinusOne)!)
-        .forEach(Function.call<() => unknown>),
+      requestAnimationFrame.invokeWhen<Window, (callback: FrameRequestCallback) => number>(
+        mountedElements < aggregatedSums.at(Integer.MinusOne)!,
+        window,
+        (): void => setMountedElements((previous: number): number => previous + renderBatchSize),
+      ),
     [renderBatchSize, mountedElements, aggregatedSums],
   );
 

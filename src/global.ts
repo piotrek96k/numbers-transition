@@ -54,7 +54,7 @@ declare global {
     append<U>(element: U): T extends U ? U[] : never;
     at(index: number): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
-    equals<U>(array: U[]): boolean;
+    equals<U extends T>(array: U[]): boolean;
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U): Optional<U>;
     findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U, fallback: U): U;
@@ -106,13 +106,23 @@ declare global {
   }
 
   interface Function {
-    bindWhen<T extends (...args: any[]) => unknown>(
-      condition: unknown | ((...args: Parameters<T>) => unknown),
-    ): (...args: Parameters<T>) => Optional<ReturnType<T>>;
-    callWhen<T extends (...args: any[]) => unknown>(
-      condition: unknown | ((...args: Parameters<T>) => unknown),
-      ...args: Parameters<T>
-    ): Optional<ReturnType<T>>;
+    bindWhen<T, U extends (...args: any[]) => unknown>(
+      this: U,
+      condition: unknown | ((...args: Parameters<U>) => unknown),
+      thisArg: T,
+    ): (...args: Parameters<U>) => Optional<ReturnType<U>>;
+    callWhen<T, U extends (...args: any[]) => unknown>(
+      this: U,
+      condition: unknown | ((...args: Parameters<U>) => unknown),
+      thisArg: T,
+      ...args: Parameters<U>
+    ): Optional<ReturnType<U>>;
+    invokeWhen<T, U extends (...args: any[]) => unknown>(
+      this: U,
+      condition: unknown | ((...args: Parameters<U>) => unknown),
+      thisArg: T,
+      ...args: Parameters<U>
+    ): void;
   }
 
   interface Math {

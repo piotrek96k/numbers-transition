@@ -275,7 +275,7 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => setPreviousValueOnEnd.callWhen<Dispatch<SetStateAction<BigDecimal>>>(omitAnimation, validValue),
+    (): void => setPreviousValueOnEnd.callWhen<undefined, Dispatch<SetStateAction<BigDecimal>>>(omitAnimation, undefined, validValue),
     [validValue, omitAnimation],
   );
 

@@ -425,7 +425,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
     .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
 const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
-  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes)`
+  css.bindWhen<undefined, (styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes, undefined)`
     animation-name: ${animationsKeyframes};
   `;
 
@@ -450,7 +450,7 @@ interface VisibilityProps {
 }
 
 const visibility = ({ visible = true }: VisibilityProps): Optional<RuleSet<object>> =>
-  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(!visible)`
+  css.bindWhen<undefined, (styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(!visible, undefined)`
     color: ${Color.Transparent};
   `;
 

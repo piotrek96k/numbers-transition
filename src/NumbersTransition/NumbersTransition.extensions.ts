@@ -194,13 +194,18 @@ export class Method<T extends (...args: any[]) => any> extends Extension<T> impl
     return Method.isType(callback) ? callback(...args) : callback;
   }
 
-  public bindWhen(condition: unknown | ((...args: Parameters<T>) => unknown)): (...args: Parameters<T>) => Optional<ReturnType<T>> {
-    return (...args: Parameters<T>): Optional<ReturnType<T>> =>
-      Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args) ? this.value(...args) : undefined;
+  public bindWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(cond, self, ...args);
   }
 
-  public callWhen(condition: unknown | ((...args: Parameters<T>) => unknown), ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args) ? this.value(...args) : undefined;
+  public callWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return Method.optionalCall<(...args: Parameters<T>) => unknown, unknown>(cond, ...args)
+      ? this.value.call<U, Parameters<T>, ReturnType<T>>(self, ...args)
+      : undefined;
+  }
+
+  public invokeWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U, ...args: Parameters<T>): void {
+    this.callWhen(cond, self, ...args);
   }
 }
 
