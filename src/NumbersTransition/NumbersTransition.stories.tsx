@@ -433,23 +433,31 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   };
 
   const onPointerMove = ({ clientX }: PointerEvent<HTMLElement>): void => {
-    const [digits, rects, centers, transforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
+    const [digits, rects, centers, transforms, lastTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
     const dragIdx: number = dragIndex.current;
     const min: number = centers.at(Integer.Zero)! - centers[dragIdx];
     const max: number = centers.at(Integer.MinusOne)! - centers[dragIdx];
 
     const dragOffset: number = Math.max(Math.min(clientX - startOffset.current, max), min);
     const dragCenter: number = centers[dragIdx] + dragOffset;
+    const dragCenterOffset: number = rects[dragIdx].width / Integer.Two;
+
+    const getPreviousDigitTransform = (index: number): number =>
+      centers[index] > dragCenter - dragCenterOffset || centers[index] + lastTransforms[index] > dragCenter + dragCenterOffset
+        ? centers[index + Integer.One] - centers[index]
+        : Integer.Zero;
+
+    const getNextDigitTransform = (index: number): number =>
+      centers[index] < dragCenter + dragCenterOffset || centers[index] + lastTransforms[index] < dragCenter - dragCenterOffset
+        ? centers[index - Integer.One] - centers[index]
+        : Integer.Zero;
 
     const getTransform = (index: number): number =>
-      [
-        centers[index] > dragCenter - rects[dragIdx].width / Integer.Two ? centers[index + Integer.One] - centers[index] : Integer.Zero,
-        centers[index] < dragCenter + rects[dragIdx].width / Integer.Two ? centers[index - Integer.One] - centers[index] : Integer.Zero,
-      ]
-        .zip<[number, number], [boolean, boolean]>(index < dragIdx, index > dragIdx)
+      [index < dragIdx, index > dragIdx]
+        .zip<[boolean, boolean], [(index: number) => number, (index: number) => number]>(getPreviousDigitTransform, getNextDigitTransform)
         .findMap<number>(
-          ([, condition]: [number, boolean]): boolean => condition,
-          ([transform]: [number, boolean]): number => transform,
+          ([condition]: [boolean, (index: number) => number]): boolean => condition,
+          ([, transform]: [boolean, (index: number) => number]): number => transform(index),
           dragOffset,
         );
 
