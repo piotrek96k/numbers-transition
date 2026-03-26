@@ -353,9 +353,9 @@ const animationName = ({ theme: { animationType }, ...restProps }: AnimationProp
     .at<Integer.One>(Integer.One)
     .pipe<Keyframes | ((props: AnimationWidthProps) => Keyframes), Keyframes>(
       (animation: ((props: AnimationWidthProps) => Keyframes) | Keyframes): Keyframes =>
-        Function.optionalCall<(props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]>(
-          animation, restProps,
-        ),
+        Function.optionalCall<
+          (props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]
+        >(animation, restProps),
     );
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
