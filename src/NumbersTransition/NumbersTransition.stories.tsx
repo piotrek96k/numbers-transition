@@ -1,4 +1,15 @@
-import { ComponentProps, Dispatch, PointerEvent, ReactNode, RefObject, SetStateAction, useEffect, useRef, useState } from 'react';
+import {
+  ComponentProps,
+  Dispatch,
+  PointerEvent,
+  ReactNode,
+  RefObject,
+  SetStateAction,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { RuleSet, css } from 'styled-components';
 import type { InputType, PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import type { ArgTypes, Meta, ReactRenderer, StoryObj } from '@storybook/react-vite';
@@ -309,6 +320,8 @@ const rotateAnimationArgs: ComponentProps<NumbersTransitionComponent<object, unk
 
 export const RotateAnimation: Story<object, unknown, object, unknown, object, number> = { argTypes, args: rotateAnimationArgs };
 
+type DragAndDropElementsTuple = [string[], HTMLElement[], DOMRect[], number[], number[], number[]];
+
 interface DragAndDropContainerProps {
   onAnimationEndCapture: () => void;
 }
@@ -351,7 +364,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const {
     Story,
     context: {
-      args: { value: providedValue, animationDuration: providedAnimationDuration, ...restArgs },
+      args: { value: providedValue, precision = Integer.Zero, animationDuration: providedAnimationDuration, ...restArgs },
     },
   }: DragAndDropDigitsProps = props;
 
@@ -362,12 +375,19 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const baseValue: RefObject<Optional<UncheckedBigDecimal>> = useRef<Optional<UncheckedBigDecimal>>(providedValue);
   const timeout: RefObject<Optional<NodeJS.Timeout>> = useRef<Optional<NodeJS.Timeout>>(undefined);
 
-  const elements: RefObject<[HTMLElement[], DOMRect[], number[], number[], number[]]> = useRef<
-    [HTMLElement[], DOMRect[], number[], number[], number[]]
-  >([[], [], [], [], []]);
+  const elements: RefObject<DragAndDropElementsTuple> = useRef<DragAndDropElementsTuple>([[], [], [], [], [], []]);
 
   const dragIndex: RefObject<number> = useRef<number>(Integer.Zero);
   const startOffset: RefObject<number> = useRef<number>(Integer.Zero);
+
+  const updateTransform = useCallback<(transform: (index: number) => number) => (element: HTMLElement, index?: number) => void>(
+    (transform: (index: number) => number): ((element: HTMLElement, index?: number) => void) =>
+      ({ style }: HTMLElement, index: number = Integer.Zero): void =>
+        style.setProperty(DragAndDropVariableName.Transform, `${transform(index)}${CssUnit.Pixel}`),
+    [],
+  );
+
+  useEffect((): void => elements.current[Integer.One].forEach(updateTransform((): number => Integer.Zero)), [precision, updateTransform]);
 
   useEffect(
     (): void =>
@@ -381,6 +401,11 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const filterElements = (child: Element): child is HTMLElement =>
     child instanceof HTMLElement && RegularExpression.Digit.test(child.textContent);
 
+  const groupElements = ([unorderedDigits, digits]: [string[], HTMLElement[]], digit: HTMLElement): [string[], HTMLElement[]] => [
+    unorderedDigits.append(digit.textContent),
+    digits.append(digit),
+  ];
+
   const reduceElements = (
     [digits, rects, centers, transforms, currentTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]],
     [digit, rect]: [HTMLElement, DOMRect],
@@ -392,23 +417,17 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     currentTransforms.append(Integer.Zero),
   ];
 
-  const updateTransform =
-    (transform: (index: number) => number): ((element: HTMLElement, index?: number) => void) =>
-    ({ style }: HTMLElement, index: number = Integer.Zero): void =>
-      style.setProperty(DragAndDropVariableName.Transform, `${transform(index)}${CssUnit.Pixel}`);
+  const readValue = (digits: string[]): string => {
+    const inputValue: string = `${baseValue.current}`;
+    const hasMinus: boolean = inputValue[Integer.Zero] === Text.Minus;
+    const index: number = [...inputValue].findIndex((character: string): boolean => RegularExpression.DecimalSeparator.test(character));
+    const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - hasMinus.int;
 
-  const reduceToNewValue =
-    (reorderedDigits: string[]): ((acc: [string[], number], character: string) => [string[], number]) =>
-    ([characters, index]: [string[], number], character: string): [string[], number] =>
-      RegularExpression.Digit.test(character)
-        ? [characters.append(reorderedDigits[index]), index + Integer.One]
-        : [characters.append(character), index];
+    const characters: string[] =
+      precision > Integer.Zero ? [...digits.slice(Integer.Zero, separatorIndex), Text.Dot, ...digits.slice(separatorIndex)] : digits;
 
-  const readNewValue = (digits: string[]): string =>
-    [...`${baseValue.current}`]
-      .reduce<[string[], number]>(reduceToNewValue(digits), [[], Integer.Zero])
-      .at<Integer.Zero>(Integer.Zero)
-      .join(Text.Empty);
+    return [...(hasMinus ? [Text.Minus] : []), ...characters].join(Text.Empty);
+  };
 
   const scheduleUpdate = (value: string): NodeJS.Timeout =>
     (timeout.current = setTimeout(
@@ -418,22 +437,30 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
   const onPointerDown = ({ currentTarget, clientX, pointerId }: PointerEvent<HTMLElement>): void => {
     clearTimeout(timeout.current);
+    timeout.current = undefined;
     currentTarget.setPointerCapture(pointerId);
 
-    const currentElements: [HTMLElement[], DOMRect[], number[], number[], number[]] = [...currentTarget.parentElement!.children]
+    const currentElements: DragAndDropElementsTuple = [...currentTarget.parentElement!.children]
       .filter<HTMLElement>(filterElements)
-      .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
-      .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
-      .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]);
+      .reduce<[string[], HTMLElement[]]>(groupElements, [[], []])
+      .pipe<DragAndDropElementsTuple>(
+        ([unorderedDigits, digits]: [string[], HTMLElement[]]): DragAndDropElementsTuple => [
+          unorderedDigits,
+          ...digits
+            .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
+            .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
+            .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]),
+        ],
+      );
 
     elements.current = currentElements;
-    dragIndex.current = currentElements[Integer.Zero].indexOf(currentTarget);
+    dragIndex.current = currentElements[Integer.One].indexOf(currentTarget);
     startOffset.current = clientX;
     setActivePointer(pointerId);
   };
 
   const onPointerMove = ({ clientX }: PointerEvent<HTMLElement>): void => {
-    const [digits, rects, centers, transforms, lastTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
+    const [, digits, rects, centers, transforms, lastTransforms]: DragAndDropElementsTuple = elements.current;
     const dragIdx: number = dragIndex.current;
     const min: number = centers.at(Integer.Zero)! - centers[dragIdx];
     const max: number = centers.at(Integer.MinusOne)! - centers[dragIdx];
@@ -462,24 +489,32 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
         );
 
     const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
-    elements.current[Integer.Four] = currentTransforms;
+    elements.current[Integer.Five] = currentTransforms;
     digits.forEach(updateTransform((index: number): number => transforms[index] + currentTransforms[index]));
   };
 
   const onPointerUp = ({ currentTarget, pointerId }: PointerEvent<HTMLElement>): void => {
-    const [digits, , centers, transforms, currentTransforms]: [HTMLElement[], DOMRect[], number[], number[], number[]] = elements.current;
+    const [unorderedDigits, digits, , centers, transforms, currentTransforms]: DragAndDropElementsTuple = elements.current;
     const dragIdx: number = dragIndex.current;
 
-    const reorderedDigits: [string, number][] = digits
+    const reorderedDigitsIndexes: [string, number][] = digits
       .map<[string, number]>(({ textContent }: HTMLElement, index: number): [string, number] => [textContent, index])
       .sort(
         ([, first]: [string, number], [, second]: [string, number]): number =>
           centers[first] + currentTransforms[first] - (centers[second] + currentTransforms[second]),
       );
 
-    const freeIndex: number = reorderedDigits.findIndex(([, index]: [string, number]): boolean => index === dragIdx);
-    const newValue: string = readNewValue(reorderedDigits.map<string>(([digit]: [string, number]): string => digit));
-    const isNewValueValid: boolean = RegularExpression.BigDecimal.test(newValue);
+    const freeIndex: number = reorderedDigitsIndexes.findIndex(([, index]: [string, number]): boolean => index === dragIdx);
+    const reorderedDigits: string[] = reorderedDigitsIndexes.map<string>(([digit]: [string, number]): string => digit);
+    const newValue: string = readValue(reorderedDigits);
+
+    const isNewValueValid: boolean =
+      RegularExpression.BigDecimal.test(newValue) &&
+      (precision >= Integer.Zero || reorderedDigits.slice(digits.length + precision).every((digit: string): boolean => !digit.number));
+
+    const previousDigits: Optional<string[]> = isNewValueValid
+      ? undefined
+      : digits.map<string>(({ textContent }: HTMLElement): string => textContent);
 
     [
       (): void =>
@@ -492,9 +527,14 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
         ([callback]: [() => void, boolean]): void => callback(),
       );
 
+    scheduleUpdate.invokeWhen<undefined, (value: string) => NodeJS.Timeout>(
+      (previousDigits ?? reorderedDigits).some((digit: string, idx: number): boolean => digit !== unorderedDigits[idx]),
+      undefined,
+      previousDigits?.pipe<string>(readValue) ?? newValue,
+    );
+
     currentTarget.releasePointerCapture(pointerId);
     setActivePointer(null);
-    scheduleUpdate(isNewValueValid ? newValue : readNewValue(digits.map<string>(({ textContent }: HTMLElement): string => textContent)));
   };
 
   const onPointerCancel = (): void => setActivePointer(null);
@@ -535,7 +575,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     },
   };
 
-  return <Story args={{ ...restArgs, value, animationDuration, view, digitView, forwardProps }} />;
+  return <Story args={{ ...restArgs, value, precision, animationDuration, view, digitView, forwardProps }} />;
 };
 
 export const DragAndDrop: Story<Partial<DragAndDropContainerProps>, unknown, object, unknown, Partial<DragAndDropDigitProps>> = {
