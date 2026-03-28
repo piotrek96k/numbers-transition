@@ -65,6 +65,7 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     insert(value: T, index: number): T[];
     intersects(array: T[]): boolean;
+    map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
     mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
@@ -90,6 +91,7 @@ declare global {
   }
 
   interface ReadonlyArray<T> {
+    map<U>(callbackfn: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): { -readonly [I in keyof this]: U };
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): V;
     reduce<U extends unknown[], V extends U>(
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: readonly T[]) => U,

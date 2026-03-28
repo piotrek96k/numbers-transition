@@ -138,11 +138,11 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
     .mapEach<[string[], string], [[string[], string[], string[]], [string, string, string]]>(splitFloatingPoint, parseFloatingPoint);
 
-  const digits: [number[], number[], number[]] = characters.map<number[], [number[], number[], number[]]>((characters: string): number[] =>
+  const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
   );
 
-  const bigInts: [bigint, bigint, bigint] = characters.map<bigint, [bigint, bigint, bigint]>(BigInt);
+  const bigInts: [bigint, bigint, bigint] = characters.map<bigint>(BigInt);
 
   const numbersOfDigits: [number, number, number] = digits
     .slice(Integer.One)
@@ -345,8 +345,7 @@ const useCubicBezierDirection = (animationDirection: AnimationDirection): FixDir
     _: OrReadOnly<CubicBezierEasingFunction[number]>,
     index: number,
     easingFunction: OrReadOnly<OrReadOnly<CubicBezierEasingFunction[number]>[]>,
-  ): number[] =>
-    easingFunction[Integer.One - index].map<number, CubicBezierEasingFunction[number]>((number: number): number => Integer.One - number);
+  ): number[] => easingFunction[Integer.One - index].map<number>((number: number): number => Integer.One - number);
 
   return (easingFunction: OrReadOnly<CubicBezierEasingFunction>): CubicBezierEasingFunction =>
     easingFunction.map<number[], CubicBezierEasingFunction>(
@@ -1105,7 +1104,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   return [...Array<unknown>(maxNumberOfDigits).keys()]
     .reduce<[[bigint, bigint][], [bigint, bigint][]]>(createDigitValues, [[], []])
-    .map<number[][], [number[][], number[][]]>(mapDigitValues)
+    .map<number[][]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();
 };
 
