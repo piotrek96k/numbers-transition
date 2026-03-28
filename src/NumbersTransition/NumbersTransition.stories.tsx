@@ -423,11 +423,12 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const index: number = [...inputValue].findIndex((character: string): boolean => RegularExpression.DecimalSeparator.test(character));
     const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - hasMinus.int;
 
-    const characters: string[] =
-      precision > Integer.Zero ? [...digits.slice(Integer.Zero, separatorIndex), Text.Dot, ...digits.slice(separatorIndex)] : digits;
-
-    return [...(hasMinus ? [Text.Minus] : []), ...characters].join(Text.Empty);
+    return [...(hasMinus ? [Text.Minus] : []), ...(precision > Integer.Zero ? digits.insert(Text.Dot, separatorIndex) : digits)].join(
+      Text.Empty,
+    );
   };
+
+  const isNotZero = (digit: string): boolean => !digit.number;
 
   const scheduleUpdate = (value: string): NodeJS.Timeout =>
     (timeout.current = setTimeout(
@@ -510,7 +511,8 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
     const isNewValueValid: boolean =
       RegularExpression.BigDecimal.test(newValue) &&
-      (precision >= Integer.Zero || reorderedDigits.slice(digits.length + precision).every((digit: string): boolean => !digit.number));
+      (precision >= Integer.Zero ||
+        (reorderedDigits.slice(digits.length + precision).every(isNotZero) && dragIdx < digits.length + precision));
 
     const previousDigits: Optional<string[]> = isNewValueValid
       ? undefined

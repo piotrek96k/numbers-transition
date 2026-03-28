@@ -63,6 +63,7 @@ declare global {
       thisArg?: W,
     ): V;
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
+    insert(value: T, index: number): T[];
     intersects(array: T[]): boolean;
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];

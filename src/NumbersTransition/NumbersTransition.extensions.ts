@@ -159,6 +159,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return element === undefined ? fallback : callback(element);
   }
 
+  public insert(value: T, index: number): T[] {
+    return [...this.value.slice(Integer.Zero, index), value, ...this.value.slice(index)];
+  }
+
   public intersects(array: T[]): boolean {
     return this.value.some((value: T): boolean => array.includes(value));
   }
