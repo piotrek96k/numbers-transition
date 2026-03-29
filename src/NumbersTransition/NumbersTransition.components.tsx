@@ -436,11 +436,12 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, FragmentProps>(Fragment);
 
   // prettier-ignore
-  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = useElementKeyMapper<OrArray<ReactElement<ChildrenProps>>, ThemeProviderProps>(
-    ThemeProvider,
-    (_: OrArray<ReactElement<ChildrenProps>>, digitIndex: number, { length }: OrArray<ReactElement<ChildrenProps>>[]): ThemeProviderProps => 
-      ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
-  );
+  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = 
+    useElementKeyMapper<OrArray<ReactElement<ChildrenProps>>, ThemeProviderProps>(
+      ThemeProvider,
+      (_: OrArray<ReactElement<ChildrenProps>>, digitIndex: number, { length }: OrArray<ReactElement<ChildrenProps>>[]): ThemeProviderProps => 
+        ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
+    );
 
   // prettier-ignore
   const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
