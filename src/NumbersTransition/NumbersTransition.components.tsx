@@ -115,8 +115,10 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [countElements],
   );
 
-  // prettier-ignore
-  const aggregatedSums = useMemo<number[]>((): number[] => children.reduce<number[]>(countAggregatedSums, []), [children, countAggregatedSums]);
+  const aggregatedSums: number[] = useMemo<number[]>(
+    (): number[] => children.reduce<number[]>(countAggregatedSums, []),
+    [children, countAggregatedSums],
+  );
 
   // prettier-ignore
   const mapToFragmentElement: ElementKeyMapper<GenericReactNode<ChildrenProps>> = useElementKeyMapper<GenericReactNode<ChildrenProps>, FragmentProps>(Fragment);
