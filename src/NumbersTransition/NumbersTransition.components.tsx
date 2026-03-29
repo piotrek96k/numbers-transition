@@ -146,7 +146,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   return (
     <Conditional condition={mountedElements < aggregatedSums.at(Integer.MinusOne)! || !onAfterMount}>
-      {children.mapEach<[GenericReactNode<ChildrenProps>, ReactElement<ChildrenProps>]>(mapChildren, mapToFragmentElement)}
+      {children.mapEach<GenericReactNode<ChildrenProps>>(mapChildren, mapToFragmentElement)}
       {children}
     </Conditional>
   );
@@ -334,8 +334,10 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
 
   const theme: NumbersTransitionTheme = useTheme();
   const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
-  // prettier-ignore
-  const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({ negativeCharacterAnimationMode, animationVisibilities });
+  const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({
+    negativeCharacterAnimationMode,
+    animationVisibilities,
+  });
 
   // prettier-ignore
   const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
@@ -353,9 +355,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  // prettier-ignore
-  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapEach<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(
-    mapToNegativeElement, mapToThemeProviderElement,
+  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapEach<ReactElement<ChildrenProps>>(
+    mapToNegativeElement,
+    mapToThemeProviderElement,
   );
 
   const negativeElementProps: NegativeElementProps<T, U, V, W> = { negativeCharacter, characterStyledView, negativeCharacterStyledView };
@@ -453,7 +455,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, { ...characterStyledView, ...digitStyledView });
 
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
-    numbers.mapEach<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(mapToDigitElement, mapToDigitsThemeProviderElement);
+    numbers.mapEach<ReactElement<ChildrenProps>>(mapToDigitElement, mapToDigitsThemeProviderElement);
 
   const mapToNumber = (
     value: ReactElement<ChildrenProps>,
@@ -474,7 +476,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   ];
 
   const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
-    ? children.mapEach<[ReactElement<ChildrenProps>, ReactElement<ChildrenProps>]>(mapToDigitElement, mapToDigitThemeProviderElement)
+    ? children.mapEach<ReactElement<ChildrenProps>>(mapToDigitElement, mapToDigitThemeProviderElement)
     : children.mapEach<[ReactElement<ChildrenProps>[], ReactElement<ChildrenProps>]>(mapToDigitsElement, mapToDigitThemeProviderElement);
 
   const number: ReactElement<ChildrenProps>[] = mappedChildren

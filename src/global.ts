@@ -68,6 +68,7 @@ declare global {
     map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
+    mapEach<U>(...mappers: [(value: T, index: number, array: T[]) => U, ...((value: U, index: number, array: U[]) => U)[]]): U[];
     mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
       ...mappers: {
         [I in keyof U]: (
