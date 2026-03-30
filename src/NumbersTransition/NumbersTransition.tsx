@@ -64,7 +64,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import type { BigDecimal, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import type { BigDecimal, OrFunction, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -106,7 +106,7 @@ export interface NumbersTransitionProps<
   digitGroupSeparatorView?: View<U, V>;
   negativeCharacterView?: View<W, X>;
   invalidView?: View<Y, Z>;
-  forwardProps?: ((theme: NumbersTransitionTheme) => string[]) | string[];
+  forwardProps?: OrFunction<[NumbersTransitionTheme], string[]>;
 }
 
 const NumbersTransition = <

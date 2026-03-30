@@ -1,4 +1,4 @@
-import type { ArrayOfDepth, Optional, OrArray, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
+import type { ArrayOfDepth, Optional, OrArray, OrFunction, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
 
 declare global {
   interface Boolean {
@@ -112,18 +112,18 @@ declare global {
   interface Function {
     bindWhen<T, U extends (...args: any[]) => unknown>(
       this: U,
-      condition: unknown | ((...args: Parameters<U>) => unknown),
+      condition: OrFunction<Parameters<U>, unknown>,
       thisArg: T,
     ): (...args: Parameters<U>) => Optional<ReturnType<U>>;
     callWhen<T, U extends (...args: any[]) => unknown>(
       this: U,
-      condition: unknown | ((...args: Parameters<U>) => unknown),
+      condition: OrFunction<Parameters<U>, unknown>,
       thisArg: T,
       ...args: Parameters<U>
     ): Optional<ReturnType<U>>;
     invokeWhen<T, U extends (...args: any[]) => unknown>(
       this: U,
-      condition: unknown | ((...args: Parameters<U>) => unknown),
+      condition: OrFunction<Parameters<U>, unknown>,
       thisArg: T,
       ...args: Parameters<U>
     ): void;

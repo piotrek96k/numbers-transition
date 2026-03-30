@@ -19,6 +19,8 @@ export type OrReadOnly<T> = T | ReadOnly<T>;
 
 export type OrArray<T> = T | T[];
 
+export type OrFunction<T extends unknown[], U> = ((...args: T) => U) | U;
+
 export type TupleOfLength<T, U extends number, V extends T[] = []> = V[Key.Length] extends U ? V : TupleOfLength<T, U, [...V, T]>;
 
 export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U extends V[Key.Length]

@@ -1,6 +1,6 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
 import { DragAndDropVariableName, Integer } from './NumbersTransition.enums';
-import type { ArrayOfDepth, Optional, OrArray, ValueOf, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
   public static readonly type: BooleanConstructor = Boolean;
@@ -199,18 +199,18 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return Callable.isType(callback) ? callback(...args) : callback;
   }
 
-  public bindWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
-    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(cond, self, ...args);
+  public bindWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(condition, thisArg, ...args);
   }
 
-  public callWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return Callable.optionalCall<(...args: Parameters<T>) => unknown, unknown>(cond, ...args)
-      ? this.value.call<U, Parameters<T>, ReturnType<T>>(self, ...args)
+  public callWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return Callable.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args)
+      ? this.value.call<U, Parameters<T>, ReturnType<T>>(thisArg, ...args)
       : undefined;
   }
 
-  public invokeWhen<U>(cond: unknown | ((...args: Parameters<T>) => unknown), self: U, ...args: Parameters<T>): void {
-    this.callWhen(cond, self, ...args);
+  public invokeWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U, ...args: Parameters<T>): void {
+    this.callWhen(condition, thisArg, ...args);
   }
 }
 

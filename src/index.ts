@@ -47,7 +47,7 @@ import {
   StyleFactory,
   VerticalAnimation,
 } from './NumbersTransition/NumbersTransition.styles';
-import type { BigDecimal, Falsy, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
+import type { BigDecimal, Falsy, OrFunction, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationDirection,
@@ -93,6 +93,7 @@ export type {
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  OrFunction,
   OrReadOnly,
   ReadOnly,
   StepsEasingFunction,

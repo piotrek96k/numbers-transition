@@ -60,7 +60,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import type { GenericReactNode, Nullable, Optional, OrArray } from './NumbersTransition.types';
+import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -84,7 +84,7 @@ export const Show: FC<ShowProps> = ({ children, condition }: ShowProps): ReactNo
 
 interface EncloseProps<T extends GenericReactNode<ChildrenProps>> {
   children: T;
-  condition?: boolean | ((children: T) => boolean);
+  condition?: OrFunction<[T], boolean>;
   enclose?: (children: T) => ReactNode;
 }
 

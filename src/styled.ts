@@ -11,7 +11,7 @@ import type {
 import type { CSSProperties, FastOmit, IStyledComponent, StyleFunction, StyledObject, SupportedHTMLElements } from 'styled-components';
 import type { Runtime, Text } from './NumbersTransition/NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition/NumbersTransition.styles';
-import type { Nullable, Optional } from './NumbersTransition/NumbersTransition.types';
+import type { Nullable, Optional, OrFunction } from './NumbersTransition/NumbersTransition.types';
 
 declare module 'styled-components' {
   export type BaseObject = {};
@@ -53,7 +53,7 @@ declare module 'styled-components' {
 
   export interface ThemeProviderProps {
     children?: ReactNode;
-    theme: Partial<DefaultTheme> | ((outerTheme?: Partial<DefaultTheme>) => Partial<DefaultTheme>);
+    theme: OrFunction<[Partial<DefaultTheme>], Partial<DefaultTheme>>;
   }
 
   export function ThemeProvider(props: ThemeProviderProps): Nullable<ReactElement>;

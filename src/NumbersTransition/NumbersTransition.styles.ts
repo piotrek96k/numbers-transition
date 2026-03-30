@@ -37,7 +37,7 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import type { Enum, EnumValue, Falsy, Optional, OrArray, OrReadOnly, Remove } from './NumbersTransition.types';
+import type { Enum, EnumValue, Falsy, Optional, OrArray, OrFunction, OrReadOnly, Remove } from './NumbersTransition.types';
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 
@@ -349,10 +349,10 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
 const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Keyframes =>
   [AnimationType.Horizontal, AnimationType.Vertical]
     .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>(horizontalAnimation, verticalAnimation)
-    .find(([animation]: [AnimationType, ((props: AnimationWidthProps) => Keyframes) | Keyframes]): boolean => animation === animationType)!
+    .find(([animation]: [AnimationType, OrFunction<[AnimationWidthProps], Keyframes>]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One)
-    .pipe<((props: AnimationWidthProps) => Keyframes) | Keyframes, Keyframes>(
-      (animation: ((props: AnimationWidthProps) => Keyframes) | Keyframes): Keyframes =>
+    .pipe<OrFunction<[AnimationWidthProps], Keyframes>, Keyframes>(
+      (animation: OrFunction<[AnimationWidthProps], Keyframes>): Keyframes =>
         Function.optionalCall<
           (props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]
         >(animation, restProps),
