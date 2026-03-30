@@ -5,9 +5,13 @@ inputs:
 runs:
   using: 'composite'
   steps:
+    - name: Create Branch Name Variable
+      id: branch
+      run: echo "name=storybook/auto-upgrade" >> $GITHUB_OUTPUT
+      shell: bash
     - name: Check If Upgrade PR Branch Exists
       id: pr
-      run: echo "exists=$(git ls-remote --heads origin storybook/auto-upgrade | grep -q storybook/auto-upgrade && echo true || echo false)" >> $GITHUB_OUTPUT
+      run: echo "exists=$(git ls-remote --heads origin ${{ steps.branch.outputs.name }} | grep -q ${{ steps.branch.outputs.name }} && echo true || echo false)" >> $GITHUB_OUTPUT
       shell: bash
     - name: Determine If Upgrade Should Run
       id: upgrade
@@ -34,14 +38,14 @@ runs:
       uses: peter-evans/create-pull-request@v8
       with:
         token: ${{ inputs.token }}
-        branch: storybook/auto-upgrade
+        branch: ${{ steps.branch.outputs.name }}
         base: master
         delete-branch: true
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
     - name: Close Existing PR
       if: github.event_name == 'push' && steps.pr.outputs.exists == 'true' && steps.old.outputs.version == steps.new.outputs.version
-      run: gh pr close storybook/auto-upgrade --delete-branch
+      run: gh pr close ${{ steps.branch.outputs.name }} --delete-branch
       env:
         GH_TOKEN: ${{ inputs.token }}
       shell: bash
