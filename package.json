@@ -16,9 +16,9 @@
     "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "build:plugins": "tsc -p tsconfig.plugins.json && vite build -c vite.plugins.ts",
-    "test:plugins": "npm run build:plugins && tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
+    "verify:plugins": "npm run build:plugins && tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
     "storybook": "npm run build:plugins && storybook dev -p 6006",
-    "build": "npm run test:plugins && tsc && vite build",
+    "build": "npm run verify:plugins && tsc && vite build",
     "build:storybook": "npm run build && storybook build"
   },
   "peerDependencies": {
