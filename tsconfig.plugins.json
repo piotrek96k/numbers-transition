@@ -4,6 +4,7 @@
     "module": "ESNext",
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "rootDir": "plugins",
     "noEmit": true,
     "strict": true,
     "noImplicitAny": true,

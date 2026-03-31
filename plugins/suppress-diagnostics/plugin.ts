@@ -1,4 +1,5 @@
-import type { CancellationToken, CompilerHost, Diagnostic, PluginConfig, Program, SourceFile } from 'typescript';
+import type { CancellationToken, CompilerHost, Diagnostic, Program, SourceFile } from 'typescript';
+import type { PluginConfig } from 'ts-patch';
 
 interface SuppressDiagnosticsConfig extends PluginConfig {
   codes?: number[];
