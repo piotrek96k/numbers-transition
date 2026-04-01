@@ -50,7 +50,7 @@ const config: Linter.Config[] = [
       'react-refresh/only-export-components': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends' }],
+      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends', allowWithName: 'BaseObject' }],
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
       'react-hooks/refs': 'off',

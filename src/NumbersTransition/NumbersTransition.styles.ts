@@ -1,15 +1,13 @@
-import type { CSSProperties, HTMLAttributes } from 'react';
+import type { CSSProperties, ComponentPropsWithRef, ComponentType, DetailedHTMLProps, ExoticComponent, HTMLAttributes } from 'react';
 import styled, {
-  AttributesStyledComponent,
-  BaseObject,
   ExecutionProps,
-  HTMLDetailedElement,
+  FastOmit,
+  IStyledComponent,
   Interpolation,
-  Keyframes,
   RuleSet,
-  StyledComponent,
-  StyledHTMLAttributes,
-  Styles,
+  StyleFunction,
+  StyledObject,
+  SupportedHTMLElements,
   css,
   keyframes,
 } from 'styled-components';
@@ -29,6 +27,7 @@ import {
   Integer,
   Overflow,
   Position,
+  Runtime,
   Size,
   StepPosition,
   Styled,
@@ -38,6 +37,42 @@ import {
   WhiteSpace,
 } from './NumbersTransition.enums';
 import type { Enum, EnumValue, Falsy, Optional, OrArray, OrFunction, OrReadOnly, Remove } from './NumbersTransition.types';
+
+type BaseObject = {};
+
+interface CSSPropertiesWithVars extends CSSProperties {
+  [key: `${Text.Minus}${Text.Minus}${string}`]: Optional<string | number>;
+}
+
+interface ExoticComponentWithDisplayName<T extends BaseObject = BaseObject> extends ExoticComponent<T> {
+  defaultProps?: Partial<T>;
+  displayName?: string;
+}
+
+type AnyComponent<T extends BaseObject = any> = ExoticComponentWithDisplayName<T> | ComponentType<T>;
+type KnownTarget = SupportedHTMLElements | AnyComponent;
+type Substitute<T extends BaseObject, U extends BaseObject> = FastOmit<T, keyof U> & U;
+type StyledComponentBase<T extends object> = IStyledComponent<Runtime.Web, T>;
+type HTMLDetailedElement<T> = DetailedHTMLProps<HTMLAttributes<T>, T>;
+type Styles<T extends BaseObject> = TemplateStringsArray | StyledObject<T> | StyleFunction<T>;
+
+export type StyledComponent<T, U extends object = BaseObject> = StyledComponentBase<Substitute<HTMLDetailedElement<T>, U>>;
+export type ExtensionStyledComponent<T extends KnownTarget, U extends object = BaseObject> = StyledComponentBase<
+  Substitute<ComponentPropsWithRef<T> & BaseObject, U>
+>;
+export type AttributesStyledComponent<T extends KnownTarget, U extends object, V extends object = BaseObject> = StyledComponentBase<
+  Substitute<Substitute<Substitute<U extends KnownTarget ? ComponentPropsWithRef<U> : U, ComponentPropsWithRef<T>>, V>, BaseObject>
+>;
+
+interface StyledHTMLAttributes<T> extends HTMLAttributes<T> {
+  style: CSSPropertiesWithVars;
+}
+
+interface Keyframes {
+  id: string;
+  name: string;
+  rules: string;
+}
 
 export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
 
