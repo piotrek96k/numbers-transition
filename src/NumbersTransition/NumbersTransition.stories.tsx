@@ -345,8 +345,7 @@ const dragAndDropDigitCssFactory: CssRuleFactory<Partial<DragAndDropDigitProps>>
 }: NumbersTransitionExecutionContext): RuleSet<Partial<DragAndDropDigitProps>> | Falsy =>
   numberOfAnimations === AnimationNumber.Zero &&
   css<Partial<DragAndDropDigitProps>>`
-    cursor: ${({ isDragging }: NumbersTransitionExecutionContext & Partial<DragAndDropDigitProps>): string =>
-      isDragging ? Cursor.Grabbing : Cursor.Grab};
+    cursor: ${({ isDragging }: Partial<DragAndDropDigitProps>): string => (isDragging ? Cursor.Grabbing : Cursor.Grab)};
     transform: translateX(var(${DragAndDropVariableName.Transform}));
     transition: transform ${Integer.OneHundred}${CssUnit.Millisecond};
   `;
