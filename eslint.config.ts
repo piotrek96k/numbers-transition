@@ -41,7 +41,7 @@ const config: Linter.Config[] = [
       'import/no-duplicates': 'error',
       'sort-imports': ['error', { ignoreDeclarationSort: true }],
       'no-duplicate-imports': 'error',
-      'no-use-before-define': 'error',
+      'no-use-before-define': ['error', { classes: false }],
       'no-useless-rename': 'error',
       'no-useless-concat': 'error',
       'prefer-template': 'error',

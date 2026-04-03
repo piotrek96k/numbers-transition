@@ -13,6 +13,8 @@ export type Optional<T> = T | undefined;
 
 export type Nullable<T> = T | null;
 
+export type Maybe<T> = T | Falsy;
+
 export type ReadOnly<T> = { +readonly [K in keyof T]: ReadOnly<T[K]> };
 
 export type OrReadOnly<T> = T | ReadOnly<T>;

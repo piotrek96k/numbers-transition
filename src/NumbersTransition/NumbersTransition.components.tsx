@@ -89,7 +89,7 @@ interface EncloseProps<T extends GenericReactNode<ChildrenProps>> {
 }
 
 const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose, condition = !!enclose }: EncloseProps<T>): ReactNode => (
-  <Conditional condition={Function.optionalCall<(children: T) => boolean, boolean>(condition, children)}>
+  <Conditional condition={condition.callOrGet<[T], boolean>(children)}>
     {(enclose ?? ((children: T): ReactNode => <>{children}</>))(children)}
     {children}
   </Conditional>

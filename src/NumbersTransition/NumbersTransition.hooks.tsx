@@ -50,6 +50,7 @@ import type {
   Nullable,
   Optional,
   OrArray,
+  OrFunction,
   OrReadOnly,
   Slice,
   Switch,
@@ -1120,8 +1121,6 @@ interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-type PropsFactory<T extends GenericReactNode<ChildrenProps>, U extends object> = (value: T, index: number, array: T[]) => U;
-
 export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>> = (
   child: T,
   index: number,
@@ -1131,12 +1130,12 @@ export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>> = (
 export const useElementKeyMapper =
   <T extends GenericReactNode<ChildrenProps>, U extends object>(
     Component: FunctionalComponent<U>,
-    props?: U | PropsFactory<T, U>,
+    props?: OrFunction<[T, number, T[]], U>,
   ): ElementKeyMapper<T> =>
   (child: T, index: number, { length, ...array }: T[]): ReactElement<ChildrenProps> => (
     <Component
       key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${length}`.length, `${Integer.Zero}`)}`}
-      {...Function.optionalCall<PropsFactory<T, U>, Optional<U>>(props, child, index, { ...array, length })}
+      {...props?.callOrGet<[T, number, T[]], U>(child, index, { ...array, length })}
     >
       {child}
     </Component>

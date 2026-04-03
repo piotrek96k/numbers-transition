@@ -46,8 +46,18 @@ import {
   StepsEasingFunction,
   StyleFactory,
   VerticalAnimation,
+  WithContext,
 } from './NumbersTransition/NumbersTransition.styles';
-import type { BigDecimal, Falsy, OrFunction, OrReadOnly, ReadOnly, UncheckedBigDecimal } from './NumbersTransition/NumbersTransition.types';
+import type {
+  BigDecimal,
+  Falsy,
+  Maybe,
+  OrArray,
+  OrFunction,
+  OrReadOnly,
+  ReadOnly,
+  UncheckedBigDecimal,
+} from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationDirection,
@@ -90,9 +100,11 @@ export type {
   Falsy,
   KeyframeFunction,
   LinearEasingFunction,
+  Maybe,
   NumbersTransitionExecutionContext,
   NumbersTransitionProps,
   NumbersTransitionTheme,
+  OrArray,
   OrFunction,
   OrReadOnly,
   ReadOnly,
@@ -102,6 +114,7 @@ export type {
   UncheckedBigDecimal,
   UnknownAnimationTimingFunction,
   View,
+  WithContext,
 };
 
 export default NumbersTransition;

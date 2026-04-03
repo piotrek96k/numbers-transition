@@ -32,6 +32,8 @@ declare global {
   }
 
   interface Object {
+    callOrGet<T extends unknown[], U>(this: OrFunction<T, U>, ...args: T): U;
+    callOrGet<T extends unknown[], U extends unknown[], V>(this: OrFunction<T, V>, ...args: T | U): V;
     keys(): string[];
     map<T, U>(this: Record<string, T>, mapper: (entry: [string, T]) => [string, U]): Record<string, U>;
     matches<T extends object, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
@@ -102,11 +104,6 @@ declare global {
 
   interface FunctionConstructor {
     call<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
-    optionalCall<T extends (...args: any[]) => unknown, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U;
-    optionalCall<T extends (...args: any[]) => unknown, U, V extends Parameters<T>, W extends unknown[]>(
-      callback: T | U,
-      ...args: V | W
-    ): ReturnType<T> | U;
   }
 
   interface Function {

@@ -303,10 +303,7 @@ const NumbersTransition = <
   };
 
   const shouldForwardProp = (prop: string): boolean =>
-    [
-      ...ForwardProp.values<ForwardProp>(),
-      ...Function.optionalCall<(theme: NumbersTransitionTheme) => string[], string[]>(forwardProps, theme),
-    ].includes(prop);
+    [...ForwardProp.values<ForwardProp>(), ...forwardProps.callOrGet<[NumbersTransitionTheme], string[]>(theme)].includes(prop);
 
   const onAnimationEnd: AnimationEventHandler<HTMLDivElement> = ({ target: { id } }: ReactEvent<AnimationEvent<HTMLDivElement>>): void =>
     [

@@ -95,6 +95,10 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
     return [undefined, null].every((nullish: undefined | null): boolean => value !== nullish);
   }
 
+  public callOrGet(...args: T extends (...args: infer U) => any ? U : never): (T extends (...args: any[]) => infer U ? U : never) | T {
+    return Callable.isType(this.value) ? this.value(...args) : this.value;
+  }
+
   public keys(): string[] {
     return Object.keys(this.value);
   }
@@ -195,21 +199,17 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return callback(...args);
   }
 
-  public static optionalCall<T extends (...args: any[]) => any, U>(callback: T | U, ...args: Parameters<T>): ReturnType<T> | U {
-    return Callable.isType(callback) ? callback(...args) : callback;
-  }
-
-  public bindWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+  public bindWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
     return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(condition, thisArg, ...args);
   }
 
-  public callWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return Callable.optionalCall<(...args: Parameters<T>) => unknown, unknown>(condition, ...args)
+  public callWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return new Struct<OrFunction<Parameters<T>, ReturnType<T>>>(condition).callOrGet(...args)
       ? this.value.call<U, Parameters<T>, ReturnType<T>>(thisArg, ...args)
       : undefined;
   }
 
-  public invokeWhen<U>(condition: OrFunction<Parameters<T>, unknown>, thisArg: U, ...args: Parameters<T>): void {
+  public invokeWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): void {
     this.callWhen(condition, thisArg, ...args);
   }
 }

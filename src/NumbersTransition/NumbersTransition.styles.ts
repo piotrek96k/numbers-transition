@@ -36,7 +36,7 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import type { Enum, EnumValue, Falsy, Optional, OrArray, OrFunction, OrReadOnly, Remove } from './NumbersTransition.types';
+import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove } from './NumbersTransition.types';
 
 type BaseObject = {};
 
@@ -285,16 +285,8 @@ const verticalAnimationVariables = ({
   ${VariableName.ColumnLength}: ${columnLength};
 `;
 
-type Factory<T extends object, U> = (props: T & NumbersTransitionExecutionContext) => U | Falsy;
-
-export type StyleFactory<T extends object> = Factory<T, CSSProperties>;
-
-export type ClassNameFactory<T extends object> = Factory<T, string>;
-
+export type WithContext<T> = T & NumbersTransitionExecutionContext;
 export type CssRule<T extends object> = RuleSet<T> | string;
-
-export type CssRuleFactory<T extends object> = Factory<T, CssRule<T>>;
-
 export type KeyframeFunction<T extends object, U> = (keyframeValue: U) => CssRule<T>;
 
 export interface Animation<T extends object, U> {
@@ -303,20 +295,16 @@ export interface Animation<T extends object, U> {
   progress?: number[];
 }
 
-export type AnimationFactory<T extends object, U> = Factory<T, Animation<T, U>>;
+export type StyleFactory<T extends object> = OrFunction<[WithContext<T>], Maybe<CSSProperties>>;
+export type ClassNameFactory<T extends object> = OrFunction<[WithContext<T>], Maybe<string>>;
+export type CssRuleFactory<T extends object> = OrFunction<[WithContext<T>], Maybe<CssRule<T>>>;
+export type AnimationFactory<T extends object, U> = OrFunction<[WithContext<T>], Maybe<Animation<T, U>>>;
 
-type StyleView<T extends Styled, U extends object> = {
-  [K in `${T}${Capitalize<ViewKey.Style>}`]?: OrArray<CSSProperties | StyleFactory<U>>;
-};
-
-type ClassNameView<T extends Styled, U extends object> = {
-  [K in `${T}${Capitalize<ViewKey.ClassName>}`]?: OrArray<string | ClassNameFactory<U>>;
-};
-
-type CssView<T extends Styled, U extends object> = { [K in `${T}${Capitalize<ViewKey.Css>}`]?: OrArray<CssRule<U> | CssRuleFactory<U>> };
-
+type StyleView<T extends Styled, U extends object> = { [K in `${T}${Capitalize<ViewKey.Style>}`]?: OrArray<StyleFactory<U>> };
+type ClassNameView<T extends Styled, U extends object> = { [K in `${T}${Capitalize<ViewKey.ClassName>}`]?: OrArray<ClassNameFactory<U>> };
+type CssView<T extends Styled, U extends object> = { [K in `${T}${Capitalize<ViewKey.Css>}`]?: OrArray<CssRuleFactory<U>> };
 type AnimationView<T extends Styled, U extends object, V> = {
-  [K in `${T}${Capitalize<ViewKey.Animation>}`]?: OrArray<Animation<U, V> | AnimationFactory<U, V>>;
+  [K in `${T}${Capitalize<ViewKey.Animation>}`]?: OrArray<AnimationFactory<U, V>>;
 };
 
 export type StyledView<T extends Styled, U extends object, V> = StyleView<T, U> &
@@ -334,11 +322,13 @@ interface AnimationWidthProps {
   animationEndWidth: number;
 }
 
-interface HorizontalAnimationProps extends NumbersTransitionExecutionContext, AnimationWidthProps {}
-
+export interface HorizontalAnimationProps extends NumbersTransitionExecutionContext, AnimationWidthProps {}
 export interface VerticalAnimationProps extends NumbersTransitionExecutionContext {}
 
 type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
+
+type NoThemeHorizontalAnimationProps = Remove<HorizontalAnimationProps, NumbersTransitionTheme>;
+type NoThemeVerticalAnimationProps = Remove<VerticalAnimationProps, NumbersTransitionTheme>;
 
 const createAnimationKeyframeMapper =
   <T extends object, U>(map: KeyframeFunction<T, U>): ((val: [U] | [U, number], index: number, arr: ([U] | [U, number])[]) => RuleSet<T>) =>
@@ -380,7 +370,6 @@ const verticalAnimation: Keyframes = createAnimationKeyframes<object, number>(ve
   Integer.MinusOneHundred,
 ]);
 
-// prettier-ignore
 const animationName = ({ theme: { animationType }, ...restProps }: AnimationProps): Keyframes =>
   [AnimationType.Horizontal, AnimationType.Vertical]
     .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>(horizontalAnimation, verticalAnimation)
@@ -388,9 +377,7 @@ const animationName = ({ theme: { animationType }, ...restProps }: AnimationProp
     .at<Integer.One>(Integer.One)
     .pipe<OrFunction<[AnimationWidthProps], Keyframes>, Keyframes>(
       (animation: OrFunction<[AnimationWidthProps], Keyframes>): Keyframes =>
-        Function.optionalCall<
-          (props: AnimationWidthProps) => Keyframes, Keyframes, [Remove<HorizontalAnimationProps, NumbersTransitionTheme>], [Remove<VerticalAnimationProps, NumbersTransitionTheme>]
-        >(animation, restProps),
+        animation.callOrGet<[NoThemeHorizontalAnimationProps], [NoThemeVerticalAnimationProps], Keyframes>(restProps),
     );
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
@@ -403,40 +390,40 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
 `;
 
 const createViewFactoryMapper =
-  <T extends Styled, U extends object, V>(props: Props<T, U, V>): ((value?: V | Factory<U, V>) => V | Falsy) =>
-  (value?: V | Factory<U, V>): V | Falsy =>
-    Function.optionalCall<Factory<U, V>, Optional<V>>(value, props);
+  <T extends Styled, U extends object, V>(props: Props<T, U, V>): ((value?: OrFunction<[WithContext<U>], Maybe<V>>) => Maybe<V>) =>
+  (value?: OrFunction<[WithContext<U>], Maybe<V>>): Maybe<V> =>
+    value?.callOrGet<[WithContext<U>], Maybe<V>>(props);
 
-const reduceStyles = (accumulator: CSSProperties, currentStyle: CSSProperties | Falsy): CSSProperties => ({
+const reduceStyles = (accumulator: CSSProperties, currentStyle: Maybe<CSSProperties>): CSSProperties => ({
   ...accumulator,
   ...currentStyle,
 });
 
 const styleFactory = <T extends Styled, U extends object, V>(
-  style: Optional<OrArray<CSSProperties | StyleFactory<U>>>,
+  style: Optional<OrArray<StyleFactory<U>>>,
   props: Props<T, U, V>,
 ): CSSProperties =>
-  Array.toArray<Optional<CSSProperties | StyleFactory<U>>>(style)
-    .map<CSSProperties | Falsy>(createViewFactoryMapper<T, U, CSSProperties>(props))
+  Array.toArray<Optional<StyleFactory<U>>>(style)
+    .map<Maybe<CSSProperties>>(createViewFactoryMapper<T, U, CSSProperties>(props))
     .reduce<CSSProperties>(reduceStyles, {});
 
 const classNameFactory = <T extends Styled, U extends object, V>(
-  className: Optional<OrArray<string | ClassNameFactory<U>>>,
+  className: Optional<OrArray<ClassNameFactory<U>>>,
   props: Props<T, U, V>,
 ): Optional<string> =>
-  Array.toArray<Optional<string | ClassNameFactory<U>>>(className)
-    .map<string | Falsy>(createViewFactoryMapper<T, U, string>(props))
-    .filter<string>((className: string | Falsy): className is string => !!className)
+  Array.toArray<Optional<ClassNameFactory<U>>>(className)
+    .map<Maybe<string>>(createViewFactoryMapper<T, U, string>(props))
+    .filter<string>((className: Maybe<string>): className is string => !!className)
     .join(Text.Space);
 
 const cssFactory =
   <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
   <U extends object, V>(props: Props<T, U, V>): CssRule<U>[] =>
-    Array.toArray<Optional<CssRule<U> | CssRuleFactory<U>>>(props[`${styledComponent}${ViewKey.Css.capitalize<ViewKey.Css>()}`])
-      .map<CssRule<U> | Falsy>(createViewFactoryMapper<T, U, CssRule<U>>(props))
-      .filter<CssRule<U>>((value: CssRule<U> | Falsy): value is CssRule<U> => !!value);
+    Array.toArray<Optional<CssRuleFactory<U>>>(props[`${styledComponent}${ViewKey.Css.capitalize<ViewKey.Css>()}`])
+      .map<Maybe<CssRule<U>>>(createViewFactoryMapper<T, U, CssRule<U>>(props))
+      .filter<CssRule<U>>((value: Maybe<CssRule<U>>): value is CssRule<U> => !!value);
 
-const mapAnimationFalsyValue = <T extends object, U>(animation: Partial<Animation<T, U>> | Falsy): Optional<Partial<Animation<T, U>>> =>
+const mapAnimationFalsyValue = <T extends object, U>(animation: Maybe<Partial<Animation<T, U>>>): Optional<Partial<Animation<T, U>>> =>
   animation || undefined;
 
 const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}): Optional<Keyframes> =>
@@ -448,11 +435,11 @@ const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: O
 
 const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   props: Props<T, U, V>,
-  animation?: OrArray<Animation<U, V> | AnimationFactory<U, V>>,
+  animation?: OrArray<AnimationFactory<U, V>>,
 ): Optional<RuleSet<object>> =>
-  Array.toArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation)
-    .when(Array.isArray<Optional<Animation<U, V> | AnimationFactory<U, V>>>(animation) ? animation.length : animation)
-    .mapEach<[Partial<Animation<U, V>> | Falsy, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
+  Array.toArray<Optional<AnimationFactory<U, V>>>(animation)
+    .when(Array.isArray<Optional<AnimationFactory<U, V>>>(animation) ? animation.length : animation)
+    .mapEach<[Maybe<Partial<Animation<U, V>>>, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
       createViewFactoryMapper<T, U, Animation<U, V>>(props),
       mapAnimationFalsyValue<U, V>,
       mapAnimation<U, V>,

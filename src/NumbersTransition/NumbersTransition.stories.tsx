@@ -53,7 +53,7 @@ import {
   NumbersTransitionTheme,
   VerticalAnimation,
 } from './NumbersTransition.styles';
-import type { EnumType, EnumValue, Falsy, Nullable, Optional, Remove, Select, UncheckedBigDecimal } from './NumbersTransition.types';
+import type { EnumType, EnumValue, Maybe, Nullable, Optional, Remove, Select, UncheckedBigDecimal } from './NumbersTransition.types';
 import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 
 type NumbersTransitionComponent<
@@ -218,7 +218,7 @@ const opacityAnimation: Animation<object, number> = {
 
 const opacityAnimationFactory: AnimationFactory<object, number> = ({
   theme: { numberOfAnimations },
-}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy => numberOfAnimations && opacityAnimation;
+}: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> => numberOfAnimations && opacityAnimation;
 
 const opacityAnimationCss: RuleSet<object> = css<object>`
   ${basicEffectCss};
@@ -249,7 +249,7 @@ const getHorizontalRotateKeyframes = ({
 
 const horizontalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, ...restTheme },
-}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy =>
+}: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> =>
   animationType === AnimationType.Horizontal && {
     keyframeFunction: rotateKeyframeFunction,
     keyframes: getHorizontalRotateKeyframes(restTheme),
@@ -278,7 +278,7 @@ const mapVerticalRotateKeyframes = ({ animationDirection, columnLength, rowIndex
 // prettier-ignore
 const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
-}: NumbersTransitionExecutionContext): Animation<object, number> | Falsy =>
+}: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> =>
   animationType === AnimationType.Vertical && columnLength! > Integer.One && {
     keyframeFunction: rotateKeyframeFunction,
     keyframes: getVerticalRotateKeyframes(restTheme).mapEach<number>(
@@ -342,7 +342,7 @@ interface DragAndDropDigitProps {
 
 const dragAndDropDigitCssFactory: CssRuleFactory<Partial<DragAndDropDigitProps>> = ({
   theme: { numberOfAnimations },
-}: NumbersTransitionExecutionContext): RuleSet<Partial<DragAndDropDigitProps>> | Falsy =>
+}: NumbersTransitionExecutionContext): Maybe<RuleSet<Partial<DragAndDropDigitProps>>> =>
   numberOfAnimations === AnimationNumber.Zero &&
   css<Partial<DragAndDropDigitProps>>`
     cursor: ${({ isDragging }: Partial<DragAndDropDigitProps>): string => (isDragging ? Cursor.Grabbing : Cursor.Grab)};
