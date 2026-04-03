@@ -375,10 +375,7 @@ const animationName = ({ theme: { animationType }, ...restProps }: AnimationProp
     .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>(horizontalAnimation, verticalAnimation)
     .find(([animation]: [AnimationType, OrFunction<[AnimationWidthProps], Keyframes>]): boolean => animation === animationType)!
     .at<Integer.One>(Integer.One)
-    .pipe<OrFunction<[AnimationWidthProps], Keyframes>, Keyframes>(
-      (animation: OrFunction<[AnimationWidthProps], Keyframes>): Keyframes =>
-        animation.callOrGet<[NoThemeHorizontalAnimationProps], [NoThemeVerticalAnimationProps], Keyframes>(restProps),
-    );
+    .callOrGet<[NoThemeHorizontalAnimationProps], [NoThemeVerticalAnimationProps], Keyframes>(restProps);
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-name: ${animationName};
