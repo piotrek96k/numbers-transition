@@ -204,7 +204,7 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
   }
 
   public callWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return new Struct<OrFunction<Parameters<T>, ReturnType<T>>>(condition).callOrGet(...args)
+    return new Struct<OrFunction<Parameters<T>, any>>(condition).callOrGet(...args)
       ? this.value.call<U, Parameters<T>, ReturnType<T>>(thisArg, ...args)
       : undefined;
   }
