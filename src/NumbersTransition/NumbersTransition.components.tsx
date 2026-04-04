@@ -1,5 +1,4 @@
 import {
-  Dispatch,
   FC,
   Fragment,
   FragmentProps,
@@ -7,7 +6,6 @@ import {
   ReactElement,
   ReactNode,
   RefObject,
-  SetStateAction,
   isValidElement,
   useCallback,
   useEffect,
@@ -60,7 +58,7 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction } from './NumbersTransition.types';
+import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];
@@ -107,7 +105,7 @@ interface DeferProps {
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
   const { children, renderBatchSize, countElements, onBeforeMount, onPartialMount, onAfterMount }: DeferProps = props;
 
-  const [mountedElements, setMountedElements]: [number, Dispatch<SetStateAction<number>>] = useState<number>(renderBatchSize);
+  const [mountedElements, setMountedElements]: ReactState<number> = useState<number>(renderBatchSize);
 
   // prettier-ignore
   const countAggregatedSums = useCallback<(sums: number[], child: ReactElement<ChildrenProps>) => number[]>(

@@ -1,15 +1,4 @@
-import {
-  ComponentProps,
-  Dispatch,
-  PointerEvent,
-  ReactNode,
-  RefObject,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { ComponentProps, PointerEvent, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { RuleSet, css } from 'styled-components';
 import type { InputType, PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import type { ArgTypes, Meta, ReactRenderer, StoryObj } from '@storybook/react-vite';
@@ -53,7 +42,18 @@ import {
   NumbersTransitionTheme,
   VerticalAnimation,
 } from './NumbersTransition.styles';
-import type { EnumType, EnumValue, Maybe, Nullable, Optional, Remove, Select, UncheckedBigDecimal } from './NumbersTransition.types';
+import type {
+  EnumType,
+  EnumValue,
+  Maybe,
+  Nullable,
+  Optional,
+  ReactState,
+  Remove,
+  Select,
+  SetState,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 
 type NumbersTransitionComponent<
@@ -367,9 +367,8 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     },
   }: DragAndDropDigitsProps = props;
 
-  const [activePointer, setActivePointer]: [Nullable<number>, Dispatch<SetStateAction<Nullable<number>>>] =
-    useState<Nullable<number>>(null);
-  const [dragValue, setDragValue]: [Nullable<string>, Dispatch<SetStateAction<Nullable<string>>>] = useState<Nullable<string>>(null);
+  const [activePointer, setActivePointer]: ReactState<Nullable<number>> = useState<Nullable<number>>(null);
+  const [dragValue, setDragValue]: ReactState<Nullable<string>> = useState<Nullable<string>>(null);
 
   const baseValue: RefObject<Optional<UncheckedBigDecimal>> = useRef<Optional<UncheckedBigDecimal>>(providedValue);
   const timeout: RefObject<Optional<NodeJS.Timeout>> = useRef<Optional<NodeJS.Timeout>>(undefined);
@@ -560,8 +559,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const view: View<Partial<DragAndDropContainerProps>, unknown> = {
     css: dragAndDropCss,
     viewProps: {
-      onAnimationEndCapture: (): void =>
-        setDragValue.callWhen<undefined, Dispatch<SetStateAction<Nullable<string>>>>(dragValue !== null, undefined, null),
+      onAnimationEndCapture: (): void => setDragValue.callWhen<undefined, SetState<Nullable<string>>>(dragValue !== null, undefined, null),
     },
   };
 

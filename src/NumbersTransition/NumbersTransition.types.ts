@@ -1,4 +1,4 @@
-import type { ReactElement, ReactNode, SyntheticEvent } from 'react';
+import type { Dispatch, ReactElement, ReactNode, SetStateAction, SyntheticEvent } from 'react';
 import type { Integer, Key, Text } from './NumbersTransition.enums';
 
 export type ValueOf<T> = T extends unknown ? T[keyof T] : never;
@@ -77,6 +77,10 @@ export type Falsy =
 export type UncheckedBigDecimal = number | bigint | string;
 
 export type BigDecimal = number | bigint | `${number}`;
+
+export type SetState<T> = Dispatch<SetStateAction<T>>;
+
+export type ReactState<T> = [T, SetState<T>];
 
 export type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
 

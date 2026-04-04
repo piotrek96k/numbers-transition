@@ -1,17 +1,4 @@
-import {
-  ActionDispatch,
-  Dispatch,
-  FC,
-  ReactElement,
-  RefObject,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from 'react';
+import { ActionDispatch, FC, ReactElement, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import {
   AnimationDirection,
@@ -52,6 +39,7 @@ import type {
   OrArray,
   OrFunction,
   OrReadOnly,
+  ReactState,
   Slice,
   Switch,
   TupleOfLength,
@@ -1008,7 +996,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
     ref,
   }: UseHorizontalAnimationWidthsOptions = options;
 
-  const [animationStartWidth, setAnimationStartWidth]: [number, Dispatch<SetStateAction<number>>] = useState<number>(Integer.Zero);
+  const [animationStartWidth, setAnimationStartWidth]: ReactState<number> = useState<number>(Integer.Zero);
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
   const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
 

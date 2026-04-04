@@ -1,16 +1,4 @@
-import {
-  AnimationEvent,
-  AnimationEventHandler,
-  Dispatch,
-  ReactElement,
-  ReactNode,
-  RefObject,
-  SetStateAction,
-  useEffect,
-  useId,
-  useRef,
-  useState,
-} from 'react';
+import { AnimationEvent, AnimationEventHandler, ReactElement, ReactNode, RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StyleSheetManager, ThemeProvider } from 'styled-components';
 import {
   AnimationProps,
@@ -64,7 +52,15 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import type { BigDecimal, OrFunction, ReactEvent, TupleOfLength, UncheckedBigDecimal } from './NumbersTransition.types';
+import type {
+  BigDecimal,
+  OrFunction,
+  ReactEvent,
+  ReactState,
+  SetState,
+  TupleOfLength,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -161,12 +157,12 @@ const NumbersTransition = <
 
   const [validInitialValue]: [BigDecimal, boolean] = useValidation(initialValue);
   const previousValueOnStart: RefObject<BigDecimal> = useRef<BigDecimal>(validInitialValue);
-  const [previousValueOnEnd, setPreviousValueOnEnd]: [BigDecimal, Dispatch<SetStateAction<BigDecimal>>] =
-    useState<BigDecimal>(validInitialValue);
+  const [previousValueOnEnd, setPreviousValueOnEnd]: ReactState<BigDecimal> = useState<BigDecimal>(validInitialValue);
   const [validValue, isValueValid]: [BigDecimal, boolean] = useValue(value, previousValueOnEnd, animationInterruptionMode);
 
-  const [animationTransition, setAnimationTransition]: [AnimationTransition, Dispatch<SetStateAction<AnimationTransition>>] =
-    useState<AnimationTransition>(AnimationTransition.None);
+  const [animationTransition, setAnimationTransition]: ReactState<AnimationTransition> = useState<AnimationTransition>(
+    AnimationTransition.None,
+  );
 
   const [
     [previousValueOnStartDigits, previousValueOnEndDigits, valueDigits],
@@ -275,7 +271,7 @@ const NumbersTransition = <
   });
 
   useEffect(
-    (): void => setPreviousValueOnEnd.callWhen<undefined, Dispatch<SetStateAction<BigDecimal>>>(omitAnimation, undefined, validValue),
+    (): void => setPreviousValueOnEnd.callWhen<undefined, SetState<BigDecimal>>(omitAnimation, undefined, validValue),
     [validValue, omitAnimation],
   );
 
