@@ -1,5 +1,4 @@
 import type { InlineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 import { withoutVitePlugins } from '@storybook/builder-vite';
 import type { StorybookConfig } from '@storybook/react-vite';
 
@@ -11,7 +10,7 @@ const config: StorybookConfig = {
   viteFinal: async ({ build, plugins, ...config }: InlineConfig): Promise<InlineConfig> => ({
     ...config,
     build: { ...build, chunkSizeWarningLimit: 2_500 },
-    plugins: await withoutVitePlugins(plugins, [dts().name]),
+    plugins: await withoutVitePlugins(plugins, ['vite:dts']),
   }),
 };
 
