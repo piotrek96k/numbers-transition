@@ -9,13 +9,13 @@ runs:
       id: branch
       run: echo "name=storybook/auto-upgrade" >> $GITHUB_OUTPUT
       shell: bash
-    - name: Check If Upgrade PR Branch Exists
+    - name: Check If Upgrade PR Exists
       id: pr
-      run: echo "exists=$(git ls-remote --heads origin ${{ steps.branch.outputs.name }} | grep -q ${{ steps.branch.outputs.name }} && echo true || echo false)" >> $GITHUB_OUTPUT
+      run: echo "state=$(gh pr list --head ${{ steps.branch.outputs.name }} --json state -q '.[0].state' 2>/dev/null || echo NONE)" >> $GITHUB_OUTPUT
       shell: bash
     - name: Determine If Upgrade Should Run
       id: upgrade
-      run: echo "run=${{ github.event_name != 'push' || steps.pr.outputs.exists == 'true' }}" >> $GITHUB_OUTPUT
+      run: echo "run=${{ github.event_name != 'push' || steps.pr.outputs.state == 'OPEN' }}" >> $GITHUB_OUTPUT
       shell: bash
     - name: Install Dependencies
       if: steps.upgrade.outputs.run == 'true'
@@ -44,7 +44,7 @@ runs:
         commit-message: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
         title: 'Bump storybook from ${{ steps.old.outputs.version }} to ${{ steps.new.outputs.version }}'
     - name: Close Existing PR
-      if: github.event_name == 'push' && steps.pr.outputs.exists == 'true' && steps.old.outputs.version == steps.new.outputs.version
+      if: github.event_name == 'push' && steps.pr.outputs.state == 'OPEN' && steps.old.outputs.version == steps.new.outputs.version
       run: gh pr close ${{ steps.branch.outputs.name }} --delete-branch
       env:
         GH_TOKEN: ${{ inputs.token }}
