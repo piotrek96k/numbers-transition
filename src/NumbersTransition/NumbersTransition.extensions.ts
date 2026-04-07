@@ -1,6 +1,6 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
 import { DragAndDropVariableName, Integer } from './NumbersTransition.enums';
-import type { ArrayOfDepth, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
   public static readonly type: BooleanConstructor = Boolean;
@@ -92,7 +92,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public static readonly literalType: LiteralType[] = Object.values<LiteralType>(LiteralType);
 
   public static isType(value: unknown): value is object {
-    return [undefined, null].every((nullish: undefined | null): boolean => value !== nullish);
+    return [undefined, null].every((nullish: Nullish): boolean => value !== nullish);
   }
 
   public callOrGet(...args: T extends (...args: infer U) => any ? U : never): (T extends (...args: any[]) => infer U ? U : never) | T {

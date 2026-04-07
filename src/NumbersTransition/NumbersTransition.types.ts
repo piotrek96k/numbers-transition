@@ -9,6 +9,8 @@ export type EnumValue<E extends Enum<E>> = E extends unknown ? ValueOf<E> : neve
 
 export type EnumType<E extends Enum<E>, V extends EnumValue<E>> = E extends unknown ? (V extends ValueOf<E> ? E : never) : never;
 
+export type Nullish = undefined | null;
+
 export type Optional<T> = T | undefined;
 
 export type Nullable<T> = T | null;
