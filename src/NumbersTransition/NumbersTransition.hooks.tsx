@@ -13,7 +13,7 @@ import {
   Key,
   NegativeCharacterAnimationMode,
   NumberPrecision,
-  RegularExpression,
+  Pattern,
   StepPosition,
   Styled,
   Text,
@@ -52,7 +52,7 @@ const useRerender = (): ActionDispatch<[]> =>
   useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
-  RegularExpression.BigDecimal.testAny<BigDecimal>(value)
+  Pattern.BigDecimal.testAny<BigDecimal>(value)
     ? [value, true]
     : typeof value === 'number'
       ? [Number(value).toFixed(Integer.OneHundred), true]
@@ -105,7 +105,7 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const splitFloatingPoint = (value: BigDecimal): string[] => `${value}`.split(RegularExpression.DecimalSeparator);
+  const splitFloatingPoint = (value: BigDecimal): string[] => `${value}`.split(Pattern.DecimalSeparator);
 
   const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
     const [{ bigInt: digits }, { bigInt: restDigits, length }]: [string, string] =
@@ -128,7 +128,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     .mapEach<[string[], string], [[string[], string[], string[]], [string, string, string]]>(splitFloatingPoint, parseFloatingPoint);
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
-    [...characters].filter((character: string): boolean => RegularExpression.Digit.test(character)).map<number>(Number),
+    [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
   );
 
   const bigInts: [bigint, bigint, bigint] = characters.map<bigint>(BigInt);

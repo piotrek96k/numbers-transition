@@ -281,7 +281,7 @@ export enum Integer {
   SixThousand = 6_000,
 }
 
-export const RegularExpression = {
+export const Pattern = {
   BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?$/,
   Digit: /^\d{1}$/,
   DecimalSeparator: /\.|,/,

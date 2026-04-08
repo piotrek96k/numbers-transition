@@ -24,7 +24,7 @@ import {
   NegativeCharacter,
   NegativeCharacterAnimationMode,
   OptimizationStrategy,
-  RegularExpression,
+  Pattern,
   StepPosition,
   StorybookInputType,
   Text,
@@ -396,8 +396,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     [providedValue, dragValue],
   );
 
-  const filterElements = (child: Element): child is HTMLElement =>
-    child instanceof HTMLElement && RegularExpression.Digit.test(child.textContent);
+  const filterElements = (child: Element): child is HTMLElement => child instanceof HTMLElement && Pattern.Digit.test(child.textContent);
 
   const groupElements = ([unorderedDigits, digits]: [string[], HTMLElement[]], digit: HTMLElement): [string[], HTMLElement[]] => [
     unorderedDigits.append(digit.textContent),
@@ -418,7 +417,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const readValue = (digits: string[]): string => {
     const inputValue: string = `${baseValue.current}`;
     const hasMinus: boolean = inputValue[Integer.Zero] === Text.Minus;
-    const index: number = [...inputValue].findIndex((character: string): boolean => RegularExpression.DecimalSeparator.test(character));
+    const index: number = [...inputValue].findIndex((character: string): boolean => Pattern.DecimalSeparator.test(character));
     const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - hasMinus.int;
 
     return [...(hasMinus ? [Text.Minus] : []), ...(precision > Integer.Zero ? digits.insert(Text.Dot, separatorIndex) : digits)].join(
@@ -508,7 +507,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const newValue: string = readValue(reorderedDigits);
 
     const isNewValueValid: boolean =
-      RegularExpression.BigDecimal.test(newValue) &&
+      Pattern.BigDecimal.test(newValue) &&
       (precision >= Integer.Zero ||
         (reorderedDigits.slice(digits.length + precision).every(isNotZero) && dragIdx < digits.length + precision));
 
