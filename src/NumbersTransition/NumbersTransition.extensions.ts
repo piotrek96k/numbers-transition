@@ -53,7 +53,7 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
   }
 }
 
-export class CharSequence extends Extension<string> implements ExtensionConstructor<string, typeof CharSequence> {
+export class Text extends Extension<string> implements ExtensionConstructor<string, typeof Text> {
   public static readonly type: StringConstructor = String;
   public static readonly literalType: LiteralType[] = [LiteralType.String];
 
