@@ -200,7 +200,7 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
   }
 
   public bindWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
-    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(condition, thisArg, ...args);
+    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen<U>(condition, thisArg, ...args);
   }
 
   public callWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
@@ -210,7 +210,7 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
   }
 
   public invokeWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): void {
-    this.callWhen(condition, thisArg, ...args);
+    this.callWhen<U>(condition, thisArg, ...args);
   }
 }
 
