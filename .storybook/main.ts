@@ -6,7 +6,7 @@ const config: StorybookConfig = {
   stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@chromatic-com/storybook', '@storybook/addon-docs'],
   framework: { name: '@storybook/react-vite', options: {} },
-  typescript: { reactDocgen: 'react-docgen-typescript' },
+  typescript: { reactDocgen: 'react-docgen-typescript', reactDocgenTypescriptOptions: { include: ['src/**/*.{ts,tsx}'] } },
   viteFinal: async ({ build, plugins, ...config }: InlineConfig): Promise<InlineConfig> => ({
     ...config,
     build: { ...build, chunkSizeWarningLimit: 2_500 },
