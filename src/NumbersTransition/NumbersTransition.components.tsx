@@ -353,11 +353,6 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  const negativeElements: ReactElement<ChildrenProps>[] = animationVisibilities.mapEach<ReactElement<ChildrenProps>>(
-    mapToNegativeElement,
-    mapToThemeProviderElement,
-  );
-
   const negativeElementProps: NegativeElementProps<T, U, V, W> = { negativeCharacter, characterStyledView, negativeCharacterStyledView };
 
   const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
@@ -378,7 +373,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
       >
         <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
           <VerticalAnimation>
-            <div>{negativeElements}</div>
+            <div>{animationVisibilities.mapEach<ReactElement<ChildrenProps>>(mapToNegativeElement, mapToThemeProviderElement)}</div>
           </VerticalAnimation>
         </ThemeProvider>
       </Enclose>
