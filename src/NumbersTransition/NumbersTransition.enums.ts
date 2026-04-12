@@ -243,6 +243,14 @@ export enum DragAndDropVariableName {
   Transform = '--transform',
 }
 
+export enum Typeof {
+  Boolean = 'boolean',
+  Number = 'number',
+  BigInt = 'bigint',
+  String = 'string',
+  Function = 'function',
+}
+
 export enum Text {
   Comma = ',',
   Dot = '.',

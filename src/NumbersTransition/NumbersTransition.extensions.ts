@@ -1,5 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import { DragAndDropVariableName, Integer } from './NumbersTransition.enums';
+import { DragAndDropVariableName, Integer, Typeof } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -7,7 +7,7 @@ export class Predicate extends Extension<boolean> implements ExtensionConstructo
   public static readonly literalType: LiteralType[] = [LiteralType.Boolean];
 
   public static isType(value: unknown): value is boolean {
-    return typeof value === 'boolean' || value instanceof Boolean;
+    return typeof value === Typeof.Boolean || value instanceof Boolean;
   }
 
   public get int(): number {
@@ -24,7 +24,7 @@ export class Double extends Extension<number> implements ExtensionConstructor<nu
   public static readonly literalType: LiteralType[] = [LiteralType.Number];
 
   public static isType(value: unknown): value is number {
-    return typeof value === 'number' || value instanceof Number;
+    return typeof value === Typeof.Number || value instanceof Number;
   }
 
   public static subtract(first: number, second: number): number {
@@ -45,7 +45,7 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
   public static readonly literalType: LiteralType[] = [LiteralType.BigInt];
 
   public static isType(value: unknown): value is bigint {
-    return typeof value === 'bigint';
+    return typeof value === Typeof.BigInt;
   }
 
   public get digit(): number {
@@ -58,7 +58,7 @@ export class Text extends Extension<string> implements ExtensionConstructor<stri
   public static readonly literalType: LiteralType[] = [LiteralType.String];
 
   public static isType(value: unknown): value is string {
-    return typeof value === 'string' || value instanceof String;
+    return typeof value === Typeof.String || value instanceof String;
   }
 
   public get bigInt(): bigint {
@@ -192,7 +192,7 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
   public static readonly literalType: LiteralType[] = [LiteralType.Function];
 
   public static isType(value: unknown): value is (...args: any[]) => any {
-    return typeof value === 'function';
+    return typeof value === Typeof.Function;
   }
 
   public static call<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {

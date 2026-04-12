@@ -17,6 +17,7 @@ import {
   StepPosition,
   Styled,
   Text,
+  Typeof,
   ViewKey,
   ViewType,
 } from './NumbersTransition.enums';
@@ -54,7 +55,7 @@ const useRerender = (): ActionDispatch<[]> =>
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   Pattern.BigDecimal.testAny<BigDecimal>(value)
     ? [value, true]
-    : typeof value === 'number'
+    : typeof value === Typeof.Number
       ? [Number(value).toFixed(Integer.OneHundred), true]
       : [validValue, false];
 
