@@ -128,18 +128,22 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return Array.isArray<unknown>(value);
   }
 
-  public static depth<T>(array: T): number {
-    return Array.isArray<T>(array)
-      ? Integer.One + array.map<number>(List.depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN))
-      : Integer.Zero;
-  }
-
-  public static isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U> {
-    return this.depth<unknown>(array) === depth;
+  public static isOfDepth<T, U extends number>(array: any, depth: U): array is ArrayOfDepth<T, U> {
+    return new List<unknown>(array).depth === depth;
   }
 
   public static toArray<T>(value: OrArray<T>): T[] {
     return Array.isArray<T>(value) ? value : [value];
+  }
+
+  public get depth(): number {
+    const depth = <U>(value: U): number =>
+      Array.isArray<U>(value)
+        ? Integer.One +
+          (value.length && value.map<number>(depth).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
+        : Integer.Zero;
+
+    return depth<T[]>(this.value);
   }
 
   public append(element: T): T[] {
