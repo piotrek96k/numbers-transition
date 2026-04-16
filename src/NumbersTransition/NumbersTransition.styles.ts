@@ -36,7 +36,7 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove } from './NumbersTransition.types';
+import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove, Tuple } from './NumbersTransition.types';
 
 type BaseObject = {};
 
@@ -74,9 +74,9 @@ interface Keyframes {
   rules: string;
 }
 
-export type LinearEasingFunction = [number, ...(number | [number, number] | [number, number, number])[], number];
+export type LinearEasingFunction = [number, ...(number | Tuple<number, Integer.Two | Integer.Three>)[], number];
 
-export type CubicBezierEasingFunction = [[number, number], [number, number]];
+export type CubicBezierEasingFunction = Tuple<[number, number], Integer.Two>;
 
 export interface StepsEasingFunction {
   steps: number;

@@ -43,7 +43,7 @@ import type {
   ReactState,
   Slice,
   Switch,
-  TupleOfLength,
+  Tuple,
   UncheckedBigDecimal,
   UnionProduct,
   ValueOf,
@@ -284,7 +284,7 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
     previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
 
   return AnimationType.values<AnimationType>()
-    .zip<TupleOfLength<AnimationType, Integer.Three>, TupleOfLength<AnimationDirection, Integer.Three>>(
+    .zip<Tuple<AnimationType, Integer.Three>, Tuple<AnimationDirection, Integer.Three>>(
       AnimationDirection.None,
       horizontalAnimationDirection,
       verticalAnimationDirection,
@@ -308,7 +308,7 @@ type FixDirection<T extends EasingFunction> = (easingFunction: OrReadOnly<T>) =>
 
 const useLinearDirection = (animationDirection: AnimationDirection): FixDirection<LinearEasingFunction> => {
   const copyLinear = (value: OrReadOnly<LinearEasingFunction[number]>): LinearEasingFunction[number] =>
-    Array.isArray<number, OrReadOnly<[number, number] | [number, number, number]>>(value) ? [...value] : value;
+    Array.isArray<number, OrReadOnly<Tuple<number, Integer.Two | Integer.Three>>>(value) ? [...value] : value;
 
   const reverseLinearTuple = (number: number, index: number, { length, [length - index]: value }: OrReadOnly<number[]>): number =>
     index ? Integer.OneHundred - value : Integer.One - number;
@@ -318,8 +318,8 @@ const useLinearDirection = (animationDirection: AnimationDirection): FixDirectio
     index: number,
     { length, [length - index - Integer.One]: value }: OrReadOnly<OrReadOnly<LinearEasingFunction[number]>[]>,
   ): LinearEasingFunction[number] =>
-    Array.isArray<number, OrReadOnly<[number, number] | [number, number, number]>>(value)
-      ? value.map<number, [number, number] | [number, number, number]>(reverseLinearTuple)
+    Array.isArray<number, OrReadOnly<Tuple<number, Integer.Two | Integer.Three>>>(value)
+      ? value.map<number, Tuple<number, Integer.Two | Integer.Three>>(reverseLinearTuple)
       : Integer.One - value;
 
   return (easingFunction: OrReadOnly<LinearEasingFunction>): LinearEasingFunction =>
@@ -415,7 +415,7 @@ interface UseAnimationDurationOptions {
   numberOfAnimations: AnimationNumber;
 }
 
-export const useAnimationDuration = (options: UseAnimationDurationOptions): TupleOfLength<number, Integer.Four> => {
+export const useAnimationDuration = (options: UseAnimationDurationOptions): Tuple<number, Integer.Four> => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
   const isAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): value is AnimationDuration =>
@@ -451,7 +451,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       : animationDuration.pipe<AnimationDuration | TotalAnimationDuration, [number, number]>(mapAnimationDuration);
 
   const currentAnimationDuration: number = AnimationType.values<AnimationType>()
-    .zip<TupleOfLength<AnimationType, Integer.Three>, [number, number, number]>(
+    .zip<Tuple<AnimationType, Integer.Three>, [number, number, number]>(
       Integer.Zero,
       horizontalAnimationDuration,
       verticalAnimationDuration,
@@ -460,7 +460,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
     .at<Integer.One>(Integer.One);
 
   const totalAnimationDuration: number = [AnimationNumber.Zero, AnimationNumber.One, AnimationNumber.Two, AnimationNumber.Three]
-    .zip<TupleOfLength<AnimationNumber, Integer.Four>, TupleOfLength<number, Integer.Four>>(
+    .zip<Tuple<AnimationNumber, Integer.Four>, Tuple<number, Integer.Four>>(
       Integer.Zero,
       verticalAnimationDuration,
       horizontalAnimationDuration + verticalAnimationDuration,
@@ -560,7 +560,7 @@ export const useStyledView = <
 
   // prettier-ignore
   return options
-    .zip<TupleOfLength<Styled, Integer.Eight>>(...Styled.values<Styled, TupleOfLength<Styled, Integer.Eight>>())
+    .zip<Tuple<Styled, Integer.Eight>>(...Styled.values<Styled, Tuple<Styled, Integer.Eight>>())
     .map<
       UnionProduct<ViewTuple<ViewType.StyledView, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>[number], Optional<K | M | O | Q | S | U | W | Y>>,
       ViewTuple<ViewType.StyledViewWithProps, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z>
@@ -811,12 +811,12 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .reduce(Number.sum);
 
   // prettier-ignore
-  const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => TupleOfLength<number, Integer.Four>) =>
-    (tuple: [number, number]): TupleOfLength<number, Integer.Four> => [...calculateCoefficients(tuple), -outputValue];
+  const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => Tuple<number, Integer.Four>) =>
+    (tuple: [number, number]): Tuple<number, Integer.Four> => [...calculateCoefficients(tuple), -outputValue];
 
   // prettier-ignore
-  const calculateDepressedCoefficients = ([first, second, third, fourth]: TupleOfLength<number, Integer.Four>): [
-    TupleOfLength<number, Integer.Four>,
+  const calculateDepressedCoefficients = ([first, second, third, fourth]: Tuple<number, Integer.Four>): [
+    Tuple<number, Integer.Four>,
     [number, number],
   ] => [
     [first, second, third, fourth],
@@ -827,8 +827,8 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
     ],
   ];
 
-  const calculateDiscriminant = ([coefficients, [first, second]]: [TupleOfLength<number, Integer.Four>, [number, number]]): [
-    TupleOfLength<number, Integer.Four>,
+  const calculateDiscriminant = ([coefficients, [first, second]]: [Tuple<number, Integer.Four>, [number, number]]): [
+    Tuple<number, Integer.Four>,
     [number, number, number],
   ] => [coefficients, [(first / Integer.Three) ** Integer.Three + (second / Integer.Two) ** Integer.Two, first, second]];
 
@@ -863,7 +863,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       (discriminant: number): boolean => discriminant > Integer.Zero,
       (discriminant: number): boolean => discriminant < Integer.Zero,
     ]
-      .zip<TupleOfLength<(disc: number) => boolean, Integer.Three>, TupleOfLength<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>(
+      .zip<Tuple<(disc: number) => boolean, Integer.Three>, Tuple<(coeffs: number[], nextCoeffs: number[], disc: number) => number[], Integer.Three>>(
         solveForRepeatedRoots, 
         solveForOneRoot, 
         solveForThreeRoots
@@ -876,8 +876,8 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
     (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
       .mapEach<
-        [TupleOfLength<number, Integer.Four>, number[][], number[][]],
-        [[TupleOfLength<number, Integer.Four>], [[TupleOfLength<number, Integer.Four>, [number, number]]], [[TupleOfLength<number, Integer.Four>, [number, number, number]]]]
+        [Tuple<number, Integer.Four>, number[][], number[][]],
+        [[Tuple<number, Integer.Four>], [[Tuple<number, Integer.Four>, [number, number]]], [[Tuple<number, Integer.Four>, [number, number, number]]]]
       >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
       .flat<[[number[], number[]]], Integer.One>()
       .reduce(solveCubicBezier)
@@ -895,7 +895,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 const useStepsSolver = (): Solve<StepsEasingFunction> =>
   ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
     StepPosition.values<StepPosition>()
-      .zip<TupleOfLength<StepPosition, Integer.Four>, TupleOfLength<number, Integer.Four>>(
+      .zip<Tuple<StepPosition, Integer.Four>, Tuple<number, Integer.Four>>(
         Math.floor(outputValue * steps) / steps,
         Math.ceil(outputValue * steps) / steps,
         Math.ceil(outputValue * (steps - Integer.One)) / steps,
@@ -1063,11 +1063,11 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   }: UseVerticalAnimationDigitsOptions = options;
 
   // prettier-ignore
-  const createDigitValues = ([first, second]: [[bigint, bigint][], [bigint, bigint][]], index: number): [[bigint, bigint][], [bigint, bigint][]] =>
+  const createDigitValues = ([first, second]: Tuple<[bigint, bigint][], Integer.Two>, index: number): Tuple<[bigint, bigint][], Integer.Two> =>
     [previousValue, currentValue]
       .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / Integer.Ten.bigInt ** (maxNumberOfDigits - index - Integer.One).bigInt)
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : (first > second).int))
-      .pipe<[[bigint, bigint][], [bigint, bigint][]]>(([start, end]: [bigint, bigint]): [[bigint, bigint][], [bigint, bigint][]] =>
+      .pipe<Tuple<[bigint, bigint][], Integer.Two>>(([start, end]: [bigint, bigint]): Tuple<[bigint, bigint][], Integer.Two> =>
         end - start < incrementThreshold ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
 
@@ -1093,7 +1093,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
   return [...Array<unknown>(maxNumberOfDigits).keys()]
-    .reduce<[[bigint, bigint][], [bigint, bigint][]]>(createDigitValues, [[], []])
+    .reduce<Tuple<[bigint, bigint][], Integer.Two>>(createDigitValues, [[], []])
     .map<number[][]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();
 };

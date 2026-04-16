@@ -52,15 +52,7 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import type {
-  BigDecimal,
-  OrFunction,
-  ReactEvent,
-  ReactState,
-  SetState,
-  TupleOfLength,
-  UncheckedBigDecimal,
-} from './NumbersTransition.types';
+import type { BigDecimal, OrFunction, ReactEvent, ReactState, SetState, Tuple, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   K extends object = object,
@@ -225,7 +217,7 @@ const NumbersTransition = <
   });
 
   // prettier-ignore
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: TupleOfLength<number, Integer.Four> = 
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: Tuple<number, Integer.Four> = 
     useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   // prettier-ignore
@@ -308,7 +300,7 @@ const NumbersTransition = <
       animationTransition !== AnimationTransition.None,
       true,
     ]
-      .zip<TupleOfLength<boolean, Integer.Four>, TupleOfLength<(() => void)[], Integer.Four>>(
+      .zip<Tuple<boolean, Integer.Four>, Tuple<(() => void)[], Integer.Four>>(
         [(): void => setPreviousValueOnEnd(validValue)],
         [(): void => setAnimationTransition(AnimationTransition.SecondToThird)],
         [(): void => setPreviousValueOnEnd(validValue), (): void => setAnimationTransition(AnimationTransition.None)],

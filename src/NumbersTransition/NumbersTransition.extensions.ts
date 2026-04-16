@@ -184,9 +184,9 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 
   public zip<U>(...{ length, ...array }: U[]): Zip<T[], U[]> {
-    return this.value.map<[T] | T[] | [T, U] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): [T] | T[] | [T, U] | [...T[], U] => [
+    return this.value.map<T[] | [...T[], U], Zip<T[], U[]>>((value: T, index: number): T[] | [...T[], U] => [
       ...List.toArray<T>(value),
-      ...((index < length ? [array[index]] : []) satisfies [U] | []),
+      ...((index < length ? [array[index]] : []) satisfies [U?]),
     ]);
   }
 }

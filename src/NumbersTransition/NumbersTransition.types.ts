@@ -25,7 +25,11 @@ export type OrArray<T> = T | T[];
 
 export type OrFunction<T extends unknown[], U> = ((...args: T) => U) | U;
 
-export type TupleOfLength<T, U extends number, V extends T[] = []> = V[Key.Length] extends U ? V : TupleOfLength<T, U, [...V, T]>;
+export type Tuple<T, U extends number, V extends T[] = []> = U extends unknown
+  ? V[Key.Length] extends U
+    ? V
+    : Tuple<T, U, [...V, T]>
+  : never;
 
 export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U extends V[Key.Length]
   ? T
@@ -64,7 +68,7 @@ export type UnionProduct<T, U> = First<[[T, undefined, U], [U, undefined, T]], E
 
 export type Zip<T extends unknown[], U extends unknown[]> = Every<
   [[`${Integer.Zero}`, keyof T], [`${Integer.Zero}`, keyof U], [keyof T, keyof U]],
-  TupleOfLength<T[number] extends Array<unknown> ? [...T[number], U[number]] : [T[number], U[number]], T[Key.Length]>,
+  Tuple<T[number] extends Array<unknown> ? [...T[number], U[number]] : [T[number], U[number]], T[Key.Length]>,
   ([T[number]] | [T[number], U[number]])[]
 >;
 
