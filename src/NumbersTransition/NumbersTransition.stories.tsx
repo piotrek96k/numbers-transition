@@ -425,7 +425,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     );
   };
 
-  const isNotZero = (digit: string): boolean => !digit.number;
+  const isZero = ({ number }: string): boolean => !number;
 
   const scheduleUpdate = (value: string): NodeJS.Timeout =>
     (timeout.current = setTimeout(
@@ -509,7 +509,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const isNewValueValid: boolean =
       Pattern.BigDecimal.test(newValue) &&
       (precision >= Integer.Zero ||
-        (reorderedDigits.slice(digits.length + precision).every(isNotZero) && dragIdx < digits.length + precision));
+        (reorderedDigits.slice(digits.length + precision).every(isZero) && dragIdx < digits.length + precision));
 
     const previousDigits: Optional<string[]> = isNewValueValid
       ? undefined
