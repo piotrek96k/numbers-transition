@@ -46,6 +46,7 @@ declare global {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
     isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
+    range(size: number): number[];
     toArray<T>(value: OrArray<T>): T[];
     toArray<T, U extends T[]>(value: OrArray<T>): U;
   }

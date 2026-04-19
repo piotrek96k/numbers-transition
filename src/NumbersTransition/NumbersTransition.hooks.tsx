@@ -848,7 +848,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 
   // prettier-ignore
   const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
-    [...Array<unknown>(Integer.Three).keys()].map<number>(
+    Array.range(Integer.Three).map<number>(
       (index: number): number =>
         Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * Math.cos(
           (Integer.One / Integer.Three) * Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
@@ -932,7 +932,7 @@ export const useNegativeElementAnimationTimingFunction = (
   const mapToLinear =
     (increment: number): ((solution: number, index: number) => [number, number][]) =>
     (solution: number, index: number): [number, number][] =>
-      [...Array<unknown>(Integer.Two).keys()].map<[number, number]>((value: number): [number, number] => [
+      Array.range(Integer.Two).map<[number, number]>((value: number): [number, number] => [
         increment ^ ((index + value) % Integer.Two) ? Integer.One / animationVisibilities.length : (index + value) % Integer.Two,
         solution * Integer.OneHundred,
       ]);
@@ -1079,20 +1079,20 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
     value / NumberPrecision.Value + (value - (value / NumberPrecision.Value) * NumberPrecision.Value >= NumberPrecision.HalfValue).bigInt;
 
   const incrementValues = ([start, end]: [bigint, bigint]): number[] =>
-    [...Array<unknown>(Number(end - start) + Integer.One).keys()].mapEach<[bigint, number]>(
+    Array.range(Number(end - start) + Integer.One).mapEach<[bigint, number]>(
       ({ bigInt }: number): bigint => start + bigInt,
       ({ digit }: bigint): number => digit,
     );
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
-    [...Array<unknown>(incrementThreshold + numberOfDigitsIncrease * index).keys()]
+    Array.range(incrementThreshold + numberOfDigitsIncrease * index)
       .mapEach<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
       .pipe<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);
 
-  return [...Array<unknown>(maxNumberOfDigits).keys()]
+  return Array.range(maxNumberOfDigits)
     .reduce<Tuple<[bigint, bigint][], Integer.Two>>(createDigitValues, [[], []])
     .map<number[][]>(mapDigitValues)
     .flat<[number[][], number[][]], Integer.One>();

@@ -136,7 +136,7 @@ const basicEffectCss: RuleSet<object> = css<object>`
 
 const basicEffectArgs: ComponentProps<NumbersTransitionComponent> = {
   initialValue: Integer.Zero,
-  value: [...Array<unknown>(Integer.Ten).keys()].reduce<string>((txt: string, index: number): string => `${index}${txt}${index}`, Text.Dot),
+  value: Array.range(Integer.Ten).reduce<string>((text: string, index: number): string => `${index}${text}${index}`, Text.Dot),
   precision: Integer.Ten,
   decimalSeparator: DecimalSeparatorCharacter.Comma,
   digitGroupSeparator: DigitGroupSeparatorCharacter.Space,

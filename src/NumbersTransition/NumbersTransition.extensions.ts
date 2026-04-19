@@ -132,6 +132,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return new List<unknown>(array).depth === depth;
   }
 
+  public static range(size: number): number[] {
+    return [...Array<unknown>(size).keys()];
+  }
+
   public static toArray<T>(value: OrArray<T>): T[] {
     return Array.isArray<T>(value) ? value : [value];
   }

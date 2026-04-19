@@ -44,8 +44,8 @@ const config: Linter.Config[] = [
       'no-use-before-define': ['error', { classes: false }],
       'no-useless-rename': 'error',
       'no-useless-concat': 'error',
-      'prefer-template': 'error',
       'object-shorthand': 'error',
+      'prefer-template': 'error',
       'prefer-spread': 'error',
       'react-refresh/only-export-components': 'error',
       '@typescript-eslint/no-unused-vars': 'error',
@@ -54,6 +54,7 @@ const config: Linter.Config[] = [
       'no-console': 'warn',
       '@typescript-eslint/no-explicit-any': 'off',
       'react-hooks/refs': 'off',
+      'react-hooks/set-state-in-effect': 'off',
     },
   },
 ];
