@@ -1,5 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import { DragAndDropVariableName, Integer, Typeof } from './NumbersTransition.enums';
+import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -53,7 +53,7 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
   }
 }
 
-export class Text extends Extension<string> implements ExtensionConstructor<string, typeof Text> {
+export class Str extends Extension<string> implements ExtensionConstructor<string, typeof Str> {
   public static readonly type: StringConstructor = String;
   public static readonly literalType: LiteralType[] = [LiteralType.String];
 
@@ -71,6 +71,10 @@ export class Text extends Extension<string> implements ExtensionConstructor<stri
 
   public capitalize(): string {
     return `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
+  }
+
+  public remove(searchValue: string | RegExp): string {
+    return this.value.replace(searchValue, Text.Empty);
   }
 }
 
