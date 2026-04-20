@@ -58,6 +58,7 @@ declare global {
     append<U>(element: U): T extends U ? U[] : never;
     at(index: number): Optional<T>;
     at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
+    collapse(): string;
     equals<U extends T>(array: U[]): boolean;
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U): Optional<U>;

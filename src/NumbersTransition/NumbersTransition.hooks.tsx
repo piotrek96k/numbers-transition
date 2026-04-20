@@ -118,7 +118,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     const { bigInt: increase }: boolean = restDigits >= `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt;
     const value: bigint = (digits + increase) * Integer.Ten.bigInt ** numberOfZeros.bigInt;
 
-    return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].join(Text.Empty);
+    return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].collapse();
   };
 
   // prettier-ignore

@@ -159,6 +159,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return this.value;
   }
 
+  public collapse(): string {
+    return this.value.join(Text.Empty);
+  }
+
   public equals<U extends T>({ length, ...array }: U[]): boolean {
     return this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
   }
