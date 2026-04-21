@@ -11,6 +11,10 @@ updates:
       - dependency-name: 'react'
       - dependency-name: 'react-dom'
       - dependency-name: 'styled-components'
+    groups:
+      typescript-eslint:
+        patterns:
+          - '@typescript-eslint'
     ignore:
       - dependency-name: '*storybook*'
   - package-ecosystem: 'github-actions'
