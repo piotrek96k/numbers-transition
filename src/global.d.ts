@@ -26,6 +26,7 @@ declare global {
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;
     remove(searchValue: string | RegExp): string;
+    take(size: number): string;
   }
 
   interface RegExp {

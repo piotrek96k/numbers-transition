@@ -111,8 +111,8 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
   const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
     const [{ bigInt: digits }, { bigInt: restDigits, length }]: [string, string] =
       precision >= Integer.Zero
-        ? [`${integer.remove(Text.Minus)}${fraction.slice(Integer.Zero, precision)}`, fraction.slice(precision)]
-        : [integer.remove(Text.Minus).slice(Integer.Zero, precision), `${integer.remove(Text.Minus).slice(precision)}${fraction}`];
+        ? [`${integer.remove(Text.Minus)}${fraction.take(precision)}`, fraction.slice(precision)]
+        : [integer.remove(Text.Minus).take(precision), `${integer.remove(Text.Minus).slice(precision)}${fraction}`];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
     const { bigInt: increase }: boolean = restDigits >= `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt;

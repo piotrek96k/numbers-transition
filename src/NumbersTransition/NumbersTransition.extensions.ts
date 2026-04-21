@@ -76,6 +76,10 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
   public remove(searchValue: string | RegExp): string {
     return this.value.replace(searchValue, Text.Empty);
   }
+
+  public take(size: number): string {
+    return this.value.slice(Integer.Zero, size);
+  }
 }
 
 export class Pattern extends Extension<RegExp> implements ExtensionConstructor<RegExp, typeof Pattern> {
