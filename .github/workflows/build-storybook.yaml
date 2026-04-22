@@ -7,7 +7,15 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Lint
+        uses: ./.github/actions/lint
   build:
+    needs: lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
