@@ -115,8 +115,8 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
         : [integer.remove(Text.Minus).take(precision), `${integer.remove(Text.Minus).slice(precision)}${fraction}`];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
-    const { bigInt: increase }: boolean = restDigits >= `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt;
-    const value: bigint = (digits + increase) * Integer.Ten.bigInt ** numberOfZeros.bigInt;
+    const increase: boolean = restDigits >= `${Integer.Five}`.padEnd(Math.max(length, numberOfZeros), `${Integer.Zero}`).bigInt;
+    const value: bigint = (digits + increase.bigInt) * Integer.Ten.bigInt ** numberOfZeros.bigInt;
 
     return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].collapse();
   };
