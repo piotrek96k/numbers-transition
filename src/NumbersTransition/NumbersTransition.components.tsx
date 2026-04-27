@@ -444,8 +444,10 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
   );
 
-  // prettier-ignore
-  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, { ...characterStyledView, ...digitStyledView });
+  const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, {
+    ...characterStyledView,
+    ...digitStyledView,
+  });
 
   const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
     numbers.mapEach<ReactElement<ChildrenProps>>(mapToDigitElement, mapToDigitsThemeProviderElement);
