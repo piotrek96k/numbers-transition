@@ -1,6 +1,6 @@
 import { resolve } from 'path';
+import dts from 'unplugin-dts/vite';
 import { UserConfig, defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 
 interface Plugin {
   name: string;
@@ -22,7 +22,7 @@ const plugins: Plugin[] = [
 ];
 
 const config: UserConfig = {
-  plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), rollupTypes: true })],
+  plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), bundleTypes: true })],
   build: {
     lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
     rolldownOptions: { external: ['async_hooks', 'crypto', 'fs', 'path', 'process', 'typescript'], checks: { pluginTimings: false } },

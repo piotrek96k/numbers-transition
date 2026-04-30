@@ -10,7 +10,7 @@ const config: StorybookConfig = {
   viteFinal: async ({ build, plugins, ...config }: InlineConfig): Promise<InlineConfig> => ({
     ...config,
     build: { ...build, chunkSizeWarningLimit: 2_500 },
-    plugins: await withoutVitePlugins(plugins, ['vite:dts']),
+    plugins: await withoutVitePlugins(plugins, ['unplugin-dts']),
   }),
 };
 

@@ -1,6 +1,6 @@
 import { resolve } from 'path';
+import dts from 'unplugin-dts/vite';
 import { UserConfig, defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
 import react from '@vitejs/plugin-react';
 import typeExtensions from './plugins/dist/type-extensions';
 
@@ -8,7 +8,7 @@ const config: UserConfig = {
   plugins: [
     typeExtensions('tsconfig.json', resolve('src', 'NumbersTransition', 'NumbersTransition.extensions.ts')),
     react(),
-    dts({ rollupTypes: true }),
+    dts({ bundleTypes: true }),
   ],
   resolve: { alias: { 'type-extensions/extension': resolve('plugins', 'dist', 'extension') } },
   build: {
