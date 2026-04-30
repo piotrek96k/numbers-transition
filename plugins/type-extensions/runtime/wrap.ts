@@ -14,8 +14,8 @@ import { ArgName } from '../enums/arg-name';
 import { PropertyName } from '../enums/property-name';
 import { VariableName } from '../enums/variable-name';
 import { readImportName } from '../imports/imports';
-import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildFindOwnerDistanceFunctionCall } from './find-owner-distance';
+import { buildGetExtensionFunctionCall } from './get-extension';
 import { buildTypeDistanceFunctionCall } from './type-distance';
 import { RuntimeExtension, buildTypesArgument } from './types';
 

@@ -1,3 +1,13 @@
+import type {
+  BigDecimal,
+  Falsy,
+  Maybe,
+  OrArray,
+  OrFunction,
+  OrReadOnly,
+  ReadOnly,
+  UncheckedBigDecimal,
+} from './NumbersTransition/NumbersTransition.types';
 import NumbersTransition, { NumbersTransitionProps } from './NumbersTransition/NumbersTransition';
 import {
   AnimationDirection,
@@ -48,16 +58,6 @@ import {
   VerticalAnimation,
   WithContext,
 } from './NumbersTransition/NumbersTransition.styles';
-import type {
-  BigDecimal,
-  Falsy,
-  Maybe,
-  OrArray,
-  OrFunction,
-  OrReadOnly,
-  ReadOnly,
-  UncheckedBigDecimal,
-} from './NumbersTransition/NumbersTransition.types';
 
 export {
   AnimationDirection,

@@ -14,6 +14,7 @@ import {
   useState,
 } from 'react';
 import { ThemeProvider, ThemeProviderProps, useTheme } from 'styled-components';
+import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState } from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationId,
@@ -58,7 +59,6 @@ import {
   VerticalAnimation,
   VerticalAnimationProps,
 } from './NumbersTransition.styles';
-import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState } from './NumbersTransition.types';
 
 interface ConditionalProps {
   children: [ReactNode, ReactNode];

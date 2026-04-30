@@ -1,7 +1,7 @@
+import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import dts from 'unplugin-dts/vite';
 import { UserConfig, defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
 import typeExtensions from './plugins/dist/type-extensions';
 
 const config: UserConfig = {

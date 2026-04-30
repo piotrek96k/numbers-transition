@@ -1,7 +1,19 @@
+import type { ArgTypes, Meta, ReactRenderer, StoryObj } from '@storybook/react-vite';
+import type { InputType, PartialStoryFn, StoryContext } from 'storybook/internal/types';
 import { ComponentProps, PointerEvent, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from 'react';
 import { RuleSet, css } from 'styled-components';
-import type { InputType, PartialStoryFn, StoryContext } from 'storybook/internal/types';
-import type { ArgTypes, Meta, ReactRenderer, StoryObj } from '@storybook/react-vite';
+import type {
+  EnumType,
+  EnumValue,
+  Maybe,
+  Nullable,
+  Optional,
+  ReactState,
+  Remove,
+  Select,
+  SetState,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 import NumbersTransition from './NumbersTransition';
 import {
   AnimationDirection,
@@ -32,6 +44,7 @@ import {
   UserSelect,
   VariableName,
 } from './NumbersTransition.enums';
+import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 import {
   Animation,
   AnimationFactory,
@@ -42,19 +55,6 @@ import {
   NumbersTransitionTheme,
   VerticalAnimation,
 } from './NumbersTransition.styles';
-import type {
-  EnumType,
-  EnumValue,
-  Maybe,
-  Nullable,
-  Optional,
-  ReactState,
-  Remove,
-  Select,
-  SetState,
-  UncheckedBigDecimal,
-} from './NumbersTransition.types';
-import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 
 type NumbersTransitionComponent<
   K extends object = object,

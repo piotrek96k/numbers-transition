@@ -1,7 +1,7 @@
-import { dirname, resolve } from 'path';
-import { fileURLToPath } from 'url';
 import type { Rolldown } from 'vite';
+import { dirname, resolve } from 'path';
 import typeExtensions, { TypeExtensionsPlugin } from 'type-extensions/plugin';
+import { fileURLToPath } from 'url';
 
 export const transformer = (
   extensionsFilePath: string = resolve(dirname(dirname(fileURLToPath(import.meta.url))), 'extensions', 'extensions.ts'),

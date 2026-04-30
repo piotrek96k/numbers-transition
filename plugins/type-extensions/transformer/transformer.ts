@@ -1,5 +1,5 @@
-import { resolve } from 'path';
 import type { Rolldown } from 'vite';
+import { resolve } from 'path';
 import {
   ImportDeclaration,
   NewLineKind,

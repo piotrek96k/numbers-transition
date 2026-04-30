@@ -1,6 +1,6 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 import type { ArrayOfDepth, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
+import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
   public static readonly type: BooleanConstructor = Boolean;

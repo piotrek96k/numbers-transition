@@ -1,62 +1,43 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import type { Linter } from 'eslint';
-import _import from 'eslint-plugin-import';
-import reactRefresh from 'eslint-plugin-react-refresh';
-import globals from 'globals';
-import { fixupConfigRules, fixupPluginRules } from '@eslint/compat';
-import { FlatCompat } from '@eslint/eslintrc';
 import js from '@eslint/js';
-import tsParser from '@typescript-eslint/parser';
+import perfectionist from 'eslint-plugin-perfectionist';
+import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
+import reactHooks from 'eslint-plugin-react-hooks';
+import reactRefresh from 'eslint-plugin-react-refresh';
+import { defineConfig, globalIgnores } from 'eslint/config';
+import globals from 'globals';
+import tseslint from 'typescript-eslint';
 
-const compat: FlatCompat = new FlatCompat({
-  baseDirectory: dirname(fileURLToPath(import.meta.url)),
-  recommendedConfig: js.configs.recommended,
-  allConfig: js.configs.all,
-});
-
-const config: Linter.Config[] = [
-  { ignores: ['**/dist', '**/storybook-static'] },
-  ...fixupConfigRules(
-    compat.extends(
-      'eslint:recommended',
-      'plugin:prettier/recommended',
-      'plugin:import/typescript',
-      'plugin:react-hooks/recommended',
-      'plugin:storybook/recommended',
-      'plugin:@typescript-eslint/recommended',
-    ),
-  ),
+const config: Parameters<typeof defineConfig> = [
+  globalIgnores(['dist', 'plugins/dist', 'storybook-static']),
   {
-    plugins: { import: fixupPluginRules(_import), 'react-refresh': reactRefresh },
-    languageOptions: {
-      globals: { ...globals.browser },
-      parser: tsParser,
-      parserOptions: { project: './tsconfig.eslint.json', tsconfigRootDir: dirname(fileURLToPath(import.meta.url)) },
-    },
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      eslintPluginPrettierRecommended,
+      js.configs.recommended,
+      reactHooks.configs.flat.recommended,
+      reactRefresh.configs.vite,
+      tseslint.configs.recommended,
+    ],
+    languageOptions: { globals: globals.browser },
+    linterOptions: { reportUnusedDisableDirectives: 'error' },
+    plugins: { perfectionist },
     rules: {
-      quotes: ['error', 'single', { avoidEscape: true }],
-      'prettier/prettier': ['error', {}, { usePrettierrc: true }],
-      'import/order': 'error',
-      'import/no-duplicates': 'error',
-      'sort-imports': ['error', { ignoreDeclarationSort: true }],
+      'no-console': 'warn',
       'no-duplicate-imports': 'error',
       'no-use-before-define': ['error', { classes: false }],
-      'no-useless-rename': 'error',
       'no-useless-concat': 'error',
+      'no-useless-rename': 'error',
       'object-shorthand': 'error',
-      'prefer-template': 'error',
+      'perfectionist/sort-imports': ['error', { type: 'alphabetical', order: 'asc', newlinesBetween: 'ignore' }],
       'prefer-spread': 'error',
-      'react-refresh/only-export-components': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends', allowWithName: 'BaseObject' }],
-      'no-console': 'warn',
-      '@typescript-eslint/no-explicit-any': 'off',
+      'prefer-template': 'error',
       'react-hooks/refs': 'off',
       'react-hooks/set-state-in-effect': 'off',
+      'sort-imports': ['error', { ignoreDeclarationSort: true }],
+      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends', allowWithName: 'BaseObject' }],
+      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ];
 
-export default config;
+export default defineConfig(config);

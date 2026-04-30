@@ -1,5 +1,21 @@
 import { ActionDispatch, FC, ReactElement, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
+import type {
+  BigDecimal,
+  GenericReactNode,
+  Nullable,
+  Optional,
+  OrArray,
+  OrFunction,
+  OrReadOnly,
+  ReactState,
+  Slice,
+  Switch,
+  Tuple,
+  UncheckedBigDecimal,
+  UnionProduct,
+  ValueOf,
+} from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationInterruptionMode,
@@ -32,22 +48,6 @@ import {
   StepsEasingFunction,
   StyledView,
 } from './NumbersTransition.styles';
-import type {
-  BigDecimal,
-  GenericReactNode,
-  Nullable,
-  Optional,
-  OrArray,
-  OrFunction,
-  OrReadOnly,
-  ReactState,
-  Slice,
-  Switch,
-  Tuple,
-  UncheckedBigDecimal,
-  UnionProduct,
-  ValueOf,
-} from './NumbersTransition.types';
 
 const useRerender = (): ActionDispatch<[]> =>
   useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);

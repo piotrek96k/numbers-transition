@@ -1,5 +1,6 @@
 import { AnimationEvent, AnimationEventHandler, ReactElement, ReactNode, RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StyleSheetManager, ThemeProvider } from 'styled-components';
+import type { BigDecimal, OrFunction, ReactEvent, ReactState, SetState, Tuple, UncheckedBigDecimal } from './NumbersTransition.types';
 import {
   AnimationProps,
   Conditional,
@@ -52,7 +53,6 @@ import {
   useValue,
 } from './NumbersTransition.hooks';
 import { Container, EasingFunction, EasingFunctionTypeMapper, ElementsLength, NumbersTransitionTheme } from './NumbersTransition.styles';
-import type { BigDecimal, OrFunction, ReactEvent, ReactState, SetState, Tuple, UncheckedBigDecimal } from './NumbersTransition.types';
 
 export interface NumbersTransitionProps<
   K extends object = object,

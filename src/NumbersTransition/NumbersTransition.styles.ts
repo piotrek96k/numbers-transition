@@ -11,6 +11,7 @@ import styled, {
   css,
   keyframes,
 } from 'styled-components';
+import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove, Tuple } from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationFillMode,
@@ -36,7 +37,6 @@ import {
   ViewKey,
   WhiteSpace,
 } from './NumbersTransition.enums';
-import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove, Tuple } from './NumbersTransition.types';
 
 type BaseObject = {};
 

@@ -1,9 +1,9 @@
 import { Block, CallExpression, NodeFlags, SyntaxKind, VariableDeclaration, WhileStatement, factory } from 'typescript';
 import { getContext } from '../context/context';
 import { ArgName } from '../enums/arg-name';
-import { VariableName } from '../enums/variable-name';
 import { ClassName } from '../enums/class-name';
 import { PropertyName } from '../enums/property-name';
+import { VariableName } from '../enums/variable-name';
 
 const generateFoundVariable = (): VariableDeclaration =>
   factory.createVariableDeclaration(
