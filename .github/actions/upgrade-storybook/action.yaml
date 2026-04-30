@@ -12,6 +12,8 @@ runs:
     - name: Check If Upgrade PR Exists
       id: pr
       run: echo "state=$(gh pr list --head ${{ steps.branch.outputs.name }} --json state -q '.[0].state' 2>/dev/null || echo NONE)" >> $GITHUB_OUTPUT
+      env:
+        GH_TOKEN: ${{ inputs.token }}
       shell: bash
     - name: Determine If Upgrade Should Run
       id: upgrade
