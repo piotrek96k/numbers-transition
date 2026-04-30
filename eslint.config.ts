@@ -22,6 +22,8 @@ const config: Parameters<typeof defineConfig> = [
     linterOptions: { reportUnusedDisableDirectives: 'error' },
     plugins: { perfectionist },
     rules: {
+      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends', allowWithName: 'BaseObject' }],
+      '@typescript-eslint/no-explicit-any': 'off',
       'no-console': 'warn',
       'no-duplicate-imports': 'error',
       'no-use-before-define': ['error', { classes: false }],
@@ -34,8 +36,6 @@ const config: Parameters<typeof defineConfig> = [
       'react-hooks/refs': 'off',
       'react-hooks/set-state-in-effect': 'off',
       'sort-imports': ['error', { ignoreDeclarationSort: true }],
-      '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'with-single-extends', allowWithName: 'BaseObject' }],
-      '@typescript-eslint/no-explicit-any': 'off',
     },
   },
 ];
