@@ -19,6 +19,12 @@ runs:
       id: upgrade
       run: echo "run=${{ github.event_name != 'push' || steps.pr.outputs.state == 'OPEN' }}" >> $GITHUB_OUTPUT
       shell: bash
+    - name: Setup Node
+      if: steps.upgrade.outputs.run == 'true'
+      uses: actions/setup-node@v6
+      with:
+        node-version: 'lts/*'
+        cache: 'npm'
     - name: Install Dependencies
       if: steps.upgrade.outputs.run == 'true'
       run: npm ci
