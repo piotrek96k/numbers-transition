@@ -217,7 +217,7 @@ const NumbersTransition = <
   });
 
   // prettier-ignore
-  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: Tuple<number, Integer.Four> = 
+  const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: Tuple<number, Integer.Four> =
     useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 
   // prettier-ignore
