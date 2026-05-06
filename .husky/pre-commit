@@ -1,3 +1,4 @@
 npm run build:plugins
 npx tsc --noEmit
 npx lint-staged
+npm run lint
