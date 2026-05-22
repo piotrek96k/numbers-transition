@@ -50,7 +50,7 @@
     "lint-staged": "^17.0.5",
     "prettier": "^3.8.3",
     "storybook": "^10.4.0",
-    "terser": "^5.47.1",
+    "terser": "^5.48.0",
     "ts-patch": "^4.0.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.4",
