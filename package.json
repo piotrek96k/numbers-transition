@@ -54,7 +54,7 @@
     "ts-patch": "^4.0.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.60.0",
-    "unplugin-dts": "^1.0.1",
+    "unplugin-dts": "^1.0.2",
     "vite": "^8.0.16",
     "vitest": "^4.1.8"
   }
