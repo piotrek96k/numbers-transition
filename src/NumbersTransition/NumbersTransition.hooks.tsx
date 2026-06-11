@@ -53,7 +53,7 @@ const useRerender = (): ActionDispatch<[]> =>
   useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
-  Pattern.BigDecimal.testAny<BigDecimal>(value)
+  value?.matches<UncheckedBigDecimal, BigDecimal>((value: UncheckedBigDecimal): value is BigDecimal => Pattern.BigDecimal.test(`${value}`))
     ? [value, true]
     : typeof value === Typeof.Number
       ? [Number(value).toFixed(Integer.OneHundred), true]

@@ -82,19 +82,6 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
   }
 }
 
-export class Pattern extends Extension<RegExp> implements ExtensionConstructor<RegExp, typeof Pattern> {
-  public static readonly type: RegExpConstructor = RegExp;
-  public static readonly literalType: LiteralType[] = [LiteralType.RegExp];
-
-  public static isType(value: unknown): value is RegExp {
-    return value instanceof RegExp;
-  }
-
-  public testAny<T>(unknown: unknown): unknown is T {
-    return this.value.test(`${unknown}`);
-  }
-}
-
 export class Struct<T extends object> extends Extension<T> implements ExtensionConstructor<T, typeof Struct<T>> {
   public static readonly type: ObjectConstructor = Object;
   public static readonly literalType: LiteralType[] = Object.values<LiteralType>(LiteralType);

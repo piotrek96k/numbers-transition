@@ -29,10 +29,6 @@ declare global {
     take(size: number): string;
   }
 
-  interface RegExp {
-    testAny<T>(unknown: unknown): unknown is T;
-  }
-
   interface Object {
     callOrGet<T extends unknown[], U>(this: OrFunction<T, U>, ...args: T): U;
     callOrGet<T extends unknown[], U extends unknown[], V>(this: OrFunction<T, V>, ...args: T | U): V;
