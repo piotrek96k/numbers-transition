@@ -29,7 +29,7 @@
   "devDependencies": {
     "@chromatic-com/storybook": "^5.2.1",
     "@eslint/js": "^10.0.1",
-    "@microsoft/api-extractor": "^7.58.8",
+    "@microsoft/api-extractor": "^7.58.9",
     "@storybook/addon-docs": "^10.4.4",
     "@storybook/addon-onboarding": "^10.4.4",
     "@storybook/react-vite": "^10.4.4",
