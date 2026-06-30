@@ -275,11 +275,11 @@ const mapVerticalRotateKeyframes = ({ animationDirection, columnLength, rowIndex
       ? Integer.One / Integer.Two
       : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
-// prettier-ignore
 const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
 }: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> =>
-  animationType === AnimationType.Vertical && columnLength! > Integer.One && {
+  animationType === AnimationType.Vertical &&
+  columnLength! > Integer.One && {
     keyframeFunction: rotateKeyframeFunction,
     keyframes: getVerticalRotateKeyframes(restTheme).mapEach<number>(
       mapVerticalRotateKeyframes({ ...restTheme, columnLength }),
@@ -287,7 +287,6 @@ const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
     ),
   };
 
-// prettier-ignore
 const getInitialRotation = ({
   animationNumber,
   animationType,
@@ -439,15 +438,13 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const currentElements: DragAndDropElementsTuple = [...currentTarget.parentElement!.children]
       .filter<HTMLElement>(filterElements)
       .reduce<[string[], HTMLElement[]]>(groupElements, [[], []])
-      .pipe<DragAndDropElementsTuple>(
-        ([unorderedDigits, digits]: [string[], HTMLElement[]]): DragAndDropElementsTuple => [
-          unorderedDigits,
-          ...digits
-            .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
-            .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
-            .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]),
-        ],
-      );
+      .pipe<DragAndDropElementsTuple>(([unorderedDigits, digits]: [string[], HTMLElement[]]): DragAndDropElementsTuple => [
+        unorderedDigits,
+        ...digits
+          .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
+          .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
+          .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]),
+      ]);
 
     elements.current = currentElements;
     dragIndex.current = currentElements[Integer.One].indexOf(currentTarget);

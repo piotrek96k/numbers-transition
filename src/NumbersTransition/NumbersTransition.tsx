@@ -216,7 +216,6 @@ const NumbersTransition = <
     animationDirection,
   });
 
-  // prettier-ignore
   const [animationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration]: Tuple<number, Integer.Four> =
     useAnimationDuration({ animationType, animationDuration: animationDurationInput, numberOfAnimations });
 

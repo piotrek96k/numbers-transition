@@ -24,11 +24,10 @@ export const buildTypesIdentifier = (): Identifier => factory.createIdentifier(g
 
 export const buildTypesArgument = (value: Expression, extensions: RuntimeExtension[]): ArrayLiteralExpression =>
   factory.createArrayLiteralExpression(
-    extensions.map<ObjectLiteralExpression>(
-      ({ id, isStatic }: RuntimeExtension): ObjectLiteralExpression =>
-        factory.createObjectLiteralExpression([
-          factory.createPropertyAssignment(PropertyName.Type, factory.createIdentifier(readImportName(id, value))),
-          factory.createPropertyAssignment(PropertyName.IsStatic, isStatic ? factory.createTrue() : factory.createFalse()),
-        ]),
+    extensions.map<ObjectLiteralExpression>(({ id, isStatic }: RuntimeExtension): ObjectLiteralExpression =>
+      factory.createObjectLiteralExpression([
+        factory.createPropertyAssignment(PropertyName.Type, factory.createIdentifier(readImportName(id, value))),
+        factory.createPropertyAssignment(PropertyName.IsStatic, isStatic ? factory.createTrue() : factory.createFalse()),
+      ]),
     ),
   );

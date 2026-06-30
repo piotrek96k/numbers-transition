@@ -218,9 +218,9 @@ const mapBindingElements = (
   extractedIdentifiers: Set<string>,
 ): [BindingElement[], VariableDeclaration[]] =>
   elements
-    .map<
-      [BindingElement, VariableDeclaration[]]
-    >(mapElement<BindingElement>(updateBindingElement, updateBindingElementInitializer, extractedIdentifiers))
+    .map<[BindingElement, VariableDeclaration[]]>(
+      mapElement<BindingElement>(updateBindingElement, updateBindingElementInitializer, extractedIdentifiers),
+    )
     .reduce<[BindingElement[], VariableDeclaration[]]>(reduceElementVariables<BindingElement>, [[], []]);
 
 const mapArrayElement =
@@ -439,9 +439,9 @@ const buildArgumentDestructureFunction =
   (node: GenericFunctionDeclaration): (() => Node) =>
   (): Node => {
     const [parameters, variables]: [ParameterDeclaration[], VariableDeclaration[]] = node.parameters
-      .map<
-        [ParameterDeclaration, VariableDeclaration[]]
-      >(mapElement<ParameterDeclaration>(updateParameter, updateParameterInitializer, new Set<string>()))
+      .map<[ParameterDeclaration, VariableDeclaration[]]>(
+        mapElement<ParameterDeclaration>(updateParameter, updateParameterInitializer, new Set<string>()),
+      )
       .reduce<[ParameterDeclaration[], VariableDeclaration[]]>(reduceElementVariables<ParameterDeclaration>, [[], []]);
 
     return updateGenericFunction(node, parameters, updateFunctionBody(node, variables));

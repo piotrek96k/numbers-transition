@@ -470,9 +470,9 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
 };
 
 type BaseView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<Styled, T, U> as Uncapitalize<
-    Slice<K, Styled> extends Capitalize<ViewKey> ? Slice<K, Styled> : never
-  >]: StyledView<Styled, T, U>[K];
+  [
+    K in keyof StyledView<Styled, T, U> as Uncapitalize<Slice<K, Styled> extends Capitalize<ViewKey> ? Slice<K, Styled> : never>
+  ]: StyledView<Styled, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends BaseView<T, U> {

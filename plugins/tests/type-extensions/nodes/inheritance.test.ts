@@ -74,16 +74,15 @@ const buildTitle = (title: string, [classIndex, caseIndex]: [number, number], in
 
 const testCases: TestCase[] = Object.values<Class>(Class).flatMap<TestCase>((cls: Class, index: number): TestCase[] =>
   [...Array<unknown>(numberOfCases ** (index + 1)).keys()]
-    .map<
-      Omit<TestCase, 'title'>
-    >((caseIndex: number): Omit<TestCase, 'title'> => ({ cls, cases: [...Array<unknown>(index + 1).keys()].map<[number, number]>(mapCase(caseIndex)) }))
-    .map<TestCase>(
-      ({ cls, cases }: Omit<TestCase, 'title'>): TestCase => ({
-        cls,
-        cases,
-        title: cases.reduce<string>(buildTitle, `${cls.pascalCaseToText()} with:`),
-      }),
-    ),
+    .map<Omit<TestCase, 'title'>>((caseIndex: number): Omit<TestCase, 'title'> => ({
+      cls,
+      cases: [...Array<unknown>(index + 1).keys()].map<[number, number]>(mapCase(caseIndex)),
+    }))
+    .map<TestCase>(({ cls, cases }: Omit<TestCase, 'title'>): TestCase => ({
+      cls,
+      cases,
+      title: cases.reduce<string>(buildTitle, `${cls.pascalCaseToText()} with:`),
+    })),
 );
 
 const createFields = (
