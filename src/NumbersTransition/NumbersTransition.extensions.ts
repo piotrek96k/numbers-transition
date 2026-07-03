@@ -165,7 +165,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     );
   }
 
-  public findMap<U>(predicate: (value: T, index: number, obj: T[]) => Optional<U>, fallback?: U): Optional<U> {
+  public findMap<U>(predicate: (value: T, index: number, array: T[]) => Optional<U>, fallback?: U): Optional<U> {
     let result: Optional<U>;
     this.value.find((...args: [value: T, index: number, array: T[]]): unknown => (result = predicate(...args)) !== undefined);
     return result ?? fallback;
