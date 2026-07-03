@@ -165,9 +165,14 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     );
   }
 
-  public findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U, fallback?: U): Optional<U> {
-    const element: Optional<T> = this.value.find(predicate);
-    return element === undefined ? fallback : callback(element);
+  public findMap<U>(predicate: (value: T, index: number, obj: T[]) => [unknown, U], fallback?: U): Optional<U> {
+    const result: [Optional<U>] = [undefined];
+    this.value.find((...args: [value: T, index: number, array: T[]]): unknown => {
+      const [condition, value]: [unknown, U] = predicate(...args);
+      result[Integer.Zero] = condition ? value : undefined;
+      return condition;
+    });
+    return result[Integer.Zero] ?? fallback;
   }
 
   public insert(value: T, index: number): T[] {
@@ -200,6 +205,10 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
 
   public static isType(value: unknown): value is (...args: any[]) => any {
     return typeof value === Typeof.Function;
+  }
+
+  public static arg<T extends number>(index: T): <U extends unknown[]>(...args: U) => U[T] {
+    return <U extends unknown[]>(...args: U): U[T] => args[index];
   }
 
   public static call<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {

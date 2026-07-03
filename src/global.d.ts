@@ -58,8 +58,8 @@ declare global {
     collapse(): string;
     equals<U extends T>(array: U[]): boolean;
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
-    findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U): Optional<U>;
-    findMap<U>(predicate: (value: T, index: number, obj: T[]) => unknown, callback: (value: T) => U, fallback: U): U;
+    findMap<U>(predicate: (value: T, index: number, obj: T[]) => [unknown, U]): Optional<U>;
+    findMap<U>(predicate: (value: T, index: number, obj: T[]) => [unknown, U], fallback: U): U;
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
@@ -107,6 +107,7 @@ declare global {
   }
 
   interface Function {
+    arg<T extends number>(index: T): <U extends unknown[]>(...args: U) => U[T];
     bindWhen<T, U extends (...args: any[]) => unknown>(
       this: U,
       condition: OrFunction<Parameters<U>, unknown>,

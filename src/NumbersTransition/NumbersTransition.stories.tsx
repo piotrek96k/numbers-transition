@@ -12,6 +12,7 @@ import type {
   Remove,
   Select,
   SetState,
+  Tuple,
   UncheckedBigDecimal,
 } from './NumbersTransition.types';
 import NumbersTransition from './NumbersTransition';
@@ -300,8 +301,7 @@ const getInitialRotation = ({
       (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration,
     )
     .findMap<number>(
-      ([animation]: [AnimationNumber, number]): boolean => animation === animationNumber,
-      ([, value]: [AnimationNumber, number]): number => value,
+      ([animation, value]: [AnimationNumber, number]): [boolean, number] => [animation === animationNumber, value],
       Integer.Zero,
     );
 
@@ -474,12 +474,12 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
     const getTransform = (index: number): number =>
       [index < dragIdx, index > dragIdx]
-        .zip<[boolean, boolean], [(index: number) => number, (index: number) => number]>(getPreviousDigitTransform, getNextDigitTransform)
-        .findMap<number>(
-          ([condition]: [boolean, (index: number) => number]): boolean => condition,
-          ([, transform]: [boolean, (index: number) => number]): number => transform(index),
-          dragOffset,
-        );
+        .zip<[boolean, boolean], Tuple<(index: number) => number, Integer.Two>>(getPreviousDigitTransform, getNextDigitTransform)
+        .findMap<(index: number) => number>(
+          Function.arg<Integer.Zero>(Integer.Zero)<[[boolean, (index: number) => number]]>,
+          () => dragOffset,
+        )
+        .call<undefined, [number], number>(undefined, index);
 
     const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
     elements.current[Integer.Five] = currentTransforms;
@@ -516,10 +516,8 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       (): void => digits.forEach(updateTransform((index: number): number => transforms[index])),
     ]
       .zip<[() => void, () => void], [boolean, boolean]>(isNewValueValid, true)
-      .findMap<void>(
-        ([, condition]: [() => void, boolean]): boolean => condition,
-        ([callback]: [() => void, boolean]): void => callback(),
-      );
+      .findMap<() => void>(([callback, condition]: [() => void, boolean]): [boolean, () => void] => [condition, callback])!
+      .call<undefined, [], void>(undefined);
 
     scheduleUpdate.invokeWhen<undefined, (value: string) => NodeJS.Timeout>(
       (previousDigits ?? reorderedDigits).some((digit: string, idx: number): boolean => digit !== unorderedDigits[idx]),

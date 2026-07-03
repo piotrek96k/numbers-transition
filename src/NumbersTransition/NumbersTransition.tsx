@@ -306,10 +306,8 @@ const NumbersTransition = <
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       )
       .when(AnimationId.values<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
-      .findMap<void>(
-        ([condition]: [boolean, (() => void)[]]): boolean => condition,
-        ([, callbacks]: [boolean, (() => void)[]]): void => callbacks.forEach(Function.call<() => void>),
-      );
+      .findMap<(() => void)[]>(Function.arg<Integer.Zero>(Integer.Zero)<[[boolean, (() => void)[]]]>, [])
+      .forEach(Function.call<() => void>);
 
   const negativeProps: NegativeProps<W, X> = { negativeCharacter, negativeCharacterStyledView };
 
