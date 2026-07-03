@@ -301,7 +301,7 @@ const getInitialRotation = ({
       (animationType === AnimationType.Horizontal ? verticalAnimationDuration : horizontalAnimationDuration) / totalAnimationDuration,
     )
     .findMap<number>(
-      ([animation, value]: [AnimationNumber, number]): [boolean, number] => [animation === animationNumber, value],
+      ([animation, value]: [AnimationNumber, number]): Optional<number> => (animation === animationNumber ? value : undefined),
       Integer.Zero,
     );
 
@@ -475,11 +475,10 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const getTransform = (index: number): number =>
       [index < dragIdx, index > dragIdx]
         .zip<[boolean, boolean], Tuple<(index: number) => number, Integer.Two>>(getPreviousDigitTransform, getNextDigitTransform)
-        .findMap<(index: number) => number>(
-          Function.arg<Integer.Zero>(Integer.Zero)<[[boolean, (index: number) => number]]>,
-          () => dragOffset,
-        )
-        .call<undefined, [number], number>(undefined, index);
+        .findMap<number>(
+          ([condition, transform]: [boolean, (index: number) => number]): Optional<number> => (condition ? transform(index) : undefined),
+          dragOffset,
+        );
 
     const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
     elements.current[Integer.Five] = currentTransforms;
@@ -516,7 +515,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       (): void => digits.forEach(updateTransform((index: number): number => transforms[index])),
     ]
       .zip<[() => void, () => void], [boolean, boolean]>(isNewValueValid, true)
-      .findMap<() => void>(([callback, condition]: [() => void, boolean]): [boolean, () => void] => [condition, callback])!
+      .findMap<() => void>(([callback, condition]: [() => void, boolean]): Optional<() => void> => (condition ? callback : undefined))!
       .call<undefined, [], void>(undefined);
 
     scheduleUpdate.invokeWhen<undefined, (value: string) => NodeJS.Timeout>(

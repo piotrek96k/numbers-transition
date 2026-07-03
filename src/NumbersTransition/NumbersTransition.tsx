@@ -1,6 +1,15 @@
 import { AnimationEvent, AnimationEventHandler, ReactElement, ReactNode, RefObject, useEffect, useId, useRef, useState } from 'react';
 import { StyleSheetManager, ThemeProvider } from 'styled-components';
-import type { BigDecimal, OrFunction, ReactEvent, ReactState, SetState, Tuple, UncheckedBigDecimal } from './NumbersTransition.types';
+import type {
+  BigDecimal,
+  Optional,
+  OrFunction,
+  ReactEvent,
+  ReactState,
+  SetState,
+  Tuple,
+  UncheckedBigDecimal,
+} from './NumbersTransition.types';
 import {
   AnimationProps,
   Conditional,
@@ -306,7 +315,7 @@ const NumbersTransition = <
         [(): void => setAnimationTransition(AnimationTransition.FirstToSecond)],
       )
       .when(AnimationId.values<AnimationId>().some((animation: AnimationId): boolean => `${animation}${identifier}` === id))
-      .findMap<(() => void)[]>(Function.arg<Integer.Zero>(Integer.Zero)<[[boolean, (() => void)[]]]>, [])
+      .findMap<(() => void)[]>(([cond, call]: [boolean, (() => void)[]]): Optional<(() => void)[]> => (cond ? call : undefined), [])
       .forEach(Function.call<() => void>);
 
   const negativeProps: NegativeProps<W, X> = { negativeCharacter, negativeCharacterStyledView };
