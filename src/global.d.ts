@@ -58,8 +58,8 @@ declare global {
     collapse(): string;
     equals<U extends T>(array: U[]): boolean;
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
-    findMap<U>(predicate: (value: T, index: number, array: T[]) => Optional<U>): Optional<U>;
-    findMap<U>(predicate: (value: T, index: number, array: T[]) => Optional<U>, fallback: U): U;
+    findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>): Optional<U>;
+    findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback: U): U;
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
