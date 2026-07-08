@@ -141,6 +141,11 @@ type DecomposeDigits<T extends string | number, U extends number[] = []> = `${T}
   ? DecomposeDigits<W, [...U, V]>
   : U;
 
+type DecomposeSignedInt<T extends string[], U extends number[], V extends number, W extends number[], X extends number> = [
+  T,
+  [...PadStart<U, Integer.Zero, V>, ...PadEnd<W, Integer.Zero, X>],
+];
+
 type DecomposeUnsignedFloat<T extends number> = `${T}` extends `${infer U extends number}${Text.Dot}${infer V extends string}`
   ? [DecomposeDigits<U>, DecomposeDigits<V>]
   : [DecomposeDigits<T>, []];
@@ -157,11 +162,7 @@ type DecomposeSignedFloats<Q extends number, R extends number> = [DecomposeSigne
       infer Y extends number,
       infer Z extends number,
     ]
-    ? [
-        [S, [...PadStart<T, Integer.Zero, Y>, ...PadEnd<U, Integer.Zero, Z>]],
-        [V, [...PadStart<W, Integer.Zero, Y>, ...PadEnd<X, Integer.Zero, Z>]],
-        Z,
-      ]
+    ? [DecomposeSignedInt<S, T, Y, U, Z>, DecomposeSignedInt<V, W, Y, X, Z>, Z]
     : never
   : never;
 
