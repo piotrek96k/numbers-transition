@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import type { CompilerOptions } from 'typescript';
 import { execSync } from 'child_process';
 import { Dirent, cpSync, existsSync, mkdtempSync, readdirSync, renameSync, rmSync, statSync, writeFileSync } from 'fs';
@@ -20,12 +21,13 @@ const renameDts = (dir: string): void =>
     );
 
 const verifyValidDts = (absoluteTsConfig: string, absoluteDir: string, tsArgs: string[]): void => {
+  console.log(`[verify:dts] Verifying declarations in '${basename(absoluteDir)}'...`);
   const tempDir: string = mkdtempSync(resolve('verify'));
   const generatedTsConfig: string = resolve(tempDir, 'tsconfig.json');
 
   const config: TsConfig = {
     extends: relative(tempDir, absoluteTsConfig),
-    compilerOptions: { rootDir: '.', noEmit: true, plugins: [] },
+    compilerOptions: { rootDir: '.', isolatedModules: false, noEmit: true, plugins: [] },
     include: ['.'],
     exclude: [],
   };
@@ -35,6 +37,7 @@ const verifyValidDts = (absoluteTsConfig: string, absoluteDir: string, tsArgs: s
     renameDts(tempDir);
     writeFileSync(generatedTsConfig, JSON.stringify(config, null, 2));
     execSync(`tsc -p "${generatedTsConfig}" ${tsArgs.join(' ')}`, { env: { ...process.env, FORCE_COLOR: '1' } });
+    console.log(`[verify:dts] ✓ Declaration verification passed for '${basename(absoluteDir)}'.`);
   } catch (error: any) {
     process.stdout.write((error.stdout?.toString() ?? '').replaceAll(basename(tempDir), basename(absoluteDir)).replaceAll('.ts', '.d.ts'));
     process.exitCode = error.status ?? 1;
