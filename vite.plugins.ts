@@ -19,13 +19,17 @@ const plugins: Plugin[] = [
   { name: 'suppress-diagnostics' },
   { name: 'type-extensions', path: ['plugin'] },
   { name: 'type-extensions', entry: 'extension', path: ['extension'], fileName: 'extension' },
+  { name: 'verify-dts' },
 ];
 
 const config: UserConfig = {
   plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), bundleTypes: true })],
   build: {
     lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
-    rolldownOptions: { external: ['async_hooks', 'crypto', 'fs', 'path', 'process', 'typescript'], checks: { pluginTimings: false } },
+    rolldownOptions: {
+      external: ['async_hooks', 'child_process', 'crypto', 'fs', 'path', 'process', 'typescript'],
+      checks: { pluginTimings: false },
+    },
     outDir: resolve('plugins', 'dist'),
     minify: 'terser',
   },
