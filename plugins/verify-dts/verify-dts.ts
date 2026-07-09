@@ -38,7 +38,7 @@ const verifyValidDts = (absoluteTsConfig: string, dir: string, absoluteDir: stri
     execSync(`tsc -p "${generatedTsConfig}" ${tsArgs.join(' ')}`, { env: { ...process.env, FORCE_COLOR: '1' } });
     process.stdout.write(`[verify:dts] ✓ Declaration verification passed for '${dir}'.\n`);
   } catch (error: any) {
-    process.stdout.write((error.stdout?.toString() ?? '').replaceAll(basename(tempDir), dir).replaceAll('.ts', '.d.ts'));
+    process.stdout.write(error.stdout?.toString().replaceAll(basename(tempDir), dir).replaceAll('.ts', '.d.ts'));
     process.exitCode = error.status ?? 1;
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
