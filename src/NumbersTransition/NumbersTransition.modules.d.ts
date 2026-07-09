@@ -1,4 +1,6 @@
-import type { ArrayOfDepth, Optional, OrArray, OrFunction, PreviousElement, Zip } from './NumbersTransition/NumbersTransition.types';
+import type { ReactElement, ReactNode } from 'react';
+import type { NumbersTransitionTheme } from './NumbersTransition.styles';
+import type { ArrayOfDepth, Nullable, Optional, OrArray, OrFunction, PreviousElement, Zip } from './NumbersTransition.types';
 
 declare global {
   interface Boolean {
@@ -137,4 +139,15 @@ declare global {
   interface CSSStyleDeclaration {
     readonly transformProperty: string;
   }
+}
+
+declare module 'styled-components' {
+  export interface DefaultTheme extends NumbersTransitionTheme {}
+
+  export interface ThemeProviderProps {
+    children?: ReactNode;
+    theme: OrFunction<[Partial<DefaultTheme>], Partial<DefaultTheme>>;
+  }
+
+  export function ThemeProvider(props: ThemeProviderProps): Nullable<ReactElement>;
 }
