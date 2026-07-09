@@ -1,4 +1,5 @@
 import { resolve } from 'path';
+import { Diagnostic, DiagnosticCategory } from 'typescript';
 import dts from 'unplugin-dts/vite';
 import { UserConfig, defineConfig } from 'vite';
 
@@ -8,6 +9,13 @@ interface Plugin {
   path?: string[];
   fileName?: string;
 }
+
+const throwDiagnosticError = (): void => {
+  throw new Error('Declaration diagnostics failed');
+};
+
+const afterDiagnostic = (diagnostics: readonly Diagnostic[]): void =>
+  diagnostics.some(({ category }: Diagnostic): boolean => category === DiagnosticCategory.Error) ? throwDiagnosticError() : undefined;
 
 const mapPlugin = ({ name, entry = name, path = [], fileName = 'plugin' }: Plugin): Record<string, string> => ({
   [entry]: resolve('plugins', name, ...path, `${fileName}.ts`),
@@ -23,7 +31,7 @@ const plugins: Plugin[] = [
 ];
 
 const config: UserConfig = {
-  plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), bundleTypes: true })],
+  plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), bundleTypes: true, afterDiagnostic })],
   build: {
     lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
     rolldownOptions: {

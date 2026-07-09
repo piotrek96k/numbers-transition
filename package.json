@@ -15,11 +15,11 @@
   "scripts": {
     "prepare": "ts-patch install -s && husky",
     "lint": "eslint . --max-warnings 0",
-    "build:plugins": "tsc -p tsconfig.plugins.json && vite build -c vite.plugins.ts",
+    "build:plugins": "vite build -c vite.plugins.ts",
     "test:plugins": "tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
     "verify:plugins": "npm run build:plugins && node plugins/dist/verify-dts tsconfig.plugins.json plugins/dist && npm run test:plugins",
     "storybook": "npm run build:plugins && storybook dev -p 6006",
-    "build": "npm run verify:plugins && tsc && vite build",
+    "build": "npm run verify:plugins && vite build",
     "verify": "npm run build && node plugins/dist/verify-dts tsconfig.json dist",
     "build:storybook": "npm run verify && storybook build"
   },
