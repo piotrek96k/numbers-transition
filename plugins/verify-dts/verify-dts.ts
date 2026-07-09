@@ -20,8 +20,8 @@ const renameDts = (dir: string): void =>
       entry.isDirectory() ? renameDts(path) : renameSync(path, path.replace('.d.ts', '.ts')),
     );
 
-const verifyValidDts = (absoluteTsConfig: string, absoluteDir: string, tsArgs: string[]): void => {
-  console.log(`[verify:dts] Verifying declarations in '${basename(absoluteDir)}'...`);
+const verifyValidDts = (absoluteTsConfig: string, dir: string, absoluteDir: string, tsArgs: string[]): void => {
+  console.log(`[verify:dts] Verifying declarations in '${dir}'...`);
   const tempDir: string = mkdtempSync(resolve('verify'));
   const generatedTsConfig: string = resolve(tempDir, 'tsconfig.json');
 
@@ -37,9 +37,9 @@ const verifyValidDts = (absoluteTsConfig: string, absoluteDir: string, tsArgs: s
     renameDts(tempDir);
     writeFileSync(generatedTsConfig, JSON.stringify(config, null, 2));
     execSync(`tsc -p "${generatedTsConfig}" ${tsArgs.join(' ')}`, { env: { ...process.env, FORCE_COLOR: '1' } });
-    console.log(`[verify:dts] ✓ Declaration verification passed for '${basename(absoluteDir)}'.`);
+    console.log(`[verify:dts] ✓ Declaration verification passed for '${dir}'.`);
   } catch (error: any) {
-    process.stdout.write((error.stdout?.toString() ?? '').replaceAll(basename(tempDir), basename(absoluteDir)).replaceAll('.ts', '.d.ts'));
+    process.stdout.write((error.stdout?.toString() ?? '').replaceAll(basename(tempDir), dir).replaceAll('.ts', '.d.ts'));
     process.exitCode = error.status ?? 1;
   } finally {
     rmSync(tempDir, { recursive: true, force: true });
@@ -53,5 +53,5 @@ export const verifyDts = ([tsConfig, dir, ...tsArgs]: string[]): void => {
   const dirExists: boolean = existsSync(absoluteDir) && statSync(absoluteDir).isDirectory();
   const isValid: boolean = tsConfigExists && dirExists;
 
-  return isValid ? verifyValidDts(absoluteTsConfig, absoluteDir, tsArgs) : undefined;
+  return isValid ? verifyValidDts(absoluteTsConfig, dir, absoluteDir, tsArgs) : undefined;
 };
