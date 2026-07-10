@@ -11,7 +11,7 @@ import styled, {
   css,
   keyframes,
 } from 'styled-components';
-import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove, Tuple } from './NumbersTransition.types';
+import type { Enum, EnumValue, Maybe, Optional, OrArray, OrFunction, OrReadOnly, Remove, Tuple, When } from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationFillMode,
@@ -158,7 +158,7 @@ interface EnumProperty<E extends Enum<E>> extends BaseProperty {
   initialValue: EnumValue<E>;
 }
 
-type EnumerableProperty<E extends Enum<E>> = E extends unknown ? EnumProperty<E> : never;
+type EnumerableProperty<E extends Enum<E>> = When<[E, unknown], EnumProperty<E>, never>;
 
 const mapLinear = (value: LinearEasingFunction[number]): string =>
   Array.toArray<number>(value)

@@ -1,6 +1,7 @@
 import { ActionDispatch, FC, ReactElement, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import type {
+  Assert,
   BigDecimal,
   GenericReactNode,
   Nullable,
@@ -15,6 +16,7 @@ import type {
   UncheckedBigDecimal,
   UnionProduct,
   ValueOf,
+  When,
 } from './NumbersTransition.types';
 import {
   AnimationDirection,
@@ -470,9 +472,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
 };
 
 type BaseView<T extends object = object, U = unknown> = {
-  [
-    K in keyof StyledView<Styled, T, U> as Uncapitalize<Slice<K, Styled> extends Capitalize<ViewKey> ? Slice<K, Styled> : never>
-  ]: StyledView<Styled, T, U>[K];
+  [K in keyof StyledView<Styled, T, U> as Uncapitalize<Assert<Slice<K, Styled>, Capitalize<ViewKey>>>]: StyledView<Styled, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends BaseView<T, U> {
@@ -508,11 +508,13 @@ type ViewTypeMap<T extends ViewType, U extends Styled, V extends object, W> = Sw
 // prettier-ignore
 export type ViewTuple<
   F extends ViewType, G extends object, H, I extends object, J, K extends object, L, M extends object, N, O extends object, P, Q extends object, R, S extends object, T, U extends object, V, W extends unknown[] = [],
-> = W[Key.Length] extends StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[Key.Length]
-  ? W
-  : StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[W[Key.Length]] extends [infer X extends Styled, infer Y extends object, infer Z]
+> = When<
+  [W[Key.Length], StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[Key.Length]],
+  W,
+  StyledViewTypes<G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V>[W[Key.Length]] extends [infer X extends Styled, infer Y extends object, infer Z]
     ? ViewTuple<F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, [...W, ViewTypeMap<F, X, Y, Z>]>
-    : never;
+    : never
+>;
 
 export const useStyledView = <
   K extends object,
@@ -744,8 +746,8 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
   const calculateProgressInput = (index: number, array: (number | [number, number])[]): ((startIndex: number, endIndex: number) => number) =>
     (startIndex: number, endIndex: number): number =>
       [
-        Array.toArray<number>(array[endIndex]).at<Integer.One>(Integer.One) * (index - startIndex),
-        Array.toArray<number>(array[startIndex]).at<Integer.One>(Integer.One) * (endIndex - index),
+        Array.toArray<number>(array[endIndex])[Integer.One] * (index - startIndex),
+        Array.toArray<number>(array[startIndex])[Integer.One] * (endIndex - index),
       ].reduce((first: number, second: number): number => (first + second) / (endIndex - startIndex));
 
   const fillProgressInput = (value: number | [number, number], index: number, array: (number | [number, number])[]): [number, number] =>
