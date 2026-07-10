@@ -93,6 +93,18 @@ export type Tuple<T, U extends number, V extends T[] = []> = U extends unknown
     : Tuple<T, U, [...V, T]>
   : never;
 
+export type At<T extends unknown[], U extends number | `${number}`> = When<
+  [`${Integer.Zero}`, keyof T],
+  When<
+    [`${U}`, `${Text.Minus}${number}`],
+    Add<T[Key.Length], ParseNumber<`${U}`>> extends infer W extends number ? When<[`${W}`, keyof T], T[W], undefined> : never,
+    When<[`${U}`, keyof T], T[ParseNumber<`${U}`>], undefined>
+  >,
+  Optional<T[number]>
+>;
+
+export type First<T extends unknown[]> = At<T, Integer.Zero>;
+
 export type Join<T extends Primitive[], U extends string = Text.Empty, V extends string = Text.Empty> = T extends [
   infer W extends Primitive,
   ...infer X extends Primitive[],
@@ -100,9 +112,7 @@ export type Join<T extends Primitive[], U extends string = Text.Empty, V extends
   ? Join<X, U, V extends Text.Empty ? `${W}` : `${V}${U}${W}`>
   : V;
 
-export type PreviousElement<T extends unknown[], U, V extends number | `${number}`> = T extends [...infer W, unknown]
-  ? [U, ...W][V extends `${infer X extends number}` ? X : V]
-  : never;
+export type Last<T extends unknown[]> = T extends [...unknown[], infer U] ? U : Optional<T[number]>;
 
 export type PadStart<T extends unknown[], U, V extends number> = Switch<
   MinUnsignedInt<T[Key.Length], V>,

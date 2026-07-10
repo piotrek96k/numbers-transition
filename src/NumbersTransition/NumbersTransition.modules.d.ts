@@ -1,6 +1,6 @@
 import type { ReactElement, ReactNode } from 'react';
 import type { NumbersTransitionTheme } from './NumbersTransition.styles';
-import type { ArrayOfDepth, Nullable, Optional, OrArray, OrFunction, PreviousElement, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, Assert, At, Last, Nullable, Optional, OrArray, OrFunction, OrReadOnly, Zip } from './NumbersTransition.types';
 
 declare global {
   interface Boolean {
@@ -44,7 +44,7 @@ declare global {
 
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
-    isArray<T, U extends unknown[] | readonly unknown[]>(arg: T | U): arg is T extends unknown[] | readonly unknown[] ? T | U : U;
+    isArray<T, U extends OrReadOnly<unknown[]>>(arg: T | U): arg is T extends OrReadOnly<unknown[]> ? T | U : U;
     isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     range(size: number): number[];
     toArray<T>(value: OrArray<T>): T[];
@@ -56,7 +56,7 @@ declare global {
     append(element: T): T[];
     append<U>(element: U): T extends U ? U[] : never;
     at(index: number): Optional<T>;
-    at<U extends number>(index: U): U extends keyof this ? this[U] : Optional<T>;
+    at<U extends number>(index: U): At<this, U>;
     collapse(): string;
     equals<U extends T>(array: U[]): boolean;
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
@@ -71,17 +71,11 @@ declare global {
     intersects(array: T[]): boolean;
     map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
-    mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[];
-    mapEach<U>(...mappers: [(value: T, index: number, array: T[]) => U, ...((value: U, index: number, array: U[]) => U)[]]): U[];
+    mapEach(...mappers: ((val: T, idx: number, array: T[]) => T)[]): T[];
+    mapEach<U>(...mappers: [(val: T, idx: number, array: T[]) => U, ...((val: U, idx: number, array: U[]) => U)[]]): U[];
     mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
-      ...mappers: {
-        [I in keyof U]: (
-          value: PreviousElement<V, this, I> extends Array<infer W> ? W : never,
-          index: number,
-          array: PreviousElement<V, this, I>,
-        ) => U[I];
-      }
-    ): V extends [...unknown[], infer W] ? W : never;
+      ...mappers: { [I in keyof U]: (val: Assert<At<[this, ...V], I>, unknown[]>[number], idx: number, array: At<[this, ...V], I>) => U[I] }
+    ): Last<V>;
     pipe<U>(mapper: (array: this) => U): U;
     reduce(
       callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T extends unknown[] ? T[number][] : T,
