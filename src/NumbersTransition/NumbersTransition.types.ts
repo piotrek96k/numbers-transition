@@ -103,7 +103,7 @@ export type At<T extends unknown[], U extends number | `${number}`> = When<
   Optional<T[number]>
 >;
 
-export type First<T extends unknown[]> = At<T, Integer.Zero>;
+export type First<T extends unknown[]> = `${Integer.Zero}` extends keyof T ? T[Integer.Zero] : T[number];
 
 export type Join<T extends Primitive[], U extends string = Text.Empty, V extends string = Text.Empty> = T extends [
   infer W extends Primitive,
@@ -112,7 +112,7 @@ export type Join<T extends Primitive[], U extends string = Text.Empty, V extends
   ? Join<X, U, V extends Text.Empty ? `${W}` : `${V}${U}${W}`>
   : V;
 
-export type Last<T extends unknown[]> = T extends [...unknown[], infer U] ? U : Optional<T[number]>;
+export type Last<T extends unknown[]> = T extends [...unknown[], infer U] ? U : T[number];
 
 export type PadStart<T extends unknown[], U, V extends number> = Switch<
   MinUnsignedInt<T[Key.Length], V>,

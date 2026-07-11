@@ -107,9 +107,8 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   const [mountedElements, setMountedElements]: ReactState<number> = useState<number>(renderBatchSize);
 
-  // prettier-ignore
   const countAggregatedSums = useCallback<(sums: number[], child: ReactElement<ChildrenProps>) => number[]>(
-    (sums: number[], child: ReactElement<ChildrenProps>): number[] => [...sums, (sums.at(Integer.MinusOne) ?? Integer.Zero) + countElements(child)],
+    (sums: number[], child: ReactElement<ChildrenProps>): number[] => [...sums, (sums.last() ?? Integer.Zero) + countElements(child)],
     [countElements],
   );
 
@@ -124,7 +123,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
   useEffect(
     (): void =>
       requestAnimationFrame.invokeWhen<Window, (callback: FrameRequestCallback) => number>(
-        mountedElements < aggregatedSums.at(Integer.MinusOne)!,
+        mountedElements < aggregatedSums.last(),
         window,
         (): void => setMountedElements((previous: number): number => previous + renderBatchSize),
       ),
@@ -143,7 +142,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
       : mapAfterMount(child, index);
 
   return (
-    <Conditional condition={mountedElements < aggregatedSums.at(Integer.MinusOne)! || !onAfterMount}>
+    <Conditional condition={mountedElements < aggregatedSums.last() || !onAfterMount}>
       {children.mapEach<GenericReactNode<ChildrenProps>>(mapChildren, mapToFragmentElement)}
       {children}
     </Conditional>
@@ -715,7 +714,7 @@ export const VerticalAnimationElement = <
     );
 
   const onBeforeElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
-    array.at(animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne);
+    animationDirection === AnimationDirection.Normal ? array.first() : array.last();
 
   const onPartialElementMount = (array: GenericReactNode<ChildrenProps>[], numberOfElements: number): GenericReactNode<ChildrenProps> => (
     <AnimationPlaceholder>

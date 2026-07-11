@@ -1,5 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import type { ArrayOfDepth, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
+import type { ArrayOfDepth, First, Last, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -171,12 +171,20 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return result ?? fallback;
   }
 
+  public first(): First<T[]> {
+    return this.value[Integer.Zero];
+  }
+
   public insert(value: T, index: number): T[] {
     return [...this.value.slice(Integer.Zero, index), value, ...this.value.slice(index)];
   }
 
   public intersects(array: T[]): boolean {
     return this.value.some((value: T): boolean => array.includes(value));
+  }
+
+  public last(): Last<T[]> {
+    return this.value[this.value.length - Integer.One];
   }
 
   public mapEach(...mappers: ((value: T, index: number, array: T[]) => T)[]): T[] {

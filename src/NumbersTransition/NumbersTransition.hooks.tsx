@@ -68,11 +68,11 @@ export const useValue = (
 ): [BigDecimal, boolean] => {
   const rerender: ActionDispatch<[]> = useRerender();
   const values: RefObject<[BigDecimal, boolean][]> = useRef<[BigDecimal, boolean][]>([]);
-  const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.at(Integer.MinusOne)?.[Integer.Zero] ?? previousValue);
+  const validationTuple: [BigDecimal, boolean] = useValidation(value, values.current.last()?.first() ?? previousValue);
 
   values.current =
     animationInterruptionMode === AnimationInterruptionMode.Continue
-      ? [...values.current, ...[validationTuple].when(!values.current.at(Integer.MinusOne)?.equals(validationTuple))]
+      ? [...values.current, ...[validationTuple].when(!values.current.last()?.equals(validationTuple))]
       : [validationTuple];
 
   // prettier-ignore
@@ -718,7 +718,7 @@ export const useNegativeElementAnimationVisibilities = ({
   hasSignChanged,
 }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
   animationDigits
-    .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits[Integer.Zero])!
+    .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits.first())!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
@@ -783,9 +783,9 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
 
   return (easingFunction: LinearEasingFunction, outputValue: number): number[] =>
     [
-      [easingFunction[Integer.Zero], Integer.Zero],
+      [easingFunction.first(), Integer.Zero],
       ...easingFunction.slice(Integer.One, Integer.MinusOne),
-      [...Array.toArray<number, [number]>(easingFunction.at(Integer.MinusOne)!), Integer.OneHundred],
+      [...Array.toArray<number, [number]>(easingFunction.last()), Integer.OneHundred],
     ]
       .flatMap<number | [number, number]>(normalize)
       .map<[number, number]>(fillProgressInput)
@@ -1086,7 +1086,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     Array.range(incrementThreshold + numberOfDigitsIncrease * index)
       .mapEach<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
-      .pipe<number[]>((numbers: number[]): number[] => (numbers.at(Integer.MinusOne) === end.digit ? numbers : [...numbers, end.digit]));
+      .pipe<number[]>((numbers: number[]): number[] => (numbers.last() === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>
     algorithmValuesArray.map<number[]>(index ? generateValues : incrementValues);

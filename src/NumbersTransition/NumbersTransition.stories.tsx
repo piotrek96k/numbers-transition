@@ -455,8 +455,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const onPointerMove = ({ clientX }: PointerEvent<HTMLElement>): void => {
     const [, digits, rects, centers, transforms, lastTransforms]: DragAndDropElementsTuple = elements.current;
     const dragIdx: number = dragIndex.current;
-    const min: number = centers.at(Integer.Zero)! - centers[dragIdx];
-    const max: number = centers.at(Integer.MinusOne)! - centers[dragIdx];
+    const [min, max]: number[] = [centers.first(), centers.last()].map<number>((center: number): number => center - centers[dragIdx]);
 
     const dragOffset: number = Math.max(Math.min(clientX - startOffset.current, max), min);
     const dragCenter: number = centers[dragIdx] + dragOffset;
