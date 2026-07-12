@@ -74,7 +74,7 @@ declare global {
     filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>): Optional<U>;
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback: U): U;
-    first(): First<this>;
+    first(): First<[...this]>;
     flatMap<U, V extends U[], W = undefined>(
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
@@ -82,7 +82,7 @@ declare global {
     forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     insert(value: T, index: number): T[];
     intersects(array: T[]): boolean;
-    last(): Last<this>;
+    last(): Last<[...this]>;
     map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
     map<U, V extends U[]>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((val: T, idx: number, array: T[]) => T)[]): T[];
