@@ -112,7 +112,7 @@ export type Join<T extends Primitive[], U extends string = Text.Empty, V extends
   ? Join<X, U, V extends Text.Empty ? `${W}` : `${V}${U}${W}`>
   : V;
 
-export type Last<T extends unknown[]> = T extends [...unknown[], infer U] ? U : T[number];
+export type Last<T extends unknown[]> = `${Integer.Zero}` extends keyof T ? (T extends [...unknown[], infer U] ? U : never) : T[number];
 
 export type PadStart<T extends unknown[], U, V extends number> = Switch<
   MinUnsignedInt<T[Key.Length], V>,
