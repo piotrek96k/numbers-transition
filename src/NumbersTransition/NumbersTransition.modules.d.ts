@@ -79,7 +79,6 @@ declare global {
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
     ): V;
-    forEach(callbackfn: (value: T, index: number, array: T[]) => unknown, thisArg?: unknown): void;
     insert(value: T, index: number): T[];
     intersects(array: T[]): boolean;
     last(): Last<this>;
