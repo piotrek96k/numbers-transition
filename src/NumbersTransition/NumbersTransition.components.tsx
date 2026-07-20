@@ -352,15 +352,10 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  const negativeElementProps: NegativeElementProps<T, U, V, W> = { negativeCharacter, characterStyledView, negativeCharacterStyledView };
-
+  // prettier-ignore
   const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
     <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Three }}>
-      <div>
-        <NegativeElement<T, U, V, W> {...negativeElementProps} />
-        {animation}
-        <NegativeElement<T, U, V, W> {...negativeElementProps} visible={false} />
-      </div>
+      {[true, false].map<ReactNode>(mapToNegativeElement).reduce((previous: ReactNode, current: ReactNode): ReactNode => <div>{previous}{animation}{current}</div>)}
     </VerticalAnimation>
   );
 
