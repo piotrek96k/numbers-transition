@@ -175,7 +175,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return this.value[Integer.Zero];
   }
 
-  public insert(value: T, index: number): T[] {
+  public insert(index: number, value: T): T[] {
     return [...this.value.slice(Integer.Zero, index), value, ...this.value.slice(index)];
   }
 

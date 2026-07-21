@@ -419,7 +419,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const index: number = [...inputValue].findIndex((character: string): boolean => Pattern.DecimalSeparator.test(character));
     const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - hasMinus.int;
 
-    return [...(hasMinus ? [Text.Minus] : []), ...(precision > Integer.Zero ? digits.insert(Text.Dot, separatorIndex) : digits)].collapse();
+    return [...(hasMinus ? [Text.Minus] : []), ...(precision > Integer.Zero ? digits.insert(separatorIndex, Text.Dot) : digits)].collapse();
   };
 
   const isZero = ({ number }: string): boolean => !number;

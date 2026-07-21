@@ -352,10 +352,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     }),
   );
 
-  // prettier-ignore
   const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
     <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Three }}>
-      {[true, false].map<ReactNode>(mapToNegativeElement).reduce((previous: ReactNode, current: ReactNode): ReactNode => <div>{previous}{animation}{current}</div>)}
+      <div>{[true, false].map<ReactNode>(mapToNegativeElement).insert(Integer.One, animation)}</div>
     </VerticalAnimation>
   );
 

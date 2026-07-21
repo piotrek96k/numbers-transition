@@ -79,7 +79,7 @@ declare global {
       callback: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>,
       thisArg?: W,
     ): V;
-    insert(value: T, index: number): T[];
+    insert(index: number, value: T): T[];
     intersects(array: T[]): boolean;
     last(): Last<this>;
     map<U>(callbackfn: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
