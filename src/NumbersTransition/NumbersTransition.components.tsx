@@ -342,14 +342,10 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
   );
 
+  // prettier-ignore
   const mapToNegativeElement: ElementKeyMapper<boolean> = useElementKeyMapper<boolean, NegativeElementProps<T, U, V, W>>(
     NegativeElement<T, U, V, W>,
-    (visible: boolean): NegativeElementProps<T, U, V, W> => ({
-      negativeCharacter,
-      visible,
-      characterStyledView,
-      negativeCharacterStyledView,
-    }),
+    (visible: boolean): NegativeElementProps<T, U, V, W> => ({ negativeCharacter, visible, characterStyledView, negativeCharacterStyledView }),
   );
 
   const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
