@@ -1,6 +1,17 @@
 import { ActionDispatch, FC, ReactElement, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import type {
+  CubicBezierEasingFunction,
+  EasingFunction,
+  EasingFunctionTypeMapper,
+  EasingFunctions,
+  ElementsLength,
+  LinearEasingFunction,
+  NumbersTransitionTheme,
+  StepsEasingFunction,
+  StyledView,
+} from './NumbersTransition.styles';
+import type {
   Assert,
   BigDecimal,
   GenericReactNode,
@@ -39,17 +50,6 @@ import {
   ViewKey,
   ViewType,
 } from './NumbersTransition.enums';
-import {
-  CubicBezierEasingFunction,
-  EasingFunction,
-  EasingFunctionTypeMapper,
-  EasingFunctions,
-  ElementsLength,
-  LinearEasingFunction,
-  NumbersTransitionTheme,
-  StepsEasingFunction,
-  StyledView,
-} from './NumbersTransition.styles';
 
 const useRerender = (): ActionDispatch<[]> =>
   useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
