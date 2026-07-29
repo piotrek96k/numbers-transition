@@ -93,13 +93,15 @@ const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose,
   </Conditional>
 );
 
+type DeferChildMapper<T extends unknown[] = []> = (child: ReactElement<ChildrenProps>, ...args: T) => GenericReactNode<ChildrenProps>;
+
 interface DeferProps {
   children: ReactElement<ChildrenProps>[];
   renderBatchSize: number;
   countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
-  onPartialMount: (child: ReactElement<ChildrenProps>, index: number, elementsToMount: number) => GenericReactNode<ChildrenProps>;
-  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
+  onBeforeMount: DeferChildMapper<[number]>;
+  onPartialMount: DeferChildMapper<[number, number]>;
+  onAfterMount?: DeferChildMapper<[number]>;
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
@@ -597,6 +599,8 @@ export const HorizontalAnimationElement = <
   );
 };
 
+// prettier-ignore
+type VerticalAnimationOnMountFactory<T extends unknown[]> = (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>;
 type VerticalAnimationChildMapper = (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>;
 
 export interface VerticalAnimationElementProps<
@@ -689,16 +693,18 @@ export const VerticalAnimationElement = <
   const countElements = (child: ReactElement<ChildrenProps>): number =>
     Array.toArray<GenericReactNode<ChildrenProps>>(getLastNestedElement(child).props.children).length;
 
+  const onElementMountCondition = ({ props: { children } }: ReactElement<ChildrenProps>): boolean =>
+    Array.isArray<GenericReactNode<ChildrenProps>>(children);
+
   // prettier-ignore
-  const onElementMount =
-    <T extends unknown[] = []>(
-      factory: (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>,
-    ): ((child: ReactElement<ChildrenProps>, index: number, ...args: T) => GenericReactNode<ChildrenProps>) =>
-    (child: ReactElement<ChildrenProps>, index: number, ...args: T) => (
-      <Enclose<ReactElement<ChildrenProps>>
-        condition={({ props: { children } }: ReactElement<ChildrenProps>): boolean => Array.isArray<GenericReactNode<ChildrenProps>>(children)}
-        enclose={({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> => factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args)}
-      >
+  const onElementMountEnclose = <T extends unknown[]>(factory: VerticalAnimationOnMountFactory<T>, ...args: T): DeferChildMapper =>
+    ({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
+      factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
+
+  // prettier-ignore
+  const onElementMount = <T extends unknown[] = []>(factory: VerticalAnimationOnMountFactory<T>): DeferChildMapper<[number, ...T]> =>
+    (child: ReactElement<ChildrenProps>, index: number, ...args: T): GenericReactNode<ChildrenProps> => (
+      <Enclose<ReactElement<ChildrenProps>> condition={onElementMountCondition} enclose={onElementMountEnclose(factory, ...args)}>
         {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
       </Enclose>
     );
@@ -712,7 +718,7 @@ export const VerticalAnimationElement = <
     </AnimationPlaceholder>
   );
 
-  const onAfterElementMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps> = onElementMount<[]>(
+  const onAfterElementMount: DeferChildMapper<[number]> = onElementMount<[]>(
     (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <AnimationPlaceholder>{array}</AnimationPlaceholder>,
   );
 
