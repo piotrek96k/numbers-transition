@@ -270,10 +270,7 @@ const NumbersTransition = <
     animationType,
   });
 
-  useEffect(
-    (): void => setPreviousValueOnEnd.callWhen<undefined, SetState<BigDecimal>>(omitAnimation, undefined, validValue),
-    [validValue, omitAnimation],
-  );
+  useEffect((): void => setPreviousValueOnEnd.callWhen<SetState<BigDecimal>>(omitAnimation, validValue), [validValue, omitAnimation]);
 
   useEffect(
     (): void =>

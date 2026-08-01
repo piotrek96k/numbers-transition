@@ -397,11 +397,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   );
 
   useEffect(
-    (): void =>
-      ((): unknown => (baseValue.current = providedValue)).invokeWhen<undefined, () => unknown>(
-        dragValue === null && !timeout.current,
-        undefined,
-      ),
+    (): void => ((): unknown => (baseValue.current = providedValue)).invokeWhen<() => unknown>(dragValue === null && !timeout.current),
     [providedValue, dragValue],
   );
 
@@ -536,9 +532,8 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       .findMap<() => void>(([callback, condition]: [() => void, boolean]): Optional<() => void> => (condition ? callback : undefined))!
       .call<undefined, [], void>(undefined);
 
-    scheduleUpdate.invokeWhen<undefined, (value: string) => NodeJS.Timeout>(
+    scheduleUpdate.invokeWhen<(value: string) => NodeJS.Timeout>(
       (previousDigits ?? reorderedDigits).some((digit: string, idx: number): boolean => digit !== unorderedDigits[idx]),
-      undefined,
       previousDigits?.pipe<string>(readValue) ?? newValue,
     );
 
@@ -567,19 +562,17 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
   const view: View<Partial<DragAndDropContainerProps>, unknown> = {
     css: dragAndDropCss,
-    viewProps: {
-      onAnimationEndCapture: (): void => setDragValue.callWhen<undefined, SetState<Nullable<string>>>(dragValue !== null, undefined, null),
-    },
+    viewProps: { onAnimationEndCapture: (): void => setDragValue.callWhen<SetState<Nullable<string>>>(dragValue !== null, null) },
   };
 
   const digitView: View<Partial<DragAndDropDigitProps>, unknown> = {
     css: dragAndDropDigitCssFactory,
     viewProps: {
       isDragging: activePointer !== null,
-      onPointerDown: onPointerDown.bindWhen<undefined, (event: PointerEvent<HTMLElement>) => void>(activePointer === null, undefined),
-      onPointerMove: onPointerMove.bindWhen<undefined, (event: PointerEvent<HTMLElement>) => void>(isActivePointer, undefined),
-      onPointerUp: onPointerUp.bindWhen<undefined, (event: PointerEvent<HTMLElement>) => void>(isActivePointer, undefined),
-      onPointerCancel: onPointerCancel.bindWhen<undefined, (event: PointerEvent<HTMLElement>) => void>(isActivePointer, undefined),
+      onPointerDown: onPointerDown.bindWhen<(event: PointerEvent<HTMLElement>) => void>(activePointer === null),
+      onPointerMove: onPointerMove.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
+      onPointerUp: onPointerUp.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
+      onPointerCancel: onPointerCancel.bindWhen<(event: PointerEvent<HTMLElement>) => void>(isActivePointer),
     },
   };
 

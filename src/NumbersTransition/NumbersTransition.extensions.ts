@@ -232,18 +232,16 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return (...innerArgs: Drop<Parameters<T>, U>): ReturnType<T> => this.value(...outerArgs, ...innerArgs);
   }
 
-  public bindWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
-    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen<U>(condition, thisArg, ...args);
+  public bindWhen(condition: OrFunction<Parameters<T>, any>): (...args: Parameters<T>) => Optional<ReturnType<T>> {
+    return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen(condition, ...args);
   }
 
-  public callWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): Optional<ReturnType<T>> {
-    return new Struct<OrFunction<Parameters<T>, any>>(condition).callOrGet(...args)
-      ? this.value.call<U, Parameters<T>, ReturnType<T>>(thisArg, ...args)
-      : undefined;
+  public callWhen(condition: OrFunction<Parameters<T>, any>, ...args: Parameters<T>): Optional<ReturnType<T>> {
+    return new Struct<OrFunction<Parameters<T>, any>>(condition).callOrGet(...args) ? this.value(...args) : undefined;
   }
 
-  public invokeWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): void {
-    this.callWhen<U>(condition, thisArg, ...args);
+  public invokeWhen(condition: OrFunction<Parameters<T>, any>, ...args: Parameters<T>): void {
+    this.callWhen(condition, ...args);
   }
 
   // prettier-ignore

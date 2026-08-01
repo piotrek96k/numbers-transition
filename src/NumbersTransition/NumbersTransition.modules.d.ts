@@ -131,23 +131,16 @@ declare global {
       this: T,
       ...args: Take<Parameters<T>, U>
     ): (...args: Drop<Parameters<T>, U>) => ReturnType<T>;
-    bindWhen<T, U extends (...args: any[]) => unknown>(
-      this: U,
-      condition: OrFunction<Parameters<U>, unknown>,
-      thisArg: T,
-    ): (...args: Parameters<U>) => Optional<ReturnType<U>>;
-    callWhen<T, U extends (...args: any[]) => unknown>(
-      this: U,
-      condition: OrFunction<Parameters<U>, unknown>,
-      thisArg: T,
-      ...args: Parameters<U>
-    ): Optional<ReturnType<U>>;
-    invokeWhen<T, U extends (...args: any[]) => unknown>(
-      this: U,
-      condition: OrFunction<Parameters<U>, unknown>,
-      thisArg: T,
-      ...args: Parameters<U>
-    ): void;
+    bindWhen<T extends (...args: any[]) => unknown>(
+      this: T,
+      condition: OrFunction<Parameters<T>, unknown>,
+    ): (...args: Parameters<T>) => Optional<ReturnType<T>>;
+    callWhen<T extends (...args: any[]) => unknown>(
+      this: T,
+      condition: OrFunction<Parameters<T>, unknown>,
+      ...args: Parameters<T>
+    ): Optional<ReturnType<T>>;
+    invokeWhen<T extends (...args: any[]) => unknown>(this: T, condition: OrFunction<Parameters<T>, unknown>, ...args: Parameters<T>): void;
     splitArgs<T extends (...args: any[]) => unknown, U extends number>(
       this: T,
       index: U,
