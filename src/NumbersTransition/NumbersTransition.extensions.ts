@@ -1,5 +1,17 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import type { ArrayOfDepth, First, Last, Nullish, Optional, OrArray, OrFunction, ValueOf, Zip } from './NumbersTransition.types';
+import type {
+  ArrayOfDepth,
+  Drop,
+  First,
+  Last,
+  Nullish,
+  Optional,
+  OrArray,
+  OrFunction,
+  Take,
+  ValueOf,
+  Zip,
+} from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -215,6 +227,10 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return callback(...args);
   }
 
+  public bindArgs<U extends number>(...outerArgs: Take<Parameters<T>, U>): (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
+    return (...innerArgs: Drop<Parameters<T>, U>): ReturnType<T> => this.value(...outerArgs, ...innerArgs);
+  }
+
   public bindWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U): (...args: Parameters<T>) => Optional<ReturnType<T>> {
     return (...args: Parameters<T>): Optional<ReturnType<T>> => this.callWhen<U>(condition, thisArg, ...args);
   }
@@ -227,6 +243,12 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
 
   public invokeWhen<U>(condition: OrFunction<Parameters<T>, any>, thisArg: U, ...args: Parameters<T>): void {
     this.callWhen<U>(condition, thisArg, ...args);
+  }
+
+  // prettier-ignore
+  public splitArgs<U extends number>(index: U): (...outerArgs: [...Take<Parameters<T>, U>, ...unknown[]]) => (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
+    return (...outerArgs: [...Take<Parameters<T>, U>, ...unknown[]]): ((...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T>) =>
+      this.bindArgs<U>(...outerArgs.slice<Integer.Zero, U, Take<Parameters<T>, U>>(Integer.Zero, index));
   }
 }
 
@@ -247,6 +269,10 @@ export class Element extends Extension<HTMLElement> implements ExtensionConstruc
 
   public static isType(value: unknown): value is HTMLElement {
     return value instanceof HTMLElement;
+  }
+
+  public get boundingClientRect(): DOMRect {
+    return this.value.getBoundingClientRect();
   }
 
   public get computedStyle(): CSSStyleDeclaration {

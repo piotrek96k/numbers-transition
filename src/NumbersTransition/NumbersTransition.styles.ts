@@ -330,13 +330,20 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 type NoThemeHorizontalAnimationProps = Remove<HorizontalAnimationProps, NumbersTransitionTheme>;
 type NoThemeVerticalAnimationProps = Remove<VerticalAnimationProps, NumbersTransitionTheme>;
 
-const createAnimationKeyframeMapper =
-  <T extends object, U>(map: KeyframeFunction<T, U>): ((val: [U] | [U, number], index: number, arr: ([U] | [U, number])[]) => RuleSet<T>) =>
-  ([value, progress]: [U] | [U, number], index: number, { length }: ([U] | [U, number])[]): RuleSet<T> => css<T>`
-    ${progress ?? (index * Integer.OneHundred) / (length - Integer.One)}${CssUnit.Percent} {
-      ${map(value)};
-    }
-  `;
+type AnimationKeyframeMapper<T extends object, U> = (
+  ...args: [KeyframeFunction<T, U>, [U] | [U, number], number, ([U] | [U, number])[]]
+) => RuleSet<T>;
+
+const animationKeyframeMapper = <T extends object, U>(
+  map: KeyframeFunction<T, U>,
+  [value, progress]: [U] | [U, number],
+  index: number,
+  { length }: ([U] | [U, number])[],
+): RuleSet<T> => css<T>`
+  ${progress ?? (index * Integer.OneHundred) / (length - Integer.One)}${CssUnit.Percent} {
+    ${map(value)};
+  }
+`;
 
 const reduceAnimationKeyframes = <T extends object>(previousValue: RuleSet<T>, currentValue: RuleSet<T>): RuleSet<T> => css<T>`
   ${previousValue}
@@ -350,7 +357,7 @@ const createAnimationKeyframes = <T extends object, U>(
 ): Keyframes => keyframes<T>`
   ${keyframesValues
     .zip<number[]>(...progress)
-    .map<RuleSet<T>>(createAnimationKeyframeMapper<T, U>(mapKeyframe))
+    .map<RuleSet<T>>(animationKeyframeMapper.bindArgs<AnimationKeyframeMapper<T, U>, Integer.One>(mapKeyframe))
     .reduce<RuleSet<T>>(reduceAnimationKeyframes<T>, css<T>``)}
 `;
 
@@ -386,10 +393,14 @@ const animation: RuleSet<AnimationProps> = css<AnimationProps>`
   animation-iteration-count: ${Integer.One};
 `;
 
-const createViewFactoryMapper =
-  <T extends Styled, U extends object, V>(props: Props<T, U, V>): ((value?: OrFunction<[WithContext<U>], Maybe<V>>) => Maybe<V>) =>
-  (value?: OrFunction<[WithContext<U>], Maybe<V>>): Maybe<V> =>
-    value?.callOrGet<[WithContext<U>], Maybe<V>>(props);
+type ViewFactoryMapper<T extends Styled, U extends object, V> = (
+  ...args: [Props<T, U, V>, Optional<OrFunction<[WithContext<U>], Maybe<V>>>]
+) => Maybe<V>;
+
+const viewFactoryMapper = <T extends Styled, U extends object, V>(
+  props: Props<T, U, V>,
+  value?: OrFunction<[WithContext<U>], Maybe<V>>,
+): Maybe<V> => value?.callOrGet<[WithContext<U>], Maybe<V>>(props);
 
 const reduceStyles = (accumulator: CSSProperties, currentStyle: Maybe<CSSProperties>): CSSProperties => ({
   ...accumulator,
@@ -401,7 +412,7 @@ const styleFactory = <T extends Styled, U extends object, V>(
   props: Props<T, U, V>,
 ): CSSProperties =>
   Array.toArray<Optional<StyleFactory<U>>>(style)
-    .map<Maybe<CSSProperties>>(createViewFactoryMapper<T, U, CSSProperties>(props))
+    .map<Maybe<CSSProperties>>(viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, CSSProperties>, Integer.One>(props))
     .reduce<CSSProperties>(reduceStyles, {});
 
 const classNameFactory = <T extends Styled, U extends object, V>(
@@ -409,16 +420,16 @@ const classNameFactory = <T extends Styled, U extends object, V>(
   props: Props<T, U, V>,
 ): Optional<string> =>
   Array.toArray<Optional<ClassNameFactory<U>>>(className)
-    .map<Maybe<string>>(createViewFactoryMapper<T, U, string>(props))
+    .map<Maybe<string>>(viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, string>, Integer.One>(props))
     .filter<string>((className: Maybe<string>): className is string => !!className)
     .join(Text.Space);
 
-const cssFactory =
-  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => CssRule<U>[]) =>
-  <U extends object, V>(props: Props<T, U, V>): CssRule<U>[] =>
-    Array.toArray<Optional<CssRuleFactory<U>>>(props[`${styledComponent}${ViewKey.Css.capitalize<ViewKey.Css>()}`])
-      .map<Maybe<CssRule<U>>>(createViewFactoryMapper<T, U, CssRule<U>>(props))
-      .filter<CssRule<U>>((value: Maybe<CssRule<U>>): value is CssRule<U> => !!value);
+type CssFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => CssRule<U>[];
+
+const cssFactory = <T extends Styled, U extends object, V>(styledComponent: T, props: Props<T, U, V>): CssRule<U>[] =>
+  Array.toArray<Optional<CssRuleFactory<U>>>(props[`${styledComponent}${ViewKey.Css.capitalize<ViewKey.Css>()}`])
+    .map<Maybe<CssRule<U>>>(viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, CssRule<U>>, Integer.One>(props))
+    .filter<CssRule<U>>((value: Maybe<CssRule<U>>): value is CssRule<U> => !!value);
 
 const mapAnimationFalsyValue = <T extends object, U>(animation: Maybe<Partial<Animation<T, U>>>): Optional<Partial<Animation<T, U>>> =>
   animation || undefined;
@@ -437,32 +448,38 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   Array.toArray<Optional<AnimationFactory<U, V>>>(animation)
     .when(Array.isArray<Optional<AnimationFactory<U, V>>>(animation) ? animation.length : animation)
     .mapEach<[Maybe<Partial<Animation<U, V>>>, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
-      createViewFactoryMapper<T, U, Animation<U, V>>(props),
+      viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, Animation<U, V>>, Integer.One>(props),
       mapAnimationFalsyValue<U, V>,
       mapAnimation<U, V>,
     )
     .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
-const createOptionalAnimation = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
+const createOptionalAnimationKeyframes = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
   css.bindWhen<undefined, (styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes, undefined)`
     animation-name: ${animationsKeyframes};
   `;
 
-const animationFactory =
-  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => Optional<RuleSet<U>>) =>
-  <U extends object, V>(props: Props<T, U, V>): Optional<RuleSet<U>> =>
-    createOptionalAnimation(
-      createAnimationsKeyframes<T, U, V>(props, props[`${styledComponent}${ViewKey.Animation.capitalize<ViewKey.Animation>()}`]),
-    );
+type AnimationKeyframesFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => Optional<RuleSet<U>>;
 
-const attributesFactory =
-  <T extends Styled>(styledComponent: T): (<U extends object, V>(props: Props<T, U, V>) => StyledHTMLAttributes<HTMLDivElement>) =>
-  <U extends object, V>(props: Props<T, U, V>): StyledHTMLAttributes<HTMLDivElement> => ({
-    style: { ...props.style, ...styleFactory(props[`${styledComponent}${ViewKey.Style.capitalize<ViewKey.Style>()}`], props) },
-    className: [props.className, classNameFactory(props[`${styledComponent}${ViewKey.ClassName.capitalize<ViewKey.ClassName>()}`], props)]
-      .filter<string>((className: Optional<string>): className is string => !!className)
-      .join(Text.Space),
-  });
+const animationKeyframesFactory = <T extends Styled, U extends object, V>(
+  styledComponent: T,
+  props: Props<T, U, V>,
+): Optional<RuleSet<U>> =>
+  createOptionalAnimationKeyframes(
+    createAnimationsKeyframes<T, U, V>(props, props[`${styledComponent}${ViewKey.Animation.capitalize<ViewKey.Animation>()}`]),
+  );
+
+type AttributesFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => StyledHTMLAttributes<HTMLDivElement>;
+
+const attributesFactory = <T extends Styled, U extends object, V>(
+  styledComponent: T,
+  props: Props<T, U, V>,
+): StyledHTMLAttributes<HTMLDivElement> => ({
+  style: { ...props.style, ...styleFactory(props[`${styledComponent}${ViewKey.Style.capitalize<ViewKey.Style>()}`], props) },
+  className: [props.className, classNameFactory(props[`${styledComponent}${ViewKey.ClassName.capitalize<ViewKey.ClassName>()}`], props)]
+    .filter<string>((className: Optional<string>): className is string => !!className)
+    .join(Text.Space),
+});
 
 interface VisibilityProps {
   visible?: boolean;
@@ -477,9 +494,8 @@ interface ContainerProps<T extends object, U> extends NumbersTransitionExecution
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
 
-export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(
-  attributesFactory<Styled.Container>(Styled.Container),
-)`
+// prettier-ignore
+export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Container>, Integer.One>(Styled.Container))`
   max-width: ${Integer.OneHundred}${CssUnit.Percent};
   width: ${Size.FitContent};
   height: ${Integer.One}${CssUnit.LineHeight};
@@ -487,8 +503,8 @@ export const Container: ContainerStyledComponent = styled.div.attrs<ContainerPro
   overflow-y: ${Overflow.Clip};
   ${cssProperties};
   ${containerVariables};
-  ${cssFactory<Styled.Container>(Styled.Container)};
-  ${animationFactory<Styled.Container>(Styled.Container)};
+  ${cssFactory.bindArgs<CssFactory<Styled.Container>, Integer.One>(Styled.Container)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Container>, Integer.One>(Styled.Container)};
 `;
 
 type HorizontalAnimationStyledComponent = StyledComponent<HTMLDivElement, HorizontalAnimationProps>;
@@ -541,24 +557,22 @@ interface CharacterProps<T extends object, U> extends StyledView<Styled.Characte
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
-export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
-  attributesFactory<Styled.Character>(Styled.Character),
-)`
+// prettier-ignore
+export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Character>, Integer.One>(Styled.Character))`
   display: ${Display.InlineBlock};
-  ${cssFactory<Styled.Character>(Styled.Character)};
-  ${animationFactory<Styled.Character>(Styled.Character)};
+  ${cssFactory.bindArgs<CssFactory<Styled.Character>, Integer.One>(Styled.Character)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Character>, Integer.One>(Styled.Character)};
 `;
 
 export interface DigitProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Digit, V, W> {}
 
 type DigitStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, DigitProps<any, any, any, any>>;
 
-export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(
-  attributesFactory<Styled.Digit>(Styled.Digit),
-)`
+// prettier-ignore
+export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Digit>, Integer.One>(Styled.Digit))`
   min-width: ${Integer.One}${CssUnit.Character};
-  ${cssFactory<Styled.Digit>(Styled.Digit)};
-  ${animationFactory<Styled.Digit>(Styled.Digit)};
+  ${cssFactory.bindArgs<CssFactory<Styled.Digit>, Integer.One>(Styled.Digit)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Digit>, Integer.One>(Styled.Digit)};
 `;
 
 interface SeparatorProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Separator, V, W> {}
@@ -569,12 +583,11 @@ type SeparatorStyledComponent = AttributesStyledComponent<
   SeparatorProps<any, any, any, any>
 >;
 
-export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
-  attributesFactory<Styled.Separator>(Styled.Separator),
-)`
+// prettier-ignore
+export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Separator>, Integer.One>(Styled.Separator))`
   white-space: ${WhiteSpace.Pre};
-  ${cssFactory<Styled.Separator>(Styled.Separator)};
-  ${animationFactory<Styled.Separator>(Styled.Separator)};
+  ${cssFactory.bindArgs<CssFactory<Styled.Separator>, Integer.One>(Styled.Separator)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Separator>, Integer.One>(Styled.Separator)};
 `;
 
 interface DecimalSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
@@ -586,11 +599,10 @@ type DecimalSeparatorStyledComponent = AttributesStyledComponent<
   DecimalSeparatorProps<any, any, any, any, any, any>
 >;
 
-export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<
-  DecimalSeparatorProps<any, any, any, any, any, any>
->(attributesFactory<Styled.DecimalSeparator>(Styled.DecimalSeparator))`
-  ${cssFactory<Styled.DecimalSeparator>(Styled.DecimalSeparator)};
-  ${animationFactory<Styled.DecimalSeparator>(Styled.DecimalSeparator)};
+// prettier-ignore
+export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DecimalSeparatorProps<any, any, any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator))`
+  ${cssFactory.bindArgs<CssFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator)};
 `;
 
 interface DigitGroupSeparatorProps<T extends object, U, V extends object, W, X extends object, Y>
@@ -602,11 +614,10 @@ type DigitGroupSeparatorStyledComponent = AttributesStyledComponent<
   DigitGroupSeparatorProps<any, any, any, any, any, any>
 >;
 
-export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<
-  DigitGroupSeparatorProps<any, any, any, any, any, any>
->(attributesFactory<Styled.DigitGroupSeparator>(Styled.DigitGroupSeparator))`
-  ${cssFactory<Styled.DigitGroupSeparator>(Styled.DigitGroupSeparator)};
-  ${animationFactory<Styled.DigitGroupSeparator>(Styled.DigitGroupSeparator)};
+// prettier-ignore
+export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DigitGroupSeparatorProps<any, any, any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator))`
+  ${cssFactory.bindArgs<CssFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator)};
 `;
 
 interface NegativeProps<T extends object, U, V extends object, W>
@@ -618,12 +629,11 @@ type NegativeStyledComponent = AttributesStyledComponent<
   NegativeProps<any, any, any, any>
 >;
 
-export const Negative: NegativeStyledComponent = styled<CharacterStyledComponent>(Character).attrs<NegativeProps<any, any, any, any>>(
-  attributesFactory<Styled.Negative>(Styled.Negative),
-)`
+// prettier-ignore
+export const Negative: NegativeStyledComponent = styled<CharacterStyledComponent>(Character).attrs<NegativeProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Negative>, Integer.One>(Styled.Negative))`
   ${visibility};
-  ${cssFactory<Styled.Negative>(Styled.Negative)};
-  ${animationFactory<Styled.Negative>(Styled.Negative)};
+  ${cssFactory.bindArgs<CssFactory<Styled.Negative>, Integer.One>(Styled.Negative)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Negative>, Integer.One>(Styled.Negative)};
 `;
 
 interface InvalidProps<T extends object, U, V extends object, W> extends CharacterProps<T, U>, StyledView<Styled.Invalid, V, W> {}
@@ -634,9 +644,8 @@ type InvalidStyledComponent = AttributesStyledComponent<
   InvalidProps<any, any, any, any>
 >;
 
-export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(
-  attributesFactory<Styled.Invalid>(Styled.Invalid),
-)`
-  ${cssFactory<Styled.Invalid>(Styled.Invalid)};
-  ${animationFactory<Styled.Invalid>(Styled.Invalid)};
+// prettier-ignore
+export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Invalid>, Integer.One>(Styled.Invalid))`
+  ${cssFactory.bindArgs<CssFactory<Styled.Invalid>, Integer.One>(Styled.Invalid)};
+  ${animationKeyframesFactory.bindArgs<AnimationKeyframesFactory<Styled.Invalid>, Integer.One>(Styled.Invalid)};
 `;

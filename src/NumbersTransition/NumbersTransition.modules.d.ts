@@ -1,9 +1,11 @@
 import type { ReactElement, ReactNode } from 'react';
+import type { Integer, Key } from './NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition.styles';
 import type {
   ArrayOfDepth,
   Assert,
   At,
+  Drop,
   First,
   Last,
   Nullable,
@@ -11,6 +13,8 @@ import type {
   OrArray,
   OrFunction,
   OrReadOnly,
+  Slice,
+  Take,
   Zip,
 } from './NumbersTransition.types';
 
@@ -97,6 +101,13 @@ declare global {
       callbackfn: (accumulator: U, currentValue: T, currentIndex: number, array: T[]) => U,
       initialValue: U,
     ): V;
+    slice(start?: number, end?: number): T[];
+    slice<T extends number = Integer.Zero>(start: T): Slice<[...this], T, this[Key.Length]>;
+    slice<T extends number = Integer.Zero, U extends number = this[Key.Length]>(start: T, end: U): Slice<[...this], T, U>;
+    slice<T extends number = Integer.Zero, U extends number = this[Key.Length], V = Slice<[...this], T, U>>(
+      start: T,
+      end: U,
+    ): Slice<[...this], T, U> extends V ? V : never;
     when(predicate: unknown): T[];
     zip<U extends unknown[]>(...array: U): Zip<this, U>;
     zip<U extends this, V extends unknown[]>(...array: V): Zip<U, V>;
@@ -116,6 +127,10 @@ declare global {
   }
 
   interface Function {
+    bindArgs<T extends (...args: any[]) => unknown, U extends number>(
+      this: T,
+      ...args: Take<Parameters<T>, U>
+    ): (...args: Drop<Parameters<T>, U>) => ReturnType<T>;
     bindWhen<T, U extends (...args: any[]) => unknown>(
       this: U,
       condition: OrFunction<Parameters<U>, unknown>,
@@ -133,6 +148,10 @@ declare global {
       thisArg: T,
       ...args: Parameters<U>
     ): void;
+    splitArgs<T extends (...args: any[]) => unknown, U extends number>(
+      this: T,
+      index: U,
+    ): (...args: Take<Parameters<T>, U>) => (...args: Drop<Parameters<T>, U>) => ReturnType<T>;
   }
 
   interface Math {
@@ -140,6 +159,7 @@ declare global {
   }
 
   interface HTMLElement {
+    readonly boundingClientRect: DOMRect;
     readonly computedStyle: CSSStyleDeclaration;
   }
 

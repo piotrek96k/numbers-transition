@@ -66,7 +66,11 @@ export type ParseNumber<T extends string> = T extends `${infer U extends number}
 export type ParseBigInt<T extends string> = T extends `${infer U extends bigint}` ? U : never;
 
 // Strings
-export type Slice<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
+export type StripStart<T extends string, U extends string> = T extends `${U}${infer V}` ? V : T;
+
+export type StripEnd<T extends string, U extends string> = T extends `${infer V}${U}` ? V : T;
+
+export type Strip<T extends string, U extends string = Text.Empty, V extends string = Text.Empty> = StripStart<StripEnd<T, V>, U>;
 
 // Objects
 export type ValueOf<T> = T extends unknown ? T[keyof T] : never;
@@ -103,6 +107,8 @@ export type At<T extends unknown[], U extends number | `${number}`> = When<
   Optional<T[number]>
 >;
 
+export type Drop<T extends unknown[], U extends number> = Split<T, U> extends [unknown[], infer V extends unknown[]] ? V : never;
+
 export type First<T extends unknown[]> = `${Integer.Zero}` extends keyof T ? T[Integer.Zero] : T[number];
 
 export type Join<T extends Primitive[], U extends string = Text.Empty, V extends string = Text.Empty> = T extends [
@@ -124,9 +130,16 @@ export type PadEnd<T extends unknown[], U, V extends number> = Switch<
   [[T[Key.Length], [...T, ...Tuple<U, SubtractUnsignedInt<[V, T[Key.Length]]>>]], [V, T]]
 >;
 
+export type Slice<T extends unknown[], U extends number = Integer.Zero, V extends number = T[Key.Length]> = Take<
+  Drop<T, U>,
+  Min<V, Max<Subtract<V, When<[`${U}`, `${Text.Minus}${number}`], Add<T[Key.Length], U>, U>>, Integer.Zero>>
+>;
+
 export type Split<T extends unknown[], U extends number, V extends unknown[] = []> = `${U}` extends `${Text.Minus}${infer W extends number}`
   ? When<[W, V[Key.Length]], [T, V], T extends [...infer X, infer Y] ? Split<X, U, [Y, ...V]> : [T, V]>
   : When<[U, V[Key.Length]], [V, T], T extends [infer X, ...infer Y] ? Split<Y, U, [...V, X]> : [V, T]>;
+
+export type Take<T extends unknown[], U extends number> = Split<T, U> extends [infer V extends unknown[], unknown[]] ? V : never;
 
 export type TrimStart<T extends unknown[], U, V extends number = Integer.Zero> = Switch<
   MinUnsignedInt<T[Key.Length], V>,
@@ -254,6 +267,27 @@ type SubtractSignedInts<T extends string[], U extends number[], V extends string
   : AddSignedInts<T, U, T, W>;
 
 // Math Operations
+export type Compare<T extends number, U extends number> =
+  DecomposeSignedFloats<T, U> extends [
+    [infer V extends string[], infer W extends number[]],
+    [infer X extends string[], infer Y extends number[]],
+    number,
+  ]
+    ? Switch<
+        [V, X],
+        [
+          [[[], []], CompareUnsignedInts<W, Y>],
+          [[[], [Text.Minus]], Integer.One],
+          [[[Text.Minus], []], Integer.MinusOne],
+          [[[Text.Minus], [Text.Minus]], CompareUnsignedInts<Y, W>],
+        ]
+      >
+    : never;
+
+export type Min<T extends number, U extends number> = When<[Compare<T, U>, Integer.One], U, T>;
+
+export type Max<T extends number, U extends number> = When<[Compare<T, U>, Integer.One], T, U>;
+
 export type Add<T extends number, U extends number> =
   DecomposeSignedFloats<T, U> extends [
     [infer V extends string[], infer W extends number[]],

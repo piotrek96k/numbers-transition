@@ -269,12 +269,14 @@ const getVerticalRotateKeyframes = ({
         (horizontalAnimationDuration + verticalAnimationDuration) / totalAnimationDuration,
       ];
 
-// prettier-ignore
-const mapVerticalRotateKeyframes = ({ animationDirection, columnLength, rowIndex }: Remove<NumbersTransitionTheme, AnimationType>): ((value: number) => number) =>
-  (value: number): number => 
-    value + (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
-      ? Integer.One / Integer.Two
-      : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
+const mapVerticalRotateKeyframes = (
+  { animationDirection, columnLength, rowIndex }: Remove<NumbersTransitionTheme, AnimationType>,
+  value: number,
+): number =>
+  value +
+  (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
+    ? Integer.One / Integer.Two
+    : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
 const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
@@ -283,7 +285,10 @@ const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
   columnLength! > Integer.One && {
     keyframeFunction: rotateKeyframeFunction,
     keyframes: getVerticalRotateKeyframes(restTheme).mapEach<number>(
-      mapVerticalRotateKeyframes({ ...restTheme, columnLength }),
+      mapVerticalRotateKeyframes.bindArgs<(...args: [Remove<NumbersTransitionTheme, AnimationType>, number]) => number, Integer.One>({
+        ...restTheme,
+        columnLength,
+      }),
       (value: number): number => value / Integer.Two,
     ),
   };
@@ -320,6 +325,8 @@ const rotateAnimationArgs: ComponentProps<NumbersTransitionComponent<object, unk
 export const RotateAnimation: Story<object, unknown, object, unknown, object, number> = { argTypes, args: rotateAnimationArgs };
 
 type DragAndDropElementsTuple = [string[], HTMLElement[], DOMRect[], number[], number[], number[]];
+
+type DragAndDropUpdateTransform = (...args: [(index: number) => number, HTMLElement, number?]) => void;
 
 interface DragAndDropContainerProps {
   onAnimationEndCapture: () => void;
@@ -377,14 +384,17 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
   const dragIndex: RefObject<number> = useRef<number>(Integer.Zero);
   const startOffset: RefObject<number> = useRef<number>(Integer.Zero);
 
-  const updateTransform = useCallback<(transform: (index: number) => number) => (element: HTMLElement, index?: number) => void>(
-    (transform: (index: number) => number): ((element: HTMLElement, index?: number) => void) =>
-      ({ style }: HTMLElement, index: number = Integer.Zero): void =>
-        style.setProperty(DragAndDropVariableName.Transform, `${transform(index)}${CssUnit.Pixel}`),
+  const updateTransform = useCallback<(transform: (index: number) => number, element: HTMLElement, index?: number) => void>(
+    (transform: (index: number) => number, { style }: HTMLElement, index: number = Integer.Zero): void =>
+      style.setProperty(DragAndDropVariableName.Transform, `${transform(index)}${CssUnit.Pixel}`),
     [],
   );
 
-  useEffect((): void => elements.current[Integer.One].forEach(updateTransform((): number => Integer.Zero)), [precision, updateTransform]);
+  useEffect(
+    (): void =>
+      elements.current[Integer.One].forEach(updateTransform.bindArgs<DragAndDropUpdateTransform, Integer.One>((): number => Integer.Zero)),
+    [precision, updateTransform],
+  );
 
   useEffect(
     (): void =>
@@ -441,7 +451,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       .pipe<DragAndDropElementsTuple>(([unorderedDigits, digits]: [string[], HTMLElement[]]): DragAndDropElementsTuple => [
         unorderedDigits,
         ...digits
-          .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.getBoundingClientRect()])
+          .map<[HTMLElement, DOMRect]>((digit: HTMLElement): [HTMLElement, DOMRect] => [digit, digit.boundingClientRect])
           .sort(([, first]: [HTMLElement, DOMRect], [, second]: [HTMLElement, DOMRect]): number => first.left - second.left)
           .reduce<[HTMLElement[], DOMRect[], number[], number[], number[]]>(reduceElements, [[], [], [], [], []]),
       ]);
@@ -481,7 +491,11 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 
     const currentTransforms: number[] = digits.map<number>((_: HTMLElement, index: number): number => getTransform(index));
     elements.current[Integer.Five] = currentTransforms;
-    digits.forEach(updateTransform((index: number): number => transforms[index] + currentTransforms[index]));
+    digits.forEach(
+      updateTransform.bindArgs<DragAndDropUpdateTransform, Integer.One>(
+        (index: number): number => transforms[index] + currentTransforms[index],
+      ),
+    );
   };
 
   const onPointerUp = ({ currentTarget, pointerId }: PointerEvent<HTMLElement>): void => {
@@ -504,14 +518,19 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       (precision >= Integer.Zero ||
         (reorderedDigits.slice(digits.length + precision).every(isZero) && dragIdx < digits.length + precision));
 
+    const newValueValidTransform: number = centers[freeIndex] - centers[dragIdx] + transforms[dragIdx];
+
     const previousDigits: Optional<string[]> = isNewValueValid
       ? undefined
       : digits.map<string>(({ textContent }: HTMLElement): string => textContent);
 
     [
       (): void =>
-        currentTarget.pipe<HTMLElement, void>(updateTransform((): number => centers[freeIndex] - centers[dragIdx] + transforms[dragIdx])),
-      (): void => digits.forEach(updateTransform((index: number): number => transforms[index])),
+        currentTarget.pipe<HTMLElement, void>(
+          updateTransform.bindArgs<DragAndDropUpdateTransform, Integer.One>((): number => newValueValidTransform),
+        ),
+      (): void =>
+        digits.forEach(updateTransform.bindArgs<DragAndDropUpdateTransform, Integer.One>((index: number): number => transforms[index])),
     ]
       .zip<[() => void, () => void], [boolean, boolean]>(isNewValueValid, true)
       .findMap<() => void>(([callback, condition]: [() => void, boolean]): Optional<() => void> => (condition ? callback : undefined))!

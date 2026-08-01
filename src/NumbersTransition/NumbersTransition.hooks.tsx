@@ -21,7 +21,7 @@ import type {
   OrFunction,
   OrReadOnly,
   ReactState,
-  Slice,
+  Strip,
   Switch,
   Tuple,
   UncheckedBigDecimal,
@@ -134,8 +134,8 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
   const bigInts: [bigint, bigint, bigint] = characters.map<bigint>(BigInt);
 
   const numbersOfDigits: [number, number, number] = digits
-    .slice(Integer.One)
-    .map<number, [number, number]>(({ length }: number[]): number => length)
+    .slice<Integer.One>(Integer.One)
+    .map<number>(({ length }: number[]): number => length)
     .sort(Number.subtract)
     .pipe<[number, number, number]>(([min, max]: [number, number]): [number, number, number] => [min, max, max - min]);
 
@@ -472,7 +472,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
 };
 
 type BaseView<T extends object = object, U = unknown> = {
-  [K in keyof StyledView<Styled, T, U> as Uncapitalize<Assert<Slice<K, Styled>, Capitalize<ViewKey>>>]: StyledView<Styled, T, U>[K];
+  [K in keyof StyledView<Styled, T, U> as Uncapitalize<Assert<Strip<K, Styled>, Capitalize<ViewKey>>>]: StyledView<Styled, T, U>[K];
 };
 
 export interface View<T extends object = object, U = unknown> extends BaseView<T, U> {
@@ -732,55 +732,57 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
         ])
       : value;
 
-  // prettier-ignore
-  const findPrevious = (index: number): ((value: number | [number, number], currentIndex: number) => boolean) =>
-    (value: number | [number, number], currentIndex: number): boolean =>
-      currentIndex < index && Array.isArray<number>(value);
+  const findPrevious = (index: number, value: number | [number, number], currentIndex: number): boolean =>
+    currentIndex < index && Array.isArray<number>(value);
+
+  const findNext = (index: number, value: number | [number, number], currentIndex: number): boolean =>
+    currentIndex > index && Array.isArray<number>(value);
+
+  const calculateProgressInput = (index: number, array: (number | [number, number])[], startIndex: number, endIndex: number): number =>
+    [
+      Array.toArray<number>(array[endIndex])[Integer.One] * (index - startIndex),
+      Array.toArray<number>(array[startIndex])[Integer.One] * (endIndex - index),
+    ].reduce((first: number, second: number): number => (first + second) / (endIndex - startIndex));
 
   // prettier-ignore
-  const findNext = (index: number): ((value: number | [number, number], currentIndex: number) => boolean) =>
-    (value: number | [number, number], currentIndex: number): boolean =>
-      currentIndex > index && Array.isArray<number>(value);
-
-  // prettier-ignore
-  const calculateProgressInput = (index: number, array: (number | [number, number])[]): ((startIndex: number, endIndex: number) => number) =>
-    (startIndex: number, endIndex: number): number =>
-      [
-        Array.toArray<number>(array[endIndex])[Integer.One] * (index - startIndex),
-        Array.toArray<number>(array[startIndex])[Integer.One] * (endIndex - index),
-      ].reduce((first: number, second: number): number => (first + second) / (endIndex - startIndex));
-
   const fillProgressInput = (value: number | [number, number], index: number, array: (number | [number, number])[]): [number, number] =>
     Array.isArray<number>(value)
       ? value
-      : [value, [array.findLastIndex(findPrevious(index)), array.findIndex(findNext(index))].reduce(calculateProgressInput(index, array))];
+      : [
+          value,
+          [
+            array.findLastIndex(findPrevious.bindArgs<(...args: [number, number | [number, number], number]) => boolean, Integer.One>(index)),
+            array.findIndex(findNext.bindArgs<(...args: [number, number | [number, number], number]) => boolean, Integer.One>(index)),
+          ].reduce(calculateProgressInput.bindArgs<(...args: [number, (number | [number, number])[], number, number]) => number, Integer.Two>(index, array)),
+        ];
 
   const getValue = ([value]: [number, number]): number => value;
 
-  // prettier-ignore
-  const isInInterval = (index: number, outputValue: number): ((tuple: number[]) => boolean) =>
-    ([first, second]: number[]): boolean =>
-      (index === Integer.One ? outputValue >= first : outputValue > first) && outputValue <= second;
+  const isInInterval = (index: number, outputValue: number, [first, second]: number[]): boolean =>
+    (index === Integer.One ? outputValue >= first : outputValue > first) && outputValue <= second;
+
+  const findInterval = (index: number, outputValue: number, array: [number, number][]): [number, number][][] =>
+    index &&
+    [array.map<number>(getValue).sort(Number.subtract)].every(
+      isInInterval.bindArgs<(...args: [number, number, number[]]) => boolean, Integer.Two>(index, outputValue),
+    )
+      ? [array]
+      : [];
 
   // prettier-ignore
-  const findInterval = (index: number, outputValue: number): ((array: [number, number][]) => [number, number][][]) =>
-    (array: [number, number][]): [number, number][][] =>
-      index && [array.map<number>(getValue).sort(Number.subtract)].every(isInInterval(index, outputValue)) ? [array] : [];
+  const findIntervals = (outputValue: number, accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
+    ...accumulator,
+    ...[array[index - Integer.One], array[index]].pipe<[number, number][][]>(
+      findInterval.bindArgs<(...args: [number, number, [number, number][]]) => [number, number][][], Integer.Two>(index, outputValue),
+    ),
+  ];
+
+  const findSolutions = (outputValue: number, [[firstY, firstX], [secondY, secondX]]: [[number, number], [number, number]]): number =>
+    [(secondY - firstY) / (secondX - firstX)]
+      .flatMap<number, [number, number]>((slope: number): number[] => [slope, firstY - slope * firstX])
+      .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) && slope ? (outputValue - intercept) / slope : firstX));
 
   // prettier-ignore
-  const findIntervals = (outputValue: number): ((acc: [number, number][][], tuple: [number, number], index: number, array: [number, number][]) => [number, number][][]) =>
-    (accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
-      ...accumulator,
-      ...[array[index - Integer.One], array[index]].pipe<[number, number][][]>(findInterval(index, outputValue)),
-    ];
-
-  // prettier-ignore
-  const findSolutions = (outputValue: number): ((tuple: [[number, number], [number, number]]) => number) =>
-    ([[firstY, firstX], [secondY, secondX]]: [[number, number], [number, number]]): number =>
-      [(secondY - firstY) / (secondX - firstX)]
-        .flatMap<number, [number, number]>((slope: number): number[] => [slope, firstY - slope * firstX])
-        .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) && slope ? (outputValue - intercept) / slope : firstX));
-
   return (easingFunction: LinearEasingFunction, outputValue: number): number[] =>
     [
       [easingFunction.first(), Integer.Zero],
@@ -789,8 +791,11 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
     ]
       .flatMap<number | [number, number]>(normalize)
       .map<[number, number]>(fillProgressInput)
-      .reduce<[number, number][][], [[number, number], [number, number]][]>(findIntervals(outputValue), [])
-      .map<number>(findSolutions(outputValue));
+      .reduce<[number, number][][], [[number, number], [number, number]][]>(
+        findIntervals.bindArgs<(...args: [number, [number, number][][], [number, number], number, [number, number][]]) => [number, number][][], Integer.One>(outputValue),
+        [],
+      )
+      .map<number>(findSolutions.bindArgs<(...args: [number, [[number, number], [number, number]]]) => number, Integer.One>(outputValue));
 };
 
 const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
@@ -803,27 +808,26 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
     Integer.Three * firstPoint,
   ];
 
-  // prettier-ignore
-  const cubicBezierFunction = (tuple: [number, number]): ((value: number) => number) =>
-    (value: number): number => calculateCoefficients(tuple)
+  const cubicBezierFunction = (tuple: [number, number], value: number): number =>
+    calculateCoefficients(tuple)
       .map<number>((coefficient: number, index: number, { length }: number[]): number => coefficient * value ** (length - index))
       .reduce(Number.sum);
 
-  // prettier-ignore
-  const calculateCubicCoefficients = (outputValue: number): ((tuple: [number, number]) => Tuple<number, Integer.Four>) =>
-    (tuple: [number, number]): Tuple<number, Integer.Four> => [...calculateCoefficients(tuple), -outputValue];
+  const calculateCubicCoefficients = (outputValue: number, tuple: [number, number]): Tuple<number, Integer.Four> => [
+    ...calculateCoefficients(tuple),
+    -outputValue,
+  ];
 
-  // prettier-ignore
-  const calculateDepressedCoefficients = ([first, second, third, fourth]: Tuple<number, Integer.Four>): [
-    Tuple<number, Integer.Four>,
-    [number, number],
-  ] => [
-    [first, second, third, fourth],
-    [
-      (Integer.Three * first * third - second ** Integer.Two) / (Integer.Three * first ** Integer.Two),
-      (Integer.Two * second ** Integer.Three - Integer.Nine * first * second * third + Integer.TwentySeven * first ** Integer.Two * fourth) /
-        (Integer.TwentySeven * first ** Integer.Three),
-    ],
+  const calculateFirstDepressedCoefficient = ([first, second, third]: Tuple<number, Integer.Four>): number =>
+    (Integer.Three * first * third - second ** Integer.Two) / (Integer.Three * first ** Integer.Two);
+
+  const calculateSecondDepressedCoefficient = ([first, second, third, fourth]: Tuple<number, Integer.Four>): number =>
+    (Integer.Two * second ** Integer.Three - Integer.Nine * first * second * third + Integer.TwentySeven * first ** Integer.Two * fourth) /
+    (Integer.TwentySeven * first ** Integer.Three);
+
+  const calculateDepressedCoefficients = (coefficients: Tuple<number, Integer.Four>): [Tuple<number, Integer.Four>, [number, number]] => [
+    coefficients,
+    [calculateFirstDepressedCoefficient(coefficients), calculateSecondDepressedCoefficient(coefficients)],
   ];
 
   const calculateDiscriminant = ([coefficients, [first, second]]: [Tuple<number, Integer.Four>, [number, number]]): [
@@ -845,14 +849,20 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
         )
       : [-second / (Integer.Three * first)];
 
-  // prettier-ignore
+  const calulateThreeRootsAcos = (firstDepressed: number, secondDepressed: number): number =>
+    Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed));
+
+  const calulateThreeRootsCos = (firstDepressed: number, secondDepressed: number, index: number): number =>
+    Math.cos(
+      (Integer.One / Integer.Three) * calulateThreeRootsAcos(firstDepressed, secondDepressed) -
+        (Integer.Two * index * Math.PI) / Integer.Three,
+    );
+
   const solveForThreeRoots = ([first, second]: number[], [firstDepressed, secondDepressed]: number[]): number[] =>
     Array.range(Integer.Three).map<number>(
       (index: number): number =>
-        Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * Math.cos(
-          (Integer.One / Integer.Three) * Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed)) -
-          (Integer.Two * index * Math.PI) / Integer.Three,
-        ) - second / (Integer.Three * first),
+        Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * calulateThreeRootsCos(firstDepressed, secondDepressed, index) -
+        second / (Integer.Three * first),
     );
 
   // prettier-ignore
@@ -872,22 +882,28 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .call<undefined, [number[], number[], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
 
   // prettier-ignore
-  const findSolutions = (outputValue: number): ((xAxisPoints: [number, number], yAxisPoints: [number, number]) => number[]) =>
-    (xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] => [yAxisPoints]
+  const findSolutions = (outputValue: number, xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
+    [yAxisPoints]
       .mapEach<
         [Tuple<number, Integer.Four>, number[][], number[][]],
         [[Tuple<number, Integer.Four>], [[Tuple<number, Integer.Four>, [number, number]]], [[Tuple<number, Integer.Four>, [number, number, number]]]]
-      >(calculateCubicCoefficients(outputValue), calculateDepressedCoefficients, calculateDiscriminant)
+      >(
+        calculateCubicCoefficients.bindArgs<(...args: [number, [number, number]]) => Tuple<number, Integer.Four>, Integer.One>(outputValue),
+        calculateDepressedCoefficients,
+        calculateDiscriminant,
+      )
       .flat<[[number[], number[]]], Integer.One>()
       .reduce(solveCubicBezier)
       .map<number>((value: number): number => Math.roundTo(value, Integer.Six))
       .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
       .sort(Number.subtract)
       .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
-      .map<number>(cubicBezierFunction(xAxisPoints));
+      .map<number>(cubicBezierFunction.bindArgs<(...args: [[number, number], number]) => number, Integer.One>(xAxisPoints));
 
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
-    easingFunction.map<[number, number], CubicBezierEasingFunction>(mapControlPoints).reduce(findSolutions(outputValue));
+    easingFunction
+      .map<[number, number], CubicBezierEasingFunction>(mapControlPoints)
+      .reduce(findSolutions.bindArgs<(...args: [number, [number, number], [number, number]]) => number[], Integer.One>(outputValue));
 };
 
 // prettier-ignore
@@ -928,18 +944,19 @@ export const useNegativeElementAnimationTimingFunction = (
       input,
     );
 
-  const mapToLinear =
-    (increment: number): ((solution: number, index: number) => [number, number][]) =>
-    (solution: number, index: number): [number, number][] =>
-      Array.range(Integer.Two).map<[number, number]>((value: number): [number, number] => [
-        increment ^ ((index + value) % Integer.Two) ? Integer.One / animationVisibilities.length : (index + value) % Integer.Two,
-        solution * Integer.OneHundred,
-      ]);
+  const mapToLinear = (increment: number, solution: number, index: number): [number, number][] =>
+    Array.range(Integer.Two).map<[number, number]>((value: number): [number, number] => [
+      increment ^ ((index + value) % Integer.Two) ? Integer.One / animationVisibilities.length : (index + value) % Integer.Two,
+      solution * Integer.OneHundred,
+    ]);
+
+  const flatMapToLinear = (vals: number[], index: number): [number, number][] =>
+    vals.flatMap<[number, number]>(mapToLinear.bindArgs<(...args: [number, number, number]) => [number, number][], Integer.One>(index));
 
   const points: [number, number][] = [animationVisibilities.lastIndexOf(true), animationVisibilities.indexOf(false)]
     .when(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single)
     .mapEach<[number, number[]]>((input: number): number => input / (animationVisibilities.length - Integer.One), solve)
-    .flatMap<[number, number]>((vals: number[], index: number): [number, number][] => vals.flatMap<[number, number]>(mapToLinear(index)))
+    .flatMap<[number, number]>(flatMapToLinear)
     .sort(([, first]: [number, number], [, second]: [number, number]): number => first - second);
 
   return [Integer.Zero, ...points, Integer.One];
@@ -1070,9 +1087,8 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
         end - start < incrementThreshold ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
       );
 
-  // prettier-ignore
-  const calculate = (start: bigint, end: bigint): ((value: number, index: number, array: number[]) => bigint) =>
-    (_:number, { bigInt: index }: number, { length: { bigInt: length } }: number[]): bigint => (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
+  const calculate = (start: bigint, end: bigint, _: number, { bigInt: index }: number, { length: { bigInt: length } }: number[]): bigint =>
+    (NumberPrecision.Value * (start * (length - index) + end * index)) / length;
 
   const round = (value: bigint): bigint =>
     value / NumberPrecision.Value + (value - (value / NumberPrecision.Value) * NumberPrecision.Value >= NumberPrecision.HalfValue).bigInt;
@@ -1085,7 +1101,11 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 
   const generateValues = ([start, end]: [bigint, bigint], index: number): number[] =>
     Array.range(incrementThreshold + numberOfDigitsIncrease * index)
-      .mapEach<[bigint, bigint, number]>(calculate(start, end), round, ({ digit }: bigint): number => digit)
+      .mapEach<[bigint, bigint, number]>(
+        calculate.bindArgs<(...args: [bigint, bigint, number, number, number[]]) => bigint, Integer.Two>(start, end),
+        round,
+        ({ digit }: bigint): number => digit,
+      )
       .pipe<number[]>((numbers: number[]): number[] => (numbers.last() === end.digit ? numbers : [...numbers, end.digit]));
 
   const mapDigitValues = (algorithmValuesArray: [bigint, bigint][], index: number): number[][] =>

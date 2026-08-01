@@ -14,7 +14,7 @@ import {
   useState,
 } from 'react';
 import { ThemeProvider, ThemeProviderProps, useTheme } from 'styled-components';
-import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState } from './NumbersTransition.types';
+import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState, Tuple } from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationId,
@@ -93,15 +93,13 @@ const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose,
   </Conditional>
 );
 
-type DeferChildMapper<T extends unknown[] = []> = (child: ReactElement<ChildrenProps>, ...args: T) => GenericReactNode<ChildrenProps>;
-
 interface DeferProps {
   children: ReactElement<ChildrenProps>[];
   renderBatchSize: number;
   countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: DeferChildMapper<[number]>;
-  onPartialMount: DeferChildMapper<[number, number]>;
-  onAfterMount?: DeferChildMapper<[number]>;
+  onBeforeMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
+  onPartialMount: (child: ReactElement<ChildrenProps>, index: number, elementsToMount: number) => GenericReactNode<ChildrenProps>;
+  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
@@ -599,9 +597,25 @@ export const HorizontalAnimationElement = <
   );
 };
 
-// prettier-ignore
-type VerticalAnimationOnMountFactory<T extends unknown[]> = (array: GenericReactNode<ChildrenProps>[], ...args: T) => GenericReactNode<ChildrenProps>;
 type VerticalAnimationChildMapper = (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>;
+
+type VerticalAnimationOnMountFactory<T extends unknown[]> = (
+  ...args: [GenericReactNode<ChildrenProps>[], ...T]
+) => GenericReactNode<ChildrenProps>;
+
+type VerticalAnimationOnMountEnclose<T extends unknown[]> = (
+  ...args: [VerticalAnimationOnMountFactory<T>, T, ReactElement<ChildrenProps>]
+) => GenericReactNode<ChildrenProps>;
+
+type VerticalAnimationOnMount<T extends unknown[]> = (
+  ...args: [VerticalAnimationOnMountFactory<T>, ReactElement<ChildrenProps>, number, ...T]
+) => GenericReactNode<ChildrenProps>;
+
+type VerticalAnimationOnAfterMountMapper = (...args: [number, Optional<ReactElement<ChildrenProps>>]) => GenericReactNode<ChildrenProps>;
+
+type VerticalAnimationOnAfterMountReducer = (
+  ...args: [...Tuple<VerticalAnimationChildMapper, Integer.Two>, Optional<ReactElement<ChildrenProps>>]
+) => GenericReactNode<ChildrenProps>;
 
 export interface VerticalAnimationElementProps<
   O extends object,
@@ -696,18 +710,25 @@ export const VerticalAnimationElement = <
   const onElementMountCondition = ({ props: { children } }: ReactElement<ChildrenProps>): boolean =>
     Array.isArray<GenericReactNode<ChildrenProps>>(children);
 
-  // prettier-ignore
-  const onElementMountEnclose = <T extends unknown[]>(factory: VerticalAnimationOnMountFactory<T>, ...args: T): DeferChildMapper =>
-    ({ props: { children } }: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-      factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
+  const onElementMountEnclose = <T extends unknown[]>(
+    factory: VerticalAnimationOnMountFactory<T>,
+    args: T,
+    { props: { children } }: ReactElement<ChildrenProps>,
+  ): GenericReactNode<ChildrenProps> => factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
 
-  // prettier-ignore
-  const onElementMount = <T extends unknown[] = []>(factory: VerticalAnimationOnMountFactory<T>): DeferChildMapper<[number, ...T]> =>
-    (child: ReactElement<ChildrenProps>, index: number, ...args: T): GenericReactNode<ChildrenProps> => (
-      <Enclose<ReactElement<ChildrenProps>> condition={onElementMountCondition} enclose={onElementMountEnclose(factory, ...args)}>
-        {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
-      </Enclose>
-    );
+  const onElementMount = <T extends unknown[] = []>(
+    factory: VerticalAnimationOnMountFactory<T>,
+    child: ReactElement<ChildrenProps>,
+    index: number,
+    ...args: T
+  ): GenericReactNode<ChildrenProps> => (
+    <Enclose<ReactElement<ChildrenProps>>
+      condition={onElementMountCondition}
+      enclose={onElementMountEnclose.bindArgs<VerticalAnimationOnMountEnclose<T>, Integer.Two>(factory, args)}
+    >
+      {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
+    </Enclose>
+  );
 
   const onBeforeElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
     animationDirection === AnimationDirection.Normal ? array.first() : array.last();
@@ -718,29 +739,30 @@ export const VerticalAnimationElement = <
     </AnimationPlaceholder>
   );
 
-  const onAfterElementMount: DeferChildMapper<[number]> = onElementMount<[]>(
-    (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => <AnimationPlaceholder>{array}</AnimationPlaceholder>,
+  const onAfterElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
+    <AnimationPlaceholder>{array}</AnimationPlaceholder>
   );
 
-  // prettier-ignore
-  const onAfterMountMapper = (at: number): VerticalAnimationChildMapper =>
-    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> => Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
+  const onAfterMountMapper = (at: number, child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
+    Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
 
-  // prettier-ignore
-  const onAfterMountReducer = (accumulatedCallback: VerticalAnimationChildMapper, callback: VerticalAnimationChildMapper): VerticalAnimationChildMapper =>
-    (child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
+  const onAfterMountReducer = (
+    accumulatedCallback: VerticalAnimationChildMapper,
+    callback: VerticalAnimationChildMapper,
+    child: Optional<ReactElement<ChildrenProps>>,
+  ): GenericReactNode<ChildrenProps> => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
 
   const onAfterMountFunction: VerticalAnimationChildMapper = [
     Integer.One,
     animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne,
   ]
-    .map<VerticalAnimationChildMapper>(onAfterMountMapper)
-    .reduce(onAfterMountReducer);
+    .map<VerticalAnimationChildMapper>(onAfterMountMapper.splitArgs<VerticalAnimationOnAfterMountMapper, Integer.One>(Integer.One))
+    .reduce(onAfterMountReducer.splitArgs<VerticalAnimationOnAfterMountReducer, Integer.Two>(Integer.Two));
 
   const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
     <Conditional condition={!index && child === getLastNestedElement(child)}>
       {onAfterMountFunction(child)}
-      {onAfterElementMount(child, index)}
+      {onElementMount<[]>(onAfterElementMount, child, index)}
     </Conditional>
   );
 
@@ -748,8 +770,8 @@ export const VerticalAnimationElement = <
     <Defer
       renderBatchSize={renderBatchSize}
       countElements={countElements}
-      onBeforeMount={onElementMount<[]>(onBeforeElementMount)}
-      onPartialMount={onElementMount<[number]>(onPartialElementMount)}
+      onBeforeMount={onElementMount.bindArgs<VerticalAnimationOnMount<[]>, Integer.One>(onBeforeElementMount)}
+      onPartialMount={onElementMount.bindArgs<VerticalAnimationOnMount<[number]>, Integer.One>(onPartialElementMount)}
       {...(optimizationStrategy === OptimizationStrategy.Batch && { onAfterMount })}
     >
       {children}
