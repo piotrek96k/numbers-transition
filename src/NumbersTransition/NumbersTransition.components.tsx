@@ -597,7 +597,7 @@ export const HorizontalAnimationElement = <
   );
 };
 
-type VerticalAnimationChildMapper = (child: Optional<ReactElement<ChildrenProps>>) => GenericReactNode<ChildrenProps>;
+type VerticalAnimationChildMapper = (child?: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
 
 type VerticalAnimationOnMountFactory<T extends unknown[]> = (
   ...args: [GenericReactNode<ChildrenProps>[], ...T]
@@ -611,10 +611,10 @@ type VerticalAnimationOnMount<T extends unknown[]> = (
   ...args: [VerticalAnimationOnMountFactory<T>, ReactElement<ChildrenProps>, number, ...T]
 ) => GenericReactNode<ChildrenProps>;
 
-type VerticalAnimationOnAfterMountMapper = (...args: [number, Optional<ReactElement<ChildrenProps>>]) => GenericReactNode<ChildrenProps>;
+type VerticalAnimationOnAfterMountMapper = (...args: [number, ReactElement<ChildrenProps>?]) => GenericReactNode<ChildrenProps>;
 
 type VerticalAnimationOnAfterMountReducer = (
-  ...args: [...Tuple<VerticalAnimationChildMapper, Integer.Two>, Optional<ReactElement<ChildrenProps>>]
+  ...args: [...Tuple<VerticalAnimationChildMapper, Integer.Two>, ReactElement<ChildrenProps>?]
 ) => GenericReactNode<ChildrenProps>;
 
 export interface VerticalAnimationElementProps<
@@ -743,13 +743,13 @@ export const VerticalAnimationElement = <
     <AnimationPlaceholder>{array}</AnimationPlaceholder>
   );
 
-  const onAfterMountMapper = (at: number, child: Optional<ReactElement<ChildrenProps>>): GenericReactNode<ChildrenProps> =>
+  const onAfterMountMapper = (at: number, child?: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
     Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
 
   const onAfterMountReducer = (
     accumulatedCallback: VerticalAnimationChildMapper,
     callback: VerticalAnimationChildMapper,
-    child: Optional<ReactElement<ChildrenProps>>,
+    child?: ReactElement<ChildrenProps>,
   ): GenericReactNode<ChildrenProps> => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
 
   const onAfterMountFunction: VerticalAnimationChildMapper = [

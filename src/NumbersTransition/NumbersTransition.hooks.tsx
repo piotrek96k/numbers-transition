@@ -144,7 +144,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
 interface UseAnimationLogicOptions {
   previousValue: BigDecimal;
-  value: Optional<UncheckedBigDecimal>;
+  value?: UncheckedBigDecimal;
   isValueValid: boolean;
   previousValueOnStart: bigint;
   previousValueOnEnd: bigint;

@@ -454,7 +454,7 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
     )
     .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
 
-const createOptionalAnimationKeyframes = (animationsKeyframes: Optional<RuleSet<object>>): Optional<RuleSet<object>> =>
+const createOptionalAnimationKeyframes = (animationsKeyframes?: RuleSet<object>): Optional<RuleSet<object>> =>
   css.bindWhen<undefined, (styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes, undefined)`
     animation-name: ${animationsKeyframes};
   `;
