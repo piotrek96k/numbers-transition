@@ -180,6 +180,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   public findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback?: U): Optional<U> {
     let result: Optional<U>;
     this.value.find((...args: [value: T, index: number, array: T[]]): unknown => (result = mapper(...args)) !== undefined);
+
     return result ?? fallback;
   }
 
