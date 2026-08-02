@@ -48,9 +48,9 @@ import {
 import { AnimationDuration, TotalAnimationDuration, View } from './NumbersTransition.hooks';
 import {
   Animation,
-  AnimationFactory,
+  AnimationViewFactory,
   Character,
-  CssRuleFactory,
+  CssViewFactory,
   HorizontalAnimation,
   NumbersTransitionExecutionContext,
   NumbersTransitionTheme,
@@ -217,7 +217,7 @@ const opacityAnimation: Animation<object, number> = {
   keyframes: [Integer.One, Integer.One / Integer.Ten, Integer.One],
 };
 
-const opacityAnimationFactory: AnimationFactory<object, number> = ({
+const opacityAnimationFactory: AnimationViewFactory<object, number> = ({
   theme: { numberOfAnimations },
 }: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> => numberOfAnimations && opacityAnimation;
 
@@ -248,7 +248,7 @@ const getHorizontalRotateKeyframes = ({
     ? [Integer.Zero, animationDuration / totalAnimationDuration / Integer.Two]
     : [(Integer.One + (totalAnimationDuration - animationDuration) / totalAnimationDuration) / Integer.Two, Integer.One];
 
-const horizontalRotateAnimationFactory: AnimationFactory<object, number> = ({
+const horizontalRotateAnimationFactory: AnimationViewFactory<object, number> = ({
   theme: { animationType, ...restTheme },
 }: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> =>
   animationType === AnimationType.Horizontal && {
@@ -278,7 +278,7 @@ const mapVerticalRotateKeyframes = (
     ? Integer.One / Integer.Two
     : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
-const verticalRotateAnimationFactory: AnimationFactory<object, number> = ({
+const verticalRotateAnimationFactory: AnimationViewFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
 }: NumbersTransitionExecutionContext): Maybe<Animation<object, number>> =>
   animationType === AnimationType.Vertical &&
@@ -310,7 +310,7 @@ const getInitialRotation = ({
       Integer.Zero,
     );
 
-const rotateAnimationCssFactory: CssRuleFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
+const rotateAnimationCssFactory: CssViewFactory<object> = ({ theme }: NumbersTransitionExecutionContext): RuleSet<object> => css<object>`
   ${rotateKeyframeFunction(getInitialRotation(theme) / Integer.Two)};
   animation-fill-mode: ${AnimationFillMode.Forwards};
   animation-duration: var(${VariableName.AnimationDuration});
@@ -346,7 +346,7 @@ interface DragAndDropDigitProps {
   onPointerCancel: (event: PointerEvent<HTMLElement>) => void;
 }
 
-const dragAndDropDigitCssFactory: CssRuleFactory<Partial<DragAndDropDigitProps>> = ({
+const dragAndDropDigitCssFactory: CssViewFactory<Partial<DragAndDropDigitProps>> = ({
   theme: { numberOfAnimations },
 }: NumbersTransitionExecutionContext): Maybe<RuleSet<Partial<DragAndDropDigitProps>>> =>
   numberOfAnimations === AnimationNumber.Zero &&
