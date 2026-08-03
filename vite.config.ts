@@ -3,7 +3,7 @@ import { resolve } from 'path';
 import { Diagnostic, DiagnosticCategory } from 'typescript';
 import { UserConfig, defineConfig } from 'vite';
 import dts from 'vite-plugin-dts';
-import typeExtensions from './plugins/dist/type-extensions';
+import typeExtensions from './plugins/dist/type-extensions.js';
 
 const throwDiagnosticError = (): void => {
   throw new Error('Declaration diagnostics failed');

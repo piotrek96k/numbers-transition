@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { UserConfig } from 'vite';
 import { defineConfig } from 'vitest/config';
-import typeExtensions from './plugins/dist/type-extensions';
+import typeExtensions from './plugins/dist/type-extensions.js';
 
 const mapAlias = ([key, value]: [string, string]): [string, string] => [`type-extensions/${key}`, resolve('plugins', 'dist', value)];
 
