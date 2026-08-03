@@ -164,11 +164,6 @@ type DecomposeDigits<T extends string | number, U extends number[] = []> = `${T}
   ? DecomposeDigits<W, [...U, V]>
   : U;
 
-type DecomposeSignedInt<T extends string[], U extends number[], V extends number, W extends number[], X extends number> = [
-  T,
-  [...PadStart<U, Integer.Zero, V>, ...PadEnd<W, Integer.Zero, X>],
-];
-
 type DecomposeUnsignedFloat<T extends number> = `${T}` extends `${infer U extends number}${Text.Dot}${infer V extends string}`
   ? [DecomposeDigits<U>, DecomposeDigits<V>]
   : [DecomposeDigits<T>, []];
@@ -177,7 +172,13 @@ type DecomposeSignedFloat<T extends number> = `${T}` extends `${Text.Minus}${inf
   ? [[Text.Minus], ...DecomposeUnsignedFloat<U>]
   : [[], ...DecomposeUnsignedFloat<T>];
 
-type DecomposeSignedFloats<Q extends number, R extends number> = [DecomposeSignedFloat<Q>, DecomposeSignedFloat<R>] extends [
+type NormalizeSignedFloat<T extends string[], U extends number[], V extends number, W extends number[], X extends number> = [
+  T,
+  PadStart<U, Integer.Zero, V>,
+  PadEnd<W, Integer.Zero, X>,
+];
+
+type NormalizeSignedFloats<Q extends number, R extends number> = [DecomposeSignedFloat<Q>, DecomposeSignedFloat<R>] extends [
   [infer S extends string[], infer T extends number[], infer U extends number[]],
   [infer V extends string[], infer W extends number[], infer X extends number[]],
 ]
@@ -185,7 +186,7 @@ type DecomposeSignedFloats<Q extends number, R extends number> = [DecomposeSigne
       infer Y extends number,
       infer Z extends number,
     ]
-    ? [DecomposeSignedInt<S, T, Y, U, Z>, DecomposeSignedInt<V, W, Y, X, Z>, Z]
+    ? [NormalizeSignedFloat<S, T, Y, U, Z>, NormalizeSignedFloat<V, W, Y, X, Z>]
     : never
   : never;
 
@@ -267,19 +268,18 @@ type SubtractSignedInts<T extends string[], U extends number[], V extends string
   : AddSignedInts<T, U, T, W>;
 
 // Math Operations
-export type Compare<T extends number, U extends number> =
-  DecomposeSignedFloats<T, U> extends [
-    [infer V extends string[], infer W extends number[]],
-    [infer X extends string[], infer Y extends number[]],
-    number,
+export type Compare<S extends number, T extends number> =
+  NormalizeSignedFloats<S, T> extends [
+    [infer U extends string[], infer V extends number[], infer W extends number[]],
+    [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
     ? Switch<
-        [V, X],
+        [U, X],
         [
-          [[[], []], CompareUnsignedInts<W, Y>],
+          [[[], []], CompareUnsignedInts<[...V, ...W], [...Y, ...Z]>],
           [[[], [Text.Minus]], Integer.One],
           [[[Text.Minus], []], Integer.MinusOne],
-          [[[Text.Minus], [Text.Minus]], CompareUnsignedInts<Y, W>],
+          [[[Text.Minus], [Text.Minus]], CompareUnsignedInts<[...Y, ...Z], [...V, ...W]>],
         ]
       >
     : never;
@@ -288,20 +288,18 @@ export type Min<T extends number, U extends number> = When<[Compare<T, U>, Integ
 
 export type Max<T extends number, U extends number> = When<[Compare<T, U>, Integer.One], T, U>;
 
-export type Add<T extends number, U extends number> =
-  DecomposeSignedFloats<T, U> extends [
-    [infer V extends string[], infer W extends number[]],
-    [infer X extends string[], infer Y extends number[]],
-    infer Z extends number,
+export type Add<S extends number, T extends number> =
+  NormalizeSignedFloats<S, T> extends [
+    [infer U extends string[], infer V extends number[], infer W extends number[]],
+    [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
-    ? ParseSignedFloat<AddSignedInts<V, W, X, Y>, Z>
+    ? ParseSignedFloat<AddSignedInts<U, [...V, ...W], X, [...Y, ...Z]>, W[Key.Length]>
     : never;
 
-export type Subtract<T extends number, U extends number> =
-  DecomposeSignedFloats<T, U> extends [
-    [infer V extends string[], infer W extends number[]],
-    [infer X extends string[], infer Y extends number[]],
-    infer Z extends number,
+export type Subtract<S extends number, T extends number> =
+  NormalizeSignedFloats<S, T> extends [
+    [infer U extends string[], infer V extends number[], infer W extends number[]],
+    [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
-    ? ParseSignedFloat<SubtractSignedInts<V, W, X, Y>, Z>
+    ? ParseSignedFloat<SubtractSignedInts<U, [...V, ...W], X, [...Y, ...Z]>, W[Key.Length]>
     : never;
