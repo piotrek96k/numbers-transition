@@ -172,13 +172,7 @@ type DecomposeSignedFloat<T extends number> = `${T}` extends `${Text.Minus}${inf
   ? [[Text.Minus], ...DecomposeUnsignedFloat<U>]
   : [[], ...DecomposeUnsignedFloat<T>];
 
-type NormalizeSignedFloat<T extends string[], U extends number[], V extends number, W extends number[], X extends number> = [
-  T,
-  PadStart<U, Integer.Zero, V>,
-  PadEnd<W, Integer.Zero, X>,
-];
-
-type NormalizeSignedFloats<Q extends number, R extends number> = [DecomposeSignedFloat<Q>, DecomposeSignedFloat<R>] extends [
+type DecomposeSignedFloats<Q extends number, R extends number> = [DecomposeSignedFloat<Q>, DecomposeSignedFloat<R>] extends [
   [infer S extends string[], infer T extends number[], infer U extends number[]],
   [infer V extends string[], infer W extends number[], infer X extends number[]],
 ]
@@ -186,7 +180,7 @@ type NormalizeSignedFloats<Q extends number, R extends number> = [DecomposeSigne
       infer Y extends number,
       infer Z extends number,
     ]
-    ? [NormalizeSignedFloat<S, T, Y, U, Z>, NormalizeSignedFloat<V, W, Y, X, Z>]
+    ? [[S, PadStart<T, Integer.Zero, Y>, PadEnd<U, Integer.Zero, Z>], [V, PadStart<W, Integer.Zero, Y>, PadEnd<X, Integer.Zero, Z>]]
     : never
   : never;
 
@@ -269,7 +263,7 @@ type SubtractSignedInts<T extends string[], U extends number[], V extends string
 
 // Math Operations
 export type Compare<S extends number, T extends number> =
-  NormalizeSignedFloats<S, T> extends [
+  DecomposeSignedFloats<S, T> extends [
     [infer U extends string[], infer V extends number[], infer W extends number[]],
     [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
@@ -289,7 +283,7 @@ export type Min<T extends number, U extends number> = When<[Compare<T, U>, Integ
 export type Max<T extends number, U extends number> = When<[Compare<T, U>, Integer.One], T, U>;
 
 export type Add<S extends number, T extends number> =
-  NormalizeSignedFloats<S, T> extends [
+  DecomposeSignedFloats<S, T> extends [
     [infer U extends string[], infer V extends number[], infer W extends number[]],
     [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
@@ -297,7 +291,7 @@ export type Add<S extends number, T extends number> =
     : never;
 
 export type Subtract<S extends number, T extends number> =
-  NormalizeSignedFloats<S, T> extends [
+  DecomposeSignedFloats<S, T> extends [
     [infer U extends string[], infer V extends number[], infer W extends number[]],
     [infer X extends string[], infer Y extends number[], infer Z extends number[]],
   ]
