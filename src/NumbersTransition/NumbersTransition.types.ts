@@ -193,7 +193,7 @@ type ParseUnsignedFloat<T extends number[], U extends number> =
   Split<T, ParseNumber<`${Text.Minus}${U}`>> extends [infer V extends number[], infer W extends number[]]
     ? [
         ...TrimStart<V, Integer.Zero, Integer.One>,
-        ...(TrimEnd<W, Integer.Zero> extends infer X extends number[] ? When<[X[Key.Length], Integer.Zero], [], [Text.Dot, ...X]> : never),
+        ...(TrimEnd<W, Integer.Zero> extends infer X extends number[] ? When<[X, []], [], [Text.Dot, ...X]> : never),
       ]
     : never;
 
@@ -261,7 +261,7 @@ type SubtractSignedInts<T extends string[], U extends number[], V extends string
       [
         [Integer.One, [T, SubtractUnsignedInts<U, W>]],
         [Integer.Zero, [[], SubtractUnsignedInts<U, W>]],
-        [Integer.MinusOne, [T[Key.Length] extends Integer.Zero ? [Text.Minus] : [], SubtractUnsignedInts<W, U>]],
+        [Integer.MinusOne, [When<[T, []], [Text.Minus], []>, SubtractUnsignedInts<W, U>]],
       ]
     >
   : AddSignedInts<T, U, T, W>;
