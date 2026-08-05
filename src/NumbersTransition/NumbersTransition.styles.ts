@@ -332,15 +332,13 @@ type AnimationProps = HorizontalAnimationProps | VerticalAnimationProps;
 type NoThemeHorizontalAnimationProps = Remove<HorizontalAnimationProps, NumbersTransitionTheme>;
 type NoThemeVerticalAnimationProps = Remove<VerticalAnimationProps, NumbersTransitionTheme>;
 
-type AnimationKeyframeMapper<T extends object, U> = (
-  ...args: [KeyframeFunction<T, U>, [U] | [U, number], number, ([U] | [U, number])[]]
-) => RuleSet<T>;
+type AnimationKeyframeMapper<T extends object, U> = (...args: [KeyframeFunction<T, U>, [U, number?], number, [U, number?][]]) => RuleSet<T>;
 
 const animationKeyframeMapper = <T extends object, U>(
   map: KeyframeFunction<T, U>,
-  [value, progress]: [U] | [U, number],
+  [value, progress]: [U, number?],
   index: number,
-  { length }: ([U] | [U, number])[],
+  { length }: [U, number?][],
 ): RuleSet<T> => css<T>`
   ${progress ?? (index * Integer.OneHundred) / (length - Integer.One)}${CssUnit.Percent} {
     ${map(value)};
