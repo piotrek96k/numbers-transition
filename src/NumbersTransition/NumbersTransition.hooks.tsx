@@ -950,8 +950,8 @@ export const useNegativeElementAnimationTimingFunction = (
       solution * Integer.OneHundred,
     ]);
 
-  const flatMapToLinear = (vals: number[], index: number): [number, number][] =>
-    vals.flatMap<[number, number]>(mapToLinear.bindArgs<(...args: [number, number, number]) => [number, number][], Integer.One>(index));
+  const flatMapToLinear = (values: number[], index: number): [number, number][] =>
+    values.flatMap<[number, number]>(mapToLinear.bindArgs<(...args: [number, number, number]) => [number, number][], Integer.One>(index));
 
   const points: [number, number][] = [animationVisibilities.lastIndexOf(true), animationVisibilities.indexOf(false)]
     .when(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single)
