@@ -882,7 +882,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .call<undefined, [number[], number[], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
 
   // prettier-ignore
-  const findSolutions = (outputValue: number, xAxisPoints: [number, number], yAxisPoints: [number, number]): number[] =>
+  const findSolutions = (outputValue: number, [xAxisPoints, yAxisPoints]: CubicBezierEasingFunction): number[] =>
     [yAxisPoints]
       .mapEach<
         [Tuple<number, Integer.Four>, number[][], number[][]],
@@ -903,7 +903,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
     easingFunction
       .map<[number, number], CubicBezierEasingFunction>(mapControlPoints)
-      .reduce(findSolutions.bindArgs<(...args: [number, [number, number], [number, number]]) => number[], Integer.One>(outputValue));
+      .pipe<number[]>(findSolutions.bindArgs<(...args: [number, CubicBezierEasingFunction]) => number[], Integer.One>(outputValue));
 };
 
 // prettier-ignore

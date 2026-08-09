@@ -91,7 +91,6 @@ declare global {
       ...mappers: { [I in keyof U]: (val: Assert<At<[this, ...V], I>, unknown[]>[number], idx: number, array: At<[this, ...V], I>) => U[I] }
     ): Last<V>;
     pipe<U>(mapper: (array: this) => U): U;
-    reduce(call: (prev: T, curr: T, idx: number, arr: T[]) => T extends unknown[] ? T[number][] : T): T extends unknown[] ? T[number][] : T;
     reduce<U extends unknown[], V extends U>(call: (accumulator: U, current: T, index: number, array: T[]) => U, initial: U): V;
     slice(start?: number, end?: number): T[];
     slice<T extends number = Integer.Zero>(start: T): Slice<[...this], T, this[Key.Length]>;
