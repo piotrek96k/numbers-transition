@@ -84,8 +84,8 @@ declare global {
     insert(index: number, value: T): T[];
     intersects(array: T[]): boolean;
     last(): Last<this>;
-    map<U>(call: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
-    map<U, V extends U[]>(call: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
+    map<U>(callback: (value: T, index: number, array: T[]) => U, thisArg?: unknown): { [I in keyof this]: U };
+    map<U, V extends U[]>(callback: (value: T, index: number, array: T[]) => U, thisArg?: unknown): V;
     mapEach(...mappers: ((val: T, idx: number, array: T[]) => T)[]): T[];
     mapEach<U>(...mappers: [(val: T, idx: number, array: T[]) => U, ...((val: U, idx: number, array: U[]) => U)[]]): U[];
     mapEach<U extends unknown[], V extends { [I in keyof U]: U[I][] } = { [I in keyof U]: U[I][] }>(
@@ -93,7 +93,7 @@ declare global {
     ): Last<V>;
     pipe<U>(mapper: (array: this) => U): U;
     pipeEach<U extends unknown[]>(...mappers: { [I in keyof U]: (value: At<[this, ...U], I>) => U[I] }): Last<U>;
-    reduce<U extends unknown[], V extends U>(call: (accumulator: U, current: T, index: number, array: T[]) => U, initial: U): V;
+    reduce<U extends unknown[], V extends U>(callback: (accumulator: U, current: T, index: number, array: T[]) => U, initial: U): V;
     slice(start?: number, end?: number): T[];
     slice<T extends number = Integer.Zero>(start: T): Slice<[...this], T, this[Key.Length]>;
     slice<T extends number = Integer.Zero, U extends number = this[Key.Length]>(start: T, end: U): Slice<[...this], T, U>;
@@ -107,8 +107,8 @@ declare global {
   }
 
   interface ReadonlyArray<T> {
-    map<U>(call: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): { -readonly [I in keyof this]: U };
-    map<U, V extends U[]>(call: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): V;
+    map<U>(callback: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): { -readonly [I in keyof this]: U };
+    map<U, V extends U[]>(callback: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): V;
   }
 
   interface FunctionConstructor {
