@@ -122,6 +122,10 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
     return mapper(this.value);
   }
 
+  public pipeEach(...mappers: ((value: T) => T)[]): T {
+    return mappers.reduce<T>((value: T, mapper: (value: T) => T): T => mapper(value), this.value);
+  }
+
   public values(): ValueOf<T>[] {
     return Object.values<any>(this.value);
   }

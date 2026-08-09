@@ -898,12 +898,12 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .map<[number, number], CubicBezierEasingFunction>(mapControlPoints)
       .pipe<number[]>(([xAxisPoints, yAxisPoints]: CubicBezierEasingFunction): number[] =>
         yAxisPoints
-          .pipe<Tuple<number, Integer.Four>>(
+          .pipeEach<[Tuple<number, Integer.Four>, [Tuple<number, Integer.Four>, [number, number]], [Tuple<number, Integer.Four>, [number, number], number], number[]]>(
             calculateCubicCoefficients.bindArgs<(...args: [number, [number, number]]) => Tuple<number, Integer.Four>, Integer.One>(outputValue),
+            calculateDepressedCoefficients,
+            calculateDiscriminant,
+            solveCubicBezier,
           )
-          .pipe<[Tuple<number, Integer.Four>, [number, number]]>(calculateDepressedCoefficients)
-          .pipe<[Tuple<number, Integer.Four>, [number, number], number]>(calculateDiscriminant)
-          .pipe<number[]>(solveCubicBezier)
           .map<number>((value: number): number => Math.roundTo(value, Integer.Six))
           .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
           .sort(Number.subtract)

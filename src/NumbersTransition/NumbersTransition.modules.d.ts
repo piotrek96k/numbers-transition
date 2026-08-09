@@ -54,6 +54,7 @@ declare global {
     map<T, U>(this: Record<string, T>, mapper: (entry: [string, T]) => [string, U]): Record<string, U>;
     matches<T, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
     pipe<T, U>(this: T, mapper: (value: T) => U): U;
+    pipeEach<T, U extends unknown[]>(this: T, ...mappers: { [I in keyof U]: (value: At<[T, ...U], I>) => U[I] }): Last<U>;
     values<T>(this: Record<string, T>): T[];
     values<T, U extends T[]>(this: Record<string, T>): U;
   }
@@ -91,6 +92,7 @@ declare global {
       ...mappers: { [I in keyof U]: (val: Assert<At<[this, ...V], I>, unknown[]>[number], idx: number, array: At<[this, ...V], I>) => U[I] }
     ): Last<V>;
     pipe<U>(mapper: (array: this) => U): U;
+    pipeEach<U extends unknown[]>(...mappers: { [I in keyof U]: (value: At<[this, ...U], I>) => U[I] }): Last<U>;
     reduce<U extends unknown[], V extends U>(call: (accumulator: U, current: T, index: number, array: T[]) => U, initial: U): V;
     slice(start?: number, end?: number): T[];
     slice<T extends number = Integer.Zero>(start: T): Slice<[...this], T, this[Key.Length]>;
