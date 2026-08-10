@@ -787,7 +787,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
     [
       [easingFunction.first(), Integer.Zero],
       ...easingFunction.slice(Integer.One, Integer.MinusOne),
-      [...Array.toArray<number, [number]>(easingFunction.last()), Integer.OneHundred],
+      [easingFunction.last(), Integer.OneHundred],
     ]
       .flatMap<number | [number, number]>(normalize)
       .map<[number, number]>(fillProgressInput)
