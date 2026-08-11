@@ -65,7 +65,6 @@ declare global {
     isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     range(size: number): number[];
     toArray<T>(value: OrArray<T>): T[];
-    toArray<T, U extends T[]>(value: OrArray<T>): U;
   }
 
   interface Array<T> {

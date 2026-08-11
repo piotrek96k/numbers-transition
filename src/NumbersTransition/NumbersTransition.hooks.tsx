@@ -724,56 +724,44 @@ export const useNegativeElementAnimationVisibilities = ({
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
 
 const useLinearSolver = (): Solve<LinearEasingFunction> => {
-  const normalize = (value: OrArray<number>): OrArray<number | [number, number]> =>
-    Array.isArray<number>(value)
-      ? [value].flatMap<[number, number]>(([first, second, third]: number[]): [number, number][] => [
-          [first, second / Integer.OneHundred],
-          ...(third ? [[first, third / Integer.OneHundred] satisfies [number, number]] : []),
-        ])
-      : value;
-
-  const findPrevious = (index: number, value: number | [number, number], currentIndex: number): boolean =>
+  const findPrevious = (index: number, value: OrArray<number>, currentIndex: number): boolean =>
     currentIndex < index && Array.isArray<number>(value);
 
-  const findNext = (index: number, value: number | [number, number], currentIndex: number): boolean =>
+  const findNext = (index: number, value: OrArray<number>, currentIndex: number): boolean =>
     currentIndex > index && Array.isArray<number>(value);
 
-  const calculateProgressInput = (index: number, array: (number | [number, number])[], startIndex: number, endIndex: number): number =>
+  const calculateProgressInput = (index: number, array: OrArray<number>[], startIndex: number, endIndex: number): number =>
     [
-      Array.toArray<number>(array[endIndex])[Integer.One] * (index - startIndex),
-      Array.toArray<number>(array[startIndex])[Integer.One] * (endIndex - index),
+      (Array.toArray<number>(array[endIndex]).at(Integer.One)! / Integer.OneHundred) * (index - startIndex),
+      (Array.toArray<number>(array[startIndex]).last() / Integer.OneHundred) * (endIndex - index),
     ].reduce((first: number, second: number): number => (first + second) / (endIndex - startIndex));
 
-  // prettier-ignore
-  const fillProgressInput = (value: number | [number, number], index: number, array: (number | [number, number])[]): [number, number] =>
-    Array.isArray<number>(value)
-      ? value
-      : [
-          value,
-          [
-            array.findLastIndex(findPrevious.bindArgs<(...args: [number, number | [number, number], number]) => boolean, Integer.One>(index)),
-            array.findIndex(findNext.bindArgs<(...args: [number, number | [number, number], number]) => boolean, Integer.One>(index)),
-          ].reduce(calculateProgressInput.bindArgs<(...args: [number, (number | [number, number])[], number, number]) => number, Integer.Two>(index, array)),
-        ];
+  const fillProgressInput = (index: number, array: OrArray<number>[]): number =>
+    [
+      array.findLastIndex(findPrevious.bindArgs<(...args: [number, OrArray<number>, number]) => boolean, Integer.One>(index)),
+      array.findIndex(findNext.bindArgs<(...args: [number, OrArray<number>, number]) => boolean, Integer.One>(index)),
+    ].reduce(calculateProgressInput.bindArgs<(...args: [number, OrArray<number>[], number, number]) => number, Integer.Two>(index, array));
 
-  const getValue = ([value]: [number, number]): number => value;
+  const normalizePoints = ([first, second, third]: number[]): [number, number][] => [
+    [first, second / Integer.OneHundred],
+    ...(third ? [[first, third / Integer.OneHundred] satisfies [number, number]] : []),
+  ];
 
-  const isInInterval = (index: number, outputValue: number, [first, second]: number[]): boolean =>
-    (index === Integer.One ? outputValue >= first : outputValue > first) && outputValue <= second;
+  const normalize = (value: OrArray<number>, index: number, array: OrArray<number>[]): [number, number][] =>
+    Array.isArray<number>(value) ? normalizePoints(value) : [[value, fillProgressInput(index, array)]];
 
-  const findInterval = (index: number, outputValue: number, array: [number, number][]): [number, number][][] =>
+  const filterInterval = (out: number, index: number, array: [number, number][]): unknown =>
     index &&
-    [array.map<number>(getValue).sort(Number.subtract)].every(
-      isInInterval.bindArgs<(...args: [number, number, number[]]) => boolean, Integer.Two>(index, outputValue),
-    )
-      ? [array]
-      : [];
+    array
+      .map<number>(([value]: [number, number]): number => value)
+      .sort(Number.subtract)
+      .pipe<boolean>(([first, second]: number[]): boolean => (index === Integer.One ? out >= first : out > first) && out <= second);
 
   // prettier-ignore
-  const findIntervals = (outputValue: number, accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
+  const findIntervals = (out: number, accumulator: [number, number][][], _: [number, number], index: number, array: [number, number][]): [number, number][][] => [
     ...accumulator,
-    ...[array[index - Integer.One], array[index]].pipe<[number, number][][]>(
-      findInterval.bindArgs<(...args: [number, number, [number, number][]]) => [number, number][][], Integer.Two>(index, outputValue),
+    ...[[array[index - Integer.One], array[index]]].filter(
+      filterInterval.bindArgs<(...args: [number, number, [number, number][]]) => unknown, Integer.Two>(out, index),
     ),
   ];
 
@@ -789,8 +777,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
       ...easingFunction.slice(Integer.One, Integer.MinusOne),
       [easingFunction.last(), Integer.OneHundred],
     ]
-      .flatMap<number | [number, number]>(normalize)
-      .map<[number, number]>(fillProgressInput)
+      .flatMap<[number, number]>(normalize)
       .reduce<[number, number][][], [[number, number], [number, number]][]>(
         findIntervals.bindArgs<(...args: [number, [number, number][][], [number, number], number, [number, number][]]) => [number, number][][], Integer.One>(outputValue),
         [],
@@ -857,12 +844,12 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
         )
       : [-second / (Integer.Three * first)];
 
-  const calulateThreeRootsAcos = (firstDepressed: number, secondDepressed: number): number =>
+  const calculateThreeRootsAcos = (firstDepressed: number, secondDepressed: number): number =>
     Math.acos(((Integer.Three * secondDepressed) / (Integer.Two * firstDepressed)) * Math.sqrt(-Integer.Three / firstDepressed));
 
-  const calulateThreeRootsCos = (firstDepressed: number, secondDepressed: number, index: number): number =>
+  const calculateThreeRootsCos = (firstDepressed: number, secondDepressed: number, index: number): number =>
     Math.cos(
-      (Integer.One / Integer.Three) * calulateThreeRootsAcos(firstDepressed, secondDepressed) -
+      (Integer.One / Integer.Three) * calculateThreeRootsAcos(firstDepressed, secondDepressed) -
         (Integer.Two * index * Math.PI) / Integer.Three,
     );
 
@@ -872,7 +859,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   ): number[] =>
     Array.range(Integer.Three).map<number>(
       (index: number): number =>
-        Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * calulateThreeRootsCos(firstDepressed, secondDepressed, index) -
+        Integer.Two * Math.sqrt(-firstDepressed / Integer.Three) * calculateThreeRootsCos(firstDepressed, secondDepressed, index) -
         second / (Integer.Three * first),
     );
 
