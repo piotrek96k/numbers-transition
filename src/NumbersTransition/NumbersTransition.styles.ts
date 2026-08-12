@@ -491,8 +491,9 @@ interface ContainerProps<T extends object, U> extends NumbersTransitionExecution
 
 type ContainerStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, ContainerProps<any, any>>;
 
-// prettier-ignore
-export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Container>, Integer.One>(Styled.Container))`
+export const Container: ContainerStyledComponent = styled.div.attrs<ContainerProps<any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Container>, Integer.One>(Styled.Container),
+)`
   max-width: ${Integer.OneHundred}${CssUnit.Percent};
   width: ${Size.FitContent};
   height: ${Integer.One}${CssUnit.LineHeight};
@@ -554,8 +555,9 @@ interface CharacterProps<T extends object, U> extends StyledView<Styled.Characte
 
 type CharacterStyledComponent = AttributesStyledComponent<HTMLElement.Div, HTMLDetailedElement<HTMLDivElement>, CharacterProps<any, any>>;
 
-// prettier-ignore
-export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Character>, Integer.One>(Styled.Character))`
+export const Character: CharacterStyledComponent = styled.div.attrs<CharacterProps<any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Character>, Integer.One>(Styled.Character),
+)`
   display: ${Display.InlineBlock};
   ${cssFactory.bindArgs<CssFactory<Styled.Character>, Integer.One>(Styled.Character)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.Character>, Integer.One>(Styled.Character)};
@@ -565,8 +567,9 @@ export interface DigitProps<T extends object, U, V extends object, W> extends Ch
 
 type DigitStyledComponent = AttributesStyledComponent<CharacterStyledComponent, CharacterStyledComponent, DigitProps<any, any, any, any>>;
 
-// prettier-ignore
-export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Digit>, Integer.One>(Styled.Digit))`
+export const Digit: DigitStyledComponent = styled<CharacterStyledComponent>(Character).attrs<DigitProps<any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Digit>, Integer.One>(Styled.Digit),
+)`
   min-width: ${Integer.One}${CssUnit.Character};
   ${cssFactory.bindArgs<CssFactory<Styled.Digit>, Integer.One>(Styled.Digit)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.Digit>, Integer.One>(Styled.Digit)};
@@ -580,8 +583,9 @@ type SeparatorStyledComponent = AttributesStyledComponent<
   SeparatorProps<any, any, any, any>
 >;
 
-// prettier-ignore
-export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Separator>, Integer.One>(Styled.Separator))`
+export const Separator: SeparatorStyledComponent = styled<CharacterStyledComponent>(Character).attrs<SeparatorProps<any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Separator>, Integer.One>(Styled.Separator),
+)`
   white-space: ${WhiteSpace.Pre};
   ${cssFactory.bindArgs<CssFactory<Styled.Separator>, Integer.One>(Styled.Separator)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.Separator>, Integer.One>(Styled.Separator)};
@@ -597,7 +601,9 @@ type DecimalSeparatorStyledComponent = AttributesStyledComponent<
 >;
 
 // prettier-ignore
-export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DecimalSeparatorProps<any, any, any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator))`
+export const DecimalSeparator: DecimalSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DecimalSeparatorProps<any, any, any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator),
+)`
   ${cssFactory.bindArgs<CssFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.DecimalSeparator>, Integer.One>(Styled.DecimalSeparator)};
 `;
@@ -612,7 +618,9 @@ type DigitGroupSeparatorStyledComponent = AttributesStyledComponent<
 >;
 
 // prettier-ignore
-export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DigitGroupSeparatorProps<any, any, any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator))`
+export const DigitGroupSeparator: DigitGroupSeparatorStyledComponent = styled<SeparatorStyledComponent>(Separator).attrs<DigitGroupSeparatorProps<any, any, any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator),
+)`
   ${cssFactory.bindArgs<CssFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.DigitGroupSeparator>, Integer.One>(Styled.DigitGroupSeparator)};
 `;
@@ -626,8 +634,9 @@ type NegativeStyledComponent = AttributesStyledComponent<
   NegativeProps<any, any, any, any>
 >;
 
-// prettier-ignore
-export const Negative: NegativeStyledComponent = styled<CharacterStyledComponent>(Character).attrs<NegativeProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Negative>, Integer.One>(Styled.Negative))`
+export const Negative: NegativeStyledComponent = styled<CharacterStyledComponent>(Character).attrs<NegativeProps<any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Negative>, Integer.One>(Styled.Negative),
+)`
   ${visibility};
   ${cssFactory.bindArgs<CssFactory<Styled.Negative>, Integer.One>(Styled.Negative)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.Negative>, Integer.One>(Styled.Negative)};
@@ -641,8 +650,9 @@ type InvalidStyledComponent = AttributesStyledComponent<
   InvalidProps<any, any, any, any>
 >;
 
-// prettier-ignore
-export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(attributesFactory.bindArgs<AttributesFactory<Styled.Invalid>, Integer.One>(Styled.Invalid))`
+export const Invalid: InvalidStyledComponent = styled<CharacterStyledComponent>(Character).attrs<InvalidProps<any, any, any, any>>(
+  attributesFactory.bindArgs<AttributesFactory<Styled.Invalid>, Integer.One>(Styled.Invalid),
+)`
   ${cssFactory.bindArgs<CssFactory<Styled.Invalid>, Integer.One>(Styled.Invalid)};
   ${animationFactory.bindArgs<AnimationFactory<Styled.Invalid>, Integer.One>(Styled.Invalid)};
 `;
