@@ -1,4 +1,4 @@
-import type { Dispatch, ReactElement, ReactNode, SetStateAction, SyntheticEvent } from 'react';
+import type { Dispatch, SetStateAction, SyntheticEvent, ReactElement as UnknownReactElement, ReactNode as UnknownReactNode } from 'react';
 import type { Integer, Key, Text } from './NumbersTransition.enums';
 
 // React
@@ -8,7 +8,9 @@ export type ReactState<T> = [T, SetState<T>];
 
 export type ReactEvent<T extends SyntheticEvent<HTMLElement, Event>> = T & { target: HTMLElement };
 
-export type GenericReactNode<T> = Exclude<ReactNode, ReactElement<unknown>> | ReactElement<T>;
+export type ReactElement = UnknownReactElement<{ children?: ReactNode }>;
+
+export type ReactNode = Exclude<UnknownReactNode, UnknownReactElement> | ReactElement;
 
 // Base Types
 export type Primitive = boolean | string | number | bigint | null | undefined;

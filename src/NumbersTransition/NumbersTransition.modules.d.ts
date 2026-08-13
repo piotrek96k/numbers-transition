@@ -1,4 +1,3 @@
-import type { ReactElement, ReactNode } from 'react';
 import type { Integer, Key } from './NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition.styles';
 import type {
@@ -13,6 +12,8 @@ import type {
   OrArray,
   OrFunction,
   OrReadOnly,
+  ReactElement,
+  ReactNode,
   Slice,
   Take,
   Zip,

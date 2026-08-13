@@ -1,4 +1,4 @@
-import { ActionDispatch, FC, ReactElement, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
+import { ActionDispatch, FC, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import type {
   CubicBezierEasingFunction,
@@ -14,12 +14,13 @@ import type {
 import type {
   Assert,
   BigDecimal,
-  GenericReactNode,
   Nullable,
   Optional,
   OrArray,
   OrFunction,
   OrReadOnly,
+  ReactElement,
+  ReactNode,
   ReactState,
   Strip,
   Switch,
@@ -1111,7 +1112,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
 };
 
 export interface ChildrenProps {
-  children?: GenericReactNode<ChildrenProps>;
+  children?: ReactNode;
 }
 
 interface KeyProps {
@@ -1122,18 +1123,14 @@ interface IterableProps extends KeyProps, ChildrenProps {}
 type ComponentProps<T extends object> = T & IterableProps;
 type FunctionalComponent<T extends object> = (T extends object ? FC<ComponentProps<T>> : FC<IterableProps>) | string;
 
-export type ElementKeyMapper<T extends GenericReactNode<ChildrenProps>> = (
-  child: T,
-  index: number,
-  children: T[],
-) => ReactElement<ChildrenProps>;
+export type ElementKeyMapper<T extends ReactNode> = (child: T, index: number, children: T[]) => ReactElement;
 
 export const useElementKeyMapper =
-  <T extends GenericReactNode<ChildrenProps>, U extends object>(
+  <T extends ReactNode, U extends object>(
     Component: FunctionalComponent<U>,
     props?: OrFunction<[T, number, T[]], U>,
   ): ElementKeyMapper<T> =>
-  (child: T, index: number, { length, ...array }: T[]): ReactElement<ChildrenProps> => (
+  (child: T, index: number, { length, ...array }: T[]): ReactElement => (
     <Component
       key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${length}`.length, `${Integer.Zero}`)}`}
       {...props?.callOrGet<[T, number, T[]], U>(child, index, { ...array, length })}

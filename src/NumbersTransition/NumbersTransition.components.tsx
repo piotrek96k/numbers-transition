@@ -3,8 +3,6 @@ import {
   Fragment,
   FragmentProps,
   HTMLAttributes,
-  ReactElement,
-  ReactNode,
   RefObject,
   isValidElement,
   useCallback,
@@ -14,7 +12,7 @@ import {
   useState,
 } from 'react';
 import { ThemeProvider, ThemeProviderProps, useTheme } from 'styled-components';
-import type { GenericReactNode, Nullable, Optional, OrArray, OrFunction, ReactState, Tuple } from './NumbersTransition.types';
+import type { Nullable, Optional, OrArray, OrFunction, ReactElement, ReactNode, ReactState, Tuple } from './NumbersTransition.types';
 import {
   AnimationDirection,
   AnimationId,
@@ -32,7 +30,6 @@ import {
   AnimationAlgorithm,
   CharacterIndexFunction,
   CharacterIndexFunctions,
-  ChildrenProps,
   ElementKeyMapper,
   StyledViewWithProps,
   useCharacterIndexFunctions,
@@ -80,13 +77,13 @@ export const Show: FC<ShowProps> = ({ children, condition }: ShowProps): ReactNo
   </Conditional>
 );
 
-interface EncloseProps<T extends GenericReactNode<ChildrenProps>> {
+interface EncloseProps<T extends ReactNode> {
   children: T;
   condition?: OrFunction<[T], boolean>;
   enclose?: (children: T) => ReactNode;
 }
 
-const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose, condition = !!enclose }: EncloseProps<T>): ReactNode => (
+const Enclose = <T extends ReactNode>({ children, enclose, condition = !!enclose }: EncloseProps<T>): ReactNode => (
   <Conditional condition={condition.callOrGet<[T], boolean>(children)}>
     {(enclose ?? ((children: T): ReactNode => <>{children}</>))(children)}
     {children}
@@ -94,12 +91,12 @@ const Enclose = <T extends GenericReactNode<ChildrenProps>>({ children, enclose,
 );
 
 interface DeferProps {
-  children: ReactElement<ChildrenProps>[];
+  children: ReactElement[];
   renderBatchSize: number;
-  countElements: (child: ReactElement<ChildrenProps>) => number;
-  onBeforeMount: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
-  onPartialMount: (child: ReactElement<ChildrenProps>, index: number, elementsToMount: number) => GenericReactNode<ChildrenProps>;
-  onAfterMount?: (child: ReactElement<ChildrenProps>, index: number) => GenericReactNode<ChildrenProps>;
+  countElements: (child: ReactElement) => number;
+  onBeforeMount: (child: ReactElement, index: number) => ReactNode;
+  onPartialMount: (child: ReactElement, index: number, elementsToMount: number) => ReactNode;
+  onAfterMount?: (child: ReactElement, index: number) => ReactNode;
 }
 
 const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
@@ -107,8 +104,8 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
 
   const [mountedElements, setMountedElements]: ReactState<number> = useState<number>(renderBatchSize);
 
-  const countAggregatedSums = useCallback<(sums: number[], child: ReactElement<ChildrenProps>) => number[]>(
-    (sums: number[], child: ReactElement<ChildrenProps>): number[] => [...sums, (sums.last() ?? Integer.Zero) + countElements(child)],
+  const countAggregatedSums = useCallback<(sums: number[], child: ReactElement) => number[]>(
+    (sums: number[], child: ReactElement): number[] => [...sums, (sums.last() ?? Integer.Zero) + countElements(child)],
     [countElements],
   );
 
@@ -117,8 +114,7 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [children, countAggregatedSums],
   );
 
-  // prettier-ignore
-  const mapToFragmentElement: ElementKeyMapper<GenericReactNode<ChildrenProps>> = useElementKeyMapper<GenericReactNode<ChildrenProps>, FragmentProps>(Fragment);
+  const mapToFragmentElement: ElementKeyMapper<ReactNode> = useElementKeyMapper<ReactNode, FragmentProps>(Fragment);
 
   useEffect(
     (): void =>
@@ -130,20 +126,19 @@ const Defer: FC<DeferProps> = (props: DeferProps): ReactNode => {
     [renderBatchSize, mountedElements, aggregatedSums],
   );
 
-  const mapBeforeMount = (child: ReactElement<ChildrenProps>, index: number, numberOfElements: number): GenericReactNode<ChildrenProps> =>
+  const mapBeforeMount = (child: ReactElement, index: number, numberOfElements: number): ReactNode =>
     numberOfElements > Integer.Zero ? onPartialMount(child, index, numberOfElements ?? Integer.Zero) : onBeforeMount(child, index);
 
-  const mapAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
-    onAfterMount?.(child, index) ?? child;
+  const mapAfterMount = (child: ReactElement, index: number): ReactNode => onAfterMount?.(child, index) ?? child;
 
-  const mapChildren = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> =>
+  const mapChildren = (child: ReactElement, index: number): ReactNode =>
     aggregatedSums[index] > mountedElements
       ? mapBeforeMount(child, index, mountedElements - (aggregatedSums[index - Integer.One] ?? Integer.Zero))
       : mapAfterMount(child, index);
 
   return (
     <Conditional condition={mountedElements < aggregatedSums.last() || !onAfterMount}>
-      {children.mapEach<GenericReactNode<ChildrenProps>>(mapChildren, mapToFragmentElement)}
+      {children.mapEach<ReactNode>(mapChildren, mapToFragmentElement)}
       {children}
     </Conditional>
   );
@@ -250,7 +245,7 @@ const SeparatorElement = <S extends object, T, U extends object, V, W extends ob
     separatorIndex: getSeparatorIndex(digitIndex, numberLength),
   };
 
-  const decimalSeparatorElement: ReactElement<ChildrenProps> = (
+  const decimalSeparatorElement: ReactElement = (
     <DecimalSeparatorElement<S, T, U, V, W, X>
       {...restProps}
       decimalSeparator={decimalSeparator}
@@ -258,7 +253,7 @@ const SeparatorElement = <S extends object, T, U extends object, V, W extends ob
     />
   );
 
-  const digitGroupSeparatorElement: ReactElement<ChildrenProps> = (
+  const digitGroupSeparatorElement: ReactElement = (
     <DigitGroupSeparatorElement<S, T, U, V, Y, Z>
       {...restProps}
       digitGroupSeparator={digitGroupSeparator}
@@ -313,7 +308,7 @@ interface VerticalAnimationNegativeElementProps<T extends object, U, V extends o
   animationDigits: number[][];
   hasSignChanged: boolean;
   characterStyledView: StyledViewWithProps<Styled.Character, T, U>;
-  enclose: (children: ReactElement<ChildrenProps>) => ReactNode;
+  enclose: (children: ReactElement) => ReactNode;
 }
 
 const VerticalAnimationNegativeElement = <T extends object, U, V extends object, W>(
@@ -336,10 +331,9 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     animationVisibilities,
   });
 
-  // prettier-ignore
-  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
-    ThemeProvider, 
-    (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
+  const mapToThemeProviderElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, ThemeProviderProps>(
+    ThemeProvider,
+    (_: ReactElement, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
   );
 
   // prettier-ignore
@@ -348,21 +342,21 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
     (visible: boolean): NegativeElementProps<T, U, V, W> => ({ negativeCharacter, characterStyledView, negativeCharacterStyledView, visible }),
   );
 
-  const encloseAnimation = (animation: ReactElement<ChildrenProps>): ReactNode => (
+  const encloseAnimation = (animation: ReactElement): ReactNode => (
     <VerticalAnimation theme={{ ...theme, animationTimingFunction, columnLength: Integer.Three }}>
       <div>{[true, false].map<ReactNode>(mapToNegativeElement).insert(Integer.One, animation)}</div>
     </VerticalAnimation>
   );
 
   return (
-    <Enclose<ReactElement<ChildrenProps>> enclose={enclose}>
-      <Enclose<ReactElement<ChildrenProps>>
+    <Enclose<ReactElement> enclose={enclose}>
+      <Enclose<ReactElement>
         condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}
         enclose={encloseAnimation}
       >
         <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
           <VerticalAnimation>
-            <div>{animationVisibilities.mapEach<ReactElement<ChildrenProps>>(mapToNegativeElement, mapToThemeProviderElement)}</div>
+            <div>{animationVisibilities.mapEach<ReactElement>(mapToNegativeElement, mapToThemeProviderElement)}</div>
           </VerticalAnimation>
         </ThemeProvider>
       </Enclose>
@@ -397,9 +391,9 @@ interface NumberElementProps<
   Y extends object,
   Z,
 > extends NumberProps<Q, R, S, T, U, V, W, X, Y, Z> {
-  mapToElement?: ElementKeyMapper<ReactElement<ChildrenProps>>[];
+  mapToElement?: ElementKeyMapper<ReactElement>[];
   children: OrArray<number[]>;
-  enclose?: (children: ReactElement<ChildrenProps>[]) => ReactNode;
+  enclose?: (children: ReactElement[]) => ReactNode;
 }
 
 export const NumberElement = <Q extends object, R, S extends object, T, U extends object, V, W extends object, X, Y extends object, Z>(
@@ -416,21 +410,19 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
   const { getCharacterIndex, ...restIndexFunctions }: CharacterIndexFunctions = useCharacterIndexFunctions(precision);
-  // prettier-ignore
-  const mapToFragmentElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, FragmentProps>(Fragment);
+  const mapToFragmentElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, FragmentProps>(Fragment);
 
   // prettier-ignore
-  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement<ChildrenProps>>> = 
-    useElementKeyMapper<OrArray<ReactElement<ChildrenProps>>, ThemeProviderProps>(
-      ThemeProvider,
-      (_: OrArray<ReactElement<ChildrenProps>>, digitIndex: number, { length }: OrArray<ReactElement<ChildrenProps>>[]): ThemeProviderProps => 
-        ({ theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex } }),
-    );
+  const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement>> = useElementKeyMapper<OrArray<ReactElement>, ThemeProviderProps>(
+    ThemeProvider,
+    (_: OrArray<ReactElement>, digitIndex: number, { length }: OrArray<ReactElement>[]): ThemeProviderProps => ({ 
+      theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex }
+    }),
+  );
 
-  // prettier-ignore
-  const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
-    ThemeProvider, 
-    (_: ReactElement<ChildrenProps>, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
+  const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, ThemeProviderProps>(
+    ThemeProvider,
+    (_: ReactElement, rowIndex: number): ThemeProviderProps => ({ theme: { rowIndex } }),
   );
 
   const mapToDigitElement: ElementKeyMapper<number> = useElementKeyMapper<number, DigitProps<Q, R, S, T>>(Digit, {
@@ -438,14 +430,10 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     ...digitStyledView,
   });
 
-  const mapToDigitsElement = (numbers: number[]): ReactElement<ChildrenProps>[] =>
-    numbers.mapEach<ReactElement<ChildrenProps>>(mapToDigitElement, mapToDigitsThemeProviderElement);
+  const mapToDigitsElement = (numbers: number[]): ReactElement[] =>
+    numbers.mapEach<ReactElement>(mapToDigitElement, mapToDigitsThemeProviderElement);
 
-  const mapToNumber = (
-    value: ReactElement<ChildrenProps>,
-    index: number,
-    { length }: ReactElement<ChildrenProps>[],
-  ): ReactElement<ChildrenProps>[] => [
+  const mapToNumber = (value: ReactElement, index: number, { length }: ReactElement[]): ReactElement[] => [
     <Show condition={!!index && !((length - index - Math.max(precision, Integer.Zero)) % Integer.Three)}>
       <SeparatorElement<Q, R, U, V, W, X, Y, Z>
         {...restProps}
@@ -459,16 +447,16 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     value,
   ];
 
-  const mappedChildren: ReactElement<ChildrenProps>[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
-    ? children.mapEach<ReactElement<ChildrenProps>>(mapToDigitElement, mapToDigitThemeProviderElement)
-    : children.mapEach<[ReactElement<ChildrenProps>[], ReactElement<ChildrenProps>]>(mapToDigitsElement, mapToDigitThemeProviderElement);
+  const mappedChildren: ReactElement[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
+    ? children.mapEach<ReactElement>(mapToDigitElement, mapToDigitThemeProviderElement)
+    : children.mapEach<[ReactElement[], ReactElement]>(mapToDigitsElement, mapToDigitThemeProviderElement);
 
-  const number: ReactElement<ChildrenProps>[] = mappedChildren
+  const number: ReactElement[] = mappedChildren
     .mapEach(...mapToElement)
-    .flatMap<ReactElement<ChildrenProps>>(mapToNumber)
-    .map<ReactElement<ChildrenProps>>(mapToFragmentElement);
+    .flatMap<ReactElement>(mapToNumber)
+    .map<ReactElement>(mapToFragmentElement);
 
-  return <Enclose<ReactElement<ChildrenProps>[]> enclose={enclose}>{number}</Enclose>;
+  return <Enclose<ReactElement[]> enclose={enclose}>{number}</Enclose>;
 };
 
 export interface AnimationProps<
@@ -596,27 +584,6 @@ export const HorizontalAnimationElement = <
     </HorizontalAnimation>
   );
 };
-
-type VerticalAnimationChildMapper = (child?: ReactElement<ChildrenProps>) => GenericReactNode<ChildrenProps>;
-
-type VerticalAnimationOnMountFactory<T extends unknown[]> = (
-  ...args: [GenericReactNode<ChildrenProps>[], ...T]
-) => GenericReactNode<ChildrenProps>;
-
-type VerticalAnimationOnMountEnclose<T extends unknown[]> = (
-  ...args: [VerticalAnimationOnMountFactory<T>, T, ReactElement<ChildrenProps>]
-) => GenericReactNode<ChildrenProps>;
-
-type VerticalAnimationOnMount<T extends unknown[]> = (
-  ...args: [VerticalAnimationOnMountFactory<T>, ReactElement<ChildrenProps>, number, ...T]
-) => GenericReactNode<ChildrenProps>;
-
-type VerticalAnimationOnAfterMountMapper = (...args: [number, ReactElement<ChildrenProps>?]) => GenericReactNode<ChildrenProps>;
-
-type VerticalAnimationOnAfterMountReducer = (
-  ...args: [...Tuple<VerticalAnimationChildMapper, Integer.Two>, ReactElement<ChildrenProps>?]
-) => GenericReactNode<ChildrenProps>;
-
 export interface VerticalAnimationElementProps<
   O extends object,
   P,
@@ -673,21 +640,18 @@ export const VerticalAnimationElement = <
   const { animationDirection }: NumbersTransitionTheme = useTheme();
   const animationDigits: number[][] = useVerticalAnimationDigits({ animationAlgorithm, maxNumberOfDigits, previousValue, currentValue });
 
-  // prettier-ignore
-  const mapToThemeProviderElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, ThemeProviderProps>(
+  const mapToThemeProviderElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, ThemeProviderProps>(
     ThemeProvider,
-    (_: ReactElement<ChildrenProps>, index: number): ThemeProviderProps => ({ theme: { columnLength: animationDigits[index].length } }),
+    (_: ReactElement, index: number): ThemeProviderProps => ({ theme: { columnLength: animationDigits[index].length } }),
   );
 
-  // prettier-ignore
-  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, VerticalAnimationProps>(
+  const mapToVerticalAnimationElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, VerticalAnimationProps>(
     VerticalAnimation,
   );
 
-  // prettier-ignore
-  const mapToDivElement: ElementKeyMapper<ReactElement<ChildrenProps>> = useElementKeyMapper<ReactElement<ChildrenProps>, HTMLAttributes<HTMLElement.Div>>(
+  const mapToDivElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, HTMLAttributes<HTMLElement.Div>>(
     HTMLElement.Div,
-    (_: ReactElement<ChildrenProps>, index: number, { length }: ReactElement<ChildrenProps>[]): HTMLAttributes<HTMLElement.Div> => ({
+    (_: ReactElement, index: number, { length }: ReactElement[]): HTMLAttributes<HTMLElement.Div> => ({
       ...(index === length - Integer.One && { id }),
     }),
   );
@@ -698,93 +662,86 @@ export const VerticalAnimationElement = <
     hasSignChanged,
   });
 
-  const getLastNestedElement = (child: ReactElement<ChildrenProps>): ReactElement<ChildrenProps> =>
+  const getLastNestedElement = (child: ReactElement): ReactElement =>
     isValidElement(child?.props?.children) ? getLastNestedElement(child?.props?.children) : child;
 
-  const getLastNestedOptionalElement = (child: GenericReactNode<ChildrenProps>): Optional<ReactElement<ChildrenProps>> =>
+  const getLastNestedOptionalElement = (child: ReactNode): Optional<ReactElement> =>
     isValidElement(child) ? getLastNestedElement(child) : undefined;
 
-  const countElements = (child: ReactElement<ChildrenProps>): number =>
-    Array.toArray<GenericReactNode<ChildrenProps>>(getLastNestedElement(child).props.children).length;
+  const countElements = (child: ReactElement): number => Array.toArray<ReactNode>(getLastNestedElement(child).props.children).length;
 
-  const onElementMountCondition = ({ props: { children } }: ReactElement<ChildrenProps>): boolean =>
-    Array.isArray<GenericReactNode<ChildrenProps>>(children);
+  const onElementMountCondition = ({ props: { children } }: ReactElement): boolean => Array.isArray<ReactNode>(children);
 
   const onElementMountEnclose = <T extends unknown[]>(
-    factory: VerticalAnimationOnMountFactory<T>,
+    factory: (...args: [ReactNode[], ...T]) => ReactNode,
     args: T,
-    { props: { children } }: ReactElement<ChildrenProps>,
-  ): GenericReactNode<ChildrenProps> => factory(Array.toArray<GenericReactNode<ChildrenProps>>(children), ...args);
+    { props: { children } }: ReactElement,
+  ): ReactNode => factory(Array.toArray<ReactNode>(children), ...args);
 
-  const onElementMount = <T extends unknown[] = []>(
-    factory: VerticalAnimationOnMountFactory<T>,
-    child: ReactElement<ChildrenProps>,
-    index: number,
-    ...args: T
-  ): GenericReactNode<ChildrenProps> => (
-    <Enclose<ReactElement<ChildrenProps>>
+  // prettier-ignore
+  const onElementMount = <T extends unknown[] = []>(factory: (...args: [ReactNode[], ...T]) => ReactNode, child: ReactElement, index: number, ...args: T): ReactNode => (
+    <Enclose<ReactElement>
       condition={onElementMountCondition}
-      enclose={onElementMountEnclose.bindArgs<VerticalAnimationOnMountEnclose<T>, Integer.Two>(factory, args)}
+      enclose={onElementMountEnclose.bindArgs<(...args: [(...args: [ReactNode[], ...T]) => ReactNode, T, ReactElement]) => ReactNode, Integer.Two>(factory, args)}
     >
       {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
     </Enclose>
   );
 
-  const onBeforeElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> =>
-    animationDirection === AnimationDirection.Normal ? array.first() : array.last();
+  const onBeforeElementMount = (children: ReactNode[]): ReactNode =>
+    animationDirection === AnimationDirection.Normal ? children.first() : children.last();
 
-  const onPartialElementMount = (array: GenericReactNode<ChildrenProps>[], numberOfElements: number): GenericReactNode<ChildrenProps> => (
+  const onPartialElementMount = (children: ReactNode[], numberOfElements: number): ReactNode => (
     <AnimationPlaceholder>
-      {array.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
+      {children.slice(...(animationDirection === AnimationDirection.Normal ? [Integer.Zero, numberOfElements] : [-numberOfElements]))}
     </AnimationPlaceholder>
   );
 
-  const onAfterElementMount = (array: GenericReactNode<ChildrenProps>[]): GenericReactNode<ChildrenProps> => (
-    <AnimationPlaceholder>{array}</AnimationPlaceholder>
-  );
+  const onAfterElementMount = (children: ReactNode[]): ReactNode => <AnimationPlaceholder>{children}</AnimationPlaceholder>;
 
-  const onAfterMountMapper = (at: number, child?: ReactElement<ChildrenProps>): GenericReactNode<ChildrenProps> =>
-    Array.toArray<GenericReactNode<ChildrenProps>>(child?.props.children).at(at);
+  const onAfterMountMapper = (at: number, child?: ReactElement): ReactNode => Array.toArray<ReactNode>(child?.props.children).at(at);
 
   const onAfterMountReducer = (
-    accumulatedCallback: VerticalAnimationChildMapper,
-    callback: VerticalAnimationChildMapper,
-    child?: ReactElement<ChildrenProps>,
-  ): GenericReactNode<ChildrenProps> => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
+    accumulatedCallback: (child?: ReactElement) => ReactNode,
+    callback: (child?: ReactElement) => ReactNode,
+    child?: ReactElement,
+  ): ReactNode => callback(getLastNestedOptionalElement(accumulatedCallback(child)));
 
-  const onAfterMountFunction: VerticalAnimationChildMapper = [
+  // prettier-ignore
+  const onAfterMountFunction: (child?: ReactElement) => ReactNode = [
     Integer.One,
     animationDirection === AnimationDirection.Normal ? Integer.Zero : Integer.MinusOne,
   ]
-    .map<VerticalAnimationChildMapper>(onAfterMountMapper.splitArgs<VerticalAnimationOnAfterMountMapper, Integer.One>(Integer.One))
-    .reduce(onAfterMountReducer.splitArgs<VerticalAnimationOnAfterMountReducer, Integer.Two>(Integer.Two));
+    .map<(child?: ReactElement) => ReactNode>(onAfterMountMapper.splitArgs<(...args: [number, ReactElement?]) => ReactNode, Integer.One>(Integer.One))
+    .reduce(onAfterMountReducer.splitArgs<(...args: [...Tuple<(child?: ReactElement) => ReactNode, Integer.Two>, ReactElement?]) => ReactNode, Integer.Two>(Integer.Two));
 
-  const onAfterMount = (child: ReactElement<ChildrenProps>, index: number): GenericReactNode<ChildrenProps> => (
+  const onAfterMount = (child: ReactElement, index: number): ReactNode => (
     <Conditional condition={!index && child === getLastNestedElement(child)}>
       {onAfterMountFunction(child)}
       {onElementMount<[]>(onAfterElementMount, child, index)}
     </Conditional>
   );
 
-  const encloseDefer = (children: ReactElement<ChildrenProps>[]): ReactNode => (
+  // prettier-ignore
+  const encloseDefer = (children: ReactElement[]): ReactNode => (
     <Defer
       renderBatchSize={renderBatchSize}
       countElements={countElements}
-      onBeforeMount={onElementMount.bindArgs<VerticalAnimationOnMount<[]>, Integer.One>(onBeforeElementMount)}
-      onPartialMount={onElementMount.bindArgs<VerticalAnimationOnMount<[number]>, Integer.One>(onPartialElementMount)}
+      onBeforeMount={onElementMount.bindArgs<(...args: [(children: ReactNode[]) => ReactNode, ReactElement, number]) => ReactNode, Integer.One>(onBeforeElementMount)}
+      onPartialMount={onElementMount.bindArgs<(...args: [(...args: [ReactNode[], number]) => ReactNode, ReactElement, number, number]) => ReactNode, Integer.One>(onPartialElementMount)}
       {...(optimizationStrategy === OptimizationStrategy.Batch && { onAfterMount })}
     >
       {children}
     </Defer>
   );
 
-  const enclose = (children: ReactElement<ChildrenProps>[]): ReactNode => (
-    <Enclose<ReactElement<ChildrenProps>[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={encloseDefer}>
+  const enclose = (children: ReactElement[]): ReactNode => (
+    <Enclose<ReactElement[]> condition={optimizationStrategy !== OptimizationStrategy.None} enclose={encloseDefer}>
       {children}
     </Enclose>
   );
 
-  const encloseNumber = (digits: ReactElement<ChildrenProps>[]): ReactNode => (
+  const encloseNumber = (digits: ReactElement[]): ReactNode => (
     <Conditional condition={renderNegativeElement}>
       <VerticalAnimationNegativeElement<O, P, Y, Z>
         negativeCharacter={negativeCharacter}
@@ -793,7 +750,7 @@ export const VerticalAnimationElement = <
         hasSignChanged={hasSignChanged}
         characterStyledView={characterStyledView}
         negativeCharacterStyledView={negativeCharacterStyledView}
-        enclose={(negative: ReactElement<ChildrenProps>): ReactNode => enclose([negative, ...digits])}
+        enclose={(negative: ReactElement): ReactNode => enclose([negative, ...digits])}
       />
       {enclose(digits)}
     </Conditional>
