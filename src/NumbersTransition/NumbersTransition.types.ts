@@ -122,12 +122,12 @@ export type Last<T extends unknown[]> = `${Integer.Zero}` extends keyof T ? (T e
 
 export type PadStart<T extends unknown[], U, V extends number> = Switch<
   MinUnsignedInt<T[Key.Length], V>,
-  [[T[Key.Length], [...Tuple<U, SubtractUnsignedInt<[V, T[Key.Length]]>>, ...T]], [V, T]]
+  [[T[Key.Length], [...Tuple<U, SubtractUnsignedInt<V, T[Key.Length]>>, ...T]], [V, T]]
 >;
 
 export type PadEnd<T extends unknown[], U, V extends number> = Switch<
   MinUnsignedInt<T[Key.Length], V>,
-  [[T[Key.Length], [...T, ...Tuple<U, SubtractUnsignedInt<[V, T[Key.Length]]>>]], [V, T]]
+  [[T[Key.Length], [...T, ...Tuple<U, SubtractUnsignedInt<V, T[Key.Length]>>]], [V, T]]
 >;
 
 export type Slice<T extends unknown[], U extends number = Integer.Zero, V extends number = T[Key.Length]> = Take<
@@ -210,24 +210,17 @@ type CompareUnsignedInts<T extends number[], U extends number[]> = [T, U] extend
     : Switch<MaxUnsignedInt<V, X>, [[V, Integer.One], [X, Integer.MinusOne]]>
   : Integer.Zero;
 
-type AddUnsignedInt<T extends number[], U extends unknown[] = []> = T extends [infer V extends number, ...infer W extends number[]]
-  ? AddUnsignedInt<W, [...U, ...Tuple<unknown, V>]>
-  : Assert<U[Key.Length], number>;
+type AddUnsignedInt<T extends number, U extends number> = Assert<[...Tuple<unknown, T>, ...Tuple<unknown, U>][Key.Length], number>;
 
-type SubtractUnsignedInt<T extends number[], U extends number = T extends [infer V extends number, ...number[]] ? V : never> = T extends [
-  number,
-  infer V extends number,
-  ...infer W extends number[],
-]
-  ? SubtractUnsignedInt<[Tuple<unknown, U> extends [...Tuple<unknown, V>, ...infer W] ? W[Key.Length] : never, ...W]>
-  : U;
+type SubtractUnsignedInt<T extends number, U extends number> =
+  Tuple<unknown, T> extends [...Tuple<unknown, U>, ...infer W] ? W[Key.Length] : never;
 
 // Math Unsigned Integer Tuples
 type AddUnsignedInts<P extends number[], Q extends number[], R extends number[] = [], S extends number = Integer.Zero> = [P, Q] extends [
   [...infer T extends number[], infer U extends number],
   [...infer V extends number[], infer W extends number],
 ]
-  ? AddUnsignedInt<[S, U, W]> extends infer X extends number
+  ? AddUnsignedInt<S, AddUnsignedInt<U, W>> extends infer X extends number
     ? `${X}` extends `${infer Y extends number}${infer Z extends number}`
       ? AddUnsignedInts<T, V, [Z, ...R], Y>
       : AddUnsignedInts<T, V, [X, ...R]>
@@ -238,10 +231,10 @@ type SubtractUnsignedInts<R extends number[], S extends number[], T extends numb
   R,
   S,
 ] extends [[...infer V extends number[], infer W extends number], [...infer X extends number[], infer Y extends number]]
-  ? AddUnsignedInt<[Y, U]> extends infer Z extends number
+  ? AddUnsignedInt<Y, U> extends infer Z extends number
     ? W extends MaxUnsignedInt<W, Z>
-      ? SubtractUnsignedInts<V, X, [SubtractUnsignedInt<[W, Z]>, ...T]>
-      : SubtractUnsignedInts<V, X, [SubtractUnsignedInt<[AddUnsignedInt<[W, Integer.Ten]>, Z]>, ...T], Integer.One>
+      ? SubtractUnsignedInts<V, X, [SubtractUnsignedInt<W, Z>, ...T]>
+      : SubtractUnsignedInts<V, X, [SubtractUnsignedInt<AddUnsignedInt<W, Integer.Ten>, Z>, ...T], Integer.One>
     : never
   : T;
 
