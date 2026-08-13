@@ -201,6 +201,12 @@ type MinUnsignedInt<T extends number, U extends number> = When<[Tuple<unknown, T
 
 type MaxUnsignedInt<T extends number, U extends number> = When<[Tuple<unknown, T>, [...Tuple<unknown, U>, ...unknown[]]], T, U>;
 
+type AddUnsignedInt<T extends number, U extends number> = Assert<[...Tuple<unknown, T>, ...Tuple<unknown, U>][Key.Length], number>;
+
+type SubtractUnsignedInt<T extends number, U extends number> =
+  Tuple<unknown, T> extends [...Tuple<unknown, U>, ...infer W] ? W[Key.Length] : never;
+
+// Math Unsigned Integer Tuples
 type CompareUnsignedInts<T extends number[], U extends number[]> = [T, U] extends [
   [infer V extends number, ...infer W extends number[]],
   [infer X extends number, ...infer Y extends number[]],
@@ -210,12 +216,6 @@ type CompareUnsignedInts<T extends number[], U extends number[]> = [T, U] extend
     : Switch<MaxUnsignedInt<V, X>, [[V, Integer.One], [X, Integer.MinusOne]]>
   : Integer.Zero;
 
-type AddUnsignedInt<T extends number, U extends number> = Assert<[...Tuple<unknown, T>, ...Tuple<unknown, U>][Key.Length], number>;
-
-type SubtractUnsignedInt<T extends number, U extends number> =
-  Tuple<unknown, T> extends [...Tuple<unknown, U>, ...infer W] ? W[Key.Length] : never;
-
-// Math Unsigned Integer Tuples
 type AddUnsignedInts<P extends number[], Q extends number[], R extends number[] = [], S extends number = Integer.Zero> = [P, Q] extends [
   [...infer T extends number[], infer U extends number],
   [...infer V extends number[], infer W extends number],
