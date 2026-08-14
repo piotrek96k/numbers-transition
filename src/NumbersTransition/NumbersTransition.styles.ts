@@ -431,39 +431,26 @@ const cssFactory = <T extends Styled, U extends object, V>(styledComponent: T, p
     .map<Maybe<CssRule<U>>>(viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, CssRule<U>>, Integer.One>(props))
     .filter<CssRule<U>>((value: Maybe<CssRule<U>>): value is CssRule<U> => !!value);
 
-const mapAnimationFalsyValue = <T extends object, U>(animation: Maybe<Partial<Animation<T, U>>>): Optional<Partial<Animation<T, U>>> =>
-  animation || undefined;
+const mapAnimationKeyframes = <T extends object, U>({ keyframeFunction, keyframes, progress }: Animation<T, U>): Keyframes =>
+  createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
-const mapAnimation = <T extends object, U>({ keyframeFunction, keyframes, progress }: Partial<Animation<T, U>> = {}): Optional<Keyframes> =>
-  keyframeFunction && keyframes && createAnimationKeyframes(keyframeFunction, keyframes, progress);
-
-const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Optional<Keyframes>, index: number) => css<object>`
-  ${accumulator}${index ? Text.Comma : Text.Empty}${currentValue ?? AnimationType.None}
+const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Keyframes, index: number) => css<object>`
+  ${accumulator}${index ? Text.Comma : Text.Empty}${currentValue}
 `;
 
-const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
-  props: Props<T, U, V>,
-  animation?: OrArray<AnimationViewFactory<U, V>>,
-): Optional<RuleSet<object>> =>
-  Array.toArray<Optional<AnimationViewFactory<U, V>>>(animation)
-    .mapEach<[Maybe<Partial<Animation<U, V>>>, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
-      viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, Animation<U, V>>, Integer.One>(props),
-      mapAnimationFalsyValue<U, V>,
-      mapAnimation<U, V>,
-    )
-    .reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``);
-
-const createOptionalAnimationKeyframes = (animationsKeyframes?: RuleSet<object>): Optional<RuleSet<object>> =>
-  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes)`
-    animation-name: ${animationsKeyframes};
+const createOptionalAnimation = (animationsKeyframes: Keyframes[]): Optional<RuleSet<object>> =>
+  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes.length)`
+    animation-name: ${animationsKeyframes.reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``)};
   `;
 
 type AnimationFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => Optional<RuleSet<U>>;
 
-const animationFactory = <T extends Styled, U extends object, V>(styledComponent: T, props: Props<T, U, V>): Optional<RuleSet<U>> =>
-  createOptionalAnimationKeyframes(
-    createAnimationsKeyframes<T, U, V>(props, props[`${styledComponent}${ViewKey.Animation.capitalize<ViewKey.Animation>()}`]),
-  );
+const animationFactory = <T extends Styled, U extends object, V>(styledComponent: T, props: Props<T, U, V>): Optional<RuleSet<object>> =>
+  Array.toArray<Optional<AnimationViewFactory<U, V>>>(props[`${styledComponent}${ViewKey.Animation.capitalize<ViewKey.Animation>()}`])
+    .map<Maybe<Animation<U, V>>>(viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, Animation<U, V>>, Integer.One>(props))
+    .filter<Animation<U, V>>((animation: Maybe<Animation<U, V>>): animation is Animation<U, V> => !!animation)
+    .map<Keyframes>(mapAnimationKeyframes<U, V>)
+    .pipe<Optional<RuleSet<object>>>(createOptionalAnimation);
 
 type AttributesFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => StyledHTMLAttributes<HTMLDivElement>;
 
