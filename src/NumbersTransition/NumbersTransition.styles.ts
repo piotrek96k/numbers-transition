@@ -446,7 +446,6 @@ const createAnimationsKeyframes = <T extends Styled, U extends object, V>(
   animation?: OrArray<AnimationViewFactory<U, V>>,
 ): Optional<RuleSet<object>> =>
   Array.toArray<Optional<AnimationViewFactory<U, V>>>(animation)
-    .when(Array.isArray<Optional<AnimationViewFactory<U, V>>>(animation) ? animation.length : animation)
     .mapEach<[Maybe<Partial<Animation<U, V>>>, Optional<Partial<Animation<U, V>>>, Optional<Keyframes>]>(
       viewFactoryMapper.bindArgs<ViewFactoryMapper<T, U, Animation<U, V>>, Integer.One>(props),
       mapAnimationFalsyValue<U, V>,
