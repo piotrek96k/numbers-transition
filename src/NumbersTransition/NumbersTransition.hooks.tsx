@@ -39,6 +39,7 @@ import {
   AnimationTransition,
   AnimationType,
   BoxSizing,
+  DigitGroupSeparatorCharacter,
   Integer,
   Key,
   NegativeCharacterAnimationMode,
@@ -567,11 +568,22 @@ export const useStyledView = <
     >(mapView);
 };
 
+interface UseNumberOfDigitGroupSeparatorsOptions {
+  precision: number;
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
+}
+
 // prettier-ignore
-const useNumberOfDigitGroupSeparators = (precision: number): ((numberOfDigits: number) => number) =>
+const useNumberOfDigitGroupSeparators = ({ precision, digitGroupSeparator }: UseNumberOfDigitGroupSeparatorsOptions): ((numberOfDigits: number) => number) =>
   (numberOfDigits: number): number => [numberOfDigits - Math.max(precision, Integer.Zero), Math.max(precision, Integer.Zero)]
+    .when(digitGroupSeparator !== DigitGroupSeparatorCharacter.None)
     .map<number>((quantity: number): number => Math.trunc((quantity - Integer.One) / Integer.Three))
-    .reduce(Number.sum);
+    .reduce(Number.sum, Integer.Zero);
+
+interface UseCharacterIndexFunctionsOptions {
+  precision: number;
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
+}
 
 export type CharacterIndexFunction = (index: number, length: number) => number;
 
@@ -582,12 +594,21 @@ export interface CharacterIndexFunctions {
   getDigitGroupSeparatorIndex: CharacterIndexFunction;
 }
 
-export const useCharacterIndexFunctions = (precision: number): CharacterIndexFunctions => {
+export const useCharacterIndexFunctions = (options: UseCharacterIndexFunctionsOptions): CharacterIndexFunctions => {
+  const { precision, digitGroupSeparator }: UseCharacterIndexFunctionsOptions = options;
+
   const { negativeCharacterLength }: NumbersTransitionTheme = useTheme();
 
-  // prettier-ignore
-  const getIndex = (index: number, length: number): number =>
-    Math.trunc((index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three);
+  const getIndexWithoutDigitGroupSeparators = (index: number, length: number): number =>
+    index >= length - Math.max(precision, Integer.Zero) ? Integer.One : Integer.Zero;
+
+  const getIndexWithDigitGroupSeparators = (index: number, length: number): number =>
+    Math.trunc(
+      (index + ((Integer.Three - ((length - Math.max(precision, Integer.Zero)) % Integer.Three)) % Integer.Three)) / Integer.Three,
+    );
+
+  const getIndex: (index: number, length: number) => number =
+    digitGroupSeparator === DigitGroupSeparatorCharacter.None ? getIndexWithoutDigitGroupSeparators : getIndexWithDigitGroupSeparators;
 
   const getCharacterIndex = (index: number, length: number): number => negativeCharacterLength + index + getIndex(index, length);
   const getCharacterSeparatorIndex = (index: number, length: number): number => getCharacterIndex(index, length) - Integer.One;
@@ -600,6 +621,7 @@ export const useCharacterIndexFunctions = (precision: number): CharacterIndexFun
 
 interface UseElementsLengthOptions {
   precision: number;
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
   isValueValid: boolean;
   currentValue: bigint;
   hasSignChanged: boolean;
@@ -607,9 +629,12 @@ interface UseElementsLengthOptions {
 }
 
 export const useElementsLength = (options: UseElementsLengthOptions): ElementsLength => {
-  const { precision, isValueValid, currentValue, hasSignChanged, numberOfDigits }: UseElementsLengthOptions = options;
+  const { precision, digitGroupSeparator, isValueValid, currentValue, hasSignChanged, numberOfDigits }: UseElementsLengthOptions = options;
 
-  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators({
+    precision,
+    digitGroupSeparator,
+  });
 
   const { int: invalidLength }: boolean = !isValueValid;
   const { int: negativeCharacterLength }: boolean = isValueValid && (hasSignChanged || currentValue < Integer.Zero);
@@ -988,6 +1013,7 @@ export const useHorizontalAnimationDigits = (options: UseHorizontalAnimationDigi
 
 interface UseHorizontalAnimationWidthsOptions {
   precision: number;
+  digitGroupSeparator: DigitGroupSeparatorCharacter;
   animationTransition: AnimationTransition;
   previousValue: bigint;
   currentValue: bigint;
@@ -999,6 +1025,7 @@ interface UseHorizontalAnimationWidthsOptions {
 export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidthsOptions): [number, number] => {
   const {
     precision,
+    digitGroupSeparator,
     animationTransition,
     previousValue,
     currentValue,
@@ -1009,7 +1036,11 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
 
   const [animationStartWidth, setAnimationStartWidth]: ReactState<number> = useState<number>(Integer.Zero);
   const { numberOfAnimations }: NumbersTransitionTheme = useTheme();
-  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators(precision);
+
+  const calculateNumberOfDigitGroupSeparators: (numberOfDigits: number) => number = useNumberOfDigitGroupSeparators({
+    precision,
+    digitGroupSeparator,
+  });
 
   const numberOfDigits: number =
     numberOfAnimations === AnimationNumber.Two || previousValue < currentValue === (animationTransition === AnimationTransition.None)

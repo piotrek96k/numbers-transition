@@ -253,6 +253,7 @@ const NumbersTransition = <
 
   const elementsLength: ElementsLength = useElementsLength({
     precision,
+    digitGroupSeparator,
     isValueValid,
     currentValue: valueBigInt,
     hasSignChanged,

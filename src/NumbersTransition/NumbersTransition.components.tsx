@@ -254,12 +254,14 @@ const SeparatorElement = <S extends object, T, U extends object, V, W extends ob
   );
 
   const digitGroupSeparatorElement: ReactElement = (
-    <DigitGroupSeparatorElement<S, T, U, V, Y, Z>
-      {...restProps}
-      digitGroupSeparator={digitGroupSeparator}
-      digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
-      digitGroupSeparatorIndex={getDigitGroupSeparatorIndex(digitIndex, numberLength)}
-    />
+    <Show condition={digitGroupSeparator !== DigitGroupSeparatorCharacter.None}>
+      <DigitGroupSeparatorElement<S, T, U, V, Y, Z>
+        {...restProps}
+        digitGroupSeparator={digitGroupSeparator}
+        digitGroupSeparatorStyledView={digitGroupSeparatorStyledView}
+        digitGroupSeparatorIndex={getDigitGroupSeparatorIndex(digitIndex, numberLength)}
+      />
+    </Show>
   );
 
   return (
@@ -401,6 +403,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
 ): ReactNode => {
   const {
     precision,
+    digitGroupSeparator,
     characterStyledView,
     digitStyledView,
     mapToElement = [],
@@ -409,16 +412,20 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     ...restProps
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
 
-  const { getCharacterIndex, ...restIndexFunctions }: CharacterIndexFunctions = useCharacterIndexFunctions(precision);
   const mapToFragmentElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, FragmentProps>(Fragment);
+
+  const { getCharacterIndex, ...restIndexFunctions }: CharacterIndexFunctions = useCharacterIndexFunctions({
+    precision,
+    digitGroupSeparator,
+  });
 
   // prettier-ignore
   const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement>> = useElementKeyMapper<OrArray<ReactElement>, ThemeProviderProps>(
     ThemeProvider,
-    (_: OrArray<ReactElement>, digitIndex: number, { length }: OrArray<ReactElement>[]): ThemeProviderProps => ({ 
-      theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex },
-    }),
-  );
+    (_: OrArray<ReactElement>, digitIndex: number, { length }: OrArray<ReactElement>[]): ThemeProviderProps => ({
+    theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex },
+  }),
+);
 
   const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, ThemeProviderProps>(
     ThemeProvider,
@@ -439,6 +446,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
         {...restProps}
         {...restIndexFunctions}
         precision={precision}
+        digitGroupSeparator={digitGroupSeparator}
         characterStyledView={characterStyledView}
         digitIndex={index}
         numberLength={length}
@@ -521,6 +529,7 @@ export const HorizontalAnimationElement = <
   const {
     identifier,
     precision,
+    digitGroupSeparator,
     negativeCharacter,
     animationTransition,
     previousValueDigits,
@@ -551,6 +560,7 @@ export const HorizontalAnimationElement = <
 
   const [animationStartWidth, animationEndWidth]: [number, number] = useHorizontalAnimationWidths({
     precision,
+    digitGroupSeparator,
     animationTransition,
     previousValue,
     currentValue,
@@ -567,19 +577,32 @@ export const HorizontalAnimationElement = <
     numberOfAnimations,
   });
 
+  const negativeElement: ReactElement = (
+    <Show condition={renderNegativeElement}>
+      <HorizontalAnimationNegativeElement<O, P, Y, Z>
+        negativeCharacter={negativeCharacter}
+        characterStyledView={characterStyledView}
+        negativeCharacterStyledView={negativeCharacterStyledView}
+      />
+    </Show>
+  );
+
+  const numberElement: ReactElement = (
+    <NumberElement<O, P, Q, R, S, T, U, V, W, X>
+      {...restProps}
+      precision={precision}
+      digitGroupSeparator={digitGroupSeparator}
+      characterStyledView={characterStyledView}
+    >
+      {animationDigits}
+    </NumberElement>
+  );
+
   return (
     <HorizontalAnimation animationStartWidth={animationStartWidth} animationEndWidth={animationEndWidth} id={id}>
       <div ref={ref}>
-        <Show condition={renderNegativeElement}>
-          <HorizontalAnimationNegativeElement<O, P, Y, Z>
-            negativeCharacter={negativeCharacter}
-            characterStyledView={characterStyledView}
-            negativeCharacterStyledView={negativeCharacterStyledView}
-          />
-        </Show>
-        <NumberElement<O, P, Q, R, S, T, U, V, W, X> {...restProps} precision={precision} characterStyledView={characterStyledView}>
-          {animationDigits}
-        </NumberElement>
+        {negativeElement}
+        {numberElement}
       </div>
     </HorizontalAnimation>
   );
