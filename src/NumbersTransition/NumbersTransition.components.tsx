@@ -741,7 +741,7 @@ export const VerticalAnimationElement = <
   const onAfterMount = (child: ReactElement, index: number): ReactNode => (
     <Conditional condition={!index && child === getLastNestedElement(child)}>
       {onAfterMountFunction(child)}
-      {onElementMount<[]>(onAfterElementMount, child, index)}
+      {onElementMount(onAfterElementMount, child, index)}
     </Conditional>
   );
 
