@@ -607,6 +607,7 @@ export const HorizontalAnimationElement = <
     </HorizontalAnimation>
   );
 };
+
 export interface VerticalAnimationElementProps<
   O extends object,
   P,
