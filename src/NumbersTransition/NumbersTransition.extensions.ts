@@ -151,13 +151,11 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return Array.isArray<T>(value) ? value : [value];
   }
 
+  // prettier-ignore
   public get depth(): number {
-    const depth = <U>(value: U): number =>
-      Array.isArray<U>(value)
-        ? Integer.One +
-          (value.length && value.map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
-        : Integer.Zero;
-
+    const depth = <U>(value: U): number => Array.isArray<U>(value)
+      ? Integer.One + (value.length && value.map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
+      : Integer.Zero;
     return depth<T[]>(this.value);
   }
 
@@ -184,7 +182,6 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   public findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback?: U): Optional<U> {
     let result: Optional<U>;
     this.value.find((...args: [value: T, index: number, array: T[]]): unknown => (result = mapper(...args)) !== undefined);
-
     return result ?? fallback;
   }
 
