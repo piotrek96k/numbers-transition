@@ -739,7 +739,7 @@ interface UseNegativeElementAnimationVisibilitiesOptions {
 export const useNegativeElementAnimationVisibilities = ({ animationDigits, hasSignChanged }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
   animationDigits
     .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits.first())!
-    .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
+    .map<boolean>((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
 
