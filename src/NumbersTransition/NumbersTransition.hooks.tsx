@@ -431,12 +431,9 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
   ];
 
   // prettier-ignore
-  const fromTotalAnimationDuration = ({
-    animationDuration = Integer.SixThousand,
-    ratio = Integer.Five / Integer.Two,
-  }: TotalAnimationDuration): [number, number] =>
-    [numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One)]
-      .flatMap<number, [number, number]>((horizontalAnimationDuration: number): [number, number] => [
+  const fromTotalAnimationDuration = ({ animationDuration = Integer.SixThousand, ratio = Integer.Five / Integer.Two }: TotalAnimationDuration): [number, number] =>
+    (numberOfAnimations === AnimationNumber.One ? Integer.Zero : animationDuration / (ratio + numberOfAnimations - Integer.One))
+      .pipe<number, [number, number]>((horizontalAnimationDuration: number): [number, number] => [
         horizontalAnimationDuration,
         ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
       ]);
@@ -739,10 +736,7 @@ interface UseNegativeElementAnimationVisibilitiesOptions {
 }
 
 // prettier-ignore
-export const useNegativeElementAnimationVisibilities = ({
-  animationDigits,
-  hasSignChanged,
-}: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
+export const useNegativeElementAnimationVisibilities = ({ animationDigits, hasSignChanged }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
   animationDigits
     .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits.first())!
     .map((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
@@ -792,8 +786,8 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
   ];
 
   const findSolutions = (outputValue: number, [[firstY, firstX], [secondY, secondX]]: [[number, number], [number, number]]): number =>
-    [(secondY - firstY) / (secondX - firstX)]
-      .flatMap<number, [number, number]>((slope: number): number[] => [slope, firstY - slope * firstX])
+    ((secondY - firstY) / (secondX - firstX))
+      .pipe<number, [number, number]>((slope: number): [number, number] => [slope, firstY - slope * firstX])
       .reduce((slope: number, intercept: number): number => (Number.isFinite(slope) && slope ? (outputValue - intercept) / slope : firstX));
 
   // prettier-ignore
@@ -926,18 +920,17 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
 };
 
 // prettier-ignore
-const useStepsSolver = (): Solve<StepsEasingFunction> =>
-  ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
-    StepPosition.values<StepPosition>()
-      .zip<Tuple<StepPosition, Integer.Four>, Tuple<number, Integer.Four>>(
-        Math.floor(outputValue * steps) / steps,
-        Math.ceil(outputValue * steps) / steps,
-        Math.ceil(outputValue * (steps - Integer.One)) / steps,
-        Math.floor(outputValue * (steps + Integer.One)) / steps,
-      )
-      .find(([position]: [StepPosition, number]): boolean => position === stepPosition)!
-      .at<Integer.One>(Integer.One),
-  ];
+const useStepsSolver = (): Solve<StepsEasingFunction> => ({ steps, stepPosition }: StepsEasingFunction, outputValue: number): number[] => [
+  StepPosition.values<StepPosition>()
+    .zip<Tuple<StepPosition, Integer.Four>, Tuple<number, Integer.Four>>(
+      Math.floor(outputValue * steps) / steps,
+      Math.ceil(outputValue * steps) / steps,
+      Math.ceil(outputValue * (steps - Integer.One)) / steps,
+      Math.floor(outputValue * (steps + Integer.One)) / steps,
+    )
+    .find(([position]: [StepPosition, number]): boolean => position === stepPosition)!
+    .at<Integer.One>(Integer.One),
+];
 
 interface UseNegativeElementAnimationTimingFunctionOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
