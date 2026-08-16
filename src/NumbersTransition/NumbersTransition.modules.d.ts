@@ -1,7 +1,6 @@
 import type { Integer, Key } from './NumbersTransition.enums';
 import type { NumbersTransitionTheme } from './NumbersTransition.styles';
 import type {
-  ArrayOfDepth,
   Assert,
   At,
   Drop,
@@ -63,7 +62,6 @@ declare global {
   interface ArrayConstructor {
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends OrReadOnly<unknown[]>>(arg: T | U): arg is T extends OrReadOnly<unknown[]> ? T | U : U;
-    isOfDepth<T, U extends number>(array: unknown, depth: U): array is ArrayOfDepth<T, U>;
     range(size: number): number[];
     toArray<T>(value: OrArray<T>): T[];
   }
@@ -107,6 +105,7 @@ declare global {
   }
 
   interface ReadonlyArray<T> {
+    readonly depth: number;
     map<U>(callback: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): { -readonly [I in keyof this]: U };
     map<U, V extends U[]>(callback: (value: T, index: number, array: readonly T[]) => U, thisArg?: unknown): V;
   }

@@ -455,7 +455,9 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     value,
   ];
 
-  const mappedChildren: ReactElement[] = Array.isOfDepth<number, Integer.One>(children, Integer.One)
+  const mappedChildren: ReactElement[] = children.matches<OrArray<number[]>, number[]>(
+    (value: OrArray<number[]>): value is number[] => value.depth === Integer.One,
+  )
     ? children.mapEach<ReactElement>(mapToDigitElement, mapToDigitThemeProviderElement)
     : children.mapEach<[ReactElement[], ReactElement]>(mapToDigitsElement, mapToDigitThemeProviderElement);
 

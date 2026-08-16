@@ -1,17 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import type {
-  ArrayOfDepth,
-  Drop,
-  First,
-  Last,
-  Nullish,
-  Optional,
-  OrArray,
-  OrFunction,
-  Take,
-  ValueOf,
-  Zip,
-} from './NumbersTransition.types';
+import type { Drop, First, Last, Nullish, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
 export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
@@ -137,10 +125,6 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
   public static isType(value: unknown): value is unknown[] {
     return Array.isArray<unknown>(value);
-  }
-
-  public static isOfDepth<T, U extends number>(array: any, depth: U): array is ArrayOfDepth<T, U> {
-    return new List<unknown>(array).depth === depth;
   }
 
   public static range(size: number): number[] {

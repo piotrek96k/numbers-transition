@@ -89,10 +89,6 @@ export type EnumValue<E extends Enum<E>> = E extends unknown ? ValueOf<E> : neve
 export type EnumType<E extends Enum<E>, V extends EnumValue<E>> = E extends unknown ? (V extends ValueOf<E> ? E : never) : never;
 
 // Tuples
-export type ArrayOfDepth<T, U extends number, V extends unknown[] = []> = U extends V[Key.Length]
-  ? T
-  : ArrayOfDepth<T[] | readonly T[], U, [...V, unknown]>;
-
 export type Tuple<T, U extends number, V extends T[] = []> = U extends unknown
   ? V[Key.Length] extends U
     ? V

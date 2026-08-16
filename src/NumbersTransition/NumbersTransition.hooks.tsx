@@ -300,7 +300,7 @@ export const useEasingFunctionTypeMapper = (): EasingFunctionTypeMapper =>
     [linear, cubicBezier, steps]: EasingFunctions<T, U, V, W, X>, easingFunction: U | V | W, ...args: X
   ): T =>
     Array.isArray<OrReadOnly<StepsEasingFunction>, U | V>(easingFunction)
-      ? Array.isOfDepth<number, Integer.Two>(easingFunction, Integer.Two)
+      ? easingFunction.matches<U | V, V>((value: U | V): value is V => value.depth === Integer.Two)
         ? cubicBezier(easingFunction, ...args)
         : linear(easingFunction, ...args)
       : steps(easingFunction, ...args);
