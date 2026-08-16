@@ -423,9 +423,9 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
   const mapToDigitThemeProviderElement: ElementKeyMapper<OrArray<ReactElement>> = useElementKeyMapper<OrArray<ReactElement>, ThemeProviderProps>(
     ThemeProvider,
     (_: OrArray<ReactElement>, digitIndex: number, { length }: OrArray<ReactElement>[]): ThemeProviderProps => ({
-    theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex },
-  }),
-);
+      theme: { characterIndex: getCharacterIndex(digitIndex, length), digitIndex },
+    }),
+  );
 
   const mapToDigitsThemeProviderElement: ElementKeyMapper<ReactElement> = useElementKeyMapper<ReactElement, ThemeProviderProps>(
     ThemeProvider,
