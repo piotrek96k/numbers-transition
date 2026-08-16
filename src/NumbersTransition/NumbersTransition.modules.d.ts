@@ -78,7 +78,6 @@ declare global {
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>): Optional<U>;
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback: U): U;
     first(): First<this>;
-    flatMap<U, V extends U[], W = undefined>(call: (this: W, value: T, index: number, array: T[]) => U | ReadonlyArray<U>, thisArg?: W): V;
     insert(index: number, value: T): T[];
     intersects(array: T[]): boolean;
     last(): Last<this>;
