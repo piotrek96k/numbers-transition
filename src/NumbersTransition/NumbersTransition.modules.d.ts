@@ -52,7 +52,7 @@ declare global {
     callOrGet<T extends unknown[], U extends unknown[], V>(this: OrFunction<T, V>, ...args: T | U): V;
     keys(): string[];
     map<T, U>(this: Record<string, T>, mapper: (entry: [string, T]) => [string, U]): Record<string, U>;
-    matches<T, U extends T>(this: T, predicate: (value: T) => value is U): this is U;
+    matches<T, U extends T>(this: T, predicate: unknown): this is U;
     pipe<T, U>(this: T, mapper: (value: T) => U): U;
     pipeEach<T, U extends unknown[]>(this: T, ...mappers: { [I in keyof U]: (value: At<[T, ...U], I>) => U[I] }): Last<U>;
     values<T>(this: Record<string, T>): T[];
@@ -74,7 +74,7 @@ declare global {
     at<U extends number>(index: U): At<this, U>;
     collapse(): string;
     equals<U extends T>(array: U[]): boolean;
-    filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[];
+    filterEach(...predicates: ((value: T, index: number, array: T[]) => unknown)[]): T[];
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>): Optional<U>;
     findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback: U): U;
     first(): First<this>;

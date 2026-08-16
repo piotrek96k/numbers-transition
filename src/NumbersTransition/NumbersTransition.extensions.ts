@@ -102,8 +102,8 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
     return Object.fromEntries<U>(Object.entries<any>(this.value).map<[string, U]>(mapper));
   }
 
-  public matches<U extends T>(predicate: (value: T) => value is U): this is Struct<U> {
-    return predicate(this.value);
+  public matches<U extends T>(predicate: unknown): this is Struct<U> {
+    return !!predicate;
   }
 
   public pipe<U>(mapper: (value: T) => U): U {
@@ -156,9 +156,9 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return this.value.length === length && this.value.every((value: T, index: number): boolean => value === array[index]);
   }
 
-  public filterEach(...predicates: ((value: T, index: number, array: T[]) => boolean)[]): T[] {
+  public filterEach(...predicates: ((value: T, index: number, array: T[]) => unknown)[]): T[] {
     return predicates.reduce<T[]>(
-      (array: T[], predicate: (value: T, index: number, array: T[]) => boolean): T[] => array.filter(predicate),
+      (array: T[], predicate: (value: T, index: number, array: T[]) => unknown): T[] => array.filter(predicate),
       this.value,
     );
   }

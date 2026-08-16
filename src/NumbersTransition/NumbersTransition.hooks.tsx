@@ -57,7 +57,7 @@ const useRerender = (): ActionDispatch<[]> =>
   useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
-  value?.matches<UncheckedBigDecimal, BigDecimal>((value: UncheckedBigDecimal): value is BigDecimal => Pattern.BigDecimal.test(`${value}`))
+  value?.matches<UncheckedBigDecimal, BigDecimal>(Pattern.BigDecimal.test(`${value}`))
     ? [value, true]
     : typeof value === Typeof.Number
       ? [Number(value).toFixed(Integer.OneHundred), true]
@@ -300,7 +300,7 @@ export const useEasingFunctionTypeMapper = (): EasingFunctionTypeMapper =>
     [linear, cubicBezier, steps]: EasingFunctions<T, U, V, W, X>, easingFunction: U | V | W, ...args: X
   ): T =>
     Array.isArray<OrReadOnly<StepsEasingFunction>, U | V>(easingFunction)
-      ? easingFunction.matches<U | V, V>((value: U | V): value is V => value.depth === Integer.Two)
+      ? easingFunction.matches<U | V, V>(easingFunction.depth === Integer.Two)
         ? cubicBezier(easingFunction, ...args)
         : linear(easingFunction, ...args)
       : steps(easingFunction, ...args);
@@ -382,8 +382,7 @@ export const useAnimationTimingFunction = (options: UseAnimationTimingFunctionOp
   const fixCubicBezierDirection: FixDirection<CubicBezierEasingFunction> = useCubicBezierDirection(animationDirection);
   const fixStepsDirection: FixDirection<StepsEasingFunction> = useStepsDirection(animationDirection);
 
-  const isExtendedAnimationTimingFunction = (value: UnknownAnimationTimingFunction): value is ExtendedAnimationTimingFunction =>
-    [...value.keys()].intersects(AnimationKey.values<AnimationKey>());
+  const isExtendedAnimationTimingFunction: boolean = [...animationTimingFunction.keys()].intersects(AnimationKey.values<AnimationKey>());
 
   const animationKey: AnimationKey =
     animationType === AnimationType.Horizontal ? AnimationKey.HorizontalAnimation : AnimationKey.VerticalAnimation;
@@ -419,13 +418,8 @@ interface UseAnimationDurationOptions {
 export const useAnimationDuration = (options: UseAnimationDurationOptions): Tuple<number, Integer.Four> => {
   const { animationType, animationDuration = {}, numberOfAnimations }: UseAnimationDurationOptions = options;
 
-  const isAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): value is AnimationDuration =>
-    !value.keys().length || value.keys().intersects(AnimationKey.values<AnimationKey>());
-
-  const fromAnimationDuration = ({
-    horizontalAnimation = Integer.TwoThousand,
-    verticalAnimation = Integer.FiveThousand,
-  }: AnimationDuration): [number, number] => [
+  // prettier-ignore
+  const fromAnimationDuration = ({ horizontalAnimation = Integer.TwoThousand, verticalAnimation = Integer.FiveThousand }: AnimationDuration): [number, number] => [
     numberOfAnimations === AnimationNumber.One ? Integer.Zero : horizontalAnimation,
     verticalAnimation,
   ];
@@ -438,15 +432,15 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
         ratio === Integer.Zero ? Integer.Zero : animationDuration - horizontalAnimationDuration * (numberOfAnimations - Integer.One),
       ]);
 
-  const mapAnimationDuration = (value: AnimationDuration | TotalAnimationDuration): [number, number] =>
-    value.matches<AnimationDuration | TotalAnimationDuration, AnimationDuration>(isAnimationDuration)
-      ? fromAnimationDuration(value)
-      : fromTotalAnimationDuration(value);
+  const isAnimationDuration: boolean =
+    !animationDuration.keys().length || animationDuration.keys().intersects(AnimationKey.values<AnimationKey>());
 
-  const [horizontalAnimationDuration, verticalAnimationDuration] =
+  const [horizontalAnimationDuration, verticalAnimationDuration]: [number, number] =
     numberOfAnimations === AnimationNumber.Zero
       ? [Integer.Zero, Integer.Zero]
-      : animationDuration.pipe<AnimationDuration | TotalAnimationDuration, [number, number]>(mapAnimationDuration);
+      : animationDuration.matches<AnimationDuration | TotalAnimationDuration, AnimationDuration>(isAnimationDuration)
+        ? fromAnimationDuration(animationDuration)
+        : fromTotalAnimationDuration(animationDuration);
 
   const currentAnimationDuration: number = AnimationType.values<AnimationType>()
     .zip<Tuple<AnimationType, Integer.Three>, [number, number, number]>(
