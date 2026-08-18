@@ -18,8 +18,8 @@ interface ExtensionClass<T> {
 
 type ExtensionConstructor<T, U extends ExtensionClass<T>> = InstanceType<U>;
 
-export default Extension;
-
 export { LiteralType };
 
 export type { ExtensionConstructor };
+
+export default Extension;

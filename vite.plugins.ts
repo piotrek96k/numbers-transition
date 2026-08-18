@@ -1,7 +1,7 @@
 import { resolve } from 'path';
 import { Diagnostic, DiagnosticCategory } from 'typescript';
 import { UserConfig, defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import { bundleDts } from 'vite-plugin-bundle-dts';
 
 interface Plugin {
   name: string;
@@ -31,7 +31,7 @@ const plugins: Plugin[] = [
 ];
 
 const config: UserConfig = {
-  plugins: [dts({ tsconfigPath: resolve('tsconfig.plugins.json'), rollupTypes: true, afterDiagnostic })],
+  plugins: [bundleDts({ tsconfigPath: resolve('tsconfig.plugins.json'), rollupTypes: true, afterDiagnostic })],
   build: {
     lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
     rolldownOptions: {

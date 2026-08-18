@@ -20,7 +20,7 @@ const renameDts = (dir: string): void =>
     );
 
 const verifyValidDts = (absoluteTsConfig: string, dir: string, absoluteDir: string, tsArgs: string[]): void => {
-  process.stdout.write(`\n[verify:dts] Verifying declarations in '${dir}'...\n`);
+  process.stdout.write(`\n[verify-dts] Verifying declarations in '${dir}'...\n`);
   const tempDir: string = mkdtempSync(resolve('verify'));
   const generatedTsConfig: string = resolve(tempDir, 'tsconfig.json');
 
@@ -36,7 +36,7 @@ const verifyValidDts = (absoluteTsConfig: string, dir: string, absoluteDir: stri
     renameDts(tempDir);
     writeFileSync(generatedTsConfig, JSON.stringify(config, null, 2));
     execSync(`tsc -p "${generatedTsConfig}" ${tsArgs.join(' ')}`, { env: { ...process.env, FORCE_COLOR: '1' } });
-    process.stdout.write(`[verify:dts] ✓ Declaration verification passed for '${dir}'.\n`);
+    process.stdout.write(`[verify-dts] ✓ Declaration verification passed for '${dir}'.\n`);
   } catch (error: any) {
     process.stdout.write(error.stdout?.toString().replaceAll(basename(tempDir), dir).replaceAll('.ts', '.d.ts'));
     process.exitCode = error.status ?? 1;

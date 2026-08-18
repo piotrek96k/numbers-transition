@@ -18,6 +18,6 @@ const typeExtensions = (tsConfig: string, extensionsFilePath: string): TypeExten
   };
 };
 
-export default typeExtensions;
-
 export type { TypeExtensionsPlugin };
+
+export default typeExtensions;

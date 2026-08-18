@@ -2,7 +2,7 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { Diagnostic, DiagnosticCategory } from 'typescript';
 import { UserConfig, defineConfig } from 'vite';
-import dts from 'vite-plugin-dts';
+import { bundleDts } from 'vite-plugin-bundle-dts';
 import typeExtensions from './plugins/dist/type-extensions.js';
 
 const throwDiagnosticError = (): void => {
@@ -16,7 +16,7 @@ const config: UserConfig = {
   plugins: [
     typeExtensions('tsconfig.json', resolve('src', 'NumbersTransition', 'NumbersTransition.extensions.ts')),
     react(),
-    dts({ rollupTypes: true, afterDiagnostic }),
+    bundleDts({ rollupTypes: true, afterDiagnostic }),
   ],
   resolve: { alias: { 'type-extensions/extension': resolve('plugins', 'dist', 'extension') } },
   build: {
