@@ -708,7 +708,7 @@ export const VerticalAnimationElement = <
       condition={onElementMountCondition}
       enclose={onElementMountEnclose.bindArgs<(...args: [(...args: [ReactNode[], ...T]) => ReactNode, T, ReactElement]) => ReactNode, Integer.Two>(factory, args)}
     >
-      {(index + renderNegativeElement.int) % Integer.Two ? getLastNestedElement(child) : child}
+      {(index + Number(renderNegativeElement)) % Integer.Two ? getLastNestedElement(child) : child}
     </Enclose>
   );
 

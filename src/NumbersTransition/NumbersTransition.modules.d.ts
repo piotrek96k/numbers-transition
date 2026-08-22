@@ -19,18 +19,12 @@ import type {
 } from './NumbersTransition.types';
 
 declare global {
-  interface Boolean {
-    readonly int: number;
-    readonly bigInt: bigint;
-  }
-
   interface NumberConstructor {
     subtract(first: number, second: number): number;
     sum(first: number, second: number): number;
   }
 
   interface Number {
-    readonly bigInt: bigint;
     toFixed(fractionDigits?: number): `${number}`;
   }
 
@@ -39,7 +33,6 @@ declare global {
   }
 
   interface String {
-    readonly bigInt: bigint;
     readonly number: number;
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;

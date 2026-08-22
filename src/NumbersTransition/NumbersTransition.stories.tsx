@@ -277,7 +277,7 @@ const mapVerticalRotateKeyframes = (
   value +
   (columnLength! / Integer.Two === rowIndex! + Integer.One / Integer.Two
     ? Integer.One / Integer.Two
-    : ((animationDirection !== AnimationDirection.Normal).int + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
+    : (Number(animationDirection !== AnimationDirection.Normal) + Math.min(rowIndex!, columnLength! - rowIndex!)) % Integer.Two);
 
 const verticalRotateAnimationFactory: AnimationViewFactory<object, number> = ({
   theme: { animationType, columnLength, ...restTheme },
@@ -424,7 +424,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
     const inputValue: string = `${baseValue.current}`;
     const hasMinus: boolean = inputValue[Integer.Zero] === Text.Minus;
     const index: number = [...inputValue].findIndex((character: string): boolean => Pattern.DecimalSeparator.test(character));
-    const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - hasMinus.int;
+    const separatorIndex: number = (index === Integer.MinusOne ? inputValue.length : index) - Number(hasMinus);
 
     return [...(hasMinus ? [Text.Minus] : []), ...(precision > Integer.Zero ? digits.insert(separatorIndex, Text.Dot) : digits)].collapse();
   };

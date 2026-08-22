@@ -2,23 +2,6 @@ import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/ex
 import type { Drop, First, Last, Nullish, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
-export class Predicate extends Extension<boolean> implements ExtensionConstructor<boolean, typeof Predicate> {
-  public static readonly type: BooleanConstructor = Boolean;
-  public static readonly literalType: LiteralType[] = [LiteralType.Boolean];
-
-  public static isType(value: unknown): value is boolean {
-    return typeof value === Typeof.Boolean || value instanceof Boolean;
-  }
-
-  public get int(): number {
-    return this.value ? Integer.One : Integer.Zero;
-  }
-
-  public get bigInt(): bigint {
-    return BigInt(this.int);
-  }
-}
-
 export class Double extends Extension<number> implements ExtensionConstructor<number, typeof Double> {
   public static readonly type: NumberConstructor = Number;
   public static readonly literalType: LiteralType[] = [LiteralType.Number];
@@ -33,10 +16,6 @@ export class Double extends Extension<number> implements ExtensionConstructor<nu
 
   public static sum(first: number, second: number): number {
     return first + second;
-  }
-
-  public get bigInt(): bigint {
-    return BigInt(this.value);
   }
 }
 
@@ -59,10 +38,6 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
 
   public static isType(value: unknown): value is string {
     return typeof value === Typeof.String || value instanceof String;
-  }
-
-  public get bigInt(): bigint {
-    return BigInt(this.value);
   }
 
   public get number(): number {
