@@ -104,6 +104,7 @@ declare global {
 
   interface FunctionConstructor {
     call<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
+    identity<T>(value: T): T;
   }
 
   interface Function {

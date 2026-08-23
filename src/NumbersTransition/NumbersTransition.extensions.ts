@@ -188,6 +188,10 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return callback(...args);
   }
 
+  public static identity<T>(value: T): T {
+    return value;
+  }
+
   public bindArgs<U extends number>(...outerArgs: Take<Parameters<T>, U>): (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
     return (...innerArgs: Drop<Parameters<T>, U>): ReturnType<T> => this.value(...outerArgs, ...innerArgs);
   }

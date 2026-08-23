@@ -53,8 +53,7 @@ import {
   ViewType,
 } from './NumbersTransition.enums';
 
-const useRerender = (): ActionDispatch<[]> =>
-  useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).at<Integer.One>(Integer.One);
+const useRerender = (): ActionDispatch<[]> => useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).last();
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
   value?.matches<UncheckedBigDecimal, BigDecimal>(Pattern.BigDecimal.test(`${value}`))
@@ -193,25 +192,34 @@ export const useAnimationNumbers = (options: UseAnimationNumbersOptions): [Anima
     renderAnimation,
   }: UseAnimationNumbersOptions = options;
 
-  const animationNumber: AnimationNumber = renderAnimation
-    ? animationTransition === AnimationTransition.SecondToThird
-      ? AnimationNumber.Three
-      : animationTransition === AnimationTransition.FirstToSecond
-        ? AnimationNumber.Two
-        : AnimationNumber.One
-    : AnimationNumber.Zero;
+  const animationNumber: AnimationNumber = [AnimationTransition.SecondToThird, AnimationTransition.FirstToSecond, AnimationTransition.None]
+    .zip<Tuple<AnimationTransition, Integer.Three>, Tuple<AnimationNumber, Integer.Three>>(
+      AnimationNumber.Three,
+      AnimationNumber.Two,
+      AnimationNumber.One,
+    )
+    .find(([transition]: [AnimationTransition, AnimationNumber]): boolean => animationTransition === transition)!
+    .last();
 
-  const numberOfAnimations: AnimationNumber = renderAnimation
-    ? hasSignChanged
-      ? (previousLength < currentLength && previousValue < currentValue) || (previousLength > currentLength && previousValue > currentValue)
-        ? AnimationNumber.Three
-        : AnimationNumber.Two
-      : previousLength !== currentLength
-        ? AnimationNumber.Two
-        : AnimationNumber.One
-    : AnimationNumber.Zero;
+  const hasThreeAnimationsValueChange: boolean =
+    (previousLength < currentLength && previousValue < currentValue) || (previousLength > currentLength && previousValue > currentValue);
 
-  return [animationNumber, numberOfAnimations];
+  const numberOfAnimations: AnimationNumber = [
+    !renderAnimation,
+    hasSignChanged && hasThreeAnimationsValueChange,
+    hasSignChanged || previousLength !== currentLength,
+    true,
+  ]
+    .zip<Tuple<boolean, Integer.Four>, Tuple<AnimationNumber, Integer.Four>>(
+      AnimationNumber.Zero,
+      AnimationNumber.Three,
+      AnimationNumber.Two,
+      AnimationNumber.One,
+    )
+    .find(([condition]: [boolean, AnimationNumber]): boolean => condition)!
+    .last();
+
+  return [renderAnimation ? animationNumber : AnimationNumber.Zero, numberOfAnimations];
 };
 
 interface UseAnimationTypeOptions {
@@ -237,19 +245,36 @@ export const useAnimationType = (options: UseAnimationTypeOptions): AnimationTyp
     numberOfAnimations,
   }: UseAnimationTypeOptions = options;
 
-  const renderHorizontalAnimationWhenNumberOfAnimationsIsTwo: boolean = hasSignChanged
-    ? animationTransition === AnimationTransition.None
-      ? previousValue > currentValue
-      : previousValue < currentValue
-    : animationTransition === AnimationTransition.None
-      ? previousLength < currentLength
-      : previousLength > currentLength;
+  const renderHorizontalAnimationForTwoAnimations: boolean = [
+    hasSignChanged && animationTransition === AnimationTransition.None,
+    hasSignChanged,
+    animationTransition === AnimationTransition.None,
+    true,
+  ]
+    .zip<Tuple<boolean, Integer.Four>, Tuple<boolean, Integer.Four>>(
+      previousValue > currentValue,
+      previousValue < currentValue,
+      previousLength < currentLength,
+      previousLength > currentLength,
+    )
+    .find(([condition]: [boolean, boolean]): boolean => condition)!
+    .last();
 
-  const renderHorizontalAnimation: boolean =
-    (numberOfAnimations === AnimationNumber.Two && renderHorizontalAnimationWhenNumberOfAnimationsIsTwo) ||
-    (numberOfAnimations === AnimationNumber.Three && animationTransition !== AnimationTransition.FirstToSecond);
+  const renderHorizontalAnimation: boolean = [AnimationNumber.Two, AnimationNumber.Three]
+    .zip<[AnimationNumber, AnimationNumber], [boolean, boolean]>(
+      renderHorizontalAnimationForTwoAnimations,
+      animationTransition !== AnimationTransition.FirstToSecond,
+    )
+    .some(([animationNumber, condition]: [AnimationNumber, boolean]): boolean => numberOfAnimations === animationNumber && condition);
 
-  return renderAnimation ? (renderHorizontalAnimation ? AnimationType.Horizontal : AnimationType.Vertical) : AnimationType.None;
+  return [!renderAnimation, renderHorizontalAnimation, true]
+    .zip<Tuple<boolean, Integer.Three>, Tuple<AnimationType, Integer.Three>>(
+      AnimationType.None,
+      AnimationType.Horizontal,
+      AnimationType.Vertical,
+    )
+    .find(([condition]: [boolean, AnimationType]): boolean => condition)!
+    .last();
 };
 
 interface UseAnimationDirectionOptions {
@@ -275,11 +300,14 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
     numberOfAnimations,
   }: UseAnimationDirectionOptions = options;
 
-  const horizontalAnimationDirection: AnimationDirection =
-    (numberOfAnimations === AnimationNumber.Two && (hasSignChanged ? previousValue > currentValue : previousLength < currentLength)) ||
-    (numberOfAnimations === AnimationNumber.Three && animationTransition === AnimationTransition.None)
-      ? AnimationDirection.Normal
-      : AnimationDirection.Reverse;
+  // prettier-ignore
+  const horizontalAnimationDirection: AnimationDirection = [AnimationNumber.Two, AnimationNumber.Three]
+    .zip<[AnimationNumber, AnimationNumber], [boolean, boolean]>(
+      hasSignChanged ? previousValue > currentValue : previousLength < currentLength,
+      animationTransition === AnimationTransition.None,
+    )
+    .some(([animationNumber, condition]: [AnimationNumber, boolean]): boolean => numberOfAnimations === animationNumber && condition)
+    .pipe<boolean, AnimationDirection>((cond: boolean): AnimationDirection => (cond ? AnimationDirection.Normal : AnimationDirection.Reverse));
 
   const verticalAnimationDirection: AnimationDirection =
     previousValue < currentValue ? AnimationDirection.Normal : AnimationDirection.Reverse;
@@ -291,7 +319,7 @@ export const useAnimationDirection = (options: UseAnimationDirectionOptions): An
       verticalAnimationDirection,
     )
     .find(([animation]: [AnimationType, AnimationDirection]): boolean => animation === animationType)!
-    .at<Integer.One>(Integer.One);
+    .last();
 };
 
 // prettier-ignore
@@ -449,7 +477,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       verticalAnimationDuration,
     )
     .find(([animation]: [AnimationType, number]): boolean => animation === animationType)!
-    .at<Integer.One>(Integer.One);
+    .last();
 
   const totalAnimationDuration: number = [AnimationNumber.Zero, AnimationNumber.One, AnimationNumber.Two, AnimationNumber.Three]
     .zip<Tuple<AnimationNumber, Integer.Four>, Tuple<number, Integer.Four>>(
@@ -459,7 +487,7 @@ export const useAnimationDuration = (options: UseAnimationDurationOptions): Tupl
       Integer.Two * horizontalAnimationDuration + verticalAnimationDuration,
     )
     .find(([animationNumber]: [AnimationNumber, number]): boolean => animationNumber === numberOfAnimations)!
-    .at<Integer.One>(Integer.One);
+    .last();
 
   return [currentAnimationDuration, horizontalAnimationDuration, verticalAnimationDuration, totalAnimationDuration];
 };
@@ -673,23 +701,26 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
     animationType,
   }: UseRenderNegativeElementOptions = options;
 
-  const renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti: boolean = !(
-    renderAnimation &&
-    animationType !== AnimationType.Horizontal &&
-    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi
-  );
+  const renderNegativeElementForNotMultiCharacterAnimationMode: boolean = ![
+    renderAnimation,
+    animationType !== AnimationType.Horizontal,
+    negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi,
+  ].every(Function.identity<boolean>);
 
-  const renderNegativeElementWhenNumberOfAnimationsIsThree: boolean =
-    animationType === AnimationType.Horizontal &&
-    numberOfAnimations === AnimationNumber.Three &&
-    previousValueOnEnd < currentValue === (animationTransition === AnimationTransition.None);
+  const renderNegativeElementForThreeAnimations: boolean = [
+    animationType === AnimationType.Horizontal,
+    numberOfAnimations === AnimationNumber.Three,
+    previousValueOnEnd < currentValue === (animationTransition === AnimationTransition.None),
+  ].every(Function.identity<boolean>);
 
-  const renderNegativeElement: boolean = restartAnimation
-    ? previousValueOnStart < Integer.Zero
-    : (!hasSignChanged && currentValue < Integer.Zero && renderNegativeElementWhenNegativeCharacterAnimationModeIsNotMulti) ||
-      renderNegativeElementWhenNumberOfAnimationsIsThree;
+  const renderNegativeElement: boolean = [
+    [!hasSignChanged, currentValue < Integer.Zero, renderNegativeElementForNotMultiCharacterAnimationMode].every(
+      Function.identity<boolean>,
+    ),
+    renderNegativeElementForThreeAnimations,
+  ].some(Function.identity<boolean>);
 
-  return renderNegativeElement;
+  return restartAnimation ? previousValueOnStart < Integer.Zero : renderNegativeElement;
 };
 
 interface UseRenderHorizontalAnimationNegativeElementOptions {
@@ -707,9 +738,13 @@ export const useRenderHorizontalAnimationNegativeElement = ({
   hasSignChanged,
   numberOfAnimations,
 }: UseRenderHorizontalAnimationNegativeElementOptions): boolean =>
-  hasSignChanged &&
-  (numberOfAnimations === AnimationNumber.Two ||
-    previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird));
+  [
+    hasSignChanged,
+    [
+      numberOfAnimations === AnimationNumber.Two,
+      previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird),
+    ].some(Function.identity<boolean>),
+  ].every(Function.identity<boolean>);
 
 interface UseRenderVerticalAnimationNegativeElementOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
@@ -722,7 +757,12 @@ export const useRenderVerticalAnimationNegativeElement = ({
   currentValue,
   hasSignChanged,
 }: UseRenderVerticalAnimationNegativeElementOptions): boolean =>
-  hasSignChanged || (currentValue < Integer.Zero && negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi);
+  [
+    hasSignChanged,
+    [currentValue < Integer.Zero, negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi].every(
+      Function.identity<boolean>,
+    ),
+  ].some(Function.identity<boolean>);
 
 interface UseNegativeElementAnimationVisibilitiesOptions {
   animationDigits: number[][];
@@ -890,7 +930,7 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
         solveForThreeRoots,
       )
       .find(([condition]: [(disc: number) => boolean, (...args: [Tuple<number, Integer.Four>, [number, number], number]) => number[]]): boolean => condition(discriminant))!
-      .at<Integer.One>(Integer.One)
+      .last()
       .call<undefined, [Tuple<number, Integer.Four>, [number, number], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
 
   // prettier-ignore
@@ -923,7 +963,7 @@ const useStepsSolver = (): Solve<StepsEasingFunction> => ({ steps, stepPosition 
       Math.floor(outputValue * (steps + Integer.One)) / steps,
     )
     .find(([position]: [StepPosition, number]): boolean => position === stepPosition)!
-    .at<Integer.One>(Integer.One),
+    .last(),
 ];
 
 interface UseNegativeElementAnimationTimingFunctionOptions {

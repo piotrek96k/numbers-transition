@@ -381,7 +381,7 @@ const animationName = ({ theme: { animationType }, ...restProps }: AnimationProp
   [AnimationType.Horizontal, AnimationType.Vertical]
     .zip<[AnimationType, AnimationType], [(props: AnimationWidthProps) => Keyframes, Keyframes]>(horizontalAnimation, verticalAnimation)
     .find(([animation]: [AnimationType, OrFunction<[AnimationWidthProps], Keyframes>]): boolean => animation === animationType)!
-    .at<Integer.One>(Integer.One)
+    .last()
     .callOrGet<[NoThemeHorizontalAnimationProps], [NoThemeVerticalAnimationProps], Keyframes>(restProps);
 
 const animation: RuleSet<AnimationProps> = css<AnimationProps>`
