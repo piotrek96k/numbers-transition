@@ -772,7 +772,7 @@ interface UseNegativeElementAnimationVisibilitiesOptions {
 // prettier-ignore
 export const useNegativeElementAnimationVisibilities = ({ animationDigits, hasSignChanged }: UseNegativeElementAnimationVisibilitiesOptions): boolean[] =>
   animationDigits
-    .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits.first())!
+    .find(({ length, ...digits }: number[]): boolean => length > Integer.One || !!digits[Integer.Zero])!
     .map<boolean>((digit: number, index: number, digits: number[]): boolean => !index || (!!digit && digits[index - Integer.One] > digit) || !hasSignChanged);
 
 type Solve<T extends EasingFunction> = (easingFunction: T, outputValue: number) => number[];
