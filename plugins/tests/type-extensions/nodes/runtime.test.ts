@@ -77,7 +77,7 @@ it<object>('generate runtime methods', (): void => {
 
     proxy[0-9a-f]+ = \(value, types = defaultTypes[0-9a-f]+, key\) => { 
       const found = types\.filter\(\({ type, isStatic }\) => 
-        isStatic \? value === type\.type \|\| typeof type\.type === "function" && value\.prototype instanceof type\.type : type\.isType\(value\)\);
+        isStatic \? value \!== void 0 && \(value === type\.type \|\| typeof type\.type === "function" && value\.prototype instanceof type\.type\) : type\.isType\(value\)\);
       return found\.length \? key \!== void 0 \? wrap[0-9a-f]+\(value, found, key\) : merge[0-9a-f]+\(value, found\) : value;
     };
   `;

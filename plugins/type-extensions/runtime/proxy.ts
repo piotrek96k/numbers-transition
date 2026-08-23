@@ -26,23 +26,31 @@ const generateStaticTypeCheck = (): BinaryExpression =>
   factory.createBinaryExpression(
     factory.createBinaryExpression(
       factory.createIdentifier(ArgName.Value),
-      factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
-      factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+      factory.createToken(SyntaxKind.ExclamationEqualsEqualsToken),
+      factory.createVoidZero(),
     ),
-    factory.createToken(SyntaxKind.BarBarToken),
+    factory.createToken(SyntaxKind.AmpersandAmpersandToken),
     factory.createBinaryExpression(
       factory.createBinaryExpression(
-        factory.createTypeOfExpression(
+        factory.createIdentifier(ArgName.Value),
+        factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
+        factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+      ),
+      factory.createToken(SyntaxKind.BarBarToken),
+      factory.createBinaryExpression(
+        factory.createBinaryExpression(
+          factory.createTypeOfExpression(
+            factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
+          ),
+          factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
+          factory.createStringLiteral(Typeof.Function),
+        ),
+        factory.createToken(SyntaxKind.AmpersandAmpersandToken),
+        factory.createBinaryExpression(
+          factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Value), PropertyName.Prototype),
+          factory.createToken(SyntaxKind.InstanceOfKeyword),
           factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
         ),
-        factory.createToken(SyntaxKind.EqualsEqualsEqualsToken),
-        factory.createStringLiteral(Typeof.Function),
-      ),
-      factory.createToken(SyntaxKind.AmpersandAmpersandToken),
-      factory.createBinaryExpression(
-        factory.createPropertyAccessExpression(factory.createIdentifier(ArgName.Value), PropertyName.Prototype),
-        factory.createToken(SyntaxKind.InstanceOfKeyword),
-        factory.createPropertyAccessExpression(factory.createIdentifier(VariableName.Type), PropertyName.Type),
       ),
     ),
   );
