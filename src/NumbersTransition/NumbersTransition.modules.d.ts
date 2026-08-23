@@ -53,6 +53,7 @@ declare global {
   }
 
   interface ArrayConstructor {
+    first<T extends unknown[]>(array: T): First<T>;
     isArray<T>(arg: OrArray<T>): arg is T[];
     isArray<T, U extends OrReadOnly<unknown[]>>(arg: T | U): arg is T extends OrReadOnly<unknown[]> ? T | U : U;
     range(size: number): number[];

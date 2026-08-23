@@ -102,6 +102,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return Array.isArray<unknown>(value);
   }
 
+  public static first<T extends unknown[]>(array: T): First<T> {
+    return array[Integer.Zero];
+  }
+
   public static range(size: number): number[] {
     return [...Array<unknown>(size).keys()];
   }

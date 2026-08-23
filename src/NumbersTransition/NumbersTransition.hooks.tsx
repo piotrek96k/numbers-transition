@@ -216,7 +216,7 @@ export const useAnimationNumbers = (options: UseAnimationNumbersOptions): [Anima
       AnimationNumber.Two,
       AnimationNumber.One,
     )
-    .find(([condition]: [boolean, AnimationNumber]): boolean => condition)!
+    .find(Array.first<[boolean, AnimationNumber]>)!
     .last();
 
   return [renderAnimation ? animationNumber : AnimationNumber.Zero, numberOfAnimations];
@@ -257,7 +257,7 @@ export const useAnimationType = (options: UseAnimationTypeOptions): AnimationTyp
       previousLength < currentLength,
       previousLength > currentLength,
     )
-    .find(([condition]: [boolean, boolean]): boolean => condition)!
+    .find(Array.first<[boolean, boolean]>)!
     .last();
 
   const renderHorizontalAnimation: boolean = [AnimationNumber.Two, AnimationNumber.Three]
@@ -273,7 +273,7 @@ export const useAnimationType = (options: UseAnimationTypeOptions): AnimationTyp
       AnimationType.Horizontal,
       AnimationType.Vertical,
     )
-    .find(([condition]: [boolean, AnimationType]): boolean => condition)!
+    .find(Array.first<[boolean, AnimationType]>)!
     .last();
 };
 
@@ -807,7 +807,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
   const filterInterval = (out: number, index: number, array: [number, number][]): unknown =>
     index &&
     array
-      .map<number>(([value]: [number, number]): number => value)
+      .map<number>(Array.first<[number, number]>)
       .sort(Number.subtract)
       .pipe<boolean>(([first, second]: number[]): boolean => (index === Integer.One ? out >= first : out > first) && out <= second);
 

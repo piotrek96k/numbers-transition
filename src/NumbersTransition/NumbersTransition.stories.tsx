@@ -507,7 +507,7 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
       );
 
     const freeIndex: number = reorderedDigitsIndexes.findIndex(([, index]: [string, number]): boolean => index === dragIdx);
-    const reorderedDigits: string[] = reorderedDigitsIndexes.map<string>(([digit]: [string, number]): string => digit);
+    const reorderedDigits: string[] = reorderedDigitsIndexes.map<string>(Array.first<[string, number]>);
     const newValue: string = readValue(reorderedDigits);
 
     const isNewValueValid: boolean =
