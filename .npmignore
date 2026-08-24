@@ -7,6 +7,7 @@ node_modules
 plugins
 src
 storybook-static
+tests
 .gitattributes
 .gitignore
 .lintstagedrc.json
