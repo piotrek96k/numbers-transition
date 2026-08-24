@@ -143,7 +143,7 @@ it<object>('not rewrite nested class this', (): void => {
   `;
 
   const expectedOutput: string = String.raw`
-    import Extension, { ExtensionConstructor }from 'type-extensions/extension';
+    import Extension, { ExtensionConstructor } from 'type-extensions/extension';
 
     .*
 
