@@ -13,11 +13,11 @@ export type ReactElement = UnknownReactElement<{ children?: ReactNode }>;
 export type ReactNode = Exclude<UnknownReactNode, UnknownReactElement> | ReactElement;
 
 // Base Types
-export type Primitive = boolean | string | number | bigint | null | undefined;
+export type Nil = undefined | null;
 
-export type Nullish = undefined | null;
+export type Primitive = boolean | string | number | bigint | Nil;
 
-export type Falsy = false | `${Text.Empty}` | ParseNumber<`${Integer.Zero}`> | ParseBigInt<`${Integer.Zero}`> | null | undefined;
+export type Falsy = false | `${Text.Empty}` | ParseNumber<`${Integer.Zero}`> | ParseBigInt<`${Integer.Zero}`> | Nil;
 
 export type UncheckedBigDecimal = number | bigint | string;
 

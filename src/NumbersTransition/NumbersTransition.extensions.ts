@@ -1,5 +1,5 @@
 import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/extension';
-import type { Drop, First, Last, Nullish, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
+import type { Drop, First, Last, Nil, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
 export class Double extends Extension<number> implements ExtensionConstructor<number, typeof Double> {
@@ -62,7 +62,7 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
   public static readonly literalType: LiteralType[] = Object.values<LiteralType>(LiteralType);
 
   public static isType(value: unknown): value is object {
-    return [undefined, null].every((nullish: Nullish): boolean => value !== nullish);
+    return [undefined, null].every((nil: Nil): boolean => value !== nil);
   }
 
   public callOrGet(...args: T extends (...args: infer U) => any ? U : never): (T extends (...args: any[]) => infer U ? U : never) | T {
