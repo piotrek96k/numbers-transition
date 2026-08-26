@@ -24,10 +24,6 @@ declare global {
     sum(first: number, second: number): number;
   }
 
-  interface Number {
-    toFixed(fractionDigits?: number): `${number}`;
-  }
-
   interface BigInt {
     readonly digit: number;
   }
@@ -36,7 +32,6 @@ declare global {
     readonly number: number;
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;
-    remove(searchValue: string | RegExp): string;
     take(size: number): string;
   }
 

@@ -48,7 +48,6 @@ import {
   StepPosition,
   Styled,
   Text,
-  Typeof,
   ViewKey,
   ViewType,
 } from './NumbersTransition.enums';
@@ -56,11 +55,7 @@ import {
 const useRerender = (): ActionDispatch<[]> => useReducer<number, []>((value: number): number => value + Integer.One, Integer.Zero).last();
 
 export const useValidation = (value?: UncheckedBigDecimal, validValue: BigDecimal = Integer.Zero): [BigDecimal, boolean] =>
-  value?.matches<UncheckedBigDecimal, BigDecimal>(Pattern.BigDecimal.test(`${value}`))
-    ? [value, true]
-    : typeof value === Typeof.Number
-      ? [Number(value).toFixed(Integer.OneHundred), true]
-      : [validValue, false];
+  value?.matches<UncheckedBigDecimal, BigDecimal>(Pattern.BigDecimal.test(`${value}`)) ? [value, true] : [validValue, false];
 
 export const useValue = (
   value: Optional<UncheckedBigDecimal>,
@@ -109,24 +104,37 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const splitFloatingPoint = (value: BigDecimal): string[] => `${value}`.split(Pattern.DecimalSeparator);
+  const splitExponent = (value: BigDecimal): string[] => `${value}`.split(Pattern.Exponent);
 
-  const parseFloatingPoint = ([integer, fraction = Text.Empty]: string[]): string => {
+  const parseExponent = ([value, { number: exponent } = `${Integer.Zero}`]: string[]): [string, string, string] => {
+    const [minus, number]: string[] = value.match(Text.Minus) ? [Text.Minus, value.slice(Integer.One)] : [Text.Empty, value];
+    const [integer, fraction = Text.Empty]: string[] = number.split(Pattern.DecimalSeparator);
+
+    return exponent >= Integer.Zero
+      ? [minus, `${integer}${fraction.take(exponent).padEnd(exponent, `${Integer.Zero}`)}`, fraction.slice(exponent)]
+      : [minus, integer.take(exponent), `${integer.slice(exponent).padStart(-exponent, `${Integer.Zero}`)}${fraction}`];
+  };
+
+  const parseFloatingPoint = ([minus, integer, fraction]: [string, string, string]): string => {
     const [digits, rest]: [string, string] =
       precision >= Integer.Zero
-        ? [`${integer.remove(Text.Minus)}${fraction.take(precision)}`, fraction.slice(precision)]
-        : [integer.remove(Text.Minus).take(precision), `${integer.remove(Text.Minus).slice(precision)}${fraction}`];
+        ? [`${integer}${fraction.take(precision)}`, fraction.slice(precision)]
+        : [integer.take(precision), `${integer.slice(precision)}${fraction}`];
 
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
     const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
 
-    return [...(integer.match(Text.Minus) ?? []), `${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)].collapse();
+    return `${minus}${`${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)}`;
   };
 
   // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .mapEach<[string[], string], [[string[], string[], string[]], [string, string, string]]>(splitFloatingPoint, parseFloatingPoint);
+    .mapEach<[string[], [string, string, string], string], [[string[], string[], string[]], Tuple<[string, string, string], Integer.Three>, [string, string, string]]>(
+      splitExponent, 
+      parseExponent, 
+      parseFloatingPoint,
+    );
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
