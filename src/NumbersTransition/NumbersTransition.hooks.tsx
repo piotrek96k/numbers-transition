@@ -130,7 +130,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .mapEach<[string[], [string, string, string], string], [[string[], string[], string[]], Tuple<[string, string, string], Integer.Three>, [string, string, string]]>(
+    .mapEach<[string[], [string, string, string], string], Integer.Three>(
       splitExponent, 
       parseExponent, 
       parseFloatingPoint,
@@ -356,7 +356,7 @@ const useLinearDirection = (animationDirection: AnimationDirection): FixDirectio
     { length, [length - index - Integer.One]: value }: OrReadOnly<OrReadOnly<LinearEasingFunction[number]>[]>,
   ): LinearEasingFunction[number] =>
     Array.isArray<number, OrReadOnly<Tuple<number, Integer.Two | Integer.Three>>>(value)
-      ? value.map<number, Tuple<number, Integer.Two | Integer.Three>>(reverseLinearTuple)
+      ? value.map<number, Integer.Two | Integer.Three>(reverseLinearTuple)
       : Integer.One - value;
 
   return (easingFunction: OrReadOnly<LinearEasingFunction>): LinearEasingFunction =>
@@ -366,16 +366,16 @@ const useLinearDirection = (animationDirection: AnimationDirection): FixDirectio
 };
 
 const useCubicBezierDirection = (animationDirection: AnimationDirection): FixDirection<CubicBezierEasingFunction> => {
-  const copyCubicBezier = (tuple: OrReadOnly<CubicBezierEasingFunction[number]>): number[] => [...tuple];
+  const copyCubicBezier = (tuple: OrReadOnly<CubicBezierEasingFunction[number]>): [number, number] => [...tuple];
 
   const reverseCubicBezier = (
     _: OrReadOnly<CubicBezierEasingFunction[number]>,
     index: number,
     easingFunction: OrReadOnly<OrReadOnly<CubicBezierEasingFunction[number]>[]>,
-  ): number[] => easingFunction[Integer.One - index].map<number>((number: number): number => Integer.One - number);
+  ): [number, number] => easingFunction[Integer.One - index].map<number, Integer.Two>((number: number): number => Integer.One - number);
 
   return (easingFunction: OrReadOnly<CubicBezierEasingFunction>): CubicBezierEasingFunction =>
-    easingFunction.map<number[], CubicBezierEasingFunction>(
+    easingFunction.map<[number, number], CubicBezierEasingFunction>(
       animationDirection === AnimationDirection.Normal ? copyCubicBezier : reverseCubicBezier,
     );
 };
@@ -849,7 +849,7 @@ const useLinearSolver = (): Solve<LinearEasingFunction> => {
 
 const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
   const mapControlPoints = (_: [number, number], index: number, array: [number, number][]): [number, number] =>
-    array.map<number, [number, number]>((tuple: [number, number]): number => tuple[index]);
+    array.map<number, Integer.Two>((tuple: [number, number]): number => tuple[index]);
 
   const calculateCoefficients = ([firstPoint, secondPoint]: [number, number]): [number, number, number] => [
     Integer.Three * (firstPoint - secondPoint) + Integer.One,
@@ -1141,7 +1141,7 @@ export const useVerticalAnimationDigits = (options: UseVerticalAnimationDigitsOp
   // prettier-ignore
   const createDigitValues = ([first, second]: Tuple<[bigint, bigint][], Integer.Two>, index: number): Tuple<[bigint, bigint][], Integer.Two> =>
     [previousValue, currentValue]
-      .map<bigint, [bigint, bigint]>((val: bigint): bigint => val / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
+      .map<bigint, Integer.Two>((val: bigint): bigint => val / BigInt(Integer.Ten) ** BigInt(maxNumberOfDigits - index - Integer.One))
       .sort((first: bigint, second: bigint): number => (first < second ? Integer.MinusOne : Number(first > second)))
       .pipe<Tuple<[bigint, bigint][], Integer.Two>>(([start, end]: [bigint, bigint]): Tuple<[bigint, bigint][], Integer.Two> =>
         end - start < incrementThreshold ? [[...first, [start, end]], second] : [first, [...second, [start, end]]],
