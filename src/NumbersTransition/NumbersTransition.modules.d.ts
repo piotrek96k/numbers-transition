@@ -32,6 +32,7 @@ declare global {
     readonly number: number;
     capitalize(): string;
     capitalize<T extends string>(this: T): Capitalize<T>;
+    partition(index: number): [string, string];
     take(size: number): string;
   }
 

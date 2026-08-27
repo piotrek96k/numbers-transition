@@ -48,6 +48,10 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
     return `${this.value[Integer.Zero].toUpperCase()}${this.value.slice(Integer.One)}`;
   }
 
+  public partition(index: number): [string, string] {
+    return [this.value.slice(Integer.Zero, index), this.value.slice(index)];
+  }
+
   public take(size: number): string {
     return this.value.slice(Integer.Zero, size);
   }

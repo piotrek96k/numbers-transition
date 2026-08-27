@@ -107,7 +107,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
   const splitExponent = (value: BigDecimal): string[] => `${value}`.split(Pattern.Exponent);
 
   const parseExponent = ([value, { number: exponent } = `${Integer.Zero}`]: string[]): [string, string, string] => {
-    const [minus, number]: string[] = value.match(Text.Minus) ? [Text.Minus, value.slice(Integer.One)] : [Text.Empty, value];
+    const [minus, number]: [string, string] = value.partition(Number(value.startsWith(Text.Minus)));
     const [integer, fraction = Text.Empty]: string[] = number.split(Pattern.DecimalSeparator);
 
     return exponent >= Integer.Zero
