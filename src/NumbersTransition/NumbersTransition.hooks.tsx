@@ -104,16 +104,28 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const splitExponent = (value: BigDecimal): string[] => `${value}`.split(Pattern.Exponent);
+  const splitExponent = (value: BigDecimal): [string, number] =>
+    `${value}`
+      .split(Pattern.Exponent)
+      .pipe<[string, number]>(([number, { number: exponent } = `${Integer.Zero}`]: string[]): [string, number] => [number, exponent]);
 
-  const parseExponent = ([value, { number: exponent } = `${Integer.Zero}`]: string[]): [string, string, string] => {
-    const [minus, number]: [string, string] = value.partition(Number(value.startsWith(Text.Minus)));
-    const [integer, fraction = Text.Empty]: string[] = number.split(Pattern.DecimalSeparator);
+  const splitMinus = ([number, exponent]: [string, number]): [string, string, number] => [
+    ...number.partition(Number(number.startsWith(Text.Minus))),
+    exponent,
+  ];
 
-    return exponent >= Integer.Zero
+  const splitFloatingPoint = ([minus, number, exponent]: [string, string, number]): [string, string, string, number] => [
+    minus,
+    ...number
+      .split(Pattern.DecimalSeparator)
+      .pipe<[string, string]>(([integer, fraction = Text.Empty]: string[]): [string, string] => [integer, fraction]),
+    exponent,
+  ];
+
+  const parseExponent = ([minus, integer, fraction, exponent]: [string, string, string, number]): [string, string, string] =>
+    exponent >= Integer.Zero
       ? [minus, `${integer}${fraction.take(exponent).padEnd(exponent, `${Integer.Zero}`)}`, fraction.slice(exponent)]
       : [minus, integer.take(exponent), `${integer.slice(exponent).padStart(-exponent, `${Integer.Zero}`)}${fraction}`];
-  };
 
   const parseFloatingPoint = ([minus, integer, fraction]: [string, string, string]): string => {
     const [digits, rest]: [string, string] =
@@ -130,7 +142,13 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .mapEach<[string[], [string, string, string], string], Integer.Three>(splitExponent, parseExponent, parseFloatingPoint);
+    .mapEach<[[string, number], [string, string, number], [string, string, string, number], [string, string, string], string], Integer.Three>(
+      splitExponent, 
+      splitMinus, 
+      splitFloatingPoint, 
+      parseExponent, 
+      parseFloatingPoint,
+    );
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
