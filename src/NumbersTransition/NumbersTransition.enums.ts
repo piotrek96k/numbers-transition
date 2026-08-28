@@ -291,7 +291,7 @@ export enum Integer {
 
 export const Pattern = {
   BigDecimal: /^-?(([1-9]\d*)|0)((\.|,)\d+)?((e|E)-?\d+)?$/,
-  Digit: /^\d{1}$/,
+  Digit: /^\d$/,
   DecimalSeparator: /\.|,/,
   Exponent: /e|E/,
 } as const;
