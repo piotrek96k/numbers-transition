@@ -130,11 +130,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .mapEach<[string[], [string, string, string], string], Integer.Three>(
-      splitExponent, 
-      parseExponent, 
-      parseFloatingPoint,
-    );
+    .mapEach<[string[], [string, string, string], string], Integer.Three>(splitExponent, parseExponent, parseFloatingPoint);
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
