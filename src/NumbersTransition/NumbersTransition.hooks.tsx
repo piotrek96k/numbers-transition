@@ -104,36 +104,16 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const splitExponent = (value: BigDecimal): [string, number] =>
-    `${value}`
-      .split(Pattern.Exponent)
-      .pipe<[string, number]>(([number, { number: exponent } = `${Integer.Zero}`]: string[]): [string, number] => [number, exponent]);
-
-  const splitMinus = ([number, exponent]: [string, number]): [string, string, number] => [
-    ...number.partition(Number(number.startsWith(Text.Minus))),
-    exponent,
-  ];
-
-  const splitFloatingPoint = ([minus, number, exponent]: [string, string, number]): [string, string, string, number] => [
-    minus,
-    ...number
-      .split(Pattern.DecimalSeparator)
-      .pipe<[string, string]>(([integer, fraction = Text.Empty]: string[]): [string, string] => [integer, fraction]),
-    exponent,
-  ];
-
-  const moveDigits = (integer: string, fraction: string, shift: number, pad: boolean): [string, string] =>
+  const shiftDigits = ([integer, fraction = Text.Empty]: string[], shift: number, pad: boolean): [string, string] =>
     shift >= Integer.Zero
       ? [`${integer}${fraction.take(shift).padEnd(Number(pad) && shift, `${Integer.Zero}`)}`, fraction.slice(shift)]
       : [integer.take(shift), `${integer.slice(shift).padStart(Number(pad) && -shift, `${Integer.Zero}`)}${fraction}`];
 
-  const parseExponent = ([minus, integer, fraction, exponent]: [string, string, string, number]): [string, string, string] => [
-    minus,
-    ...moveDigits(integer, fraction, exponent, true),
-  ];
-
-  const parseFloatingPoint = ([minus, integer, fraction]: [string, string, string]): string => {
-    const [digits, rest]: [string, string] = moveDigits(integer, fraction, precision, false);
+  const parseBigDecimal = (bigDecimal: BigDecimal): string => {
+    const [number, { number: exponent } = `${Integer.Zero}`]: string[] = `${bigDecimal}`.split(Pattern.Exponent);
+    const [minus, float]: [string, string] = number.partition(Number(number.startsWith(Text.Minus)));
+    const [integer, fraction]: [string, string] = shiftDigits(float.split(Pattern.DecimalSeparator), exponent, true);
+    const [digits, rest]: [string, string] = shiftDigits([integer, fraction], precision, false);
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
     const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
@@ -143,13 +123,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
 
   // prettier-ignore
   const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .mapEach<[[string, number], [string, string, number], [string, string, string, number], [string, string, string], string], Integer.Three>(
-      splitExponent, 
-      splitMinus, 
-      splitFloatingPoint, 
-      parseExponent, 
-      parseFloatingPoint,
-    );
+    .map<string, Integer.Three>(parseBigDecimal);
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
     [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
