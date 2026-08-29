@@ -122,17 +122,18 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     exponent,
   ];
 
-  const parseExponent = ([minus, integer, fraction, exponent]: [string, string, string, number]): [string, string, string] =>
-    exponent >= Integer.Zero
-      ? [minus, `${integer}${fraction.take(exponent).padEnd(exponent, `${Integer.Zero}`)}`, fraction.slice(exponent)]
-      : [minus, integer.take(exponent), `${integer.slice(exponent).padStart(-exponent, `${Integer.Zero}`)}${fraction}`];
+  const moveDigits = (integer: string, fraction: string, shift: number, pad: boolean): [string, string] =>
+    shift >= Integer.Zero
+      ? [`${integer}${fraction.take(shift).padEnd(Number(pad) && shift, `${Integer.Zero}`)}`, fraction.slice(shift)]
+      : [integer.take(shift), `${integer.slice(shift).padStart(Number(pad) && -shift, `${Integer.Zero}`)}${fraction}`];
+
+  const parseExponent = ([minus, integer, fraction, exponent]: [string, string, string, number]): [string, string, string] => [
+    minus,
+    ...moveDigits(integer, fraction, exponent, true),
+  ];
 
   const parseFloatingPoint = ([minus, integer, fraction]: [string, string, string]): string => {
-    const [digits, rest]: [string, string] =
-      precision >= Integer.Zero
-        ? [`${integer}${fraction.take(precision)}`, fraction.slice(precision)]
-        : [integer.take(precision), `${integer.slice(precision)}${fraction}`];
-
+    const [digits, rest]: [string, string] = moveDigits(integer, fraction, precision, false);
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
     const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
