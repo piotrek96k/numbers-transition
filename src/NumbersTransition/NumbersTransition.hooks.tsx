@@ -1086,7 +1086,7 @@ export const useHorizontalAnimationWidths = (options: UseHorizontalAnimationWidt
         width,
         marginLeft,
         marginRight,
-        ...(boxSizing === BoxSizing.BorderBox ? [] : [paddingLeft, paddingRight, borderLeftWidth, borderRightWidth]),
+        ...[paddingLeft, paddingRight, borderLeftWidth, borderRightWidth].when(boxSizing !== BoxSizing.BorderBox),
       ]
         .map<number>(({ number }: string): number => number)
         .reduce(Number.sum),
