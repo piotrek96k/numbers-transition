@@ -126,7 +126,7 @@ export const useAnimationValues = (options: UseAnimationValuesOptions): Animatio
     .map<string, Integer.Three>(parseBigDecimal);
 
   const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
-    [...characters].filter((character: string): boolean => Pattern.Digit.test(character)).map<number>(Number),
+    [...characters].filter(Pattern.Digit.bind<RegExp>().test).map<number>(Number),
   );
 
   const bigInts: [bigint, bigint, bigint] = characters.map<bigint>(BigInt);

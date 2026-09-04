@@ -2,6 +2,24 @@ import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/ex
 import type { Drop, First, Last, Nil, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
+class BoundProxyHandler<T extends object> implements ProxyHandler<T> {
+  public static readonly bound: symbol = Symbol();
+
+  public get(target: T, property: string | symbol, receiver: unknown): unknown {
+    const value: T[keyof T] | symbol =
+      property === BoundProxyHandler.bound ? BoundProxyHandler.bound : Reflect.get<T, string | symbol>(target, property, receiver);
+    return Callable.isType(value) ? value.bind<T, [], unknown[], unknown>(target) : value;
+  }
+}
+
+class BoundExtensionProxy {
+  public static of<T, U extends Extension<T>>(extension: U): U {
+    return Object(extension.value)[BoundProxyHandler.bound] === BoundProxyHandler.bound
+      ? new Proxy<U>(extension, new BoundProxyHandler<U>())
+      : extension;
+  }
+}
+
 export class Double extends Extension<number> implements ExtensionConstructor<number, typeof Double> {
   public static readonly type: NumberConstructor = Number;
   public static readonly literalType: LiteralType[] = [LiteralType.Number];
@@ -17,6 +35,11 @@ export class Double extends Extension<number> implements ExtensionConstructor<nu
   public static sum(first: number, second: number): number {
     return first + second;
   }
+
+  public constructor(value: number) {
+    super(value);
+    return BoundExtensionProxy.of<number, Double>(this);
+  }
 }
 
 export class Long extends Extension<bigint> implements ExtensionConstructor<bigint, typeof Long> {
@@ -24,7 +47,12 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
   public static readonly literalType: LiteralType[] = [LiteralType.BigInt];
 
   public static isType(value: unknown): value is bigint {
-    return typeof value === Typeof.BigInt;
+    return typeof value === Typeof.BigInt || value instanceof BigInt;
+  }
+
+  public constructor(value: bigint) {
+    super(value);
+    return BoundExtensionProxy.of<bigint, Long>(this);
   }
 
   public get digit(): number {
@@ -38,6 +66,11 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
 
   public static isType(value: unknown): value is string {
     return typeof value === Typeof.String || value instanceof String;
+  }
+
+  public constructor(value: string) {
+    super(value);
+    return BoundExtensionProxy.of<string, Str>(this);
   }
 
   public get number(): number {
@@ -63,6 +96,15 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
 
   public static isType(value: unknown): value is object {
     return [undefined, null].every((nil: Nil): boolean => value !== nil);
+  }
+
+  public constructor(value: T) {
+    super(value);
+    return BoundExtensionProxy.of<T, Struct<T>>(this);
+  }
+
+  public bind(): T {
+    return new Proxy<T>(Object(this.value), new BoundProxyHandler<T>());
   }
 
   public callOrGet(...args: T extends (...args: infer U) => any ? U : never): (T extends (...args: any[]) => infer U ? U : never) | T {
@@ -112,6 +154,11 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
   public static toArray<T>(value: OrArray<T>): T[] {
     return Array.isArray<T>(value) ? value : [value];
+  }
+
+  public constructor(value: T[]) {
+    super(value);
+    return BoundExtensionProxy.of<T[], List<T>>(this);
   }
 
   // prettier-ignore
@@ -196,6 +243,11 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     return value;
   }
 
+  public constructor(value: T) {
+    super(value);
+    return BoundExtensionProxy.of<T, Callable<T>>(this);
+  }
+
   public bindArgs<U extends number>(...outerArgs: Take<Parameters<T>, U>): (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
     return (...innerArgs: Drop<Parameters<T>, U>): ReturnType<T> => this.value(...outerArgs, ...innerArgs);
   }
@@ -229,6 +281,11 @@ export class Calc extends Extension<never> implements ExtensionConstructor<never
   public static roundTo(value: number, precision: number): number {
     return Math.round(value * Integer.Ten ** precision) / Integer.Ten ** precision;
   }
+
+  public constructor(value: never) {
+    super(value);
+    return BoundExtensionProxy.of<never, Calc>(this);
+  }
 }
 
 export class Element extends Extension<HTMLElement> implements ExtensionConstructor<HTMLElement, typeof Element> {
@@ -236,6 +293,11 @@ export class Element extends Extension<HTMLElement> implements ExtensionConstruc
 
   public static isType(value: unknown): value is HTMLElement {
     return value instanceof HTMLElement;
+  }
+
+  public constructor(value: HTMLElement) {
+    super(value);
+    return BoundExtensionProxy.of<HTMLElement, Element>(this);
   }
 
   public get boundingClientRect(): DOMRect {
@@ -252,6 +314,11 @@ export class Style extends Extension<CSSStyleDeclaration> implements ExtensionCo
 
   public static isType(value: unknown): value is CSSStyleDeclaration {
     return value instanceof CSSStyleDeclaration;
+  }
+
+  public constructor(value: CSSStyleDeclaration) {
+    super(value);
+    return BoundExtensionProxy.of<CSSStyleDeclaration, Style>(this);
   }
 
   public get transformProperty(): string {

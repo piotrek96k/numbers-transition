@@ -38,6 +38,7 @@ declare global {
   }
 
   interface Object {
+    bind<T>(this: T): T;
     callOrGet<T extends unknown[], U>(this: OrFunction<T, U>, ...args: T): U;
     callOrGet<T extends unknown[], U extends unknown[], V>(this: OrFunction<T, V>, ...args: T | U): V;
     keys(): string[];
