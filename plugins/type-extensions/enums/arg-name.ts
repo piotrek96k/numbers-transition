@@ -3,6 +3,7 @@ export enum ArgName {
   Descriptor = 'descriptor',
   Distance = 'distance',
   Entry = 'entry',
+  Extension = 'extension',
   First = 'first',
   Index = 'index',
   Init = 'init',

@@ -31,13 +31,7 @@ const generateObjectVariable = (): VariableDeclaration =>
     factory.createCallExpression(
       factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.Create),
       undefined,
-      [
-        factory.createCallExpression(
-          factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.GetPrototypeOf),
-          undefined,
-          [factory.createIdentifier(ArgName.Value)],
-        ),
-      ],
+      [factory.createCallExpression(factory.createIdentifier(ClassName.Object), undefined, [factory.createIdentifier(ArgName.Value)])],
     ),
   );
 
@@ -118,6 +112,7 @@ const generateSourceMapFunction = (): ArrowFunction =>
         undefined,
         [factory.createIdentifier(ArgName.Source), factory.createIdentifier(ArgName.Key)],
       ),
+      factory.createElementAccessExpression(factory.createIdentifier(ArgName.Sources), 0),
     ]),
   );
 
@@ -304,6 +299,7 @@ const generatePropertiesForEachFunction = (): ArrowFunction =>
           factory.createOmittedExpression(),
           factory.createOmittedExpression(),
           factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Descriptor), undefined),
+          factory.createBindingElement(undefined, undefined, factory.createIdentifier(ArgName.Extension), undefined),
         ]),
       ),
     ],
@@ -312,7 +308,27 @@ const generatePropertiesForEachFunction = (): ArrowFunction =>
     factory.createCallExpression(
       factory.createPropertyAccessExpression(factory.createIdentifier(ClassName.Object), PropertyName.DefineProperty),
       undefined,
-      [factory.createIdentifier(VariableName.Object), factory.createIdentifier(ArgName.Key), factory.createIdentifier(ArgName.Descriptor)],
+      [
+        factory.createIdentifier(VariableName.Object),
+        factory.createIdentifier(ArgName.Key),
+        factory.createConditionalExpression(
+          factory.createBinaryExpression(
+            factory.createStringLiteral(ArgName.Value),
+            factory.createToken(SyntaxKind.InKeyword),
+            factory.createIdentifier(ArgName.Descriptor),
+          ),
+          factory.createToken(SyntaxKind.QuestionToken),
+          factory.createObjectLiteralExpression([
+            factory.createSpreadAssignment(factory.createIdentifier(ArgName.Descriptor)),
+            factory.createPropertyAssignment(
+              ArgName.Value,
+              factory.createElementAccessExpression(factory.createIdentifier(ArgName.Extension), factory.createIdentifier(ArgName.Key)),
+            ),
+          ]),
+          factory.createToken(SyntaxKind.ColonToken),
+          factory.createIdentifier(ArgName.Descriptor),
+        ),
+      ],
     ),
   );
 

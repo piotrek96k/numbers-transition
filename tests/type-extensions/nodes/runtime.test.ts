@@ -56,7 +56,7 @@ it<object>('generate runtime methods', (): void => {
     },
 
     merge[0-9a-f]+ = \(value, types\) => { 
-      const object = Object\.create\(Object\.getPrototypeOf\(value\)\); 
+      const object = Object\.create\(Object\(value\)\); 
       Object\.defineProperties\(object, Object\.getOwnPropertyDescriptors\(Object\(value\)\)\); 
       const properties = types
         \.map\(type => \[readSources[0-9a-f]+\(getExtension[0-9a-f]+\(value, type\)\), typeDistance[0-9a-f]+\(value, type\)\]\)
@@ -64,14 +64,14 @@ it<object>('generate runtime methods', (): void => {
           sources\.flatMap\(\(source, index\) =>
             Object\.getOwnPropertyNames\(source\)
               \.filter\(key => key \!== "constructor"\)
-              \.map\(key => \[key, distance, index, Object\.getOwnPropertyDescriptor\(source, key\)\]\)
+              \.map\(key => \[key, distance, index, Object\.getOwnPropertyDescriptor\(source, key\), sources\[0\]\]\)
           \)
         \)
         \.sort\(\(first, second\) => first\[0\]\.localeCompare\(second\[0\]\) \|\| second\[1\] - first\[1\] \|\| second\[2\] - first\[2\]\)
         \.reduce\(\(map, entry\) => map\.set\(entry\[0\], entry\), new Map\(\)\);
       \[\.\.\.properties\.values\(\)\]
         \.filter\(\(\[key, distance\]\) => \!\(key in object\) \|\| findOwnerDistance[0-9a-f]+\(value, key\) > distance\)
-        \.forEach\(\(\[key, , , descriptor\]\) => Object\.defineProperty\(object, key, descriptor\)\);
+        \.forEach\(\(\[key, , , descriptor, extension\]\) => Object\.defineProperty\(object, key, "value" in descriptor \? { \.\.\.descriptor, value: extension\[key\] } : descriptor\)\);
       return object;
     },
 
