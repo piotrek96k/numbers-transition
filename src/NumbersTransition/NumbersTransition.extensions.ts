@@ -169,6 +169,14 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return depth<T[]>(this.value);
   }
 
+  public all(): boolean {
+    return this.value.every((value: T): T => value);
+  }
+
+  public any(): boolean {
+    return this.value.some((value: T): T => value);
+  }
+
   public append(element: T): T[] {
     this.value.push(element);
     return this.value;
@@ -237,10 +245,6 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
 
   public static call<T extends (...args: any[]) => any>(callback: T, ...args: Parameters<T>): ReturnType<T> {
     return callback(...args);
-  }
-
-  public static identity<T>(value: T): T {
-    return value;
   }
 
   public constructor(value: T) {

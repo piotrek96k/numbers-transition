@@ -60,6 +60,8 @@ declare global {
 
   interface Array<T> {
     readonly depth: number;
+    all(): boolean;
+    any(): boolean;
     append(element: T): T[];
     append<U>(element: U): T extends U ? U[] : never;
     at(index: number): Optional<T>;
@@ -107,7 +109,6 @@ declare global {
 
   interface FunctionConstructor {
     call<T extends (...args: any[]) => unknown>(callback: T, ...args: Parameters<T>): ReturnType<T>;
-    identity<T>(value: T): T;
   }
 
   interface Function {

@@ -702,20 +702,18 @@ export const useRenderNegativeElement = (options: UseRenderNegativeElementOption
     renderAnimation,
     animationType !== AnimationType.Horizontal,
     negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi,
-  ].every(Function.identity<boolean>);
+  ].all();
 
   const renderNegativeElementForThreeAnimations: boolean = [
     animationType === AnimationType.Horizontal,
     numberOfAnimations === AnimationNumber.Three,
     previousValueOnEnd < currentValue === (animationTransition === AnimationTransition.None),
-  ].every(Function.identity<boolean>);
+  ].all();
 
   const renderNegativeElement: boolean = [
-    [!hasSignChanged, currentValue < Integer.Zero, renderNegativeElementForNotMultiCharacterAnimationMode].every(
-      Function.identity<boolean>,
-    ),
+    [!hasSignChanged, currentValue < Integer.Zero, renderNegativeElementForNotMultiCharacterAnimationMode].all(),
     renderNegativeElementForThreeAnimations,
-  ].some(Function.identity<boolean>);
+  ].any();
 
   return restartAnimation ? previousValueOnStart < Integer.Zero : renderNegativeElement;
 };
@@ -740,8 +738,8 @@ export const useRenderHorizontalAnimationNegativeElement = ({
     [
       numberOfAnimations === AnimationNumber.Two,
       previousValue < currentValue === (animationTransition === AnimationTransition.SecondToThird),
-    ].some(Function.identity<boolean>),
-  ].every(Function.identity<boolean>);
+    ].any(),
+  ].all();
 
 interface UseRenderVerticalAnimationNegativeElementOptions {
   negativeCharacterAnimationMode: NegativeCharacterAnimationMode;
@@ -754,12 +752,7 @@ export const useRenderVerticalAnimationNegativeElement = ({
   currentValue,
   hasSignChanged,
 }: UseRenderVerticalAnimationNegativeElementOptions): boolean =>
-  [
-    hasSignChanged,
-    [currentValue < Integer.Zero, negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi].every(
-      Function.identity<boolean>,
-    ),
-  ].some(Function.identity<boolean>);
+  [hasSignChanged, [currentValue < Integer.Zero, negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Multi].all()].any();
 
 interface UseNegativeElementAnimationVisibilitiesOptions {
   animationDigits: number[][];
