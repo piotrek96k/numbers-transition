@@ -12,11 +12,13 @@ class BoundProxyHandler<T extends object> implements ProxyHandler<T> {
   }
 }
 
-class BoundExtensionProxy {
+class BoundProxy {
+  public static newInstance<T extends object>(target: T): T {
+    return new Proxy<T>(target, new BoundProxyHandler<T>());
+  }
+
   public static of<T, U extends Extension<T>>(extension: U): U {
-    return Object(extension.value)[BoundProxyHandler.bound] === BoundProxyHandler.bound
-      ? new Proxy<U>(extension, new BoundProxyHandler<U>())
-      : extension;
+    return Object(extension.value)[BoundProxyHandler.bound] === BoundProxyHandler.bound ? this.newInstance<U>(extension) : extension;
   }
 }
 
@@ -38,7 +40,7 @@ export class Double extends Extension<number> implements ExtensionConstructor<nu
 
   public constructor(value: number) {
     super(value);
-    return BoundExtensionProxy.of<number, Double>(this);
+    return BoundProxy.of<number, Double>(this);
   }
 }
 
@@ -52,7 +54,7 @@ export class Long extends Extension<bigint> implements ExtensionConstructor<bigi
 
   public constructor(value: bigint) {
     super(value);
-    return BoundExtensionProxy.of<bigint, Long>(this);
+    return BoundProxy.of<bigint, Long>(this);
   }
 
   public get digit(): number {
@@ -70,7 +72,7 @@ export class Str extends Extension<string> implements ExtensionConstructor<strin
 
   public constructor(value: string) {
     super(value);
-    return BoundExtensionProxy.of<string, Str>(this);
+    return BoundProxy.of<string, Str>(this);
   }
 
   public get number(): number {
@@ -100,11 +102,11 @@ export class Struct<T extends object> extends Extension<T> implements ExtensionC
 
   public constructor(value: T) {
     super(value);
-    return BoundExtensionProxy.of<T, Struct<T>>(this);
+    return BoundProxy.of<T, Struct<T>>(this);
   }
 
   public bind(): T {
-    return new Proxy<T>(Object(this.value), new BoundProxyHandler<T>());
+    return BoundProxy.newInstance<T>(this.value);
   }
 
   public callOrGet(...args: T extends (...args: infer U) => any ? U : never): (T extends (...args: any[]) => infer U ? U : never) | T {
@@ -158,7 +160,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
 
   public constructor(value: T[]) {
     super(value);
-    return BoundExtensionProxy.of<T[], List<T>>(this);
+    return BoundProxy.of<T[], List<T>>(this);
   }
 
   // prettier-ignore
@@ -249,7 +251,7 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
 
   public constructor(value: T) {
     super(value);
-    return BoundExtensionProxy.of<T, Callable<T>>(this);
+    return BoundProxy.of<T, Callable<T>>(this);
   }
 
   public bindArgs<U extends number>(...outerArgs: Take<Parameters<T>, U>): (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
@@ -288,7 +290,7 @@ export class Calc extends Extension<never> implements ExtensionConstructor<never
 
   public constructor(value: never) {
     super(value);
-    return BoundExtensionProxy.of<never, Calc>(this);
+    return BoundProxy.of<never, Calc>(this);
   }
 }
 
@@ -301,7 +303,7 @@ export class Element extends Extension<HTMLElement> implements ExtensionConstruc
 
   public constructor(value: HTMLElement) {
     super(value);
-    return BoundExtensionProxy.of<HTMLElement, Element>(this);
+    return BoundProxy.of<HTMLElement, Element>(this);
   }
 
   public get boundingClientRect(): DOMRect {
@@ -322,7 +324,7 @@ export class Style extends Extension<CSSStyleDeclaration> implements ExtensionCo
 
   public constructor(value: CSSStyleDeclaration) {
     super(value);
-    return BoundExtensionProxy.of<CSSStyleDeclaration, Style>(this);
+    return BoundProxy.of<CSSStyleDeclaration, Style>(this);
   }
 
   public get transformProperty(): string {
