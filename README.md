@@ -3,7 +3,7 @@
 [![npm version](https://img.shields.io/npm/v/numbers-transition.svg?style=flat)](https://www.npmjs.com/package/numbers-transition)
 [![Storybook Deployment](https://github.com/piotrek96k/numbers-transition/actions/workflows/deploy-storybook.yaml/badge.svg)](https://github.com/piotrek96k/numbers-transition/actions/workflows/deploy-storybook.yaml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6.0+-blue)](https://www.typescriptlang.org/)
 
 ---
 
