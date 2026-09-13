@@ -166,7 +166,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   // prettier-ignore
   public get depth(): number {
     const depth = <U>(value: U): number => Array.isArray<U>(value)
-      ? Integer.One + (value.length && value.map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
+      ? Integer.One + (value.length && [...value].map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
       : Integer.Zero;
     return depth<T[]>(this.value);
   }
