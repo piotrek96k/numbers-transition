@@ -6,8 +6,7 @@ class BoundProxyHandler<T extends object> implements ProxyHandler<T> {
   public static readonly bound: symbol = Symbol();
 
   public get(target: T, property: string | symbol, receiver: unknown): unknown {
-    const value: T[keyof T] | symbol =
-      property === BoundProxyHandler.bound ? BoundProxyHandler.bound : Reflect.get<T, string | symbol>(target, property, receiver);
+    const value: T[keyof T] | symbol = property === BoundProxyHandler.bound ? BoundProxyHandler.bound : Reflect.get<T, string | symbol>(target, property, receiver);
     return Callable.isType(value) ? value.bind<T, [], unknown[], unknown>(target) : value;
   }
 }
@@ -163,11 +162,11 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return BoundProxy.of<T[], List<T>>(this);
   }
 
-  // prettier-ignore
   public get depth(): number {
-    const depth = <U>(value: U): number => Array.isArray<U>(value)
-      ? Integer.One + (value.length && [...value].map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
-      : Integer.Zero;
+    const depth = <U>(value: U): number =>
+      Array.isArray<U>(value)
+        ? Integer.One + (value.length && [...value].map<number>(depth<U>).reduce((curr: number, next: number): number => (curr === next ? next : Number.NaN)))
+        : Integer.Zero;
     return depth<T[]>(this.value);
   }
 
@@ -193,10 +192,7 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
   }
 
   public filterEach(...predicates: ((value: T, index: number, array: T[]) => unknown)[]): T[] {
-    return predicates.reduce<T[]>(
-      (array: T[], predicate: (value: T, index: number, array: T[]) => unknown): T[] => array.filter(predicate),
-      this.value,
-    );
+    return predicates.reduce<T[]>((array: T[], predicate: (value: T, index: number, array: T[]) => unknown): T[] => array.filter(predicate), this.value);
   }
 
   public findMap<U>(mapper: (value: T, index: number, array: T[]) => Optional<U>, fallback?: U): Optional<U> {
@@ -270,7 +266,6 @@ export class Callable<T extends (...args: any[]) => any> extends Extension<T> im
     this.callWhen(condition, ...args);
   }
 
-  // prettier-ignore
   public splitArgs<U extends number>(index: U): (...outerArgs: [...Take<Parameters<T>, U>, ...unknown[]]) => (...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T> {
     return (...outerArgs: [...Take<Parameters<T>, U>, ...unknown[]]): ((...innerArgs: Drop<Parameters<T>, U>) => ReturnType<T>) =>
       this.bindArgs<U>(...outerArgs.slice<Integer.Zero, U, Take<Parameters<T>, U>>(Integer.Zero, index));

@@ -9,6 +9,6 @@
   "endOfLine": "lf",
   "overrides": [
     { "files": "**/*.enums.ts", "options": { "objectWrap": "preserve" } },
-    { "files": "**/*.modules.d.ts", "options": { "printWidth": 180 } }
+    { "files": ["**/*.extensions.ts", "**/*.modules.d.ts"], "options": { "printWidth": 180 } }
   ]
 }
