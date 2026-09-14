@@ -2,22 +2,22 @@ import Extension, { ExtensionConstructor, LiteralType } from 'type-extensions/ex
 import type { Drop, First, Last, Nil, Optional, OrArray, OrFunction, Take, ValueOf, Zip } from './NumbersTransition.types';
 import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransition.enums';
 
-class BoundProxyHandler<T extends object> implements ProxyHandler<T> {
-  public static readonly bound: symbol = Symbol();
+class BoundProxy<T extends object> implements ProxyHandler<T> {
+  private static readonly bound: symbol = Symbol();
 
-  public get(target: T, property: string | symbol, receiver: unknown): unknown {
-    const value: T[keyof T] | symbol = property === BoundProxyHandler.bound ? BoundProxyHandler.bound : Reflect.get<T, string | symbol>(target, property, receiver);
-    return Callable.isType(value) ? value.bind<T, [], unknown[], unknown>(target) : value;
-  }
-}
-
-class BoundProxy {
   public static newInstance<T extends object>(target: T): T {
-    return new Proxy<T>(target, new BoundProxyHandler<T>());
+    return new Proxy<T>(Object(target), new BoundProxy<T>());
   }
 
   public static of<T, U extends Extension<T>>(extension: U): U {
-    return Object(extension.value)[BoundProxyHandler.bound] === BoundProxyHandler.bound ? this.newInstance<U>(extension) : extension;
+    return Object(extension.value)[BoundProxy.bound] === BoundProxy.bound ? this.newInstance<U>(extension) : extension;
+  }
+
+  private constructor() {}
+
+  public get(target: T, property: string | symbol, receiver: unknown): unknown {
+    const value: T[keyof T] | symbol = property === BoundProxy.bound ? BoundProxy.bound : Reflect.get<T, string | symbol>(target, property, receiver);
+    return Callable.isType(value) ? value.bind<T, [], unknown[], unknown>(target) : value;
   }
 }
 
