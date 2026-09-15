@@ -4,9 +4,10 @@ import { DragAndDropVariableName, Integer, Text, Typeof } from './NumbersTransit
 
 class BoundProxy<T extends object> implements ProxyHandler<T> {
   private static readonly bound: symbol = Symbol();
+  private static readonly instance: BoundProxy<object> = new BoundProxy<object>();
 
   public static newInstance<T extends object>(target: T): T {
-    return new Proxy<T>(Object(target), new BoundProxy<T>());
+    return new Proxy<T>(Object(target), this.instance);
   }
 
   public static of<T, U extends Extension<T>>(extension: U): U {
