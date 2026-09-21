@@ -1,4 +1,5 @@
 name: Upgrade Storybook
+description: Upgrade Storybook
 inputs:
   token:
     required: true

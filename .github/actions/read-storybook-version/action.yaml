@@ -1,4 +1,5 @@
 name: Read Storybook Version
+description: Read Storybook Version
 outputs:
   version:
     description: Storybook Version

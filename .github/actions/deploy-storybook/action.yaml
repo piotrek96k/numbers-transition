@@ -1,4 +1,5 @@
 name: Deploy Storybook
+description: Deploy Storybook
 runs:
   using: 'composite'
   steps:

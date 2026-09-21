@@ -1,4 +1,5 @@
 name: Clean Storybook Artifacts
+description: Clean Storybook Artifacts
 runs:
   using: 'composite'
   steps:

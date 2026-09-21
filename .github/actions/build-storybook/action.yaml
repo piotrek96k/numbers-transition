@@ -1,4 +1,5 @@
 name: Build Storybook
+description: Build Storybook
 runs:
   using: 'composite'
   steps:
