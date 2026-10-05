@@ -434,7 +434,7 @@ const cssFactory = <T extends Styled, U extends object, V>(styledComponent: T, p
 const mapAnimationKeyframes = <T extends object, U>({ keyframeFunction, keyframes, progress }: Animation<T, U>): Keyframes =>
   createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
-const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Keyframes, index: number) => css<object>`
+const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Keyframes, index: number): RuleSet<object> => css<object>`
   ${accumulator}${index ? Text.Comma : Text.Empty}${currentValue}
 `;
 
