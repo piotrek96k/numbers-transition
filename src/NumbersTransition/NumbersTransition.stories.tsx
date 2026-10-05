@@ -8,6 +8,7 @@ import type {
   Maybe,
   Nullable,
   Optional,
+  ReactElement,
   ReactNode,
   ReactState,
   Remove,
@@ -583,12 +584,10 @@ const DragAndDropDigits = (props: DragAndDropDigitsProps): ReactNode => {
 export const DragAndDrop: Story<Partial<DragAndDropContainerProps>, unknown, object, unknown, Partial<DragAndDropDigitProps>> = {
   argTypes,
   args: { ...basicEffectArgs, animationInterruptionMode: AnimationInterruptionMode.Continue },
-  decorators: [
-    (
-      Story: PartialStoryFn<ReactRenderer, DragAndDropNumbersTransitionProps>,
-      context: StoryContext<ReactRenderer, DragAndDropNumbersTransitionProps>,
-    ) => <DragAndDropDigits Story={Story} context={context} />,
-  ],
+  decorators: (
+    Story: PartialStoryFn<ReactRenderer, DragAndDropNumbersTransitionProps>,
+    context: StoryContext<ReactRenderer, DragAndDropNumbersTransitionProps>,
+  ): ReactElement => <DragAndDropDigits Story={Story} context={context} />,
 };
 
 export default meta;

@@ -77,8 +77,8 @@ const isInitializerArrayBindingPatternWrapper = <T extends DestructureDeclaratio
 
 const filterDestructureProperty = (elements: NodeArray<BindingElement>): ((entry: [string, TypeExtension]) => RuntimeExtension[]) => {
   const destructured: Identifier[] = elements
-    .filter(({ dotDotDotToken }: BindingElement) => !dotDotDotToken)
-    .map<PropertyName | BindingName>(({ propertyName, name }: BindingElement) => propertyName ?? name)
+    .filter(({ dotDotDotToken }: BindingElement): boolean => !dotDotDotToken)
+    .map<PropertyName | BindingName>(({ propertyName, name }: BindingElement): PropertyName | BindingName => propertyName ?? name)
     .filter<Identifier>(isIdentifier);
 
   return ([id, { properties }]: [string, TypeExtension]): RuntimeExtension[] =>
@@ -373,7 +373,7 @@ const updateFunctionBody = (declaration: GenericFunctionDeclaration, variables: 
       ])
     : undefined;
 
-const updateArrowFunction = (arrowFunction: ArrowFunction, parameters: ParameterDeclaration[], body: Block | undefined) =>
+const updateArrowFunction = (arrowFunction: ArrowFunction, parameters: ParameterDeclaration[], body: Block | undefined): ArrowFunction =>
   factory.updateArrowFunction(
     arrowFunction,
     arrowFunction.modifiers,
@@ -384,7 +384,11 @@ const updateArrowFunction = (arrowFunction: ArrowFunction, parameters: Parameter
     body ?? arrowFunction.body,
   );
 
-const updateFunctionDeclaration = (functionDeclaration: FunctionDeclaration, parameters: ParameterDeclaration[], body: Block | undefined) =>
+const updateFunctionDeclaration = (
+  functionDeclaration: FunctionDeclaration,
+  parameters: ParameterDeclaration[],
+  body: Block | undefined,
+): FunctionDeclaration =>
   factory.updateFunctionDeclaration(
     functionDeclaration,
     functionDeclaration.modifiers,
@@ -396,7 +400,11 @@ const updateFunctionDeclaration = (functionDeclaration: FunctionDeclaration, par
     body ?? functionDeclaration.body,
   );
 
-const updateFunctionExpression = (functionExpression: FunctionExpression, parameters: ParameterDeclaration[], body: Block | undefined) =>
+const updateFunctionExpression = (
+  functionExpression: FunctionExpression,
+  parameters: ParameterDeclaration[],
+  body: Block | undefined,
+): FunctionExpression =>
   factory.updateFunctionExpression(
     functionExpression,
     functionExpression.modifiers,
@@ -408,7 +416,11 @@ const updateFunctionExpression = (functionExpression: FunctionExpression, parame
     body ?? functionExpression.body,
   );
 
-const updateMethodDeclaration = (methodDeclaration: MethodDeclaration, parameters: ParameterDeclaration[], body: Block | undefined) =>
+const updateMethodDeclaration = (
+  methodDeclaration: MethodDeclaration,
+  parameters: ParameterDeclaration[],
+  body: Block | undefined,
+): MethodDeclaration =>
   factory.updateMethodDeclaration(
     methodDeclaration,
     methodDeclaration.modifiers,
