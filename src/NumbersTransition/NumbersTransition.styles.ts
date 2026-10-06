@@ -434,13 +434,13 @@ const cssFactory = <T extends Styled, U extends object, V>(styledComponent: T, p
 const mapAnimationKeyframes = <T extends object, U>({ keyframeFunction, keyframes, progress }: Animation<T, U>): Keyframes =>
   createAnimationKeyframes(keyframeFunction, keyframes, progress);
 
-const reduceAnimationsKeyframes = (accumulator: RuleSet<object>, currentValue: Keyframes, index: number): RuleSet<object> => css<object>`
-  ${accumulator}${index ? Text.Comma : Text.Empty}${currentValue}
+const reduceAnimationsKeyframes = (previous: RuleSet<object>, current: RuleSet<object>): RuleSet<object> => css<object>`
+  ${previous}${Text.Comma}${current}
 `;
 
 const createOptionalAnimation = (animationsKeyframes: Keyframes[]): Optional<RuleSet<object>> =>
   css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes.length)`
-    animation-name: ${animationsKeyframes.reduce<RuleSet<object>>(reduceAnimationsKeyframes, css<object>``)};
+    animation-name: ${animationsKeyframes.length && animationsKeyframes.reduce<RuleSet<object>>(reduceAnimationsKeyframes)};
   `;
 
 type AnimationFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => Optional<RuleSet<U>>;

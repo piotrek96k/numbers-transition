@@ -91,11 +91,12 @@ declare global {
     ): Last<W>;
     pipe<U>(mapper: (array: this) => U): U;
     pipeEach<U extends unknown[]>(...mappers: { [I in keyof U]: (value: At<[this, ...U], I>) => U[I] }): Last<U>;
+    reduce<U = T>(callback: (acc: U, curr: U, index: number, array: U[]) => U): T extends U ? U : never;
     reduce<U extends unknown[], V extends number | U>(callback: (acc: U, curr: T, index: number, array: T[]) => U, initial: U): V extends number ? Tuple<U[number], V> : V;
     slice(start?: number, end?: number): T[];
-    slice<T extends number = Integer.Zero>(start: T): Slice<[...this], T, this[Key.Length]>;
-    slice<T extends number = Integer.Zero, U extends number = this[Key.Length]>(start: T, end: U): Slice<[...this], T, U>;
-    slice<T extends number = Integer.Zero, U extends number = this[Key.Length], V = Slice<[...this], T, U>>(start: T, end: U): Slice<[...this], T, U> extends V ? V : never;
+    slice<U extends number = Integer.Zero>(start: U): Slice<[...this], U, this[Key.Length]>;
+    slice<U extends number = Integer.Zero, V extends number = this[Key.Length]>(start: U, end: V): Slice<[...this], U, V>;
+    slice<U extends number = Integer.Zero, V extends number = this[Key.Length], W = Slice<[...this], U, V>>(start: U, end: V): Slice<[...this], U, V> extends W ? W : never;
     when(predicate: unknown): T[];
     zip<U extends unknown[]>(...array: U): Zip<this, U>;
     zip<U extends this, V extends unknown[]>(...array: V): Zip<U, V>;
