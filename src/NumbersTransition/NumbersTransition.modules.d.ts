@@ -60,6 +60,7 @@ declare global {
 
   interface Array<T> {
     readonly depth: number;
+    readonly self: this;
     all(): boolean;
     any(): boolean;
     append(element: T): T[];

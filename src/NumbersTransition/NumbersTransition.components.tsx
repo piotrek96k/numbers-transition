@@ -325,7 +325,12 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
   }: VerticalAnimationNegativeElementProps<T, U, V, W> = props;
 
   const theme: NumbersTransitionTheme = useTheme();
-  const animationVisibilities: boolean[] = useNegativeElementAnimationVisibilities({ animationDigits, hasSignChanged });
+
+  const { self: animationVisibilities, length: columnLength }: boolean[] = useNegativeElementAnimationVisibilities({
+    animationDigits,
+    hasSignChanged,
+  });
+
   const animationTimingFunction: EasingFunction = useNegativeElementAnimationTimingFunction({
     negativeCharacterAnimationMode,
     animationVisibilities,
@@ -354,7 +359,7 @@ const VerticalAnimationNegativeElement = <T extends object, U, V extends object,
         condition={negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single}
         enclose={encloseAnimation}
       >
-        <ThemeProvider theme={{ columnLength: animationVisibilities.length }}>
+        <ThemeProvider theme={{ columnLength }}>
           <VerticalAnimation>
             <div>{animationVisibilities.mapEach<ReactElement>(mapToNegativeElement, mapToThemeProviderElement)}</div>
           </VerticalAnimation>
@@ -405,7 +410,7 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     characterStyledView,
     digitStyledView,
     mapToElement = [],
-    children,
+    children: { self, depth },
     enclose,
     ...restProps
   }: NumberElementProps<Q, R, S, T, U, V, W, X, Y, Z> = props;
@@ -453,9 +458,9 @@ export const NumberElement = <Q extends object, R, S extends object, T, U extend
     value,
   ];
 
-  const mappedChildren: ReactElement[] = children.matches<OrArray<number[]>, number[]>(children.depth === Integer.One)
-    ? children.mapEach<ReactElement>(mapToDigitElement, mapToDigitThemeProviderElement)
-    : children.mapEach<[ReactElement[], ReactElement]>(mapToDigitsElement, mapToDigitThemeProviderElement);
+  const mappedChildren: ReactElement[] = self.matches<OrArray<number[]>, number[]>(depth === Integer.One)
+    ? self.mapEach<ReactElement>(mapToDigitElement, mapToDigitThemeProviderElement)
+    : self.mapEach<[ReactElement[], ReactElement]>(mapToDigitsElement, mapToDigitThemeProviderElement);
 
   const number: ReactElement[] = mappedChildren
     .mapEach(...mapToElement)

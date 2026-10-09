@@ -964,7 +964,10 @@ interface UseNegativeElementAnimationTimingFunctionOptions {
 export const useNegativeElementAnimationTimingFunction = (
   options: UseNegativeElementAnimationTimingFunctionOptions,
 ): LinearEasingFunction => {
-  const { negativeCharacterAnimationMode, animationVisibilities }: UseNegativeElementAnimationTimingFunctionOptions = options;
+  const {
+    negativeCharacterAnimationMode,
+    animationVisibilities: { self, length },
+  }: UseNegativeElementAnimationTimingFunctionOptions = options;
 
   const { animationTimingFunction }: NumbersTransitionTheme = useTheme();
 
@@ -982,16 +985,16 @@ export const useNegativeElementAnimationTimingFunction = (
 
   const mapToLinear = (increment: number, solution: number, index: number): [number, number][] =>
     Array.range(Integer.Two).map<[number, number]>((value: number): [number, number] => [
-      increment ^ ((index + value) % Integer.Two) ? Integer.One / animationVisibilities.length : (index + value) % Integer.Two,
+      increment ^ ((index + value) % Integer.Two) ? Integer.One / length : (index + value) % Integer.Two,
       solution * Integer.OneHundred,
     ]);
 
   const flatMapToLinear = (values: number[], index: number): [number, number][] =>
     values.flatMap<[number, number]>(mapToLinear.bindArgs<(...args: [number, number, number]) => [number, number][], Integer.One>(index));
 
-  const points: [number, number][] = [animationVisibilities.lastIndexOf(true), animationVisibilities.indexOf(false)]
+  const points: [number, number][] = [self.lastIndexOf(true), self.indexOf(false)]
     .when(negativeCharacterAnimationMode === NegativeCharacterAnimationMode.Single)
-    .mapEach<[number, number[]]>((input: number): number => input / (animationVisibilities.length - Integer.One), solve)
+    .mapEach<[number, number[]]>((input: number): number => input / (length - Integer.One), solve)
     .flatMap<[number, number]>(flatMapToLinear)
     .sort(([, first]: [number, number], [, second]: [number, number]): number => first - second);
 
@@ -1178,10 +1181,10 @@ export const useElementKeyMapper =
     Component: FunctionalComponent<U>,
     props?: OrFunction<[T, number, T[]], U>,
   ): ElementKeyMapper<T> =>
-  (child: T, index: number, { length, ...array }: T[]): ReactElement => (
+  (child: T, index: number, { self, length }: T[]): ReactElement => (
     <Component
       key={`${Component.toString()}${`${index + Integer.One}`.padStart(`${length}`.length, `${Integer.Zero}`)}`}
-      {...props?.callOrGet<[T, number, T[]], U>(child, index, { ...array, length })}
+      {...props?.callOrGet<[T, number, T[]], U>(child, index, self)}
     >
       {child}
     </Component>

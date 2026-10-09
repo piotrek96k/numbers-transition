@@ -171,6 +171,10 @@ export class List<T> extends Extension<T[]> implements ExtensionConstructor<T[],
     return depth<T[]>(this.value);
   }
 
+  public get self(): T[] {
+    return this.value;
+  }
+
   public all(): boolean {
     return this.value.every((value: T): T => value);
   }

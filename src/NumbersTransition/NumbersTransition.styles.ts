@@ -438,9 +438,9 @@ const reduceAnimationsKeyframes = (previous: RuleSet<object>, current: RuleSet<o
   ${previous}${Text.Comma}${current}
 `;
 
-const createOptionalAnimation = (animationsKeyframes: Keyframes[]): Optional<RuleSet<object>> =>
-  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(animationsKeyframes.length)`
-    animation-name: ${animationsKeyframes.length && animationsKeyframes.reduce<RuleSet<object>>(reduceAnimationsKeyframes)};
+const createOptionalAnimation = ({ self, length }: Keyframes[]): Optional<RuleSet<object>> =>
+  css.bindWhen<(styles: Styles<object>, ...inter: Interpolation<object>[]) => RuleSet<object>>(length)`
+    animation-name: ${length && self.reduce<RuleSet<object>>(reduceAnimationsKeyframes)};
   `;
 
 type AnimationFactory<T extends Styled> = <U extends object, V>(...args: [T, Props<T, U, V>]) => Optional<RuleSet<U>>;
