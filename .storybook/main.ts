@@ -12,6 +12,7 @@ const config: StorybookConfig = {
     build: { ...build, chunkSizeWarningLimit: 2_500 },
     plugins: await withoutVitePlugins(plugins, ['vite-plugin-bundle-dts']),
   }),
+  features: { sidebarOnboardingChecklist: false },
 };
 
 export default config;
