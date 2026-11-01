@@ -3,8 +3,15 @@ import { Diagnostic, DiagnosticCategory } from 'typescript';
 import { UserConfig, defineConfig } from 'vite';
 import { bundleDts } from 'vite-plugin-bundle-dts';
 
-interface Plugin {
-  name: string;
+enum Plugin {
+  ReplacePackage = 'replace-package',
+  SuppressDiagnostics = 'suppress-diagnostics',
+  TypeExtensions = 'type-extensions',
+  VerifyDts = 'verify-dts',
+}
+
+interface PluginEntry {
+  name: Plugin;
   entry?: string;
   path?: string[];
   fileName?: string;
@@ -17,23 +24,26 @@ const throwDiagnosticError = (): void => {
 const afterDiagnostic = (diagnostics: readonly Diagnostic[]): void =>
   diagnostics.some(({ category }: Diagnostic): boolean => category === DiagnosticCategory.Error) ? throwDiagnosticError() : undefined;
 
-const mapPlugin = ({ name, entry = name, path = [], fileName = 'plugin' }: Plugin): Record<string, string> => ({
+const filterPlugins = ({ name }: PluginEntry): boolean => (process.env.plugins?.split(',') ?? Object.values<Plugin>(Plugin)).includes(name);
+
+const mapPlugin = ({ name, entry = name, path = [], fileName = 'plugin' }: PluginEntry): Record<string, string> => ({
   [entry]: resolve('plugins', name, ...path, `${fileName}.ts`),
 });
 
 const reducePlugins = (acc: Record<string, string>, curr: Record<string, string>): Record<string, string> => ({ ...acc, ...curr });
 
-const plugins: Plugin[] = [
-  { name: 'suppress-diagnostics' },
-  { name: 'type-extensions', path: ['plugin'] },
-  { name: 'type-extensions', entry: 'extension', path: ['extension'], fileName: 'extension' },
-  { name: 'verify-dts' },
+const plugins: PluginEntry[] = [
+  { name: Plugin.ReplacePackage },
+  { name: Plugin.SuppressDiagnostics },
+  { name: Plugin.TypeExtensions, path: ['plugin'] },
+  { name: Plugin.TypeExtensions, entry: 'extension', path: ['extension'], fileName: 'extension' },
+  { name: Plugin.VerifyDts },
 ];
 
 const config: UserConfig = {
   plugins: [bundleDts({ tsconfigPath: resolve('tsconfig.plugins.json'), rollupTypes: true, afterDiagnostic })],
   build: {
-    lib: { entry: plugins.map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
+    lib: { entry: plugins.filter(filterPlugins).map<Record<string, string>>(mapPlugin).reduce(reducePlugins), formats: ['es'] },
     rolldownOptions: {
       external: ['async_hooks', 'child_process', 'crypto', 'fs', 'path', 'process', 'typescript'],
       checks: { pluginTimings: false },
