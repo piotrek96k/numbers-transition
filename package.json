@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "prepare": "ts-patch install -s && husky",
+    "postinstall": "cross-env plugins=replace-package npm run build:plugins",
+    "prepare": "ts-patch install -s && node plugins/dist/replace-package @typescript/old typescript && husky",
     "lint": "eslint . --max-warnings 0",
     "build:plugins": "vite build -c vite.plugins.ts",
     "test:plugins": "tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
@@ -37,6 +38,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "cross-env": "^10.1.0",
     "eslint": "^10.13.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-perfectionist": "^5.13.0",
@@ -55,7 +57,7 @@
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.72.1",
     "vite": "^8.3.5",
-    "vite-plugin-bundle-dts": "^0.5.0",
+    "vite-plugin-bundle-dts": "^0.6.0",
     "vitest": "^5.0.5"
   },
   "overrides": {
