@@ -13,7 +13,8 @@
     }
   },
   "scripts": {
-    "prepare": "ts-patch i -s && ts-patch i -s -d node_modules/@typescript/old && husky",
+    "postinstall": "ts-patch i -s && ts-patch i -s -d node_modules/@typescript/old",
+    "prepare": "husky",
     "lint": "eslint . --max-warnings 0",
     "build:plugins": "vite build -c vite.plugins.ts",
     "test:plugins": "tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
