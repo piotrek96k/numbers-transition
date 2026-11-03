@@ -16,12 +16,13 @@
     "postinstall": "ts-patch i -s && ts-patch i -s -d node_modules/@typescript/old",
     "prepare": "husky",
     "lint": "eslint . --max-warnings 0",
+    "verify:dts": "node plugins/dist/verify-dts",
     "build:plugins": "vite build -c vite.plugins.ts",
     "test:plugins": "tsc -p tsconfig.plugins.test.json && vitest -c vite.plugins.test.ts run",
-    "verify:plugins": "npm run build:plugins && node plugins/dist/verify-dts tsconfig.plugins.json plugins/dist && npm run test:plugins",
+    "verify:plugins": "npm run build:plugins && npm run verify:dts tsconfig.plugins.json plugins/dist && npm run test:plugins",
     "storybook": "npm run build:plugins && storybook dev -p 6006",
     "build": "npm run verify:plugins && vite build",
-    "verify": "npm run build && node plugins/dist/verify-dts tsconfig.json dist",
+    "verify": "npm run build && npm run verify:dts tsconfig.json dist",
     "build:storybook": "npm run verify && storybook build"
   },
   "peerDependencies": {
