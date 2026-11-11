@@ -1,4 +1,4 @@
-import { ActionDispatch, FC, RefObject, useCallback, useEffect, useLayoutEffect, useReducer, useRef, useState } from 'react';
+import { ActionDispatch, FC, RefObject, useCallback, useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { useTheme } from 'styled-components';
 import type {
   CubicBezierEasingFunction,
@@ -22,6 +22,7 @@ import type {
   ReactElement,
   ReactNode,
   ReactState,
+  Slice,
   Strip,
   Switch,
   Tuple,
@@ -92,6 +93,25 @@ export const useValue = (
   return [validValue, isValueValid];
 };
 
+const useAnimationValue = (bigDecimal: BigDecimal, precision: number): [number[], bigint] =>
+  useMemo<[number[], bigint]>((): [number[], bigint] => {
+    const shiftDigits = ([integer, fraction = Text.Empty]: string[], shift: number, pad: boolean): [string, string] =>
+      shift >= Integer.Zero
+        ? [`${integer}${fraction.take(shift).padEnd(Number(pad) && shift, `${Integer.Zero}`)}`, fraction.slice(shift)]
+        : [integer.take(shift), `${integer.slice(shift).padStart(Number(pad) && -shift, `${Integer.Zero}`)}${fraction}`];
+
+    const [number, { number: exponent } = `${Integer.Zero}`]: string[] = `${bigDecimal}`.split(Pattern.Exponent);
+    const [minus, float]: [string, string] = number.partition(Number(number.startsWith(Text.Minus)));
+    const [integer, fraction]: [string, string] = shiftDigits(float.split(Pattern.DecimalSeparator), exponent, true);
+    const [digits, rest]: [string, string] = shiftDigits([integer, fraction], precision, false);
+    const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
+    const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
+    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
+    const characters: string = `${minus}${`${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)}`;
+
+    return [[...characters].filter(Pattern.Digit.bind<RegExp>().test).map<number>(Number), BigInt(characters)];
+  }, [bigDecimal, precision]);
+
 interface UseAnimationValuesOptions {
   precision: number;
   currentValue: BigDecimal;
@@ -104,32 +124,18 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const shiftDigits = ([integer, fraction = Text.Empty]: string[], shift: number, pad: boolean): [string, string] =>
-    shift >= Integer.Zero
-      ? [`${integer}${fraction.take(shift).padEnd(Number(pad) && shift, `${Integer.Zero}`)}`, fraction.slice(shift)]
-      : [integer.take(shift), `${integer.slice(shift).padStart(Number(pad) && -shift, `${Integer.Zero}`)}${fraction}`];
+  const previousStart: [number[], bigint] = useAnimationValue(previousValueOnAnimationStart, precision);
+  const previousEnd: [number[], bigint] = useAnimationValue(previousValueOnAnimationEnd, precision);
+  const current: [number[], bigint] = useAnimationValue(currentValue, precision);
 
-  const parseBigDecimal = (bigDecimal: BigDecimal): string => {
-    const [number, { number: exponent } = `${Integer.Zero}`]: string[] = `${bigDecimal}`.split(Pattern.Exponent);
-    const [minus, float]: [string, string] = number.partition(Number(number.startsWith(Text.Minus)));
-    const [integer, fraction]: [string, string] = shiftDigits(float.split(Pattern.DecimalSeparator), exponent, true);
-    const [digits, rest]: [string, string] = shiftDigits([integer, fraction], precision, false);
-    const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
-    const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
-    const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
-
-    return `${minus}${`${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)}`;
-  };
+  const reduceValues = ([numbers, bigInts]: [number[][], bigint[]], [digits, bigInt]: [number[], bigint]): [number[][], bigint[]] => [
+    [...numbers, digits],
+    [...bigInts, bigInt],
+  ];
 
   // prettier-ignore
-  const characters: [string, string, string] = [previousValueOnAnimationStart, previousValueOnAnimationEnd, currentValue]
-    .map<string, Integer.Three>(parseBigDecimal);
-
-  const digits: [number[], number[], number[]] = characters.map<number[]>((characters: string): number[] =>
-    [...characters].filter(Pattern.Digit.bind<RegExp>().test).map<number>(Number),
-  );
-
-  const bigInts: [bigint, bigint, bigint] = characters.map<bigint>(BigInt);
+  const [digits, bigInts]: Slice<AnimationValues, Integer.Zero, Integer.Two> = [previousStart, previousEnd, current]
+    .reduce<[number[][], bigint[]], Slice<AnimationValues, Integer.Zero, Integer.Two>>(reduceValues, [[], []]);
 
   const numbersOfDigits: [number, number, number] = digits
     .slice<Integer.One>(Integer.One)
