@@ -93,8 +93,8 @@ export const useValue = (
   return [validValue, isValueValid];
 };
 
-const useAnimationValue = (bigDecimal: BigDecimal, precision: number): [number[], bigint] =>
-  useMemo<[number[], bigint]>((): [number[], bigint] => {
+const useAnimationValue = (bigDecimal: BigDecimal, precision: number): string =>
+  useMemo<string>((): string => {
     const shiftDigits = ([integer, fraction = Text.Empty]: string[], shift: number, pad: boolean): [string, string] =>
       shift >= Integer.Zero
         ? [`${integer}${fraction.take(shift).padEnd(Number(pad) && shift, `${Integer.Zero}`)}`, fraction.slice(shift)]
@@ -107,9 +107,8 @@ const useAnimationValue = (bigDecimal: BigDecimal, precision: number): [number[]
     const numberOfZeros: number = Math.max(precision - fraction.length, -precision, Integer.Zero);
     const increase: boolean = BigInt(rest) >= BigInt(`${Integer.Five}`.padEnd(Math.max(rest.length, numberOfZeros), `${Integer.Zero}`));
     const value: bigint = (BigInt(digits) + BigInt(increase)) * BigInt(Integer.Ten) ** BigInt(numberOfZeros);
-    const characters: string = `${minus}${`${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)}`;
 
-    return [[...characters].filter(Pattern.Digit.bind<RegExp>().test).map<number>(Number), BigInt(characters)];
+    return `${minus}${`${value}`.padStart(precision + Integer.One, `${Integer.Zero}`)}`;
   }, [bigDecimal, precision]);
 
 interface UseAnimationValuesOptions {
@@ -124,18 +123,16 @@ export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
   const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
 
-  const previousStart: [number[], bigint] = useAnimationValue(previousValueOnAnimationStart, precision);
-  const previousEnd: [number[], bigint] = useAnimationValue(previousValueOnAnimationEnd, precision);
-  const current: [number[], bigint] = useAnimationValue(currentValue, precision);
-
-  const reduceValues = ([numbers, bigInts]: [number[][], bigint[]], [digits, bigInt]: [number[], bigint]): [number[][], bigint[]] => [
-    [...numbers, digits],
-    [...bigInts, bigInt],
-  ];
+  const previousStart: string = useAnimationValue(previousValueOnAnimationStart, precision);
+  const previousEnd: string = useAnimationValue(previousValueOnAnimationEnd, precision);
+  const current: string = useAnimationValue(currentValue, precision);
 
   // prettier-ignore
   const [digits, bigInts]: Slice<AnimationValues, Integer.Zero, Integer.Two> = [previousStart, previousEnd, current]
-    .reduce<[number[][], bigint[]], Slice<AnimationValues, Integer.Zero, Integer.Two>>(reduceValues, [[], []]);
+    .pipe<Slice<AnimationValues, Integer.Zero, Integer.Two>>((values: string[]): Slice<AnimationValues, Integer.Zero, Integer.Two> => [
+      values.map<number[], Integer.Three>((value: string): number[] => [...value].filter(Pattern.Digit.bind<RegExp>().test).map<number>(Number)),
+      values.map<bigint, Integer.Three>(BigInt),
+    ]);
 
   const numbersOfDigits: [number, number, number] = digits
     .slice<Integer.One>(Integer.One)
