@@ -174,8 +174,8 @@ const NumbersTransition = <
   ]: AnimationValues = useAnimationValues({
     precision,
     currentValue: validValue,
-    previousValueOnAnimationEnd: previousValueOnEnd,
-    previousValueOnAnimationStart: previousValueOnStart.current,
+    previousValueOnEnd,
+    previousValueOnStart: previousValueOnStart.current,
   });
 
   const { hasSignChanged, omitAnimation, restartAnimation, renderAnimation }: AnimationLogic = useAnimationLogic({

@@ -114,17 +114,17 @@ const useAnimationValue = (bigDecimal: BigDecimal, precision: number): string =>
 interface UseAnimationValuesOptions {
   precision: number;
   currentValue: BigDecimal;
-  previousValueOnAnimationEnd: BigDecimal;
-  previousValueOnAnimationStart: BigDecimal;
+  previousValueOnEnd: BigDecimal;
+  previousValueOnStart: BigDecimal;
 }
 
 export type AnimationValues = [[number[], number[], number[]], [bigint, bigint, bigint], [number, number, number]];
 
 export const useAnimationValues = (options: UseAnimationValuesOptions): AnimationValues => {
-  const { precision, currentValue, previousValueOnAnimationEnd, previousValueOnAnimationStart }: UseAnimationValuesOptions = options;
+  const { precision, currentValue, previousValueOnEnd, previousValueOnStart }: UseAnimationValuesOptions = options;
 
-  const previousStart: string = useAnimationValue(previousValueOnAnimationStart, precision);
-  const previousEnd: string = useAnimationValue(previousValueOnAnimationEnd, precision);
+  const previousStart: string = useAnimationValue(previousValueOnStart, precision);
+  const previousEnd: string = useAnimationValue(previousValueOnEnd, precision);
   const current: string = useAnimationValue(currentValue, precision);
 
   // prettier-ignore
