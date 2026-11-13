@@ -927,23 +927,24 @@ const useCubicBezierSolver = (): Solve<CubicBezierEasingFunction> => {
       .call<undefined, [Tuple<number, Integer.Four>, [number, number], number], number[]>(undefined, coefficients, depressedCoefficients, discriminant);
 
   // prettier-ignore
+  const solve = (outputValue: number, [xAxisPoints, yAxisPoints]: CubicBezierEasingFunction): number[] =>
+    yAxisPoints
+      .pipeEach<[Tuple<number, Integer.Four>, [Tuple<number, Integer.Four>, [number, number]], [Tuple<number, Integer.Four>, [number, number], number], number[]]>(
+        calculateCubicCoefficients.bindArgs<(...args: [number, [number, number]]) => Tuple<number, Integer.Four>, Integer.One>(outputValue),
+        calculateDepressedCoefficients,
+        calculateDiscriminant,
+        solveCubicBezier,
+      )
+      .map<number>((value: number): number => Math.roundTo(value, Integer.Six))
+      .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
+      .sort(Number.subtract)
+      .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
+      .map<number>(cubicBezierFunction.bindArgs<(...args: [[number, number], number]) => number, Integer.One>(xAxisPoints));
+
   return (easingFunction: CubicBezierEasingFunction, outputValue: number): number[] =>
     easingFunction
       .map<[number, number], CubicBezierEasingFunction>(mapControlPoints)
-      .pipe<number[]>(([xAxisPoints, yAxisPoints]: CubicBezierEasingFunction): number[] =>
-        yAxisPoints
-          .pipeEach<[Tuple<number, Integer.Four>, [Tuple<number, Integer.Four>, [number, number]], [Tuple<number, Integer.Four>, [number, number], number], number[]]>(
-            calculateCubicCoefficients.bindArgs<(...args: [number, [number, number]]) => Tuple<number, Integer.Four>, Integer.One>(outputValue),
-            calculateDepressedCoefficients,
-            calculateDiscriminant,
-            solveCubicBezier,
-          )
-          .map<number>((value: number): number => Math.roundTo(value, Integer.Six))
-          .filter((solution: number): boolean => solution >= Integer.Zero && solution <= Integer.One)
-          .sort(Number.subtract)
-          .filter((_: number, index: number, { length }: number[]): boolean => !index || length !== Integer.Two)
-          .map<number>(cubicBezierFunction.bindArgs<(...args: [[number, number], number]) => number, Integer.One>(xAxisPoints)),
-      );
+      .pipe<number[]>(solve.bindArgs<(...args: [number, CubicBezierEasingFunction]) => number[], Integer.One>(outputValue));
 };
 
 // prettier-ignore
